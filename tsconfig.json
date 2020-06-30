@@ -2,28 +2,29 @@
     "compilerOptions": {
         "allowSyntheticDefaultImports": true,
         "baseUrl": "",
+        "declaration": true,
+        "declarationDir": "dist/types",
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
         "isolatedModules": true,
+        "module": "commonjs",
         "moduleResolution": "node",
         "noUnusedLocals": true,
         "noUnusedParameters": true,
+        "outDir": "dist",
         "paths": {
-            "@data/*": [
-                "data/*"
-            ],
-            "@app/*": [
+            "@framework/*": [
                 "src/*"
             ],
-            "@framework/*": [
-                "src/framework/*"
-            ],
             "@framework": [
-                "src/framework/index"
+                "src/index"
             ]
         },
+        "removeComments": true,
         "resolveJsonModule": true,
         "sourceMap": true,
-        "target": "ESNext"
-    }
+        "strict": true,
+        "target": "es2018"
+    },
+    "include": ["src"]
 }

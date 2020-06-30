@@ -1,14 +1,14 @@
 import Framework from '@framework';
 import { NodeTemplateFunction } from '@framework/types';
 
-let registered = null;
+let registered: null | Map<string, NodeTemplateFunction> = null;
 
 export const Registry = () => {
     return registered || setRegistered();
 
     function setRegistered() {
         registered = Framework.Settings.registry
-            ? new Map<string, NodeTemplateFunction>(
+            ? new Map(
                   Object.entries(Framework.Settings.registry)
               )
             : new Map();

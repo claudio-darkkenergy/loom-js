@@ -24,7 +24,7 @@ export const Activity: <T>(defaultValue?: T) => ActivityWorkers<T> = <T>(
             handler({ value, ctx });
         });
     };
-    let value: T = defaultValue;
+    let value = defaultValue;
 
     return {
         defaultValue,

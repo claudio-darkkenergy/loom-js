@@ -11,15 +11,17 @@ export const setDynamicNodes = <T extends DynamicTemplateNodesMap>(
         const dynamicNode = node;
         const path = [];
 
-        // Get the full path to the root.
-        do {
-            path.unshift(
-                Array.from(node.parentNode.childNodes).indexOf(
-                    node as ChildNode
-                )
-            );
-            node = node.parentNode;
-        } while (node !== treeWalker.root);
+        if (node.parentNode) {
+            // Get the full path to the root.
+            do {
+                path.unshift(
+                    Array.from(node.parentNode.childNodes).indexOf(
+                        node as ChildNode
+                    )
+                );
+                node = node.parentNode;
+            } while (node !== treeWalker.root && node.parentNode);
+        }
 
         map.set(dynamicNode, path);
     };
@@ -43,7 +45,7 @@ export const setDynamicNodes = <T extends DynamicTemplateNodesMap>(
             tokenRe.test(currentNode.textContent || '')
         ) {
             // Parse text nodes.
-            currentNode.textContent = currentNode.textContent.trim();
+            currentNode.textContent = (currentNode.textContent || '').trim();
             updateMap(currentNode);
         }
     }

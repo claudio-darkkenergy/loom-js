@@ -18,13 +18,14 @@ const templateUpdateStore = new WeakMap<
 >();
 
 export function Template(
+    this: ActivityContext,
     chunks: TemplateTagChunks,
     ...interpolations: TemplateTagValue[]
 ) {
     // The ActivityContext is used to lookup the appropriate template updates,
     // which is mapped to the current render activity.
-    const ctx = this as ActivityContext;
-    let fragment: DocumentFragment;
+    const ctx = this;
+    let fragment: null | DocumentFragment = null;
 
     if (!templateStore.has(chunks)) {
         /* Template initialization */
@@ -32,8 +33,8 @@ export function Template(
     }
 
     if (
-        !templateUpdateStore.has(ctx.liveNodes) ||
-        templateUpdateStore.get(ctx.liveNodes).chunks !== chunks
+        !templateUpdateStore.has(ctx.liveNodes || []) ||
+        templateUpdateStore.get(ctx.liveNodes || [])?.chunks !== chunks
     ) {
         // Store the updates with the chunks.
         initUpdates();
@@ -43,8 +44,8 @@ export function Template(
 
     // DOM updates
     doUpdates();
-
-    return fragment;
+    
+    return fragment ?? document.createDocumentFragment();
 
     function initTemplate() {
         const dynamicNodes = new Map<Node, number[]>();
@@ -67,9 +68,10 @@ export function Template(
     }
 
     function initUpdates() {
-        const { fragmentTemplate, dynamicNodes } = templateStore.get(chunks);
-        fragment = fragmentTemplate.cloneNode(true) as DocumentFragment;
-        const updates: TemplateNodeUpdate[] = Array.from(dynamicNodes).map(
+        const { fragmentTemplate, dynamicNodes } = templateStore.get(chunks) || {};
+        fragment = fragmentTemplate?.cloneNode(true) as DocumentFragment;
+
+        const updates: TemplateNodeUpdate[] = Array.from(dynamicNodes || []).map(
             ([, path]) => {
                 const node = path.reduce(
                     (node, i) => node.childNodes[i],
@@ -90,7 +92,7 @@ export function Template(
 
     function doUpdates() {
         templateUpdateStore
-            .get(ctx.liveNodes)
-            .updates.forEach((update) => update(interpolations));
+            .get(ctx.liveNodes || [])
+            ?.updates.forEach((update) => update(interpolations));
     }
 }

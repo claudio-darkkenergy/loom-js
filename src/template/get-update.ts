@@ -7,12 +7,14 @@ export const getUpdate = (node: ChildNode) => {
     if (node instanceof HTMLElement || node instanceof SVGElement) {
         // Handle Attr Node types.
         return getElementAttributeUpdates(node);
-    } else {
+    } else if (node.parentNode) {
         // Handle Text & Node types.
         return getTextUpdates(
             node.parentNode,
             Array.from(node.parentNode.childNodes).indexOf(node)
         );
+    } else {
+        return () => {};
     }
 };
 
@@ -50,6 +52,10 @@ function getElementAttributeUpdates(
 function getSpecialAttributeUpdate(specialAttr: Attr): TemplateNodeUpdate {
     let nodeUpdate: TemplateNodeUpdate;
     const owner = specialAttr.ownerElement;
+
+    if (!owner) {
+        throw Error(`Template Error -> The attribute owner is null for "${specialAttr}"`);
+    }
 
     switch (specialAttr.nodeName.slice(1)) {
         case 'click':
@@ -104,7 +110,7 @@ function getTextUpdates(parent: Node, indexOfNode: number): TemplateNodeUpdate {
         part: string,
         i: number,
         parts: string[]
-    ) => TemplateNodeUpdate = (part, i, parts) => {
+    ) => TemplateNodeUpdate | undefined = (part, i, parts) => {
         if (i >= parts.length - 1) {
             return;
         }
@@ -159,12 +165,12 @@ function getTextUpdates(parent: Node, indexOfNode: number): TemplateNodeUpdate {
         };
     };
     let liveChildNodes = [parent.childNodes[indexOfNode]];
-    const updates: TemplateNodeUpdate[] = (
+    const updates = (
         parent.childNodes[indexOfNode].textContent || ''
     )
         .split(TOKEN)
         .map(getNestedUpdates)
-        .filter((update) => !!update);
+        .filter((update) => !!update) as TemplateNodeUpdate[];
 
     return (values) => {
         updates.forEach((update) => update(values));

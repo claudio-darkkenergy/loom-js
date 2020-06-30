@@ -34,7 +34,7 @@ export type PlainObject<T = any> = { [key: string]: T };
 
 /* Template */
 export type DynamicTemplateNodesMap = Map<Node, number[]>;
-export type TemplateEventHandler = MouseEventListener;
+export type TemplateEventHandler = EventListenerOrEventListenerObject;
 export type TemplateNodeUpdate = (values: TemplateTagValue[]) => void;
 
 export interface TemplateOptions {
@@ -91,6 +91,8 @@ export type MouseEventListener = <T = Element>(
     ev: SyntheticMouseEvent<T>
 ) => void;
 
+export type SyntheticMouseEventListener = (this: HTMLElement, ev: MouseEvent) => any;
+
 export interface SyntheticMouseEvent<T> extends MouseEvent {
     target: EventTarget & T;
 }
@@ -118,12 +120,12 @@ export interface ActivityMeta {
 export type ActivityUpdate<T = any> = (value: T) => void;
 
 export interface ActivityValueProps<T> {
-    value: T;
+    value?: T;
 }
 
 export interface ActivityWorkers<T> {
-    defaultValue: T;
+    defaultValue?: T;
     effect: ActivityEffect<T>;
     update: ActivityUpdate<T>;
-    value: T;
+    value?: T;
 }
