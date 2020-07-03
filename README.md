@@ -43,6 +43,7 @@ Use `Component` to register a template render function. It takes a template func
         **Arguments**
 
         - type `TemplateLiteral` = `` `my template literal` ``
+            - **Note** - The template literal can contain any number of top-level nodes, including `Text`.
 
         **Returns** `DocumentFragment`
 
