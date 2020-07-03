@@ -1,45 +1,197 @@
-**Edit a file, create a new file, and clone from Bitbucket in under 2 minutes**
+[TOC]
 
-When you're done, you can delete the content in this README and update the file with details for others getting started with your repository.
+# Nectar JS
 
-*We recommend that you open this README in another tab as you perform the tasks below. You can [watch our video](https://youtu.be/0ocf7u76WSo) for a full demo of all the steps in this tutorial. Open the video in a new tab to avoid leaving Bitbucket.*
+> (Beta Release) A lightweight, functional JavaScript framework for building component-based reactive applications.
 
----
+## Install
 
-## Edit a file
+```bash
+npm i @darkkenergy/nectar -S
+```
 
-You’ll start by editing this README file to learn how to edit a file in Bitbucket.
+## Inclusion
 
-1. Click **Source** on the left side.
-2. Click the README.md link from the list of files.
-3. Click the **Edit** button.
-4. Delete the following text: *Delete this line to make a change to the README from Bitbucket.*
-5. After making your change, click **Commit** and then **Commit** again in the dialog. The commit page will open and you’ll see the change you just made.
-6. Go back to the **Source** page.
+```js
+// CommonJS
+const Nectar = require('@darkkenergy/nectar');
 
----
+// ES6
+import Nectar from '@darkkenergy/nectar';
+```
 
-## Create a file
+## Concepts
 
-Next, you’ll add a new file to this repository.
+### Components
 
-1. Click the **New file** button at the top of the **Source** page.
-2. Give the file a filename of **contributors.txt**.
-3. Enter your name in the empty file space.
-4. Click **Commit** and then **Commit** again in the dialog.
-5. Go back to the **Source** page.
+A component uses a "tagged template" (w/ [template literal](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) syntax) - the template render function - to define its template.
 
-Before you move on, go ahead and explore the repository. You've already seen the **Source** page, but check out the **Commits**, **Branches**, and **Settings** pages.
+Use `Component` to register a template render function. It takes a template function as its argument and passes it a template render function with context (thanks to `ctx`, explained later) as its first argument.
 
----
+**API** `Component(NodeTemplateFunction)`
+**Inclusion** `import { Component } from '@darkkenergy/nectar';`
+**Arguments**
+- type `NodeTemplateFunction` = `(Template, props) => DocumentFragment`
+    - `Template` (can be named anything) - the template render function ("tagged template") with context (`ctx`)."
+        - Initializes a component template.
+        - Once initialized, it handles updates to the same component context (thanks to `ctx`, explained later.)
+        ***
 
-## Clone a repository
+        **Arguments**
+            - type `TemplateLiteral` = `` `my template literal` ``
+        **Returns** `DocumentFragment`
+    - `props` (can be named anything or destructured) - an object literal containing dynamic property values for enriching your component.
 
-Use these steps to clone from SourceTree, our client for using the repository command-line free. Cloning allows you to work on your files locally. If you don't yet have SourceTree, [download and install first](https://www.sourcetreeapp.com/). If you prefer to clone from the command line, see [Clone a repository](https://confluence.atlassian.com/x/4whODQ).
 
-1. You’ll see the clone button under the **Source** heading. Click that button.
-2. Now click **Check out in SourceTree**. You may need to create a SourceTree account or log in.
-3. When you see the **Clone New** dialog in SourceTree, update the destination path and name if you’d like to and then click **Clone**.
-4. Open the directory you just created to see your repository’s files.
+**Returns** `ComponentWrapper`
 
-Now that you're more familiar with your Bitbucket repository, go ahead and add a new file locally. You can [push your change back to Bitbucket with SourceTree](https://confluence.atlassian.com/x/iqyBMg), or you can [add, commit,](https://confluence.atlassian.com/x/8QhODQ) and [push from the command line](https://confluence.atlassian.com/x/NQ0zDQ).
+**Quick Example**
+```js
+const Button = Component(
+    (Template, props) => Template`
+        <button type="${props.type}">${props.label}</button>
+    `
+);
+```
+
+### Activities (reactivity)
+
+An activity uses a pub/sub pattern at its core. This concept directly supports reactive behavior within your component ecosystem.
+
+When instantiating a new `Activity`, you may provide a default value to the activity. One or more effects may be set within your component ecosystem. Then by hooking an activity update to some event, all subscribed effects will be called in order of "first-in, first-out".
+
+**API** `new Activity(defaultValue)`
+**Inclusion** `import { Activity } from '@darkkenergy/nectar';`
+**Arguments**
+- `defaultValue` - any type of value which is unchanged throughout the life of the activity.
+
+**Returns** `ActivityWorkers`
+- **Interface**
+    _Properties_
+    - `defaultValue`
+        - Any type of value which is unchanged throughout the life of the activity.
+    - `value`
+        - A getter which always returns the current value, which is initially `defaultValue`.
+        - **Caveat** - If the current value needs to be accessed within an event handler, a `const` should set to `value` from within that handler. Since `value` is a getter, if the `const` is set outside the handler, the value may be stale.
+    
+    _Methods_
+    - `effect(({ ctx, value }) => TemplateTagValue)`
+        - An effect is called at least once per use, when it's first introducted during the component render process. Additionally, it's called once per activity update.
+        - `ctx` - the effect context.
+            - An activity will cache all rendered components of the effect so that the component only updates after the initial render, avoiding a full component render per subsequent activity update.
+            - **Caveat** - there is one implementation detail that is needed for this functionality to work - `ctx` must be passed to all components as their last argument.
+        - `value` - the current activity value.
+        
+    - `update(newValue)`
+        - Calling this method will trigger all subscribed effects from the related activity, passing the new value to each effect.
+
+**Quick Example**
+```js
+const defaultValue = 0;
+const ButtonClickActivity = new Activity(defaultValue);
+```
+
+## Examples
+
+### App Initialization (bootstrapping the app)
+
+```js
+import Nectar from '@darkkenergy/nectar';
+
+import * as RegisteredComponents from './component-bootstrap';
+import { Page } from './page';
+import content from './content.json';
+
+const rootNode = document.querySelector('#page-content');
+const app = new Nectar({
+    rootNode,
+    settings: {
+        registry: RegisteredComponents
+    }
+});
+
+app.load({ content, template: Page }).render();
+```
+
+### Components
+
+**Simple example**
+```js
+import { Component } from '@darkkenergy/nectar';
+
+const Button = Component(
+    (Template) => Template`
+        <button type="button">Click me!</button>
+    `
+);
+
+export { Button };
+```
+
+**Props & interpolation**
+Props passed into a component can be accessed via the second argument of the `Component`'s function argument.
+Interpolation is achieved using the JS ES6 standard [template literal](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) syntax
+
+```js
+import { Component } from '@darkkenergy/nectar';
+
+const Button = Component(
+    (Template, { className, label, type = 'button' }) => Template`
+        <button class="${className}" type="${type}">${label}</button>
+    `
+);
+
+const SuperButton = Component(
+    (Template) => Template`
+        ${
+            Button({
+                className: 'super-button',
+                label: 'Super Button'
+            })
+        }
+    `
+);
+```
+
+**Activity example**
+```js
+import { Activity, Component } from '@darkkenergy/nectar';
+
+// Initialize a new Activity with a default value.
+const ButtonClickActivity = Activity(0);
+console.log(ButtonClickActivity.value); // -> 0
+
+// We'll update this label, reactively, as an effect of the activity.
+const BlueLabel = Component(
+    (Template, { label }) => `
+        <span class="label blue">${ label }<span>
+    `
+);
+
+const Button = Component(
+    (Template) => {
+        const { effect } = ButtonClickActivity;
+        const onClick = () => {
+            // Because `value` is a getter, we need to get the value for each click in realtime.
+            // If we get `value` outside of the click handler, we'll update the stale value every time.
+            const { value } = ButtonClickActivity;
+            update(++value);
+            console.log(ButtonClickActivity.value); // increments by 1 for every button click
+        };
+        
+        // The effect is run immediately on first render and runs every time thereafter when the related activity is updated.
+        // `ctx` must be passed to the component as the last argument to maintain the proper context.
+        // `value` holds the current value of the activity.
+        return Template`
+            <button $click="${onClick}" type="button">
+                ${effect(({ ctx, value }) =>
+                    BlueLabel({ label: `Clicked count: ${value}` }, ctx)
+                )}
+            </button>
+        `
+);
+```
+
+## Recognition
+
+I'd like to thank Andrea Giammarchi for providing [the algorithm](https://gist.github.com/WebReflection/d3aad260ac5007344a0731e797c8b1a4) that made this solution possible. It is also at the core of [hyper(HTML)](https://github.com/WebReflection/hyperHTML), a light & fast virtual DOM alternative that Andrea created.

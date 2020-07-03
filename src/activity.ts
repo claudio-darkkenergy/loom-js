@@ -31,7 +31,6 @@ export const Activity: <T>(defaultValue?: T) => ActivityWorkers<T> = <T>(
         effect,
         update,
         get value() {
-            console.log('current value', value);
             return value;
         }
     };

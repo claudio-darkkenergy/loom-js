@@ -1,5 +1,5 @@
 {
-    "name": "nectar.js",
+    "name": "@darkkenergy/nectar",
     "version": "1.0.0",
     "description": "(Beta Release) A lightweight, functional JavaScript framework for building component-based reactive applications.",
     "main": "dist/nectar.js",
