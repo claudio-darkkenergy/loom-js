@@ -1,5 +1,5 @@
 import Framework from '@framework';
-import { NodeTemplateFunction } from '@framework/types';
+import { NodeTemplateFunction } from '@framework/index.d';
 
 let registered: null | Map<string, NodeTemplateFunction> = null;
 
@@ -8,9 +8,7 @@ export const Registry = () => {
 
     function setRegistered() {
         registered = Framework.Settings.registry
-            ? new Map(
-                  Object.entries(Framework.Settings.registry)
-              )
+            ? new Map(Object.entries(Framework.Settings.registry))
             : new Map();
 
         return registered;

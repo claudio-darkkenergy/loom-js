@@ -1,7 +1,11 @@
 import classNames from 'classnames';
 
-import { ActivityContext, ComponentFunction } from '@framework/types';
-import { NodeTemplateFunctionProps, PlainObject } from '@framework/types';
+import {
+    ActivityContext,
+    ComponentFunction,
+    NodeTemplateFunctionProps,
+    PlainObject
+} from '@framework/index.d';
 
 export const Styled = <T>(
     Component: ComponentFunction<T>,

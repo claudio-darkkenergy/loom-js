@@ -6,7 +6,7 @@ import {
     TemplateTagChunks,
     TemplateTagValue,
     TemplateUpdateStoreValue
-} from '@framework/types';
+} from '@framework/index.d';
 import { getUpdate } from './get-update';
 import { setDynamicNodes } from './set-dynamic-nodes';
 
@@ -44,7 +44,7 @@ export function Template(
 
     // DOM updates
     doUpdates();
-    
+
     return fragment ?? document.createDocumentFragment();
 
     function initTemplate() {
@@ -68,19 +68,20 @@ export function Template(
     }
 
     function initUpdates() {
-        const { fragmentTemplate, dynamicNodes } = templateStore.get(chunks) || {};
+        const { fragmentTemplate, dynamicNodes } =
+            templateStore.get(chunks) || {};
         fragment = fragmentTemplate?.cloneNode(true) as DocumentFragment;
 
-        const updates: TemplateNodeUpdate[] = Array.from(dynamicNodes || []).map(
-            ([, path]) => {
-                const node = path.reduce(
-                    (node, i) => node.childNodes[i],
-                    fragment as Node
-                );
+        const updates: TemplateNodeUpdate[] = Array.from(
+            dynamicNodes || []
+        ).map(([, path]) => {
+            const node = path.reduce(
+                (node, i) => node.childNodes[i],
+                fragment as Node
+            );
 
-                return getUpdate(node as ChildNode);
-            }
-        );
+            return getUpdate(node as ChildNode);
+        });
 
         ctx.liveNodes = Array.from(fragment.childNodes);
 

@@ -1,9 +1,12 @@
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const path = require('path');
 const isProd = process.env.NODE_ENV === 'production';
 console.log(`building... ${isProd ? 'production' : 'development'}`);
 
 module.exports = {
-    entry: 'src/index.ts',
+    entry: {
+        index: 'src/index.ts'
+    },
     module: {
         rules: [
             {
@@ -18,10 +21,13 @@ module.exports = {
         fs: 'empty'
     },
     output: {
-        filename: 'nectar.js',
+        filename: '[name].js',
         libraryTarget: 'commonjs',
         path: path.resolve(__dirname, 'dist')
     },
+    plugins: [
+        new CleanWebpackPlugin()
+    ],
     resolve: {
         alias: {
             '@framework': 'src/index',

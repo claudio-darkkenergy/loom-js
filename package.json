@@ -2,11 +2,13 @@
     "name": "@darkkenergy/nectar",
     "version": "1.0.0",
     "description": "(Beta Release) A lightweight, functional JavaScript framework for building component-based reactive applications.",
-    "main": "dist/nectar.js",
+    "main": "dist/index.js",
     "devDependencies": {
         "@types/classnames": "^2.2.10",
         "@types/webpack": "^4.41.10",
         "@types/webpack-dev-server": "^3.10.1",
+        "clean-webpack-plugin": "^3.0.0",
+        "prettier": "^2.0.5",
         "ts-loader": "^6.2.2",
         "typescript": "^3.9.3",
         "webpack": "^4.42.1",
@@ -16,8 +18,11 @@
     },
     "scripts": {
         "build": "webpack --config webpack.prod.js",
+        "format": "prettier",
+        "prepublish": "npm run build",
         "start": "webpack-dev-server --open --config webpack.dev.js",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "tsc": "tsc"
     },
     "author": "Claudio Nunez Jr",
     "license": "ISC",
@@ -25,5 +30,6 @@
         "classnames": "^2.2.6"
     },
     "repository": "https://claudio-darkkenergy@bitbucket.org/darkkenergy/nectar.git",
-    "sideEffects": false
+    "sideEffects": false,
+    "types": "dist/types"
 }

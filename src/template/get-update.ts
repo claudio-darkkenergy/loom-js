@@ -1,5 +1,5 @@
 import { config } from '@framework';
-import { TemplateNodeUpdate, TemplateTagValue } from '@framework/types';
+import { TemplateNodeUpdate, TemplateTagValue } from '@framework/index.d';
 
 const { TOKEN, tokenRe } = config;
 
@@ -54,7 +54,9 @@ function getSpecialAttributeUpdate(specialAttr: Attr): TemplateNodeUpdate {
     const owner = specialAttr.ownerElement;
 
     if (!owner) {
-        throw Error(`Template Error -> The attribute owner is null for "${specialAttr}"`);
+        throw Error(
+            `Template Error -> The attribute owner is null for "${specialAttr}"`
+        );
     }
 
     switch (specialAttr.nodeName.slice(1)) {
@@ -165,9 +167,7 @@ function getTextUpdates(parent: Node, indexOfNode: number): TemplateNodeUpdate {
         };
     };
     let liveChildNodes = [parent.childNodes[indexOfNode]];
-    const updates = (
-        parent.childNodes[indexOfNode].textContent || ''
-    )
+    const updates = (parent.childNodes[indexOfNode].textContent || '')
         .split(TOKEN)
         .map(getNestedUpdates)
         .filter((update) => !!update) as TemplateNodeUpdate[];
