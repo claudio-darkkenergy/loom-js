@@ -3,29 +3,24 @@
         "allowSyntheticDefaultImports": true,
         "baseUrl": "",
         "declaration": true,
-        "declarationMap": true,
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
         "isolatedModules": true,
-        "module": "commonjs",
+        "module": "es6",
         "moduleResolution": "node",
         "noUnusedLocals": true,
         "noUnusedParameters": true,
-        "outDir": "dist/types",
-        "paths": {
-            "@framework/*": [
-                "src/*"
-            ],
-            "@framework": [
-                "src/index"
-            ]
-        },
+        "outDir": "dist",
         "removeComments": true,
         "rootDir": "src",
         "sourceMap": true,
         "strict": true,
         "target": "es2018"
     },
+    "exclude": [
+        "dist",
+        "node_modules"
+    ],
     "include": [
         "src"
     ]

@@ -1,5 +1,5 @@
-import { Template } from '@framework';
-import { ComponentWrapper } from '@framework/index.d';
+import { Template } from './template';
+import { ComponentWrapper } from './index.d';
 
 export const Component: ComponentWrapper = (template) => (
     props = {},

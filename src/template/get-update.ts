@@ -1,5 +1,5 @@
-import { config } from '@framework';
-import { TemplateNodeUpdate, TemplateTagValue } from '@framework/index.d';
+import { config } from '../config';
+import { TemplateNodeUpdate, TemplateTagValue } from '../index.d';
 
 const { TOKEN, tokenRe } = config;
 

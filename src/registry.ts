@@ -1,5 +1,5 @@
-import Framework from '@framework';
-import { NodeTemplateFunction } from '@framework/index.d';
+import { Framework } from './framework';
+import { NodeTemplateFunction } from './index.d';
 
 let registered: null | Map<string, NodeTemplateFunction> = null;
 

@@ -4,7 +4,7 @@ import {
     TemplateSettings
 } from './index.d';
 
-export default class Framework {
+export class Framework {
     static Settings: FrameworkSettings = {
         debug: false
     };

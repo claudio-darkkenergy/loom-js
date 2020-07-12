@@ -4,7 +4,7 @@ import {
     ActivityHandler,
     ActivityUpdate,
     ActivityWorkers
-} from '@framework/index.d';
+} from './index.d';
 
 export const Activity: <T>(defaultValue?: T) => ActivityWorkers<T> = <T>(
     defaultValue?: T

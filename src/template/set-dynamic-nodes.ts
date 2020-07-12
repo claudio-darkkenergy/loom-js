@@ -1,5 +1,5 @@
-import { config } from '@framework';
-import { DynamicTemplateNodesMap } from '@framework/index.d';
+import { config } from '../config';
+import { DynamicTemplateNodesMap } from '../index.d';
 
 const { tokenRe } = config;
 

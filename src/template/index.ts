@@ -1,4 +1,4 @@
-import { config } from '@framework';
+import { config } from '../config';
 import {
     ActivityContext,
     TemplateNodeUpdate,
@@ -6,7 +6,7 @@ import {
     TemplateTagChunks,
     TemplateTagValue,
     TemplateUpdateStoreValue
-} from '@framework/index.d';
+} from '../index.d';
 import { getUpdate } from './get-update';
 import { setDynamicNodes } from './set-dynamic-nodes';
 

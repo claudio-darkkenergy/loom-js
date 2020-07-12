@@ -1,35 +1,34 @@
 {
-    "name": "@darkkenergy/nectar",
-    "version": "1.0.0",
+    "author": "Claudio Nunez Jr",
     "description": "(Beta Release) A lightweight, functional JavaScript framework for building component-based reactive applications.",
-    "main": "dist/index.js",
     "devDependencies": {
         "@types/classnames": "^2.2.10",
-        "@types/webpack": "^4.41.10",
-        "@types/webpack-dev-server": "^3.10.1",
-        "clean-webpack-plugin": "^3.0.0",
+        "@types/rollup": "^0.54.0",
         "prettier": "^2.0.5",
-        "ts-loader": "^6.2.2",
-        "typescript": "^3.9.3",
-        "webpack": "^4.42.1",
-        "webpack-cli": "^3.3.11",
-        "webpack-dev-server": "^3.11.0",
-        "webpack-merge": "^4.2.2"
+        "rollup": "^2.21.0",
+        "rollup-plugin-terser": "^6.1.0",
+        "rollup-plugin-typescript2": "^0.27.1",
+        "typescript": "^3.9.3"
     },
-    "scripts": {
-        "build": "webpack --config webpack.prod.js",
-        "format": "prettier",
-        "prepublish": "npm run build",
-        "start": "webpack-dev-server --open --config webpack.dev.js",
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "tsc": "tsc"
-    },
-    "author": "Claudio Nunez Jr",
-    "license": "ISC",
     "dependencies": {
         "classnames": "^2.2.6"
     },
-    "repository": "https://claudio-darkkenergy@bitbucket.org/darkkenergy/nectar.git",
-    "sideEffects": false,
-    "types": "dist/types"
+    "license": "ISC",
+    "main": "dist/index.js",
+    "module": "dist/index.es.js",
+    "name": "@darkkenergy/nectar",
+    "repository": {
+        "type": "git",
+        "url": "https://claudio-darkkenergy@bitbucket.org/darkkenergy/nectar.git"
+    },
+    "scripts": {
+        "build": "rollup -c",
+        "format": "prettier",
+        "prepublish": "npm run build",
+        "start": "rollup -c -w",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "tsc": "tsc --transpileOnly"
+    },
+    "types": "dist/index.d.ts",
+    "version": "1.0.0-beta.0"
 }
