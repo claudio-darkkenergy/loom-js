@@ -13,6 +13,10 @@
     "dependencies": {
         "classnames": "^2.2.6"
     },
+    "files": [
+        "dist",
+        "dist/index.js"
+    ],
     "license": "ISC",
     "main": "dist/index.js",
     "module": "dist/index.es.js",

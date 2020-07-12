@@ -17,7 +17,7 @@ npm i @darkkenergy/nectar -S
 const Nectar = require('@darkkenergy/nectar');
 
 // ES6
-import Nectar from '@darkkenergy/nectar';
+import * as Nectar from '@darkkenergy/nectar';
 ```
 
 ## Concepts
@@ -34,21 +34,21 @@ Use `Component` to register a template render function. It takes a template func
 
 **Arguments**
 
-- type `NodeTemplateFunction` = `(Template, props) => DocumentFragment`
-    
-    - `Template` (can be named anything) - the template render function ("tagged template") with context (`ctx`)."
-        - Initializes a component template.
-        - Once initialized, it handles updates to the same component context (thanks to `ctx`, explained later.)
+-   type `NodeTemplateFunction` = `(Template, props) => DocumentFragment`
+
+    -   `Template` (can be named anything) - the template render function ("tagged template") with context (`ctx`)."
+
+        -   Initializes a component template.
+        -   Once initialized, it handles updates to the same component context (thanks to `ctx`, explained later.)
 
         **Arguments**
 
-        - type `TemplateLiteral` = `` `my template literal` ``
-            - **Note** - The template literal can contain any number of top-level nodes, including `Text`.
+        -   type `TemplateLiteral` = `` `my template literal` ``
+            -   **Note** - The template literal can contain any number of top-level nodes, including `Text`.
 
         **Returns** `DocumentFragment`
 
-    - `props` (can be named anything or destructured) - an object literal containing dynamic property values for enriching your component.
-
+    -   `props` (can be named anything or destructured) - an object literal containing dynamic property values for enriching your component.
 
 **Returns** `ComponentWrapper` The callable component function.
 
@@ -74,31 +74,30 @@ When instantiating a new `Activity`, you may provide a default value to the acti
 
 **Arguments**
 
-- `defaultValue` - any type of value which is unchanged throughout the life of the activity.
+-   `defaultValue` - any type of value which is unchanged throughout the life of the activity.
 
 **Returns** `ActivityWorkers`
 
-- **Interface**
+-   **Interface**
 
     _Properties_
 
-    - `defaultValue`
-        - Any type of value which is unchanged throughout the life of the activity.
-    - `value`
-        - A getter which always returns the current value, which is initially `defaultValue`.
-        - **Caveat** - If the current value needs to be accessed within an event handler, a `const` should set to `value` from within that handler. Since `value` is a getter, if the `const` is set outside the handler, the value may be stale.
+    -   `defaultValue`
+        -   Any type of value which is unchanged throughout the life of the activity.
+    -   `value`
+        -   A getter which always returns the current value, which is initially `defaultValue`.
+        -   **Caveat** - If the current value needs to be accessed within an event handler, a `const` should set to `value` from within that handler. Since `value` is a getter, if the `const` is set outside the handler, the value may be stale.
 
     _Methods_
 
-    - `effect(({ ctx, value }) => TemplateTagValue)`
-        - An effect is called at least once per use, when it's first introducted during the component render process. Additionally, it's called once per activity update.
-        - `ctx` - the effect context.
-            - An activity will cache all rendered components of the effect so that the component only updates after the initial render, avoiding a full component render per subsequent activity update.
-            - **Caveat** - there is one implementation detail that is needed for this functionality to work - `ctx` must be passed to all components as their last argument.
-        - `value` - the current activity value.
-        
-    - `update(newValue)`
-        - Calling this method will trigger all subscribed effects from the related activity, passing the new value to each effect.
+    -   `effect(({ ctx, value }) => TemplateTagValue)`
+        -   An effect is called at least once per use, when it's first introducted during the component render process. Additionally, it's called once per activity update.
+        -   `ctx` - the effect context.
+            -   An activity will cache all rendered components of the effect so that the component only updates after the initial render, avoiding a full component render per subsequent activity update.
+            -   **Caveat** - there is one implementation detail that is needed for this functionality to work - `ctx` must be passed to all components as their last argument.
+        -   `value` - the current activity value.
+    -   `update(newValue)`
+        -   Calling this method will trigger all subscribed effects from the related activity, passing the new value to each effect.
 
 **Quick Example**
 
@@ -112,14 +111,14 @@ const ButtonClickActivity = new Activity(defaultValue);
 ### App Initialization (bootstrapping the app)
 
 ```js
-import Nectar from '@darkkenergy/nectar';
+import { Framework } from '@darkkenergy/nectar';
 
 import * as RegisteredComponents from './component-bootstrap';
 import { Page } from './page';
 import content from './content.json';
 
 const rootNode = document.querySelector('#page-content');
-const app = new Nectar({
+const app = new Framework({
     rootNode,
     settings: {
         registry: RegisteredComponents
@@ -161,12 +160,10 @@ const Button = Component(
 
 const SuperButton = Component(
     (Template) => Template`
-        ${
-            Button({
-                className: 'super-button',
-                label: 'Super Button'
-            })
-        }
+        ${Button({
+            className: 'super-button',
+            label: 'Super Button'
+        })}
     `
 );
 ```
@@ -197,7 +194,7 @@ const Button = Component(
             update(++value);
             console.log(ButtonClickActivity.value); // increments by 1 for every button click
         };
-        
+
         // The effect is run immediately on first render and runs every time thereafter when the related activity is updated.
         // `ctx` must be passed to the component as the last argument to maintain the proper context.
         // `value` holds the current value of the activity.
