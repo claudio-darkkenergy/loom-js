@@ -17,6 +17,9 @@
     "main": "dist/index.js",
     "module": "dist/index.es.js",
     "name": "@darkkenergy/nectar",
+    "publishConfig": {
+        "access": "public"
+    },
     "repository": {
         "type": "git",
         "url": "https://claudio-darkkenergy@bitbucket.org/darkkenergy/nectar.git"
