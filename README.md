@@ -51,13 +51,12 @@ The app is where you first introduce your component ecosystem (one or more compo
 import { Framework, Registry } from 'nectar';
 import { SuperButton } from './super-button';
 
-const registeredComponents = { SuperButton };
 const rootNode = document.querySelector('#page-content');
 
 const app = new Framework({
     rootNode,
     settings: {
-        registry: RegisteredComponents
+        registry: { SuperButton }
     }
 });
 
