@@ -1,7 +1,7 @@
 import { Framework } from './framework';
-import { NodeTemplateFunction } from './index.d';
+import { ComponentFunction } from './index.d';
 
-let registered: null | Map<string, NodeTemplateFunction> = null;
+let registered: null | Map<string, ComponentFunction> = null;
 
 export const Registry = () => {
     return registered || setRegistered();

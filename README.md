@@ -36,7 +36,7 @@ The app is where you first introduce your component ecosystem (one or more compo
 
     -   `rootNode` - Any node that your app's component ecosystem will eventually be appended to once the initial render is complete.
 
-    -   `settings` - type `FrameworkSettings` = `{ registry: { [key:string]: NodeTemplateFunction; }`
+    -   `settings` - type `FrameworkSettings` = `{ registry: { [key:string]: ComponentFunction; }`
 
         -   `registry` - An object literal with a key-to-component mapping.
             -   The key is a string with the exact name of the component (CamelCased), and the value is a Nectar Component.
@@ -97,7 +97,7 @@ Use `Component` to register a template render function. It takes a template func
 
     -   `props` (can be named anything or destructured) - an object literal containing dynamic property values for enriching your component.
 
-**Returns** `ComponentWrapper` The callable component function.
+**Returns** `ComponentFunction` The callable component function.
 
 **Quick Example**
 
