@@ -22,6 +22,53 @@ import * as Nectar from '@darkkenergy/nectar';
 
 ## Concepts
 
+### Bootstrapping your application
+
+The app is where you first introduce your component ecosystem (one or more components that will drive your application). Bootstrapping is the process where you create and configure your app.
+
+**API** `new Framework(TemplateOptions)`
+
+**Inclusion** `import { Framework } from '@darkkenergy/nectar';`
+
+**Arguments**
+
+-   interface `TemplateOptions` = `{ rootNode: Node; settings?: FrameworkSettings; }`
+
+    -   `rootNode` - Any node that your app's component ecosystem will eventually be appended to once the initial render is complete.
+
+    -   `settings` - type `FrameworkSettings` = `{ registry: { [key:string]: ComponentFunction; }`
+
+        -   `registry` - An object literal with a key-to-component mapping.
+            -   The key is a string with the exact name of the component (CamelCased), and the value is a Nectar Component.
+            -   A lookup can later be made against a registry Map, which is baked into the app. To access a component called `SuperButton`, pass a key as a string with the value of the component's name - `Registry().get('SuperButton')(props)` - and a set of props the component is expecting.
+            -   An application registry allows future direct access to components without having to import them.
+            -   The idea behind this setting is to pre-import known components to be able to access them later in a dynamic manner - they will be available to the application immediately after the app has been instantiated.
+            -   **Use case** - If you've every had to access a Component dynamically, lazy-loading wasn't an option, and a switch statement is just too cumbersome to maintain as your dynamic component bucket keeps growing or changing.
+
+**Quick Example**
+
+```js
+import { Framework, Registry } from 'nectar';
+import { SuperButton } from './super-button';
+
+const registeredComponents = { SuperButton };
+const rootNode = document.querySelector('#page-content');
+
+const app = new Framework({
+    rootNode,
+    settings: {
+        registry: RegisteredComponents
+    }
+});
+
+// We can access registered components now that we've instatiated the app.
+const superButton = Registry().get('SuperButton')({
+    label: 'Registered Super Button'
+});
+
+console.log('<super-button />', superButton);
+```
+
 ### Components
 
 A component uses a "tagged template" (w/ [template literal](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) syntax) - the template render function - to define its template.
@@ -50,7 +97,7 @@ Use `Component` to register a template render function. It takes a template func
 
     -   `props` (can be named anything or destructured) - an object literal containing dynamic property values for enriching your component.
 
-**Returns** `ComponentWrapper` The callable component function.
+**Returns** `ComponentFunction` The callable component function.
 
 **Quick Example**
 
