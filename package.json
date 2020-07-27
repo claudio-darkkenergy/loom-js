@@ -37,5 +37,5 @@
         "tsc": "tsc --transpileOnly"
     },
     "types": "dist/index.d.ts",
-    "version": "1.0.0-beta.1"
+    "version": "1.0.0-beta.3"
 }

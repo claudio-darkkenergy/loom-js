@@ -1,9 +1,74 @@
+// Accepted events: https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers
+// Additional possible supported events: https://developer.mozilla.org/en-US/docs/Web/Events
+const events = [
+    'abort',
+    'animationcancel',
+    'animationend',
+    'animationiteration',
+    'auxclick',
+    'blur',
+    'cancel',
+    'canplay',
+    'canplaythrough',
+    'change',
+    'click',
+    'close',
+    'contextmenu',
+    'cuechange',
+    'dblclick',
+    'durationchange',
+    'ended',
+    'error',
+    'focus',
+    'formdata',
+    'gotpointercapture',
+    'input',
+    'invalid',
+    'keydown',
+    'keypress',
+    'keyup',
+    'load',
+    'loadeddata',
+    'loadedmetadata',
+    'loadend',
+    'loadstart',
+    'lostpointercapture',
+    'mousedown',
+    'mouseenter',
+    'mouseleave',
+    'mousemove',
+    'mouseout',
+    'mouseover',
+    'mouseup',
+    'pause',
+    'play',
+    'playing',
+    'pointercancel',
+    'pointerdown',
+    'pointerenter',
+    'pointerleave',
+    'pointermove',
+    'pointerout',
+    'pointerover',
+    'pointerup',
+    'reset',
+    'resize',
+    'scroll',
+    'select',
+    'selectionchange',
+    'selectstart',
+    'submit',
+    'touchcancel',
+    'touchstart',
+    'transitioncancel',
+    'transitionend',
+    'wheel'
+];
 const TOKEN = '⚡';
 const tokenRe = new RegExp(TOKEN);
 
-const config = {
+export const config = {
     TOKEN,
-    tokenRe
+    tokenRe,
+    events
 };
-
-export { config };
