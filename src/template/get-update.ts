@@ -1,7 +1,7 @@
 import { config } from '../config';
 import { TemplateNodeUpdate, TemplateTagValue } from '../index.d';
 
-const { TOKEN, tokenRe } = config;
+const { events, TOKEN, tokenRe } = config;
 
 export const getUpdate = (node: ChildNode) => {
     if (node instanceof HTMLElement || node instanceof SVGElement) {
@@ -59,25 +59,9 @@ function getSpecialAttributeUpdate(specialAttr: Attr): TemplateNodeUpdate {
         );
     }
 
-    switch (specialAttr.nodeName.slice(1)) {
-        case 'click':
-            nodeUpdate = (values) => {
-                const valueClick = values.shift();
+    const specialAttrName = specialAttr.nodeName.slice(1);
 
-                if (typeof valueClick === 'function') {
-                    (owner as HTMLElement).addEventListener(
-                        'click',
-                        valueClick,
-                        false
-                    );
-                } else {
-                    throw Error(
-                        `Template Error -> Invalid attribute value used, "${valueClick}"`
-                    );
-                }
-            };
-
-            break;
+    switch (specialAttrName) {
         case 'height':
             nodeUpdate = (values) => {
                 const valueHeight = values.shift() as string;
@@ -93,9 +77,27 @@ function getSpecialAttributeUpdate(specialAttr: Attr): TemplateNodeUpdate {
 
             break;
         default:
-            throw Error(
-                `Template Error -> Invalid attribute value used, "${specialAttr.value}"`
-            );
+            if (events?.includes(specialAttrName)) {
+                nodeUpdate = (values) => {
+                    const valueClick = values.shift();
+
+                    if (typeof valueClick === 'function') {
+                        (owner as HTMLElement).addEventListener(
+                            specialAttrName,
+                            valueClick,
+                            false
+                        );
+                    } else {
+                        throw Error(
+                            `Template Error -> Invalid attribute value used, "${valueClick}"`
+                        );
+                    }
+                };
+            } else {
+                throw Error(
+                    `Template Error -> Invalid attribute used, "${specialAttrName}"`
+                );
+            }
     }
 
     owner.removeAttributeNode(specialAttr);
