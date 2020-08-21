@@ -3,11 +3,15 @@
     "description": "(Beta Release) A lightweight, functional JavaScript framework for building component-based reactive applications.",
     "devDependencies": {
         "@types/classnames": "^2.2.10",
+        "@types/jsdom": "^16.2.3",
         "@types/rollup": "^0.54.0",
+        "intern": "^4.8.7",
+        "jsdom": "^16.3.0",
         "prettier": "^2.0.5",
         "rollup": "^2.21.0",
         "rollup-plugin-terser": "^6.1.0",
         "rollup-plugin-typescript2": "^0.27.1",
+        "ts-node": "^8.10.2",
         "typescript": "^3.9.3"
     },
     "dependencies": {
@@ -29,11 +33,12 @@
         "url": "https://claudio-darkkenergy@bitbucket.org/darkkenergy/nectar.git"
     },
     "scripts": {
+        "abc": "ts-node -T --project ./tests/tsconfig.json ./tests/unit/framework.ts",
         "build": "rollup -c",
         "format": "prettier",
         "prepare": "npm run build",
         "start": "rollup -c -w",
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test": "intern",
         "tsc": "tsc --transpileOnly"
     },
     "types": "dist/index.d.ts",

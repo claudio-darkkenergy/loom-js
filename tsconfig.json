@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "allowSyntheticDefaultImports": true,
-        "baseUrl": "",
+        "baseUrl": ".",
         "declaration": true,
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
@@ -11,17 +11,26 @@
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "outDir": "dist",
+        "paths": {
+            "nectar": [
+                "types/nectar"
+            ]
+        },
         "removeComments": true,
-        "rootDir": "src",
         "sourceMap": true,
         "strict": true,
-        "target": "es2018"
+        "target": "es2018",
+        "typeRoots": [
+            "./node_modules/@types",
+            "./typings"
+        ]
     },
     "exclude": [
         "dist",
         "node_modules"
     ],
     "include": [
-        "src"
+        "./src/**/*.ts",
+        "./typings"
     ]
 }
