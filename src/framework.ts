@@ -1,8 +1,4 @@
-import {
-    FrameworkSettings,
-    TemplateOptions,
-    TemplateSettings
-} from './index.d';
+import { FrameworkSettings, TemplateOptions, TemplateSettings } from './types';
 
 export class Framework {
     static Settings: FrameworkSettings = {

@@ -1,5 +1,5 @@
 import { Framework } from './framework';
-import { ComponentFunction } from './index.d';
+import { ComponentFunction } from './types';
 
 let registered: null | Map<string, ComponentFunction> = null;
 

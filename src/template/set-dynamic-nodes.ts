@@ -1,5 +1,5 @@
 import { config } from '../config';
-import { DynamicTemplateNodesMap } from '../index.d';
+import { DynamicTemplateNodesMap } from '../types';
 
 const { tokenRe } = config;
 
