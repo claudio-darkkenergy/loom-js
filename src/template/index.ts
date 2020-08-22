@@ -6,7 +6,7 @@ import {
     TemplateTagChunks,
     TemplateTagValue,
     TemplateUpdateStoreValue
-} from '../index.d';
+} from '../types';
 import { getUpdate } from './get-update';
 import { setDynamicNodes } from './set-dynamic-nodes';
 

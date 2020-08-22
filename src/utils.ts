@@ -1,5 +1,5 @@
 import { Framework } from './framework';
-import { PlainObject } from './index.d';
+import { PlainObject } from './types';
 
 export class Debug {
     static close({ details }: PlainObject) {

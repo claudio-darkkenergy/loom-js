@@ -1,0 +1,17 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "declaration": false,
+        "isolatedModules": false,
+        "module": "commonjs",
+        "strict": false,
+        "types": [
+            "intern"
+        ]
+    },
+    "include": [
+        "../src/**/*.ts",
+        "./**/*.ts",
+        "./typings"
+    ]
+}

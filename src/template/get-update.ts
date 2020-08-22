@@ -1,5 +1,5 @@
 import { config } from '../config';
-import { TemplateNodeUpdate, TemplateTagValue } from '../index.d';
+import { TemplateNodeUpdate, TemplateTagValue } from '../types';
 
 const { events, TOKEN, tokenRe } = config;
 

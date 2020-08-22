@@ -5,7 +5,7 @@ import {
     ComponentFunction,
     NodeTemplateFunctionProps,
     PlainObject
-} from './index.d';
+} from './types';
 
 export const Styled = <T>(
     Component: ComponentFunction<T>,

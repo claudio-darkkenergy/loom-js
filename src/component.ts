@@ -1,5 +1,5 @@
 import { Template } from './template';
-import { ComponentWrapper } from './index.d';
+import { ComponentWrapper } from './types';
 
 export const Component: ComponentWrapper = (template) => (
     props = {},
