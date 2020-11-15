@@ -1,7 +1,5 @@
 import { config } from '../config';
-import { TemplateNodeUpdate, TemplateTagValue } from '../types';
-
-const { events, TOKEN, tokenRe } = config;
+import { ConfigEvent, TemplateNodeUpdate, TemplateTagValue } from '../types';
 
 export const getUpdate = (node: ChildNode) => {
     if (node instanceof HTMLElement || node instanceof SVGElement) {
@@ -22,17 +20,19 @@ function getAttributeUpdate(attr: Attr): TemplateNodeUpdate {
     return (values) => {
         attr.textContent = <string>(
             (attr.textContent || '')
-                .split(TOKEN)
+                .split(config.TOKEN)
                 .reduce((acc, part, _i) => [acc, values.shift(), part].join(''))
         );
     };
 }
 
 function getElementAttributeUpdates(
-    node: HTMLElement | SVGElement
+    node: HTMLElement | SVGElement | any
 ): TemplateNodeUpdate {
-    const dynamicAttrs = Array.from(node.attributes).filter(
-        (attr) => tokenRe.test(attr.value) || tokenRe.test(attr.name)
+    const dynamicAttrs = Array.from(node.attributes as NamedNodeMap).filter(
+        (attr: Attr) =>
+            config.tokenRe.test(attr.value as string) ||
+            config.tokenRe.test(attr.name)
     );
     // @TODO Make configurable.
     const specialAttrToken = '$';
@@ -59,9 +59,9 @@ function getSpecialAttributeUpdate(specialAttr: Attr): TemplateNodeUpdate {
         );
     }
 
-    const specialAttrName = specialAttr.nodeName.slice(1);
+    const specialAttrName = specialAttr.nodeName.slice(1) as ConfigEvent;
 
-    switch (specialAttrName) {
+    switch (specialAttrName as String) {
         case 'height':
             nodeUpdate = (values) => {
                 const valueHeight = values.shift() as string;
@@ -77,7 +77,7 @@ function getSpecialAttributeUpdate(specialAttr: Attr): TemplateNodeUpdate {
 
             break;
         default:
-            if (events?.includes(specialAttrName)) {
+            if (config.events?.includes(specialAttrName)) {
                 nodeUpdate = (values) => {
                     const valueClick = values.shift();
 
@@ -109,7 +109,13 @@ function getSpecialAttributeUpdate(specialAttr: Attr): TemplateNodeUpdate {
 }
 
 function getTextUpdates(parent: Node, indexOfNode: number): TemplateNodeUpdate {
-    const fragment = document.createDocumentFragment();
+    if (!config.global) {
+        throw new Error(
+            `Window must be set on the global config, but got ${config.global}`
+        );
+    }
+
+    const fragment = config.global.document.createDocumentFragment();
     const getNestedUpdates: (
         part: string,
         i: number,
@@ -123,19 +129,33 @@ function getTextUpdates(parent: Node, indexOfNode: number): TemplateNodeUpdate {
         return (values) => {
             const currentValue: TemplateTagValue = values[0];
 
+            if (!config.global) {
+                throw new Error(
+                    `Window must be set on the global config, but got ${config.global}`
+                );
+            }
+
             if (part) {
-                fragment.appendChild(document.createTextNode(part));
+                fragment.appendChild(
+                    config.global.document.createTextNode(part)
+                );
             }
 
             switch (typeof currentValue) {
                 case 'number':
                 case 'string':
+                    if (!config.global) {
+                        throw new Error(
+                            `Window must be set on the global config, but got ${config.global}`
+                        );
+                    }
+
                     const htmlRe = /<\/?[a-z][\s\S]*>/;
                     const valueString = String(values.shift());
 
                     if (htmlRe.test(valueString)) {
                         // Value with markup
-                        const range = window.document.createRange();
+                        const range = config.global.document.createRange();
                         const valueFragment = range.createContextualFragment(
                             valueString
                         );
@@ -143,7 +163,7 @@ function getTextUpdates(parent: Node, indexOfNode: number): TemplateNodeUpdate {
                         fragment.appendChild(valueFragment);
                     } else {
                         fragment.appendChild(
-                            document.createTextNode(valueString)
+                            config.global.document.createTextNode(valueString)
                         );
                     }
 
@@ -170,7 +190,7 @@ function getTextUpdates(parent: Node, indexOfNode: number): TemplateNodeUpdate {
     };
     let liveChildNodes = [parent.childNodes[indexOfNode]];
     const updates = (parent.childNodes[indexOfNode].textContent || '')
-        .split(TOKEN)
+        .split(config.TOKEN)
         .map(getNestedUpdates)
         .filter((update) => !!update) as TemplateNodeUpdate[];
 

@@ -1,6 +1,7 @@
 import { config } from '../config';
 import {
     ActivityContext,
+    GlobalWindow,
     TemplateNodeUpdate,
     TemplateStoreValue,
     TemplateTagChunks,
@@ -10,7 +11,6 @@ import {
 import { getUpdate } from './get-update';
 import { setDynamicNodes } from './set-dynamic-nodes';
 
-const { TOKEN } = config;
 const templateStore = new Map<TemplateTagChunks, TemplateStoreValue>();
 const templateUpdateStore = new WeakMap<
     ChildNode[],
@@ -26,6 +26,14 @@ export function Template(
     // which is mapped to the current render activity.
     const ctx = this;
     let fragment: null | DocumentFragment = null;
+
+    if (!config.global) {
+        throw new Error(
+            `Window must be set on the global config, but got ${config.global}`
+        );
+    }
+
+    const window: GlobalWindow = config.global;
 
     if (!templateStore.has(chunks)) {
         /* Template initialization */
@@ -45,17 +53,17 @@ export function Template(
     // DOM updates
     doUpdates();
 
-    return fragment ?? document.createDocumentFragment();
+    return fragment ?? window.document.createDocumentFragment();
 
     function initTemplate() {
         const dynamicNodes = new Map<Node, number[]>();
         const range = window.document.createRange();
         const fragmentTemplate = range.createContextualFragment(
-            chunks.join(TOKEN)
+            chunks.join(config.TOKEN)
         );
-        const treeWalker = document.createTreeWalker(
+        const treeWalker = window.document.createTreeWalker(
             fragmentTemplate,
-            NodeFilter.SHOW_ALL
+            window.NodeFilter.SHOW_ALL
         );
 
         // Set only the dynamic nodes.
