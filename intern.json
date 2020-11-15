@@ -1,5 +1,8 @@
 {
-    "plugins": "node_modules/ts-node/register/index.js",
-    "suites": "tests/**/*.ts",
-    "tsconfig": "./tests/tsconfig.json"
+    "$schema": "./node_modules/intern/schemas/config.json",
+    "node": {
+        "plugins": "node_modules/ts-node/register/index.js",
+        "suites": "tests/**/*.ts",
+        "tsconfig": "tsconfig-intern.json"
+    }
 }

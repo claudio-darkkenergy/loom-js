@@ -30,7 +30,7 @@
         "node_modules"
     ],
     "include": [
-        "./src/**/*.ts",
-        "./typings"
+        "src/**/*.ts",
+        "typings"
     ]
 }
