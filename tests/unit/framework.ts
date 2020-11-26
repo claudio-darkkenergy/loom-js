@@ -1,34 +1,21 @@
-import { DOMWindow, JSDOM } from 'jsdom';
 import * as sinon from 'sinon';
 
 import { Framework } from '../../src/framework';
 import { tdd, chai } from '../support/intern-interfaces';
+import { NectarTestApp } from '../support/nectar-app';
 
 const { before, suite, test } = tdd;
 const { expect } = chai;
 
 suite('Framework', () => {
-    const { appId } = {
-        appId: 'app'
-    };
-    const htmlDoc = `
-        <!DOCTYPE html>
-        <html lang="en">
-          <body id="${appId}">
-          </body>
-        </html>
-    `;
     let app: Framework;
-    let window: DOMWindow;
     let document: Document;
 
     before(() => {
-        window = new JSDOM(htmlDoc).window;
-        document = window.document;
-        app = new Framework({
-            config: { global: window as any },
-            rootNode: document.getElementById(appId)
-        });
+        const nectar = NectarTestApp();
+
+        app = nectar.app;
+        document = nectar.document;
     });
 
     test('should create the app', () => {

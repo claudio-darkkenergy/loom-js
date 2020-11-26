@@ -31,13 +31,13 @@ function getElementAttributeUpdates(
 ): TemplateNodeUpdate {
     const dynamicAttrs = Array.from(node.attributes as NamedNodeMap).filter(
         (attr: Attr) =>
-            config.tokenRe.test(attr.value as string) ||
-            config.tokenRe.test(attr.name)
+            config.tokenRe.test(attr['value'] as string) ||
+            config.tokenRe.test(attr['name'])
     );
     // @TODO Make configurable.
     const specialAttrToken = '$';
     const updates = dynamicAttrs.map((attr) => {
-        if (attr.nodeName[0] === specialAttrToken) {
+        if (attr['nodeName'][0] === specialAttrToken) {
             // Handle special attributes.
             return getSpecialAttributeUpdate(attr);
         } else {
@@ -110,7 +110,7 @@ function getSpecialAttributeUpdate(specialAttr: Attr): TemplateNodeUpdate {
 
 function getTextUpdates(parent: Node, indexOfNode: number): TemplateNodeUpdate {
     if (!config.global) {
-        throw new Error(
+        throw Error(
             `Window must be set on the global config, but got ${config.global}`
         );
     }
@@ -130,7 +130,7 @@ function getTextUpdates(parent: Node, indexOfNode: number): TemplateNodeUpdate {
             const currentValue: TemplateTagValue = values[0];
 
             if (!config.global) {
-                throw new Error(
+                throw Error(
                     `Window must be set on the global config, but got ${config.global}`
                 );
             }
@@ -145,7 +145,7 @@ function getTextUpdates(parent: Node, indexOfNode: number): TemplateNodeUpdate {
                 case 'number':
                 case 'string':
                     if (!config.global) {
-                        throw new Error(
+                        throw Error(
                             `Window must be set on the global config, but got ${config.global}`
                         );
                     }

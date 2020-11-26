@@ -18,7 +18,7 @@ export class Framework {
         );
 
         if (!global) {
-            throw new Error(
+            throw Error(
                 `Window must be set on the global config, but got ${global}`
             );
         }

@@ -79,13 +79,13 @@ export interface ValueProp {
 
 // Component
 export type ComponentFunction<T = NodeTemplateFunctionProps> = (
-    props?: T,
+    props?: Partial<T>,
     ctx?: ActivityContext
 ) => DocumentFragment;
 
-export type ComponentWrapper = (
-    template: NodeTemplateFunction
-) => ComponentFunction;
+export type ComponentWrapper = <T>(
+    template: NodeTemplateFunction<Partial<T>>
+) => ComponentFunction<T>;
 
 // Event
 export type MouseEventListener = <T = Element>(
@@ -128,7 +128,7 @@ export interface ActivityValueProps<T> {
 }
 
 export interface ActivityWorkers<T> {
-    defaultValue?: T;
+    readonly defaultValue?: T;
     effect: ActivityEffect<T>;
     update: ActivityUpdate<T>;
     value?: T;
