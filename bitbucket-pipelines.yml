@@ -1,0 +1,37 @@
+#  Template NodeJS build
+
+#  This template allows you to validate your NodeJS code.
+#  The workflow allows running tests and code linting on the default branch.
+
+image: node:15.3.0-alpine3.10
+
+pipelines:
+  default:
+    - parallel:
+        - step:
+            name: Build and Test
+            caches:
+              - node
+            script:
+              - npm install
+              - npm test
+        - step:
+            name: Run Intern tests
+            script:
+              - npm install eslint
+              - npx eslint .
+            caches:
+              - node
+    - step:
+        name: Deploy to production
+        deployment: production
+        # trigger: manual  # Uncomment to make this a manual deployment.
+        script:
+          - echo "Deploying to npm"
+          - pipe: atlassian/npm-publish:0.3.2
+            variables:
+              NPM_TOKEN: '<string>'
+              # FOLDER: '<string>' # Optional.
+              # EXTRA_ARGS: '<string>' # Optional.
+              # NPM_REGISTRY_AUTH_URL: '<string>' # Optional.
+              # DEBUG: '<boolean>' # Optional.
