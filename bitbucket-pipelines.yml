@@ -14,7 +14,7 @@ pipelines:
               - node
             script:
               - npm install
-              - npm test
+              - npm rtest
         - step:
             name: Run Intern tests
             script:
@@ -30,7 +30,7 @@ pipelines:
           - echo "Deploying to npm"
           - pipe: atlassian/npm-publish:0.3.2
             variables:
-              NPM_TOKEN: '<string>'
+              NPM_TOKEN: $NPM_TOKEN
               # FOLDER: '<string>' # Optional.
               # EXTRA_ARGS: '<string>' # Optional.
               # NPM_REGISTRY_AUTH_URL: '<string>' # Optional.
