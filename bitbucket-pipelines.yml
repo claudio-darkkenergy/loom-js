@@ -15,11 +15,12 @@ pipelines:
           - npm install
           - npm run test
     - step:
-        name: Deploy to production
+        name: Publish
         deployment: production
         # trigger: manual  # Uncomment to make this a manual deployment.
         script:
-          - echo "Deploying to npm"
+          - npm version minor -m "Upgrade to %s [skip ci]"
+          - git push && git push --tags
           - pipe: atlassian/npm-publish:0.3.2
             variables:
               NPM_TOKEN: $NPM_TOKEN
