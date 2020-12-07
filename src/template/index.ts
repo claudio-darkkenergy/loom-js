@@ -16,12 +16,15 @@ const templateUpdateStore = new WeakMap<
     ChildNode[],
     TemplateUpdateStoreValue
 >();
+console.log('templateStore', templateStore);
+console.log('templateUpdateStore', templateUpdateStore);
 
 export function Template(
     this: ActivityContext,
     chunks: TemplateTagChunks,
     ...interpolations: TemplateTagValue[]
 ) {
+    console.group('Template', interpolations);
     // The ActivityContext is used to lookup the appropriate template updates,
     // which is mapped to the current render activity.
     const ctx = this;
@@ -52,10 +55,12 @@ export function Template(
 
     // DOM updates
     doUpdates();
+    console.groupEnd();
 
     return fragment ?? window.document.createDocumentFragment();
 
     function initTemplate() {
+        console.log('initializing template...');
         const dynamicNodes = new Map<Node, number[]>();
         const range = window.document.createRange();
         const fragmentTemplate = range.createContextualFragment(
@@ -76,6 +81,7 @@ export function Template(
     }
 
     function initUpdates() {
+        console.log('initializing updates...');
         const { fragmentTemplate, dynamicNodes } =
             templateStore.get(chunks) || {};
         fragment = fragmentTemplate?.cloneNode(true) as DocumentFragment;
@@ -88,7 +94,9 @@ export function Template(
                 fragment as Node
             );
 
-            return getUpdate(node as ChildNode);
+            const update = getUpdate(node as ChildNode);
+            // console.
+            return update;
         });
 
         ctx.liveNodes = Array.from(fragment.childNodes);

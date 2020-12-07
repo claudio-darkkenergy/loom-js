@@ -17,13 +17,17 @@ export const getUpdate = (node: ChildNode) => {
 };
 
 function getAttributeUpdate(attr: Attr): TemplateNodeUpdate {
-    return (values) => {
-        attr.textContent = <string>(
-            (attr.textContent || '')
+    // Memoize the original attribute to keep as the template for new updates.
+    // Otherwise, consecutive updates would use the original attribute which would have lost
+    // it's original update signature.
+    const attrTemplate = attr.cloneNode();
+
+    return (values) =>
+        (attr.textContent = <string>(
+            (attrTemplate.textContent || '')
                 .split(config.TOKEN)
                 .reduce((acc, part, _i) => [acc, values.shift(), part].join(''))
-        );
-    };
+        ));
 }
 
 function getElementAttributeUpdates(
@@ -34,6 +38,7 @@ function getElementAttributeUpdates(
             config.tokenRe.test(attr['value'] as string) ||
             config.tokenRe.test(attr['name'])
     );
+
     // @TODO Make configurable.
     const specialAttrToken = '$';
     const updates = dynamicAttrs.map((attr) => {
