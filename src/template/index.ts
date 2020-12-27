@@ -13,7 +13,7 @@ import { setDynamicNodes } from './set-dynamic-nodes';
 
 const templateStore = new Map<TemplateTagChunks, TemplateStoreValue>();
 const templateUpdateStore = new WeakMap<
-    ChildNode[],
+    ActivityContext,
     TemplateUpdateStoreValue
 >();
 console.log('templateStore', templateStore);
@@ -24,11 +24,11 @@ export function Template(
     chunks: TemplateTagChunks,
     ...interpolations: TemplateTagValue[]
 ) {
-    console.group('Template', interpolations);
     // The ActivityContext is used to lookup the appropriate template updates,
     // which is mapped to the current render activity.
     const ctx = this;
     let fragment: null | DocumentFragment = null;
+    console.group('Template', interpolations, ctx);
 
     if (!config.global) {
         throw Error(
@@ -44,10 +44,11 @@ export function Template(
     }
 
     if (
-        !templateUpdateStore.has(ctx.liveNodes || []) ||
-        templateUpdateStore.get(ctx.liveNodes || [])?.chunks !== chunks
+        !templateUpdateStore.has(ctx) ||
+        templateUpdateStore.get(ctx)?.chunks !== chunks
     ) {
         // Store the updates with the chunks.
+        debugger;
         initUpdates();
     }
 
@@ -101,15 +102,16 @@ export function Template(
 
         ctx.liveNodes = Array.from(fragment.childNodes);
 
-        templateUpdateStore.set(ctx.liveNodes, {
+        templateUpdateStore.set(ctx, {
             chunks,
             updates
         });
     }
 
     function doUpdates() {
+        console.log('updating', ctx);
         templateUpdateStore
-            .get(ctx.liveNodes || [])
+            .get(ctx)
             ?.updates.forEach((update) => update(interpolations));
     }
 }

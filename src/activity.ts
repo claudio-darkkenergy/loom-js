@@ -3,14 +3,14 @@ import {
     ActivityEffect,
     ActivityHandler,
     ActivityUpdate,
-    ActivityWorkers,
-    TemplateTagValue
+    ActivityWorkers
+    // TemplateTagValue
 } from './types';
 
 export const Activity: <T>(defaultValue?: T) => ActivityWorkers<T> = <T>(
     defaultValue?: T
 ) => {
-    // const weakActivitySet = new WeakSet();
+    // const weakActivitySet = new WeakSet<DocumentFragment>();
     const activities = new Map<ActivityHandler<T>, ActivityContext>();
 
     const effect: ActivityEffect<T> = (handler) => {
@@ -20,27 +20,28 @@ export const Activity: <T>(defaultValue?: T) => ActivityWorkers<T> = <T>(
         // let result: TemplateTagValue;
 
         // activities.delete(cachedHandler);
-        let cachedHandlers = new Map();
+        // let cachedHandlers = new Map();
         const ctx = {};
-        let memoCounter = 0;
-        const memo = (memoHandler) => {
-            const cachedHandler = cachedHandlers.get(memoCounter);
+        // let memoCounter = 0;
+        // const memo = (memoHandler) => {
+        //     const cachedHandler = cachedHandlers.get(memoCounter);
 
-            // if (!cachedHandler) {
-            //     cachedHandlers.set(memoCounter, memoHandler);
-            //     memoHandler();
-            // } else {
-            //     cachedHandler();
-            // }
+        //     // if (!cachedHandler) {
+        //     //     cachedHandlers.set(memoCounter, memoHandler);
+        //     //     memoHandler();
+        //     // } else {
+        //     //     cachedHandler();
+        //     // }
 
-            activities.get(handler);
-            return memoHandler;
-        };
-        const result = handler({ ctx, memo, value });
+        //     activities.get(handler);
+        //     return memoHandler;
+        // };
+        const result = handler({ ctx, value });
 
-        memoCounter = 0;
-        activities.set(new WeakRef(handler), ctx);
-        // weakActivitySet.add(handler);
+        // memoCounter = 0;
+        // activities.set(new (window['WeakRef'] as any)(handler) as any, ctx);
+        // weakActivitySet.add(result);
+        activities.set(handler, ctx);
 
         return result;
     };
@@ -52,8 +53,15 @@ export const Activity: <T>(defaultValue?: T) => ActivityWorkers<T> = <T>(
     // };
     const update: ActivityUpdate<T> = (newValue) => {
         value = newValue;
+        debugger;
         activities.forEach((ctx, handler) => {
-            if (weakActivitySet.has(handler)) {
+            const i = ctx.liveNodes.findIndex(
+                (node) => !document.contains(node)
+            );
+            console.log('nodes are live index', i);
+            // handler({ ctx, value });
+            if (i < 0) {
+                // if (weakActivitySet.has(ctx.root)) {
                 // Call the cached handler.
                 handler({ value, ctx });
             } else {
@@ -67,7 +75,8 @@ export const Activity: <T>(defaultValue?: T) => ActivityWorkers<T> = <T>(
     return {
         defaultValue,
         effect,
-        // get memo() {
+        // get memo(handler, ctx) {
+        //     const cachedHandlers = new Map();
         //     return (handler) => {
         //         cachedHandlers.set(handler, ctx);
         //         return memo(handler);

@@ -109,11 +109,11 @@ export interface ActivityContext {
 
 export type ActivityEffect<T = any> = (
     handler: ActivityHandler<T>
-) => TemplateTagValue;
+) => DocumentFragment;
 
 export type ActivityHandler<T = any> = (
     props?: ActivityHandlerProps<T>
-) => TemplateTagValue;
+) => DocumentFragment;
 
 export type ActivityHandlerProps<T> = ActivityValueProps<T> & ActivityMeta;
 
