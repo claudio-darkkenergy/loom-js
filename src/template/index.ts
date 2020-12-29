@@ -41,6 +41,7 @@ export function Template(
     }
 
     if (
+        !ctx.node ||
         !templateUpdateStore.has(ctx.node) ||
         templateUpdateStore.get(ctx.node)?.chunks !== chunks
     ) {
@@ -110,9 +111,11 @@ export function Template(
     }
 
     function doUpdates() {
-        console.info('Updating...', ctx);
-        templateUpdateStore
-            .get(ctx.node)
-            ?.updates.forEach((update) => update(interpolations));
+        console.info('Updating...');
+        if (ctx.node) {
+            templateUpdateStore
+                .get(ctx.node)
+                ?.updates.forEach((update) => update(interpolations));
+        }
     }
 }
