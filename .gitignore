@@ -1,5 +1,13 @@
+# MacOS
 .DS_Store
+
+# VSCode
+*.code-workspace
 .vscode
 
+# Generated directories & files
 dist
+coverage
 node_modules
+
+designs

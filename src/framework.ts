@@ -1,3 +1,4 @@
+import * as globalConfig from './config';
 import { FrameworkSettings, TemplateOptions, TemplateSettings } from './types';
 
 export class Framework {
@@ -5,14 +6,25 @@ export class Framework {
         debug: false
     };
 
-    rootNode: Node;
-    virtualNode: DocumentFragment = document.createDocumentFragment();
+    rootNode: HTMLElement;
+    virtualNode: DocumentFragment;
 
-    constructor({
-        rootNode = document.body as Node,
-        settings = {}
-    }: TemplateOptions) {
-        this.rootNode = rootNode;
+    constructor({ config = {}, rootNode, settings = {} }: TemplateOptions) {
+        // Merge the all config inputs into one global config the framework will have access to.
+        const { global } = Object.assign(
+            globalConfig.config,
+            { global: config.global || window },
+            config
+        );
+
+        if (!global) {
+            throw Error(
+                `Window must be set on the global config, but got ${global}`
+            );
+        }
+
+        this.rootNode = rootNode || global.document.body;
+        this.virtualNode = global.document.createDocumentFragment();
         Framework.Settings = Object.assign(Framework.Settings, settings);
     }
 

@@ -4,6 +4,7 @@ import {
     ActivityHandler,
     ActivityUpdate,
     ActivityWorkers
+    // TemplateTagValue
 } from './types';
 
 export const Activity: <T>(defaultValue?: T) => ActivityWorkers<T> = <T>(
@@ -11,18 +12,30 @@ export const Activity: <T>(defaultValue?: T) => ActivityWorkers<T> = <T>(
 ) => {
     const activities = new Map<ActivityHandler<T>, ActivityContext>();
     const effect: ActivityEffect<T> = (handler) => {
-        const ctx = activities.get(handler) || {};
-        const result = handler({ ctx, value });
+        const ctx = {};
+        const fragment = handler({ ctx, value });
 
+        // Cache the activity handler w/ the context.
         activities.set(handler, ctx);
 
-        return result;
+        return fragment;
     };
     const update: ActivityUpdate<T> = (newValue) => {
+        const liveActivities = Array.from(activities).filter(
+            ([handler, ctx]) => {
+                const isActivityAlive = document.contains(ctx.node);
+                if (!isActivityAlive) {
+                    // Cleanup
+                    activities.delete(handler);
+                }
+
+                return isActivityAlive;
+            }
+        );
+
         value = newValue;
-        activities.forEach((ctx, handler) => {
-            handler({ value, ctx });
-        });
+        // Call the cached handlers.
+        liveActivities.forEach(([handler, ctx]) => handler({ ctx, value }));
     };
     let value = defaultValue;
 

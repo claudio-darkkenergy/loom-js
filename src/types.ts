@@ -38,7 +38,8 @@ export type TemplateEventHandler = EventListenerOrEventListenerObject;
 export type TemplateNodeUpdate = (values: TemplateTagValue[]) => void;
 
 export interface TemplateOptions {
-    rootNode: Node;
+    config?: Partial<Config>;
+    rootNode?: HTMLElement;
     settings?: FrameworkSettings;
 }
 
@@ -78,20 +79,23 @@ export interface ValueProp {
 
 // Component
 export type ComponentFunction<T = NodeTemplateFunctionProps> = (
-    props?: T,
+    props?: Partial<T>,
     ctx?: ActivityContext
 ) => DocumentFragment;
 
-export type ComponentWrapper = (
-    template: NodeTemplateFunction
-) => ComponentFunction;
+export type ComponentWrapper = <T>(
+    template: NodeTemplateFunction<Partial<T>>
+) => ComponentFunction<T>;
 
 // Event
 export type MouseEventListener = <T = Element>(
     ev: SyntheticMouseEvent<T>
 ) => void;
 
-export type SyntheticMouseEventListener = (this: HTMLElement, ev: MouseEvent) => any;
+export type SyntheticMouseEventListener = (
+    this: HTMLElement,
+    ev: MouseEvent
+) => any;
 
 export interface SyntheticMouseEvent<T> extends MouseEvent {
     target: EventTarget & T;
@@ -99,17 +103,17 @@ export interface SyntheticMouseEvent<T> extends MouseEvent {
 
 // Activity
 export interface ActivityContext {
-    liveNodes?: ChildNode[];
+    node?: ChildNode;
     render?: FrameworkTemplate;
 }
 
 export type ActivityEffect<T = any> = (
     handler: ActivityHandler<T>
-) => TemplateTagValue;
+) => DocumentFragment;
 
 export type ActivityHandler<T = any> = (
     props?: ActivityHandlerProps<T>
-) => TemplateTagValue;
+) => DocumentFragment;
 
 export type ActivityHandlerProps<T> = ActivityValueProps<T> & ActivityMeta;
 
@@ -124,8 +128,89 @@ export interface ActivityValueProps<T> {
 }
 
 export interface ActivityWorkers<T> {
-    defaultValue?: T;
+    readonly defaultValue?: T;
     effect: ActivityEffect<T>;
     update: ActivityUpdate<T>;
     value?: T;
+}
+
+// Config
+export type ConfigEvent =
+    | 'abort'
+    | 'animationcancel'
+    | 'animationend'
+    | 'animationiteration'
+    | 'auxclick'
+    | 'blur'
+    | 'cancel'
+    | 'canplay'
+    | 'canplaythrough'
+    | 'change'
+    | 'click'
+    | 'close'
+    | 'contextmenu'
+    | 'cuechange'
+    | 'dblclick'
+    | 'durationchange'
+    | 'ended'
+    | 'error'
+    | 'focus'
+    | 'formdata'
+    | 'gotpointercapture'
+    | 'input'
+    | 'invalid'
+    | 'keydown'
+    | 'keypress'
+    | 'keyup'
+    | 'load'
+    | 'loadeddata'
+    | 'loadedmetadata'
+    | 'loadend'
+    | 'loadstart'
+    | 'lostpointercapture'
+    | 'mousedown'
+    | 'mouseenter'
+    | 'mouseleave'
+    | 'mousemove'
+    | 'mouseout'
+    | 'mouseover'
+    | 'mouseup'
+    | 'pause'
+    | 'play'
+    | 'playing'
+    | 'pointercancel'
+    | 'pointerdown'
+    | 'pointerenter'
+    | 'pointerleave'
+    | 'pointermove'
+    | 'pointerout'
+    | 'pointerover'
+    | 'pointerup'
+    | 'reset'
+    | 'resize'
+    | 'scroll'
+    | 'select'
+    | 'selectionchange'
+    | 'selectstart'
+    | 'submit'
+    | 'touchcancel'
+    | 'touchstart'
+    | 'transitioncancel'
+    | 'transitionend'
+    | 'wheel';
+
+export interface Config {
+    events: ConfigEvent[];
+    global?: GlobalWindow;
+    TOKEN: string;
+    tokenRe: RegExp;
+}
+
+export type GlobalWindow = Window & { NodeFilter: NodeFilter };
+export interface NodeFilter {
+    SHOW_ALL: -1;
+}
+
+export interface GlobalConfig {
+    config: Config;
 }

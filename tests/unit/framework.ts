@@ -1,42 +1,46 @@
-import { DOMWindow, JSDOM } from 'jsdom';
+import * as sinon from 'sinon';
 
-// import { Framework } from '../../src/framework';
+import { Framework } from '../../src/framework';
+import { tdd, chai } from '../support/intern-interfaces';
+import { NectarTestApp } from '../support/nectar-app';
 
-// const { before, suite, test } = intern.getInterface('tdd');
-// const { expect } = intern.getPlugin('chai');
-const win: DOMWindow = new JSDOM(`
-         <!DOCTYPE html>
-         <html lang="en">
-           <body id="app">
-           </body>
-         </html>
-     `).window;
-console.log('hello!', win);
+const { before, suite, test } = tdd;
+const { expect } = chai;
 
-// suite('Framework', () => {
-//     const { appId } = {
-//         appId: 'app'
-//     };
-//     const htmlDoc = `
-//         <!DOCTYPE html>
-//         <html lang="en">
-//           <body id="${appId}">
-//           </body>
-//         </html>
-//     `;
-//     let window: DOMWindow;
+suite('Framework', () => {
+    let app: Framework;
+    let document: Document;
 
-//     before(() => {
-//         console.log('world!');
-//         window = new JSDOM(htmlDoc).window;
-//     });
+    before(() => {
+        const nectar = NectarTestApp();
 
-//     test('should create the app', () => {
-//         const { document } = window;
-//         const app = new Framework({
-//             rootNode: document.getElementById(appId) as Element
-//         });
+        app = nectar.app;
+        document = nectar.document;
+    });
 
-//         expect(app).to.be.instanceOf(Framework);
-//     });
-// });
+    test('should create the app', () => {
+        expect(app).to.be.instanceOf(Framework);
+    });
+
+    test('should load the template with content', () => {
+        const content = { greeting: 'Hello World!' };
+        const node = document.createElement('H1');
+        const template = sinon.spy(({ greeting }) => {
+            node.textContent = greeting;
+            return node;
+        }) as any;
+        const loadedApp = app.load({ content, template });
+
+        expect(loadedApp).to.equal(app);
+        expect(app.virtualNode.children[0]).to.equal(node);
+        expect(template.calledWith(content)).to.be.true;
+        expect(template.calledOnce).to.be.true;
+    });
+
+    test('should render the app', () => {
+        const loadedTemplateNode = app.virtualNode.children[0];
+
+        app.render();
+        expect(app.rootNode.lastChild).to.equal(loadedTemplateNode);
+    });
+});

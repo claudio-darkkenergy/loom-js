@@ -1,8 +1,6 @@
 import { config } from '../config';
 import { DynamicTemplateNodesMap } from '../types';
 
-const { tokenRe } = config;
-
 export const setDynamicNodes = <T extends DynamicTemplateNodesMap>(
     map: T,
     treeWalker: TreeWalker
@@ -34,7 +32,9 @@ export const setDynamicNodes = <T extends DynamicTemplateNodesMap>(
         ) {
             // Parse attribute nodes.
             const dynamicAttr = Array.from(currentNode.attributes).some(
-                (attr) => tokenRe.test(attr.value) || tokenRe.test(attr.name)
+                (attr) =>
+                    config.tokenRe.test(attr.value) ||
+                    config.tokenRe.test(attr.name)
             );
 
             if (dynamicAttr) {
@@ -42,7 +42,7 @@ export const setDynamicNodes = <T extends DynamicTemplateNodesMap>(
             }
         } else if (
             currentNode instanceof Text &&
-            tokenRe.test(currentNode.textContent || '')
+            config.tokenRe.test(currentNode.textContent || '')
         ) {
             // Parse text nodes.
             currentNode.textContent = (currentNode.textContent || '').trim();

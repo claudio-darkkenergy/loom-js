@@ -1,6 +1,7 @@
 import { config } from '../config';
 import {
     ActivityContext,
+    GlobalWindow,
     TemplateNodeUpdate,
     TemplateStoreValue,
     TemplateTagChunks,
@@ -10,12 +11,10 @@ import {
 import { getUpdate } from './get-update';
 import { setDynamicNodes } from './set-dynamic-nodes';
 
-const { TOKEN } = config;
 const templateStore = new Map<TemplateTagChunks, TemplateStoreValue>();
-const templateUpdateStore = new WeakMap<
-    ChildNode[],
-    TemplateUpdateStoreValue
->();
+const templateUpdateStore = new WeakMap<ChildNode, TemplateUpdateStoreValue>();
+console.log('templateStore', templateStore);
+console.log('templateUpdateStore', templateUpdateStore);
 
 export function Template(
     this: ActivityContext,
@@ -26,36 +25,46 @@ export function Template(
     // which is mapped to the current render activity.
     const ctx = this;
     let fragment: null | DocumentFragment = null;
+    console.group('Template', interpolations, ctx);
+
+    if (!config.global) {
+        throw Error(
+            `Window must be set on the global config, but got ${config.global}`
+        );
+    }
+
+    const window: GlobalWindow = config.global;
 
     if (!templateStore.has(chunks)) {
-        /* Template initialization */
+        // Template initialization
         initTemplate();
     }
 
     if (
-        !templateUpdateStore.has(ctx.liveNodes || []) ||
-        templateUpdateStore.get(ctx.liveNodes || [])?.chunks !== chunks
+        !templateUpdateStore.has(ctx.node) ||
+        templateUpdateStore.get(ctx.node)?.chunks !== chunks
     ) {
+        // The node is new, or active node w/ new chunks.
         // Store the updates with the chunks.
         initUpdates();
     }
 
-    // Weakly map the node updates to the soon to be live nodes.
-
     // DOM updates
     doUpdates();
+    console.groupEnd();
 
-    return fragment ?? document.createDocumentFragment();
+    return fragment ?? window.document.createDocumentFragment();
 
     function initTemplate() {
+        console.info('Initializing template...');
         const dynamicNodes = new Map<Node, number[]>();
         const range = window.document.createRange();
         const fragmentTemplate = range.createContextualFragment(
-            chunks.join(TOKEN)
+            chunks.join(config.TOKEN)
         );
-        const treeWalker = document.createTreeWalker(
+        const treeWalker = window.document.createTreeWalker(
             fragmentTemplate,
-            NodeFilter.SHOW_ALL
+            window.NodeFilter.SHOW_ALL
         );
 
         // Set only the dynamic nodes.
@@ -68,10 +77,11 @@ export function Template(
     }
 
     function initUpdates() {
+        console.info('Initializing updates...');
         const { fragmentTemplate, dynamicNodes } =
             templateStore.get(chunks) || {};
         fragment = fragmentTemplate?.cloneNode(true) as DocumentFragment;
-
+        // Get all the updates to cache.
         const updates: TemplateNodeUpdate[] = Array.from(
             dynamicNodes || []
         ).map(([, path]) => {
@@ -83,17 +93,26 @@ export function Template(
             return getUpdate(node as ChildNode);
         });
 
-        ctx.liveNodes = Array.from(fragment.childNodes);
+        // Set the root node for the template.
+        ctx.node = fragment.children[0];
 
-        templateUpdateStore.set(ctx.liveNodes, {
+        // There must be a single root node for the template.
+        if (!ctx.node) {
+            console.error('Instead of Node, recieved', fragment.childNodes);
+            throw Error('[Template Error] Must contain one root node.');
+        }
+
+        // Weakly map the node updates & chunks to the soon to be live node.
+        templateUpdateStore.set(ctx.node, {
             chunks,
             updates
         });
     }
 
     function doUpdates() {
+        console.info('Updating...', ctx);
         templateUpdateStore
-            .get(ctx.liveNodes || [])
+            .get(ctx.node)
             ?.updates.forEach((update) => update(interpolations));
     }
 }
