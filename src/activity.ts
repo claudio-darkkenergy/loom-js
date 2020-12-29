@@ -23,7 +23,8 @@ export const Activity: <T>(defaultValue?: T) => ActivityWorkers<T> = <T>(
     const update: ActivityUpdate<T> = (newValue) => {
         const liveActivities = Array.from(activities).filter(
             ([handler, ctx]) => {
-                const isActivityAlive = document.contains(ctx.node);
+                const isActivityAlive = ctx.node && document.contains(ctx.node);
+
                 if (!isActivityAlive) {
                     // Cleanup
                     activities.delete(handler);
