@@ -103,17 +103,17 @@ export interface SyntheticMouseEvent<T> extends MouseEvent {
 
 // Activity
 export interface ActivityContext {
-    liveNodes?: ChildNode[];
+    node?: ChildNode;
     render?: FrameworkTemplate;
 }
 
 export type ActivityEffect<T = any> = (
     handler: ActivityHandler<T>
-) => TemplateTagValue;
+) => DocumentFragment;
 
 export type ActivityHandler<T = any> = (
     props?: ActivityHandlerProps<T>
-) => TemplateTagValue;
+) => DocumentFragment;
 
 export type ActivityHandlerProps<T> = ActivityValueProps<T> & ActivityMeta;
 
