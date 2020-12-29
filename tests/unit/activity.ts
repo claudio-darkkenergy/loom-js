@@ -39,32 +39,32 @@ suite('Activity', () => {
         });
     });
 
-    suite('.effect(handler)', () => {
-        let effectReturnValue: TemplateTagValue;
-        let handler: ActivityHandler = () => handlerReturnValue;
-        let handlerReturnValue: TemplateTagValue;
-        let handlerPropsCtx: ActivityContext = {};
-        const handlerSpy = spy(handler);
+    // suite('.effect(handler)', () => {
+    //     let effectReturnValue: TemplateTagValue;
+    //     let handler: ActivityHandler = () => handlerReturnValue;
+    //     let handlerReturnValue: TemplateTagValue;
+    //     let handlerPropsCtx: ActivityContext = {};
+    //     const handlerSpy = spy(handler);
 
-        before(() => {
-            handlerReturnValue = randomNumber();
-            effectReturnValue = activity.effect(handlerSpy);
-        });
+    //     before(() => {
+    //         handlerReturnValue = randomNumber();
+    //         effectReturnValue = activity.effect(handlerSpy);
+    //     });
 
-        test(`should return the handler value`, () => {
-            expect(effectReturnValue).to.equal(handlerReturnValue);
-        });
+    //     test(`should return the handler value`, () => {
+    //         expect(effectReturnValue).to.equal(handlerReturnValue);
+    //     });
 
-        test(`should call the handler with ActivityHandlerProps`, () => {
-            const newValue = randomNumber();
+    //     test(`should call the handler with ActivityHandlerProps`, () => {
+    //         const newValue = randomNumber();
 
-            expect(handlerSpy.args[0][0].ctx).to.eql(handlerPropsCtx);
-            expect(handlerSpy.args[0][0].value).to.eql(initialValue);
-            activity.update(newValue);
-            expect(handlerSpy.args[1][0].ctx).to.eql(handlerPropsCtx);
-            expect(handlerSpy.args[1][0].value).to.eql(newValue);
-        });
-    });
+    //         expect(handlerSpy.args[0][0].ctx).to.eql(handlerPropsCtx);
+    //         expect(handlerSpy.args[0][0].value).to.eql(initialValue);
+    //         activity.update(newValue);
+    //         expect(handlerSpy.args[1][0].ctx).to.eql(handlerPropsCtx);
+    //         expect(handlerSpy.args[1][0].value).to.eql(newValue);
+    //     });
+    // });
 
     suite(`.update(value)`, () => {
         let newValue: number;
