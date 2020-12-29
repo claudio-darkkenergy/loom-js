@@ -45,5 +45,5 @@
         "test": "intern"
     },
     "types": "dist/index.d.ts",
-    "version": "1.0.0-beta.6"
+    "version": "1.0.0-beta.5"
 }
