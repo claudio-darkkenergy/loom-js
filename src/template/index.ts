@@ -12,10 +12,7 @@ import { getUpdate } from './get-update';
 import { setDynamicNodes } from './set-dynamic-nodes';
 
 const templateStore = new Map<TemplateTagChunks, TemplateStoreValue>();
-const templateUpdateStore = new WeakMap<
-    ActivityContext,
-    TemplateUpdateStoreValue
->();
+const templateUpdateStore = new WeakMap<ChildNode, TemplateUpdateStoreValue>();
 console.log('templateStore', templateStore);
 console.log('templateUpdateStore', templateUpdateStore);
 
@@ -39,20 +36,18 @@ export function Template(
     const window: GlobalWindow = config.global;
 
     if (!templateStore.has(chunks)) {
-        /* Template initialization */
+        // Template initialization
         initTemplate();
     }
 
     if (
-        !templateUpdateStore.has(ctx) ||
-        templateUpdateStore.get(ctx)?.chunks !== chunks
+        !templateUpdateStore.has(ctx.node) ||
+        templateUpdateStore.get(ctx.node)?.chunks !== chunks
     ) {
+        // The node is new, or active node w/ new chunks.
         // Store the updates with the chunks.
-        debugger;
         initUpdates();
     }
-
-    // Weakly map the node updates to the soon to be live nodes.
 
     // DOM updates
     doUpdates();
@@ -61,7 +56,7 @@ export function Template(
     return fragment ?? window.document.createDocumentFragment();
 
     function initTemplate() {
-        console.log('initializing template...');
+        console.info('Initializing template...');
         const dynamicNodes = new Map<Node, number[]>();
         const range = window.document.createRange();
         const fragmentTemplate = range.createContextualFragment(
@@ -82,11 +77,11 @@ export function Template(
     }
 
     function initUpdates() {
-        console.log('initializing updates...');
+        console.info('Initializing updates...');
         const { fragmentTemplate, dynamicNodes } =
             templateStore.get(chunks) || {};
         fragment = fragmentTemplate?.cloneNode(true) as DocumentFragment;
-
+        // Get all the updates to cache.
         const updates: TemplateNodeUpdate[] = Array.from(
             dynamicNodes || []
         ).map(([, path]) => {
@@ -95,23 +90,29 @@ export function Template(
                 fragment as Node
             );
 
-            const update = getUpdate(node as ChildNode);
-            // console.
-            return update;
+            return getUpdate(node as ChildNode);
         });
 
-        ctx.liveNodes = Array.from(fragment.childNodes);
+        // Set the root node for the template.
+        ctx.node = fragment.children[0];
 
-        templateUpdateStore.set(ctx, {
+        // There must be a single root node for the template.
+        if (!ctx.node) {
+            console.error('Instead of Node, recieved', fragment.childNodes);
+            throw Error('[Template Error] Must contain one root node.');
+        }
+
+        // Weakly map the node updates & chunks to the soon to be live node.
+        templateUpdateStore.set(ctx.node, {
             chunks,
             updates
         });
     }
 
     function doUpdates() {
-        console.log('updating', ctx);
+        console.info('Updating...', ctx);
         templateUpdateStore
-            .get(ctx)
+            .get(ctx.node)
             ?.updates.forEach((update) => update(interpolations));
     }
 }

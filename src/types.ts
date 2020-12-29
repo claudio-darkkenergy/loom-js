@@ -103,7 +103,7 @@ export interface SyntheticMouseEvent<T> extends MouseEvent {
 
 // Activity
 export interface ActivityContext {
-    liveNodes?: ChildNode[];
+    node?: ChildNode;
     render?: FrameworkTemplate;
 }
 

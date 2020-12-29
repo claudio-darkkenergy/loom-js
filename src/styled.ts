@@ -10,29 +10,27 @@ import {
 export const Styled = <T>(
     Component: ComponentFunction<T>,
     styles: string | PlainObject | ((props: T) => PlainObject)
+) => (
+    props = {} as NodeTemplateFunctionProps<T>,
+    ctx = {} as ActivityContext
 ) => {
-    let rootNode: Element;
+    const fragment = Component(props, ctx);
 
-    return (props: NodeTemplateFunctionProps<T>, ctx?: ActivityContext) => {
-        const fragment = Component(props, ctx);
-        rootNode = rootNode || fragment.children[0];
+    // A rerendered component will return undefined b/c only updates to the DOM were made.
+    // The fragment will be defined on initial render, only.
+    if (fragment?.children.length > 1) {
+        throw Error(
+            `A Styled Component should only have one root node | received ${fragment.children.length} root nodes -> ${fragment}`
+        );
+    }
 
-        // A rerendered component will return undefined b/c only updates to the DOM were made.
-        // The fragment will be defined on initial render, only.
-        if (rootNode) {
-            if (fragment?.children.length > 1) {
-                throw Error(
-                    `A Styled Component should only have one root node | received ${fragment.children.length} root nodes -> ${fragment}`
-                );
-            }
+    const classList = classNames(
+        typeof styles === 'function' ? styles(props) : styles || ''
+    ).split(' ');
 
-            rootNode.classList.add(
-                ...classNames(
-                    typeof styles === 'function' ? styles(props) : styles
-                ).split(' ')
-            );
-        }
+    if (classList.length > 1 || classList[0]) {
+        (ctx.node as HTMLElement).classList.add(...classList);
+    }
 
-        return fragment;
-    };
+    return fragment;
 };
