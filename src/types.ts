@@ -4,92 +4,65 @@ export interface Aria {
     role?: string;
 }
 
-// Framework
-export type FrameworkSettings = PlainObject;
+export type NectarNode = ContextFunction | Node;
 
-export interface FrameworkTemplate {
-    (
-        chunks: TemplateTagChunks,
-        ...interpolations: TemplateTagValue[]
-    ): DocumentFragment;
+export interface PlainObject<T = any> {
+    [key: string]: T;
 }
 
-export interface NodeTemplateFunction<T = PlainObject> {
-    (
-        template: FrameworkTemplate,
-        props: NodeTemplateFunctionProps<T>
-    ): DocumentFragment;
+export interface ValueProp<T = TemplateTagValue> {
+    value?: T;
 }
-
-export interface NodeTemplateFunctionBaseProps {
-    aria?: Aria;
-}
-
-export type NodeTemplateFunctionProps<T = PlainObject> = {
-    [P in keyof T]: T[P];
-} &
-    NodeTemplateFunctionBaseProps;
-
-export type PlainObject<T = any> = { [key: string]: T };
 
 /* Template */
-export type DynamicTemplateNodesMap = Map<Node, number[]>;
-export type TemplateEventHandler = EventListenerOrEventListenerObject;
-export type TemplateNodeUpdate = (values: TemplateTagValue[]) => void;
-
-export interface TemplateOptions {
-    config?: Partial<Config>;
-    rootNode?: HTMLElement;
-    settings?: FrameworkSettings;
+export interface TaggedTemplate {
+    this?: TemplateContext;
+    (chunks: TemplateStringsArray, ...interpolations: TemplateTagValue[]): Node;
 }
 
-export interface TemplateSettings<T = PlainObject> {
-    content: T;
-    template: ComponentFunction<T>;
+export interface TemplateContext {
+    render?: TaggedTemplate;
+    root?: Node;
 }
-
-export interface TemplateStoreValue {
-    /* Top-down [node, nodeIndex] */
-    dynamicNodes: DynamicTemplateNodesMap;
-    fragmentTemplate: DocumentFragment;
-}
-
-export interface TemplateUpdateStoreValue {
-    chunks: TemplateTagChunks;
-    updates: TemplateNodeUpdate[];
-}
-
-export type TemplateTagChunks = TemplateStringsArray & {
-    raw: readonly string[];
-};
 
 export type TemplateTagValue =
-    | Node
-    | Node[]
+    | boolean
+    | MouseEventListener
+    | NectarNode
     | null
     | number
     | string
-    | TemplateEventHandler
+    | TemplateTagValue[]
+    | TemplateTagValueFunction
     | undefined
     | void;
 
-export interface ValueProp {
-    value: TemplateTagValue;
-}
+export type TemplateTagValueFunction = () => TemplateTagValue;
+
+export type TemplateNodeUpdate = (values: TemplateTagValue[]) => void;
 
 // Component
-export type ComponentFunction<T = NodeTemplateFunctionProps> = (
-    props?: Partial<T>,
-    ctx?: ActivityContext
-) => DocumentFragment;
+export interface Component<T> {
+    (props?: T): ContextFunction;
+}
 
-export type ComponentWrapper = <T>(
-    template: NodeTemplateFunction<Partial<T>>
-) => ComponentFunction<T>;
+export type ComponentFunction = <T extends PlainObject>(
+    renderFunction: RenderFunction<T>
+) => Component<T>;
+
+export type ContextFunction = (ctx?: TemplateContext) => Node;
+
+export interface ReactiveComponent<T = any, P = any> {
+    (transform?: (props?: T) => P): NectarNode;
+}
+
+export interface RenderFunction<T = PlainObject> {
+    (render: TaggedTemplate, props?: T): Node;
+}
 
 // Event
 export type MouseEventListener = <T = Element>(
-    ev: SyntheticMouseEvent<T>
+    ev?: SyntheticMouseEvent<T>
 ) => void;
 
 export type SyntheticMouseEventListener = (
@@ -102,37 +75,8 @@ export interface SyntheticMouseEvent<T> extends MouseEvent {
 }
 
 // Activity
-export interface ActivityContext {
-    node?: ChildNode;
-    render?: FrameworkTemplate;
-}
-
-export type ActivityEffect<T = any> = (
-    handler: ActivityHandler<T>
-) => DocumentFragment;
-
-export type ActivityHandler<T = any> = (
-    props?: ActivityHandlerProps<T>
-) => DocumentFragment;
-
-export type ActivityHandlerProps<T> = ActivityValueProps<T> & ActivityMeta;
-
-export interface ActivityMeta {
-    ctx: ActivityContext;
-}
-
-export type ActivityUpdate<T = any> = (value: T) => void;
-
-export interface ActivityValueProps<T> {
-    value?: T;
-}
-
-export interface ActivityWorkers<T> {
-    readonly defaultValue?: T;
-    effect: ActivityEffect<T>;
-    update: ActivityUpdate<T>;
-    value?: T;
-}
+export type ActivityEffect<T = any> = (handler: ActivityHandler<T>) => Node;
+export type ActivityHandler<T> = (props?: ValueProp<T>) => ContextFunction;
 
 // Config
 export type ConfigEvent =
@@ -207,6 +151,7 @@ export interface Config {
 }
 
 export type GlobalWindow = Window & { NodeFilter: NodeFilter };
+
 export interface NodeFilter {
     SHOW_ALL: -1;
 }

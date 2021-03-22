@@ -1,8 +1,6 @@
-// Accepted events: https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers
-
 import { Config, ConfigEvent } from './types';
 
-// Additional possible supported events: https://developer.mozilla.org/en-US/docs/Web/Events
+// Accepted events: https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers
 const events: ConfigEvent[] = [
     'abort',
     'animationcancel',
@@ -72,7 +70,6 @@ const tokenRe = new RegExp(TOKEN);
 
 export const config: Config = {
     events,
-    global: undefined,
     TOKEN,
     tokenRe
 };

@@ -40,7 +40,6 @@
     "scripts": {
         "build": "rollup -c",
         "format": "prettier",
-        "prepare": "npm run build",
         "start": "rollup -c -w",
         "test": "intern"
     },

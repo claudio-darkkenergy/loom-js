@@ -4,10 +4,6 @@
         "baseUrl": "src",
         "declaration": false,
         "isolatedModules": false,
-        "lib": [
-            "dom",
-            "es6"
-        ],
         "module": "commonjs",
         "strict": false,
         "typeRoots": [
