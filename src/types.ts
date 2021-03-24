@@ -42,23 +42,27 @@ export type TemplateTagValueFunction = () => TemplateTagValue;
 export type TemplateNodeUpdate = (values: TemplateTagValue[]) => void;
 
 // Component
-export interface Component<T> {
-    (props?: T): ContextFunction;
+export interface Component<T extends PlainObject> {
+    (props?: T | PlainObject): ContextFunction;
 }
 
 export type ComponentFunction = <T extends PlainObject>(
     renderFunction: RenderFunction<T>,
-    ...onRenderHandlers: ((node: Node, props: T) => any)[]
+    ...onRenderHandlers: onRender<T>[]
 ) => Component<T>;
 
 export type ContextFunction = (ctx?: TemplateContext) => Node;
+
+export interface onRender<T extends PlainObject> {
+    (node: Node, props?: T | PlainObject): any;
+}
 
 export interface ReactiveComponent<T = any, P = any> {
     (transform?: (props?: T) => P): NectarNode;
 }
 
-export interface RenderFunction<T = PlainObject> {
-    (render: TaggedTemplate, props?: T): Node;
+export interface RenderFunction<T extends PlainObject> {
+    (render: TaggedTemplate, props?: T | PlainObject): Node;
 }
 
 // Event

@@ -1,10 +1,10 @@
+import { config } from './config';
 import {
     ConfigEvent,
     TemplateContext,
     TemplateNodeUpdate,
     TemplateTagValue
 } from './types';
-import { config } from '.';
 
 type LiveNode = HTMLElement | Text | (HTMLElement | Text)[];
 
