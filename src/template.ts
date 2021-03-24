@@ -152,6 +152,7 @@ const getLiveUpdates = (
         );
 
         if (attrs) {
+            // Attribute handling
             // Return the attribute node updater.
             const getAttrUpdates = () =>
                 attrs.map((attr) => {
@@ -218,6 +219,7 @@ const getLiveUpdates = (
             return (values: TemplateTagValue[]) =>
                 attrUpdates.forEach((update) => update(values));
         } else {
+            // Text Node handling
             const textFragment = document.createDocumentFragment();
             // The original live nodes - will update on future renders.
             const liveNodes: LiveNode[] = (node.textContent || '')

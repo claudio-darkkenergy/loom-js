@@ -47,7 +47,8 @@ export interface Component<T> {
 }
 
 export type ComponentFunction = <T extends PlainObject>(
-    renderFunction: RenderFunction<T>
+    renderFunction: RenderFunction<T>,
+    ...onRenderHandlers: ((node: Node, props: T) => any)[]
 ) => Component<T>;
 
 export type ContextFunction = (ctx?: TemplateContext) => Node;
