@@ -21,6 +21,7 @@ export interface TaggedTemplate {
 }
 
 export interface TemplateContext {
+    node?: () => Node | undefined;
     render?: TaggedTemplate;
     root?: Node;
 }
@@ -49,7 +50,7 @@ export interface Component<T> {
 export type ComponentFunction = <T>(
     renderFunction: RenderFunction<
         T & {
-            node?: Node;
+            node: () => Node | undefined;
         }
     >
 ) => Component<T>;
