@@ -71,6 +71,8 @@ A component uses a "tagged template" (w/ [template literal](https://developer.mo
 
 Use `component` to register a template render function. It takes a render function as its argument, passing Nectar's template renderer to the render function along with some props, and a getter for the component's rendered node. A template context is bound to the renderer to achieve optimal rerenders.
 
+When using `component`, the tagged template's template string must contain only one element opening & closing tag at the start & end of the template string and must belong to the same element.
+
 **API** `component<PropsInterface>(template)`
 
 **Inclusion** `import { component } from '@darkkenergy/nectar';`
@@ -217,7 +219,9 @@ export const Button =
     component <
     ButtonProps >
     ((html, { className, label, type = 'button' }) => html`
-        <button class="${className}" type="${type}">${label}</button>
+        <button $click="${onClick}" class="${className}" type="${type}">
+            ${label}
+        </button>
     `);
 
 // A component can be a simple function without using the framework `component` method,
@@ -253,11 +257,15 @@ export const Button = component((html, { node }) => {
 import { activity, component } from '@darkkenergy/nectar';
 
 // Initialize a new activity with an initial value.
-const buttonClickActivity = activity(0);
+export const buttonClickActivity = activity(0);
 console.log(buttonClickActivity.initialValue); // => 0
 
+export interface BlueLabelProps {
+    label: string;
+}
+
 // We'll update this label, reactively, as an effect of the activity.
-export const BlueLabel = component(
+export const BlueLabel = component<BlueLabelProps>(
     (html, { label }) => html`
         <span class="label blue">${ label }<span>
     `
