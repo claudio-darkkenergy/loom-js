@@ -5,8 +5,8 @@ import {
     TemplateContext
 } from './types';
 
-export const activity = <T>(initialVal?: T) => {
-    let currentValue = initialVal;
+export const activity = <T>(initialValue?: T) => {
+    let currentValue = initialValue;
     const liveNodes = new Map<
         Node,
         {
@@ -18,7 +18,7 @@ export const activity = <T>(initialVal?: T) => {
         }
     >();
     const effect: ActivityEffect<T> = (action, cache = []) => {
-        const ctxFunction = action({ value: initialVal });
+        const ctxFunction = action({ value: initialValue });
         const ctx: TemplateContext = {};
         const node = ctxFunction(ctx);
 
@@ -28,6 +28,7 @@ export const activity = <T>(initialVal?: T) => {
 
     return {
         effect,
+        initialValue,
         update(newValue: T) {
             Array.from(liveNodes.entries()).forEach(
                 ([node, { action, ctx, ctxFunction }]) => {
