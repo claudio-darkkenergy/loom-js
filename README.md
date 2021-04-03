@@ -4,10 +4,19 @@
 
 > (Beta Release) A lightweight, functional JavaScript framework for building component-based reactive applications.
 
+## Feature Highlights
+
+-   **Micro-updates** on rerenders - updates are made at the attribute & node-levels.
+-   **Self-cleanup** of nodes leveraging native JS garbage collection & Weakmap.
+-   **Reactivity** to rerender any number of components used within a component template.
+-   **Tagged Templates** for performant processing of component templates.
+-   **0 Dependencies**
+-   **Typescript Types** included.
+
 ## Install
 
 ```bash
-npm i @darkkenergy/nectar -S
+npm i @darkkenergy/nectar@beta -S
 ```
 
 ## Inclusion
@@ -18,6 +27,9 @@ const Nectar = require('@darkkenergy/nectar');
 
 // ES6
 import * as Nectar from '@darkkenergy/nectar';
+
+// Typescript Types
+import * as NectarTypes from '@darkkenergy/nectar/dist/types';
 ```
 
 ## Concepts
@@ -26,130 +38,129 @@ import * as Nectar from '@darkkenergy/nectar';
 
 The app is where you first introduce your component ecosystem (one or more components that will drive your application). Bootstrapping is the process where you create and configure your app.
 
-**API** `new Framework(TemplateOptions)`
+**API** `init(options)`
 
-**Inclusion** `import { Framework } from '@darkkenergy/nectar';`
+**Inclusion** `import { init } from '@darkkenergy/nectar';`
 
 **Arguments**
 
--   interface `TemplateOptions` = `{ rootNode: Node; settings?: FrameworkSettings; }`
+-   interface `AppInitProps` = `{ app: (ctx?: TemplateContext) => Node; onAppMounted?: (mountedApp: Node) => any; root: HTMLElement; }`
 
-    -   `rootNode` - Any node that your app's component ecosystem will eventually be appended to once the initial render is complete.
+    -   `app` - A `ContextFunction` which returns a single node (the app node) that will contain all other nodes from your app's component ecosystem, and it will eventually be appended to the app's root node once the initial render is complete.
 
-    -   `settings` - type `FrameworkSettings` = `{ registry: { [key:string]: ComponentFunction; }`
+    -   `onAppMounted` - A callback function which gets called once the app node is appended to the desired DOM root node.
 
-        -   `registry` - An object literal with a key-to-component mapping.
-            -   The key is a string with the exact name of the component (CamelCased), and the value is a Nectar Component.
-            -   A lookup can later be made against a registry Map, which is baked into the app. To access a component called `SuperButton`, pass a key as a string with the value of the component's name - `Registry().get('SuperButton')(props)` - and a set of props the component is expecting.
-            -   An application registry allows future direct access to components without having to import them.
-            -   The idea behind this setting is to pre-import known components to be able to access them later in a dynamic manner - they will be available to the application immediately after the app has been instantiated.
-            -   **Use case** - If you've every had to access a Component dynamically, lazy-loading wasn't an option, and a switch statement is just too cumbersome to maintain as your dynamic component bucket keeps growing or changing.
+    -   `root` - A DOM node which the app node is appended to once the initial render is complete.
 
 **Quick Example**
 
 ```js
-import { Framework, Registry } from 'nectar';
-import { SuperButton } from './super-button';
+import { init } from '@darkkenergy/nectar';
+import { App } from './app';
 
-const rootNode = document.querySelector('#page-content');
-
-const app = new Framework({
-    rootNode,
-    settings: {
-        registry: { SuperButton }
-    }
+init({
+    app: App(),
+    onAppMounted: (app) => console.log(document.contains(app)), // => true
+    root: document.body
 });
-
-// We can access registered components now that we've instatiated the app.
-const superButton = Registry().get('SuperButton')({
-    label: 'Registered Super Button'
-});
-
-console.log('<super-button />', superButton);
 ```
 
 ### Components
 
 A component uses a "tagged template" (w/ [template literal](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) syntax) - the template render function - to define its template.
 
-Use `Component` to register a template render function. It takes a template function as its argument and passes it a template render function with context (thanks to `ctx`, explained later) as its first argument.
+Use `component` to register a template render function. It takes a render function as its argument, passing Nectar's template renderer to the render function along with some props, and a getter for the component's rendered node. A template context is bound to the renderer to achieve optimal rerenders.
 
-**API** `Component(NodeTemplateFunction)`
+**API** `component<PropsInterface>(template)`
 
-**Inclusion** `import { Component } from '@darkkenergy/nectar';`
+**Inclusion** `import { component } from '@darkkenergy/nectar';`
 
 **Arguments**
 
--   type `NodeTemplateFunction` = `(Template, props) => DocumentFragment`
+-   interface `RenderFunction` = `{ (render, props) => Node }`
 
-    -   `Template` (can be named anything) - the template render function ("tagged template") with context (`ctx`)."
+    -   `render` (can be named anything) - the template render function ("tagged template") with the bound context.
 
         -   Initializes a component template.
-        -   Once initialized, it handles updates to the same component context (thanks to `ctx`, explained later.)
+        -   Once initialized, it efficiently handles updates to the same component using the bound context.
 
         **Arguments**
 
         -   type `TemplateLiteral` = `` `my template literal` ``
-            -   **Note** - The template literal can contain any number of top-level nodes, including `Text`.
+            -   **Note** - The template literal must contain only one top-level node, of the `Element` type.
 
-        **Returns** `DocumentFragment`
+        **Returns** `Node`
 
-    -   `props` (can be named anything or destructured) - an object literal containing dynamic property values for enriching your component.
+    -   `props` (can be named anything or destructured) - an object literal containing dynamic property values for enriching your component, along with a getter, `node()`, which returns the component's rendered node.
 
-**Returns** `ComponentFunction` The callable component function.
+**Returns** `Component` The callable component function.
 
 **Quick Example**
 
 ```js
-const Button = Component(
-    (Template, props) => Template`
+import { component } from '@darkkenergy/nectar';
+
+interface ButtonProps {
+    label: string;
+    type: string;
+}
+
+export const Button =
+    component <
+    ButtonProps >
+    ((html, props) => html`
         <button type="${props.type}">${props.label}</button>
-    `
-);
+    `);
 ```
 
 ### Activities (reactivity)
 
 An activity uses a pub/sub pattern at its core. This concept directly supports reactive behavior within your component ecosystem.
 
-When instantiating a new `Activity`, you may provide a default value to the activity. One or more effects may be set within your component ecosystem. Then by hooking an activity update to some event, all subscribed effects will be called in order of "first-in, first-out".
+When creating a new activity, you may provide a default value. One or more effects may be queued within your component ecosystem for any given activity. Then, by hooking an activity update to some event, all subscribed effects will be called in order of "first-in, first-out".
 
-**API** `new Activity(defaultValue)`
+**API** `activity<any>(initialValue)`
 
-**Inclusion** `import { Activity } from '@darkkenergy/nectar';`
+**Inclusion** `import { activity } from '@darkkenergy/nectar';`
 
 **Arguments**
 
--   `defaultValue` - any type of value which is unchanged throughout the life of the activity.
+-   `initialValue` - any type of value which is unchanged throughout the life of the activity.
 
-**Returns** `ActivityWorkers`
+**Returns** `{ effect: ActivityEffect<T = any>; update(newValue: T): void; value(): T; }`
 
 -   **Interface**
 
     _Properties_
 
-    -   `defaultValue`
+    -   `initialValue`
         -   Any type of value which is unchanged throughout the life of the activity.
-    -   `value`
-        -   A getter which always returns the current value, which is initially `defaultValue`.
-        -   **Caveat** - If the current value needs to be accessed within an event handler, a `const` should set to `value` from within that handler. Since `value` is a getter, if the `const` is set outside the handler, the value may be stale.
 
     _Methods_
 
-    -   `effect(({ ctx, value }) => TemplateTagValue)`
+    -   `effect(({ value }) => (ctx?: TemplateContext) => Node)`
         -   An effect is called at least once per use, when it's first introducted during the component render process. Additionally, it's called once per activity update.
-        -   `ctx` - the effect context.
-            -   An activity will cache all rendered components of the effect so that the component only updates after the initial render, avoiding a full component render per subsequent activity update.
-            -   **Caveat** - there is one implementation detail that is needed for this functionality to work - `ctx` must be passed to all components as their last argument.
-        -   `value` - the current activity value.
+        -   `value` - the initial activity value, or the new value on updates.
     -   `update(newValue)`
         -   Calling this method will trigger all subscribed effects from the related activity, passing the new value to each effect.
+    -   `value()`
+        -   A getter which always returns the current value, which is initially `initialValue`.
 
 **Quick Example**
 
 ```js
-const defaultValue = 0;
-const ButtonClickActivity = new Activity(defaultValue);
+import { activity } from '@darkkenergy/nectar';
+
+const initialValue = 0;
+export const buttonClickActivity = activity(initialValue);
+
+console.log(buttonClickActivity.initialValue); // => 0
+console.log(buttonClickActivity.value()); // => 0
+buttonClickActivity.update(1);
+console.log(buttonClickActivity.initialValue); // => 0
+console.log(buttonClickActivity.value()); // => 1
+
+// See the Activity Example, below, for an `effect()` usage example.
 ```
 
 ## Examples
@@ -157,21 +168,23 @@ const ButtonClickActivity = new Activity(defaultValue);
 ### App Initialization (bootstrapping the app)
 
 ```js
-import { Framework } from '@darkkenergy/nectar';
+import { init } from '@darkkenergy/nectar';
 
-import * as RegisteredComponents from './component-bootstrap';
 import { Page } from './page';
 import content from './content.json';
 
 const rootNode = document.querySelector('#page-content');
-const app = new Framework({
-    rootNode,
-    settings: {
-        registry: RegisteredComponents
-    }
-});
 
-app.load({ content, template: Page }).render();
+init({
+    app: Page(content),
+    onAppMounted: () => {
+        // Used for manual trigger of `presite` static-site-generation (https://github.com/egoist/presite)
+        if ((window as any).snapshot) {
+            (window as any).snapshot();
+        }
+    },
+    root: rootNode
+});
 ```
 
 ### Components
@@ -179,75 +192,76 @@ app.load({ content, template: Page }).render();
 **Simple example**
 
 ```js
-import { Component } from '@darkkenergy/nectar';
+import { component } from '@darkkenergy/nectar';
 
-const Button = Component(
-    (Template) => Template`
-        <button type="button">Click me!</button>
-    `
+export const Button = component(
+    (html) => html` <button type="button">Click me!</button> `
 );
-
-export { Button };
 ```
 
 **Props & interpolation**
 
-Props passed into a component can be accessed via the second argument of the `Component`'s function argument.
+Props passed into a component can be accessed via the second argument of the `component`'s render function argument.
 Interpolation is achieved using the JS ES6 standard [template literal](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) syntax
 
 ```js
-import { Component } from '@darkkenergy/nectar';
+import { component } from '@darkkenergy/nectar';
 
-const Button = Component(
-    (Template, { className, label, type = 'button' }) => Template`
+export interface ButtonProps {
+    className: string;
+    label: string;
+    type: string;
+}
+
+export const Button =
+    component <
+    ButtonProps >
+    ((html, { className, label, type = 'button' }) => html`
         <button class="${className}" type="${type}">${label}</button>
-    `
-);
+    `);
 
-const SuperButton = Component(
-    (Template) => Template`
-        ${Button({
-            className: 'super-button',
-            label: 'Super Button'
-        })}
-    `
-);
+// A component can be a simple function without using the framework `component` method,
+// and is considered as such so long as it returns a `ContextFunction`.
+// Since `Button` is created using the `component` method, it will return a `ContextFunction` when called.
+// Below, `SuperButton` will return the `ContextFunction` of the `Button` output when called - so we're good here.
+export const SuperButton = ({ label }: { label: string }) =>
+    Button({
+        className: 'super-button',
+        label
+    });
 ```
 
 **Activity example**
 
 ```js
-import { Activity, Component } from '@darkkenergy/nectar';
+import { activity, component } from '@darkkenergy/nectar';
 
-// Initialize a new Activity with a default value.
-const ButtonClickActivity = Activity(0);
-console.log(ButtonClickActivity.value); // -> 0
+// Initialize a new activity with an initial value.
+const buttonClickActivity = activity(0);
+console.log(buttonClickActivity.initialValue); // => 0
 
 // We'll update this label, reactively, as an effect of the activity.
-const BlueLabel = Component(
-    (Template, { label }) => `
+export const BlueLabel = component(
+    (html, { label }) => html`
         <span class="label blue">${ label }<span>
     `
 );
 
-const Button = Component(
-    (Template) => {
-        const { effect } = ButtonClickActivity;
+export const Button = component(
+    html => {
+        const { effect, update, value } = buttonClickActivity;
         const onClick = () => {
-            // Because `value` is a getter, we need to get the value for each click in realtime.
-            // If we get `value` outside of the click handler, we'll update the stale value every time.
-            const { value } = ButtonClickActivity;
-            update(++value);
-            console.log(ButtonClickActivity.value); // increments by 1 for every button click
+            update(value() + 1);
+            console.log(value()); // increments by 1 for every button click
         };
 
         // The effect is run immediately on first render and runs every time thereafter when the related activity is updated.
-        // `ctx` must be passed to the component as the last argument to maintain the proper context.
+        // The effect must always return the output of a Component, which is a `ContextFunction`.
         // `value` holds the current value of the activity.
-        return Template`
+        return html`
             <button $click="${onClick}" type="button">
-                ${effect(({ ctx, value }) =>
-                    BlueLabel({ label: `Clicked count: ${value}` }, ctx)
+                ${effect(({ value }) =>
+                    BlueLabel({ label: `Clicked count: ${value}` })
                 )}
             </button>
         `
