@@ -231,6 +231,22 @@ export const SuperButton = ({ label }: { label: string }) =>
     });
 ```
 
+**Access the rendered component node**
+
+```js
+import { component } from '@darkkenergy/nectar';
+
+// `node` is a getter method which all components receive in the props argument,
+// and will return the rendered node of the component.
+// The component node will be undefined until the initial render is complete.
+// Warning: be careful when accessing the node that you're not messing with things which are expected to be intact for each rerender process,
+// i.e dynamic nodes or attributes within the template.
+export const Button = component((html, { node }) => {
+    const onClick = () => console.log(document.contains(node())); // => true
+    return html` <button type="button">Click me!</button> `;
+});
+```
+
 **Activity example**
 
 ```js
