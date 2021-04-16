@@ -15,13 +15,15 @@ export interface ValueProp<T = TemplateTagValue> {
 }
 
 /* Template */
+export type ContextNodeGetter = () => Node | undefined;
+
 export interface TaggedTemplate {
     this?: TemplateContext;
     (chunks: TemplateStringsArray, ...interpolations: TemplateTagValue[]): Node;
 }
 
 export interface TemplateContext {
-    node?: () => Node | undefined;
+    node?: ContextNodeGetter;
     render?: TaggedTemplate;
     root?: Node;
 }
@@ -50,7 +52,7 @@ export interface Component<T> {
 export type ComponentFunction = <T>(
     renderFunction: RenderFunction<
         T & {
-            node: () => Node | undefined;
+            node: ContextNodeGetter;
         }
     >
 ) => Component<T>;
