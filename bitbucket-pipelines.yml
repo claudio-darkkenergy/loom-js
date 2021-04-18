@@ -8,23 +8,10 @@ image: node:15.3.0-alpine3.10
 pipelines:
   default:
     - step:
-        name: Run Intern
+        # name: Run Intern
+        name: Build
         caches:
           - node
         script:
           - npm install
-          - npm run test
-    - step:
-        name: Publish
-        deployment: production
-        # trigger: manual  # Uncomment to make this a manual deployment.
-        script:
-          - npm version minor -m "Upgrade to %s [skip ci]"
-          - git push && git push --tags
-          - pipe: atlassian/npm-publish:0.3.2
-            variables:
-              NPM_TOKEN: $NPM_TOKEN
-              # FOLDER: '<string>' # Optional.
-              # EXTRA_ARGS: '<string>' # Optional.
-              # NPM_REGISTRY_AUTH_URL: '<string>' # Optional.
-              # DEBUG: '<boolean>' # Optional.
+          - npm run build
