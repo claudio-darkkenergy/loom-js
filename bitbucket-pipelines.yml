@@ -15,6 +15,8 @@ pipelines:
         script:
           - npm install
           - npm run build
+        artifacts: # defining the artifacts to be passed to each future step.
+          - dist/**
     - step:
         name: Publish
         deployment: production
