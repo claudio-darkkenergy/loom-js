@@ -1,6 +1,6 @@
 {
     "author": "Claudio Nunez Jr",
-    "description": "(Beta Release) A lightweight, functional JavaScript framework for building component-based reactive applications.",
+    "description": "A lightweight, functional JavaScript framework for building component-based reactive applications.",
     "devDependencies": {
         "@types/classnames": "2.2.10",
         "@types/jsdom": "16.2.4",
@@ -41,5 +41,5 @@
         "test": "intern"
     },
     "types": "dist/index.d.ts",
-    "version": "1.0.2"
+    "version": "1.0.5"
 }

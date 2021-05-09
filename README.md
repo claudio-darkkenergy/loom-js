@@ -2,7 +2,7 @@
 
 # Nectar JS
 
-> (Beta Release) A lightweight, functional JavaScript framework for building component-based reactive applications.
+> A lightweight, functional JavaScript framework for building component-based reactive applications.
 
 ## Feature Highlights
 
