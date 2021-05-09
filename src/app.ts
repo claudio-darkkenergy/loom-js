@@ -7,6 +7,8 @@ export interface AppInitProps {
 }
 
 export const init = ({ app, onAppMounted, root }: AppInitProps) => {
+    // Ensure the root element is empty.
+    root.innerHTML = '';
     const mountedApp = root.appendChild(app());
 
     if (typeof onAppMounted === 'function') {
