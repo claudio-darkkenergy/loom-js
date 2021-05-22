@@ -271,7 +271,9 @@ export const Button = component((html, { onCreated, onRendered }) => {
         // => true (on rerenders)
     };
     
+    // Called only once - on creation.
     onCreated(lifeCycleHandler);
+    // Called on every render - onCreated will always be called first.
     onRendered(lifeCycleHandler);
     return html`<button type="button">I'm a handsome button!</button>`;
 });
