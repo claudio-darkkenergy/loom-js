@@ -16,12 +16,12 @@
 ## Install
 
 ```bash
-npm i @darkkenergy/nectar@beta -S
+npm i @darkkenergy/nectar -S
 ```
 
 ## Inclusion
 
-```js
+```ts
 // CommonJS
 const Nectar = require('@darkkenergy/nectar');
 
@@ -54,7 +54,7 @@ The app is where you first introduce your component ecosystem (one or more compo
 
 **Quick Example**
 
-```js
+```ts
 import { init } from '@darkkenergy/nectar';
 import { App } from './app';
 
@@ -93,13 +93,13 @@ When using `component`, the tagged template's template string must contain only 
 
         **Returns** `Node`
 
-    -   `props` (can be named anything or destructured) - an object literal containing dynamic property values for enriching your component, along with a getter, `node()`, which returns the component's rendered node.
+    -   `props` (can be named anything or destructured) - an object literal containing dynamic property values for enriching your component, along with a getter, `node()`, which returns the component's rendered node, and two life-cycle methods: `onCreated(handler)` & `onRendered(handler)` - all life-cycle methods take a handler callback, and that handler receives the component's rendered node as an argument (see the section "Life Cycles" under "Examples" > "Components".)
 
 **Returns** `Component` The callable component function.
 
 **Quick Example**
 
-```js
+```ts
 import { component } from '@darkkenergy/nectar';
 
 interface ButtonProps {
@@ -150,7 +150,7 @@ When creating a new activity, you may provide a default value. One or more effec
 
 **Quick Example**
 
-```js
+```ts
 import { activity } from '@darkkenergy/nectar';
 
 const initialValue = 0;
@@ -169,7 +169,7 @@ console.log(buttonClickActivity.value()); // => 1
 
 ### App Initialization (bootstrapping the app)
 
-```js
+```ts
 import { init } from '@darkkenergy/nectar';
 
 import { Page } from './page';
@@ -193,11 +193,11 @@ init({
 
 **Simple example**
 
-```js
+```ts
 import { component } from '@darkkenergy/nectar';
 
 export const Button = component(
-    (html) => html` <button type="button">Click me!</button> `
+    (html) => html`<button type="button">Click me!</button>`
 );
 ```
 
@@ -206,19 +206,21 @@ export const Button = component(
 Props passed into a component can be accessed via the second argument of the `component`'s render function argument.
 Interpolation is achieved using the JS ES6 standard [template literal](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) syntax
 
-```js
+```ts
 import { component } from '@darkkenergy/nectar';
+import { MouseEventListener } from '@darkkenergy/nectar/dist/types';
 
 export interface ButtonProps {
     className: string;
     label: string;
+    onClick?: MouseEventListener;
     type: string;
 }
 
 export const Button =
     component <
     ButtonProps >
-    ((html, { className, label, type = 'button' }) => html`
+    ((html, { className, label, onClick, type = 'button' }) => html`
         <button $click="${onClick}" class="${className}" type="${type}">
             ${label}
         </button>
@@ -237,7 +239,7 @@ export const SuperButton = ({ label }: { label: string }) =>
 
 **Access the rendered component node**
 
-```js
+```ts
 import { component } from '@darkkenergy/nectar';
 
 // `node` is a getter method which all components receive in the props argument,
@@ -247,13 +249,37 @@ import { component } from '@darkkenergy/nectar';
 // i.e dynamic nodes or attributes within the template.
 export const Button = component((html, { node }) => {
     const onClick = () => console.log(document.contains(node())); // => true
-    return html` <button type="button">Click me!</button> `;
+    return html`<button $click="${onClick}" type="button">Click me!</button>`;
+});
+```
+
+**Life Cycles**
+
+```ts
+import { component } from '@darkkenergy/nectar';
+import { LifeCycleHandler } from '@darkkenergy/nectar/dist/types';
+
+// There are two component life-cycle methods - `onCreated` & `onRendered`.
+// Each will take life-cycle handler as its argument, and each handler will receive the rendered component node.
+// `onCreated` is called only the first time the component is rendered, firing just before `onRendered`.
+// `onRendered` is called each time the component is rerendered.
+export const Button = component((html, { onCreated, onRendered }) => {
+    const lifeCycleHandler: LifeCycleHandler = (node) => {
+        console.log(node instanceof Node); // => true
+        console.log(document.contains(node));
+        // => false (on creation & 1st render);
+        // => true (on rerenders)
+    };
+    
+    onCreated(lifeCycleHandler);
+    onRendered(lifeCycleHandler);
+    return html`<button type="button">I'm a handsome button!</button>`;
 });
 ```
 
 **Activity example**
 
-```js
+```ts
 import { activity, component } from '@darkkenergy/nectar';
 
 // Initialize a new activity with an initial value.

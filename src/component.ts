@@ -1,5 +1,5 @@
 import { template } from './template';
-import { ComponentFunction } from './types';
+import { ComponentFunction, LifeCycleHandler } from './types';
 
 export const component: ComponentFunction = (renderFunction) => (props) => (
     ctx = {}
@@ -9,6 +9,14 @@ export const component: ComponentFunction = (renderFunction) => (props) => (
 
     return renderFunction(
         ctx.render,
-        Object.assign({}, props, { node: ctx.node })
+        Object.assign({}, props, {
+            node: ctx.node,
+            onCreated: (handler: LifeCycleHandler) => {
+                ctx.created = handler;
+            },
+            onRendered: (handler: LifeCycleHandler) => {
+                ctx.rendered = handler;
+            }
+        })
     );
 };

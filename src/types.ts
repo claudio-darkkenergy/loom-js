@@ -23,8 +23,10 @@ export interface TaggedTemplate {
 }
 
 export interface TemplateContext {
+    created?: LifeCycleHandler;
     node?: ContextNodeGetter;
     render?: TaggedTemplate;
+    rendered?: LifeCycleHandler;
     root?: Node;
 }
 
@@ -53,11 +55,14 @@ export type ComponentFunction = <T>(
     renderFunction: RenderFunction<
         T & {
             node: ContextNodeGetter;
+            onCreated(handler: LifeCycleHandler): void;
+            onRendered(handler: LifeCycleHandler): void;
         }
     >
 ) => Component<T>;
 
 export type ContextFunction = (ctx?: TemplateContext) => Node;
+export type LifeCycleHandler = (node: Node | undefined) => any;
 
 export interface ReactiveComponent<T = any, P = any> {
     (transform?: (props?: T) => P): NectarNode;

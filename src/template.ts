@@ -25,7 +25,9 @@ export function template(
     chunks: TemplateStringsArray,
     ...interpolations: TemplateTagValue[]
 ): Node {
+    let created = false;
     const ctx = this;
+    let rootNode: Node;
 
     if (!templateStore.has(chunks)) {
         const fragment = document
@@ -74,7 +76,17 @@ export function template(
         .get(ctx.root as Node)
         ?.updates.forEach((update) => update(interpolations));
 
-    return ctx.root || document.createDocumentFragment();
+    rootNode = ctx.root || document.createDocumentFragment();
+
+    // Creation life-cycle handler - only once.
+    if (ctx.created && !created) {
+        created = true;
+        ctx.created(rootNode);
+    }
+
+    // Rendered life-cycle handler - every render.
+    ctx.rendered && ctx.rendered(rootNode);
+    return rootNode;
 }
 
 const resolveValue = (value: TemplateTagValue) => {
@@ -158,13 +170,16 @@ const getLiveUpdates = (
                 attrs.map((attr) => {
                     let updater: TemplateNodeUpdate;
 
+                    // Special attributes start w/ `$`.
                     if (attr['nodeName'][0] === '$') {
                         const nodeName = attr.nodeName.slice(1);
 
                         if (config.events.includes(nodeName as ConfigEvent)) {
+                            // Handle special dom-event attributes.
                             updater = (values: TemplateTagValue[]) => {
                                 const eventValue = values.shift();
 
+                                // Special event attrs' values must be a function.
                                 if (typeof eventValue === 'function') {
                                     node.addEventListener(
                                         nodeName,
@@ -178,6 +193,7 @@ const getLiveUpdates = (
                                 }
                             };
                         } else {
+                            // Safely handle other attrs which are not known dom-event attrs.
                             updater = (values: TemplateTagValue[]) => {
                                 (node as HTMLElement | SVGElement).setAttribute(
                                     nodeName,
@@ -197,6 +213,7 @@ const getLiveUpdates = (
                             );
                         }
                     } else {
+                        // Handle dynamic standard attributes.
                         updater = (values: TemplateTagValue[]) => {
                             const attrNode = (node as
                                 | HTMLElement
