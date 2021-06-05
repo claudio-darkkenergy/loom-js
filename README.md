@@ -1,8 +1,8 @@
 [TOC]
 
 <h1 align="center">
-  <img width="460" height="300" src="https://images.ctfassets.net/2x238mu87414/6XeR7Z8onDfOTi9GK7pyTr/000f41ee0d845efdd3bf796491dba73f/nectar-logo-v1.png">
-  nectar ( js )
+  <img width="86" height="91" src="https://images.ctfassets.net/2x238mu87414/6XeR7Z8onDfOTi9GK7pyTr/000f41ee0d845efdd3bf796491dba73f/nectar-logo-v1.png">
+  <div>nectar ( js )</div>
 </h1>
 
 > A lightweight, functional JavaScript framework for building component-based reactive applications.
@@ -184,8 +184,6 @@ There are two main technologies leveraged in the routing system - the activity s
 
 **Quick Example**
 
-## Examples
-
 ```ts
 import { component, router, routerLink } from '@darkkenergy/nectar';
 import { About, Home, NotFound } from '@app/component/pages';
@@ -214,6 +212,8 @@ export const App = component(
 );
 
 ```
+
+## Examples
 
 ### App Initialization (bootstrapping the app)
 
