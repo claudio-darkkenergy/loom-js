@@ -24,6 +24,7 @@ export interface TaggedTemplate {
 
 export interface TemplateContext {
     created?: LifeCycleHandler;
+    fingerPrint?: RenderFunction<unknown>;
     node?: ContextNodeGetter;
     render?: TaggedTemplate;
     rendered?: LifeCycleHandler;
