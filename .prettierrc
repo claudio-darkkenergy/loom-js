@@ -1,5 +1,6 @@
 {
     "bracketSpacing": true,
+    "noMultipleEmptyLines": true,
     "semi": true,
     "singleQuote": true,
     "tabWidth": 4,

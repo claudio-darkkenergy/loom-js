@@ -1,16 +1,20 @@
 [TOC]
 
-# Nectar JS
+<h1 align="center">
+  <img width="460" height="300" src="https://images.ctfassets.net/2x238mu87414/6XeR7Z8onDfOTi9GK7pyTr/000f41ee0d845efdd3bf796491dba73f/nectar-logo-v1.png">
+  nectar ( js )
+</h1>
 
 > A lightweight, functional JavaScript framework for building component-based reactive applications.
 
 ## Feature Highlights
 
 -   **Micro-updates** on rerenders - updates are made at the attribute & node-levels.
--   **Self-cleanup** of nodes leveraging native JS garbage collection & Weakmap.
+-   **Self-cleanup** leveraging native JS garbage collection & Weakmap to release dead nodes from memory.
 -   **Reactivity** to rerender any number of components used within a component template.
 -   **Tagged Templates** for performant processing of component templates.
--   **0 Dependencies**
+-   **Client-side Routing** for dynamic rendering of components based on Location data.
+-   **0 Dependencies** to keeps things simple.
 -   **Typescript Types** included.
 
 ## Install
@@ -73,7 +77,7 @@ Use `component` to register a template render function. It takes a render functi
 
 When using `component`, the tagged template's template string must contain only one element opening & closing tag at the start & end of the template string and must belong to the same element.
 
-**API** `component<PropsInterface>(template)`
+**API** `component<T>(template)`
 
 **Inclusion** `import { component } from '@darkkenergy/nectar';`
 
@@ -121,7 +125,7 @@ An activity uses a pub/sub pattern at its core. This concept directly supports r
 
 When creating a new activity, you may provide a default value. One or more effects may be queued within your component ecosystem for any given activity. Then, by hooking an activity update to some event, all subscribed effects will be called in order of "first-in, first-out".
 
-**API** `activity<any>(initialValue)`
+**API** `activity<T>(initialValue)`
 
 **Inclusion** `import { activity } from '@darkkenergy/nectar';`
 
@@ -165,7 +169,51 @@ console.log(buttonClickActivity.value()); // => 1
 // See the Activity Example, below, for an `effect()` usage example.
 ```
 
+### Routing
+
+Routing is used specifically for single-page-apps (SPA). You can still set up server-side routes as you would for a multi-page app, and then let the client-side routing take over to achieve a snappy single-page-app experience. This approach would also work well when prerending a static site or JAMStack architecture.
+
+There are two main technologies leveraged in the routing system - the activity system is at its core, and the browser's native History API allows for SPA behavior and clean URL's.
+
+**API**
+
+- `router(({ value }) => (ctx?: TemplateContext) => Node)`
+- `routerLink` - A MouseEventListener to hook up as an element's click-handler.
+
+**Inclusion** `import { router, routerLink } from '@darkkenergy/nectar';`
+
+**Quick Example**
+
 ## Examples
+
+```ts
+import { component, router, routerLink } from '@darkkenergy/nectar';
+import { About, Home, NotFound } from '@app/component/pages';
+
+export const App = component(
+    (html) => html`
+        <div>
+            <nav>
+                <a $click="${routerLink}" href="/">Home</a> |
+                <a $click="${routerLink}" href="/about">About</a>
+            </nav>
+            <main>
+                ${router(({ value: { pathname } }) => {
+                    switch (pathname) {
+                        case '/':
+                            return Home();
+                        case '/about':
+                            return About();
+                        default:
+                            return NotFound();
+                    }
+                })}
+            </main>
+        </div>
+    `
+);
+
+```
 
 ### App Initialization (bootstrapping the app)
 
@@ -275,7 +323,7 @@ export const Button = component((html, { onCreated, onRendered }) => {
     onCreated(lifeCycleHandler);
     // Called on every render - onCreated will always be called first.
     onRendered(lifeCycleHandler);
-    return html`<button type="button">I'm a handsome button!</button>`;
+    return html`<button type="button">Click me!</button>`;
 });
 ```
 

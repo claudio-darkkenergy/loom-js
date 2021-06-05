@@ -14,7 +14,6 @@ export const activity = <T>(initialValue?: T) => {
             // @TODO Use the cache for handler memoization.
             cache: any[];
             ctx: TemplateContext;
-            ctxFunction: ContextFunction;
         }
     >();
     const effect: ActivityEffect<T> = (action, cache = []) => {
@@ -22,23 +21,43 @@ export const activity = <T>(initialValue?: T) => {
         const ctx: TemplateContext = {};
         const node = ctxFunction(ctx);
 
-        liveNodes.set(node, { action, cache, ctx, ctxFunction });
+        liveNodes.set(node, { action, cache, ctx });
         return node;
     };
 
     return {
         effect,
         initialValue,
-        update(newValue: T) {
+        update(newValue: T, force = false) {
             Array.from(liveNodes.entries()).forEach(
-                ([node, { action, ctx, ctxFunction }]) => {
-                    if (document.contains(node) && newValue !== currentValue) {
+                ([liveNode, { action, cache, ctx }]) => {
+                    if (
+                        document.contains(liveNode) &&
+                        (newValue !== currentValue || force)
+                    ) {
+                        // Do the updates.
+                        let ctxFunction: ContextFunction;
+                        let node: Node;
+
                         currentValue = newValue;
                         ctxFunction = action({ value: newValue });
-                        ctxFunction(ctx);
+                        // Render the component.
+                        node = ctxFunction(ctx);
+
+                        // If the new node is different than the live node, update the live node.
+                        if (node && !node.isSameNode(liveNode)) {
+                            liveNodes.set(node, {
+                                action,
+                                cache,
+                                ctx
+                            });
+                            // Replace the old node & perform cleanup on it for garbage colleciton.
+                            (liveNode as Element).replaceWith(node);
+                            liveNodes.delete(liveNode);
+                        }
                     } else {
                         // Cleanup old nodes which have been removed from the DOM.
-                        liveNodes.delete(node);
+                        liveNodes.delete(liveNode);
                     }
                 }
             );
