@@ -13,8 +13,8 @@
 -   **Self-cleanup** leveraging native JS garbage collection & Weakmap to release dead nodes from memory.
 -   **Reactivity** to rerender any number of components used within a component template.
 -   **Tagged Templates** for performant processing of component templates.
--   **Client-side Routing** for dynamic rendering of components based on Location data.
--   **0 Dependencies** to keeps things simple.
+-   **Client-side Routing** for dynamic rendering of components based on `Location` data.
+-   **0 Dependencies** (you're welcome)
 -   **Typescript Types** included.
 
 ## Install
@@ -177,24 +177,48 @@ There are two main technologies leveraged in the routing system - the activity s
 
 **API**
 
-- `router(({ value }) => (ctx?: TemplateContext) => Node)`
-- `routerLink` - A MouseEventListener to hook up as an element's click-handler.
+- `router(routeConfigCallback: ActivityHandler<Location>` - Hooks up reactivity based on `Location` data & History API updates.
+    -   `routeConfigCallback`
+        -   Has the following function signature: `({ value }) => (ctx?: TemplateContext) => Node)`
+        -   The value of `value` will always be the current browser's `Location` object.
+        -   A `TemplateContext` must always be returned - this the value which a component returns when you call it.
+- `onRoute(event: SyntheticMouseEvent<T>, options: OnRouteOptions)` - A `MouseEventListener` to hook up as an element's click-handler.
+    -   `event`
+        -   must be passed to the event handler.
+        -   If `onRoute` is wrapped by another acting function, then `event` will have to be passed to the `onRoute` call, manually. Example: `(e) => onRoute(e);`
+    -   `options`
+        -   `href?: string`
+        -   `replace?: boolean` - Will set the `replaceState` flag to true so that the url will update in the browser's address bar, but it will not add an entry to the history stack.
 
-**Inclusion** `import { router, routerLink } from '@darkkenergy/nectar';`
+**Inclusion** `import { router, onRoute } from '@darkkenergy/nectar';`
 
 **Quick Example**
 
 ```ts
-import { component, router, routerLink } from '@darkkenergy/nectar';
+import { component, onRoute, router } from '@darkkenergy/nectar';
+import { MouseEventListener } from '@darkkenergy/nectar/dist/types';
 import { About, Home, NotFound } from '@app/component/pages';
 
-export const App = component(
+export const App = component<unknown>(
     (html) => html`
         <div>
-            <nav>
-                <a $click="${routerLink}" href="/">Home</a> |
-                <a $click="${routerLink}" href="/about">About</a>
-            </nav>
+            <header>
+                ${/* Standard button example passing options to `onRoute` */}
+                <button
+                    $click="${(e) =>
+                        onRoute(e, {
+                            href: '/home'
+                        })) as MouseEventListener})}"
+                    type="button"
+                >
+                    nectar (js)
+                </button>
+                ${/* Anchor example demonstrating the simpler `onRoute` usage */}
+                <nav>
+                    <a $click="${onRoute}" href="/">Home</a> |
+                    <a $click="${onRoute}" href="/about">About</a>
+                </nav>
+            </header>
             <main>
                 ${router(({ value: { pathname } }) => {
                     switch (pathname) {
@@ -228,10 +252,16 @@ const rootNode = document.querySelector('#page-content');
 init({
     app: Page(content),
     onAppMounted: () => {
-        // Used for manual trigger of `presite` static-site-generation (https://github.com/egoist/presite)
-        if ((window as any).snapshot) {
-            (window as any).snapshot();
-        }
+        // Used for manual trigger of `PrerenderSsgWebpackPlugin` static-site-generation.
+        // This method of prerendering is meant to be called after some async operation
+        // to allow for fetching content & saturating the DOM before capturing the page content.
+        // Here, the setTimeout is mimicking this scenario - there are other more appropriate methods
+        // which may used for async or syncronous rendering use cases.
+        setTimeout(() => {
+            if ((window as any).snapshot) {
+                (window as any).snapshot();
+            }
+        }, 500);
     },
     root: rootNode
 });
@@ -367,6 +397,10 @@ export const Button = component(
         `
 );
 ```
+
+## Roadmap
+
+-   **Lazy-loading Routes:** Support for lazy-loading of routes.
 
 ## Recognition
 

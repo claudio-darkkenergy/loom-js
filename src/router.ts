@@ -1,5 +1,10 @@
 import { activity } from './activity';
-import { ActivityHandler, MouseEventListener } from './types';
+import { ActivityHandler, SyntheticMouseEvent } from './types';
+
+export interface OnRouteOptions {
+    href?: string;
+    replace?: boolean;
+}
 
 // Setup the activity for the History API
 const historyApiActivity = activity<Location>(window.location);
@@ -14,16 +19,19 @@ export const router = (routeConfigCallback: ActivityHandler<Location>) => {
     return effect((props) => routeConfigCallback(props));
 };
 
-export const routerLink: MouseEventListener = (event) => {
-    const { href } = (event.target as unknown) as HTMLAnchorElement;
-    const action = 'pushState';
-    console.log('href', href);
+export const onRoute = <T>(
+    event?: SyntheticMouseEvent<T>,
+    options?: OnRouteOptions
+) => {
+    const action = (options?.replace && 'replaceState') || 'pushState';
+    const href =
+        options?.href || ((event?.target as unknown) as HTMLAnchorElement).href;
 
-    event.preventDefault();
+    event?.preventDefault();
 
     if (href) {
         // Update the browser url.
-        window.history[action]({}, 'routerLink', href);
+        window.history[action]({}, 'onRoute', href);
         // Update the view.
         update(window.location, true);
     }
