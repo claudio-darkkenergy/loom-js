@@ -177,11 +177,11 @@ There are two main technologies leveraged in the routing system - the activity s
 
 **API**
 
-- `router(routeConfigCallback: ActivityHandler<Location>` - Hooks up reactivity based on `Location` data & History API updates.
+- `router(routeConfigCallback: ActivityHandler<Location>)` - Hooks up reactivity based on `Location` data & History API updates.
     -   `routeConfigCallback`
-        -   Has the following function signature: `({ value }) => (ctx?: TemplateContext) => Node)`
+        -   Has the following function signature: `({ value }) => ContextFunction`
         -   The value of `value` will always be the current browser's `Location` object.
-        -   A `TemplateContext` must always be returned - this the value which a component returns when you call it.
+        -   A `ContextFunction` must always be returned - this the value which a component returns when you call it.
 - `onRoute(event: SyntheticMouseEvent<T>, options: OnRouteOptions)` - A `MouseEventListener` to hook up as an element's click-handler.
     -   `event`
         -   must be passed to the event handler.
@@ -196,29 +196,15 @@ There are two main technologies leveraged in the routing system - the activity s
 
 ```ts
 import { component, onRoute, router } from '@darkkenergy/nectar';
-import { MouseEventListener } from '@darkkenergy/nectar/dist/types';
 import { About, Home, NotFound } from '@app/component/pages';
 
 export const App = component<unknown>(
     (html) => html`
         <div>
-            <header>
-                ${/* Standard button example passing options to `onRoute` */}
-                <button
-                    $click="${(e) =>
-                        onRoute(e, {
-                            href: '/home'
-                        })) as MouseEventListener})}"
-                    type="button"
-                >
-                    nectar (js)
-                </button>
-                ${/* Anchor example demonstrating the simpler `onRoute` usage */}
-                <nav>
-                    <a $click="${onRoute}" href="/">Home</a> |
-                    <a $click="${onRoute}" href="/about">About</a>
-                </nav>
-            </header>
+            <nav>
+                <a $click="${onRoute}" href="/">Home</a> |
+                <a $click="${onRoute}" href="/about">About</a>
+            </nav>
             <main>
                 ${router(({ value: { pathname } }) => {
                     switch (pathname) {
@@ -396,6 +382,51 @@ export const Button = component(
             </button>
         `
 );
+```
+
+**Routing example**
+
+```ts
+import { component, onRoute, router } from '@darkkenergy/nectar';
+import { MouseEventListener } from '@darkkenergy/nectar/dist/types';
+import { About, Home, NotFound } from '@app/component/pages';
+
+export const App = component<unknown>(
+    (html) => html`
+        <div>
+            <header>
+                ${/* Standard button example passing options to `onRoute` */}
+                <button
+                    $click="${(e) =>
+                        onRoute(e, {
+                            href: '/'
+                        })) as MouseEventListener})}"
+                    type="button"
+                >
+                    nectar (js)
+                </button>
+                ${/* Anchor example demonstrating the simpler `onRoute` usage */}
+                <nav>
+                    <a $click="${onRoute}" href="/">Home</a> |
+                    <a $click="${onRoute}" href="/about">About</a>
+                </nav>
+            </header>
+            <main>
+                ${router(({ value: { pathname } }) => {
+                    switch (pathname) {
+                        case '/':
+                            return Home();
+                        case '/about':
+                            return About();
+                        default:
+                            return NotFound();
+                    }
+                })}
+            </main>
+        </div>
+    `
+);
+
 ```
 
 ## Roadmap
