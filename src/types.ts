@@ -91,7 +91,7 @@ export interface SyntheticMouseEvent<T> extends MouseEvent {
 export type ActivityEffect<T = any> = (
     handler: ActivityHandler<T>,
     cache?: any[]
-) => Promise<Node>;
+) => Node | Promise<Node>;
 export type ActivityHandler<T> = (
     props?: ValueProp<T>
 ) => Promise<ContextFunction>;
