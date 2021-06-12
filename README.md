@@ -5,7 +5,7 @@
   <div>nectar ( js )</div>
 </h1>
 
-> A lightweight, functional JavaScript framework for building component-based reactive applications.
+> A reactive components-first JavaScript framework.
 
 ## Feature Highlights
 

@@ -16,8 +16,8 @@ export const activity = <T>(initialValue?: T) => {
             ctx: TemplateContext;
         }
     >();
-    const effect: ActivityEffect<T> = (action, cache = []) => {
-        const ctxFunction = action({ value: initialValue });
+    const effect: ActivityEffect<T> = async (action, cache = []) => {
+        const ctxFunction = await action({ value: initialValue });
         const ctx: TemplateContext = {};
         const node = ctxFunction(ctx);
 
@@ -30,7 +30,7 @@ export const activity = <T>(initialValue?: T) => {
         initialValue,
         update(newValue: T, force = false) {
             Array.from(liveNodes.entries()).forEach(
-                ([liveNode, { action, cache, ctx }]) => {
+                async ([liveNode, { action, cache, ctx }]) => {
                     if (
                         document.contains(liveNode) &&
                         (newValue !== currentValue || force)
@@ -40,7 +40,7 @@ export const activity = <T>(initialValue?: T) => {
                         let node: Node;
 
                         currentValue = newValue;
-                        ctxFunction = action({ value: newValue });
+                        ctxFunction = await action({ value: newValue });
                         // Render the component.
                         node = ctxFunction(ctx);
 
