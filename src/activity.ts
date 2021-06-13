@@ -16,8 +16,8 @@ export const activity = <T>(initialValue?: T) => {
             ctx: TemplateContext;
         }
     >();
-    const effect: ActivityEffect<T> = async (action, cache = []) => {
-        const ctxFunction = await action({ value: initialValue });
+    const effect: ActivityEffect<T> = (action, cache = []) => {
+        const ctxFunction = action({ value: initialValue });
         const ctx: TemplateContext = {};
         const node = ctxFunction(ctx);
 
