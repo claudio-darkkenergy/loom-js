@@ -105,6 +105,7 @@ const resolveValue = (value: TemplateTagValue) => {
 const setPaths = (treeWalker: TreeWalker) => {
     const paths = new Map<number[], Attr[] | undefined>();
     const getNewPath = (node: Node) => {
+        // Includes all path-points to the node except the document fragment.
         const path: number[] = [];
 
         do {
@@ -116,7 +117,10 @@ const setPaths = (treeWalker: TreeWalker) => {
                 );
                 node = node.parentNode;
             }
-        } while (node !== treeWalker.root);
+        } while (
+            // `treeWalker.root` is the document fragment.
+            node !== treeWalker.root
+        );
 
         return path;
     };
@@ -154,8 +158,12 @@ const getLiveUpdates = (
     liveFragment: DocumentFragment,
     paths: Map<number[], Attr[]>
 ): TemplateNodeUpdate[] =>
-    Array.from(paths).map(([nodePath, attrs]) => {
-        let node = nodePath.reduce<
+    Array.from(paths)
+        // Reversing the array of paths fixes a bug where some dynamic nodes
+        // would disappear at the end of a node's `childNodes`.
+        .reverse()
+        .map(([nodePath, attrs]) => {
+            let node = nodePath.reduce<
             DocumentFragment | HTMLElement | SVGElement | Text
         >(
             (parent, i) =>
@@ -163,161 +171,167 @@ const getLiveUpdates = (
             liveFragment
         );
 
-        if (attrs) {
-            // Attribute handling
-            // Return the attribute node updater.
-            const getAttrUpdates = () =>
-                attrs.map((attr) => {
-                    let updater: TemplateNodeUpdate;
+            if (attrs) {
+                // Attribute handling
+                // Return the attribute node updater.
+                const getAttrUpdates = () =>
+                    attrs.map((attr) => {
+                        let updater: TemplateNodeUpdate;
 
-                    // Special attributes start w/ `$`.
-                    if (attr['nodeName'][0] === '$') {
-                        const nodeName = attr.nodeName.slice(1);
+                        // Special attributes start w/ `$`.
+                        if (attr['nodeName'][0] === '$') {
+                            const nodeName = attr.nodeName.slice(1);
 
-                        if (config.events.includes(nodeName as ConfigEvent)) {
-                            // Handle special dom-event attributes.
-                            updater = (values: TemplateTagValue[]) => {
-                                const eventValue = values.shift();
+                            if (
+                                config.events.includes(nodeName as ConfigEvent)
+                            ) {
+                                // Handle special dom-event attributes.
+                                updater = (values: TemplateTagValue[]) => {
+                                    const eventValue = values.shift();
 
-                                // Special event attrs' values must be a function.
-                                if (typeof eventValue === 'function') {
-                                    node.addEventListener(
+                                    // Special event attrs' values must be a function.
+                                    if (typeof eventValue === 'function') {
+                                        node.addEventListener(
+                                            nodeName,
+                                            eventValue as EventListenerOrEventListenerObject,
+                                            false
+                                        );
+                                    } else {
+                                        console.warn(
+                                            `Template Warning | Invalid attribute value used, "${eventValue}"`
+                                        );
+                                    }
+                                };
+                            } else {
+                                // Safely handle other attrs which are not known dom-event attrs.
+                                updater = (values: TemplateTagValue[]) => {
+                                    (
+                                        node as HTMLElement | SVGElement
+                                    ).setAttribute(
                                         nodeName,
-                                        eventValue as EventListenerOrEventListenerObject,
-                                        false
+                                        String(resolveValue(values.shift()))
                                     );
-                                } else {
-                                    console.warn(
-                                        `Template Warning | Invalid attribute value used, "${eventValue}"`
+                                };
+                            }
+
+                            // Do cleanup.
+                            if (
+                                (node as HTMLElement | SVGElement).hasAttribute(
+                                    attr.name
+                                )
+                            ) {
+                                (
+                                    node as HTMLElement | SVGElement
+                                ).removeAttribute(attr.name);
+                            }
+                        } else {
+                            // Handle dynamic standard attributes.
+                            updater = (values: TemplateTagValue[]) => {
+                                const attrNode = (
+                                    node as HTMLElement | SVGElement
+                                ).attributes.getNamedItem(attr.name);
+
+                                if (attrNode) {
+                                    attrNode.value = String(
+                                        resolveValue(values.shift())
                                     );
                                 }
                             };
-                        } else {
-                            // Safely handle other attrs which are not known dom-event attrs.
-                            updater = (values: TemplateTagValue[]) => {
-                                (node as HTMLElement | SVGElement).setAttribute(
-                                    nodeName,
-                                    String(resolveValue(values.shift()))
-                                );
-                            };
                         }
 
-                        // Do cleanup.
+                        return updater;
+                    });
+                const attrUpdates = getAttrUpdates();
+
+                return (values: TemplateTagValue[]) =>
+                    attrUpdates.forEach((update) => update(values));
+            } else {
+                // Text Node handling
+                const textFragment = document.createDocumentFragment();
+                // The original live nodes - will update on future renders.
+                const liveNodes: LiveNode[] = (node.textContent || '')
+                    .split(config.TOKEN)
+                    .reduce<Text[]>((acc, part, i, parts) => {
+                        if (part) {
+                            textFragment.appendChild(
+                                document.createTextNode(part)
+                            );
+                        }
+
+                        if (i < parts.length - 1) {
+                            const dynamicTextNode = document.createTextNode(
+                                config.TOKEN
+                            );
+
+                            acc.push(textFragment.appendChild(dynamicTextNode));
+                        }
+
+                        return acc;
+                    }, []);
+                // Updates the live nodes.
+                const liveNodeUpdater = (
+                    liveNode: LiveNode,
+                    value: DocumentFragment | HTMLElement | SVGElement | Text,
+                    i: number
+                ) => {
+                    if (Array.isArray(liveNode)) {
+                        const replaceableNode = liveNode.splice(0, 1)[0];
+
+                        liveNode.forEach((node) => node.remove());
+                        liveNodes[i] = Array.from(value.childNodes) as LiveNode;
+                        replaceableNode.replaceWith(value);
+                    } else {
+                        liveNodes[i] = value as LiveNode;
+                        liveNode.replaceWith(value);
+                    }
+                };
+
+                // Replace the dynamic text node w/ the parsed nodes (static vs. dynamic.)
+                (node as Text)?.replaceWith(textFragment);
+
+                // Return the text node updater.
+                return (values: TemplateTagValue[]) => {
+                    // Update for each `LiveNode`.
+                    liveNodes.forEach((liveNode, i) => {
+                        const value = resolveValue(values.shift());
+
                         if (
-                            (node as HTMLElement | SVGElement).hasAttribute(
-                                attr.name
-                            )
+                            value instanceof HTMLElement ||
+                            value instanceof SVGElement
                         ) {
-                            (node as HTMLElement | SVGElement).removeAttribute(
-                                attr.name
+                            // Handle `Element` nodes.
+                            liveNodeUpdater(liveNode, value, i);
+                        } else if (Array.isArray(value)) {
+                            // Update the textFragment w/ the pending (new) nodes.
+                            value.forEach((newVal) => {
+                                const resolvedValue = resolveValue(newVal);
+
+                                if (
+                                    resolvedValue instanceof HTMLElement ||
+                                    resolvedValue instanceof SVGElement
+                                ) {
+                                    textFragment.appendChild(resolvedValue);
+                                } else {
+                                    textFragment.appendChild(
+                                        document.createTextNode(
+                                            String(resolvedValue)
+                                        )
+                                    );
+                                }
+                            });
+
+                            liveNodeUpdater(liveNode, textFragment, i);
+                        } else {
+                            // Handle text nodes.
+                            const newTextValue = document.createTextNode(
+                                String(value)
                             );
+
+                            liveNodeUpdater(liveNode, newTextValue, i);
                         }
-                    } else {
-                        // Handle dynamic standard attributes.
-                        updater = (values: TemplateTagValue[]) => {
-                            const attrNode = (node as
-                                | HTMLElement
-                                | SVGElement).attributes.getNamedItem(
-                                attr.name
-                            );
-
-                            if (attrNode) {
-                                attrNode.value = String(
-                                    resolveValue(values.shift())
-                                );
-                            }
-                        };
-                    }
-
-                    return updater;
-                });
-            const attrUpdates = getAttrUpdates();
-
-            return (values: TemplateTagValue[]) =>
-                attrUpdates.forEach((update) => update(values));
-        } else {
-            // Text Node handling
-            const textFragment = document.createDocumentFragment();
-            // The original live nodes - will update on future renders.
-            const liveNodes: LiveNode[] = (node.textContent || '')
-                .split(config.TOKEN)
-                .reduce<Text[]>((acc, part, i, parts) => {
-                    if (part && !/(\r|\n)/.test(part)) {
-                        textFragment.appendChild(document.createTextNode(part));
-                    }
-
-                    if (i < parts.length - 1) {
-                        const dynamicTextNode = document.createTextNode(
-                            config.TOKEN
-                        );
-
-                        acc.push(textFragment.appendChild(dynamicTextNode));
-                    }
-
-                    return acc;
-                }, []);
-            // Updates the live nodes.
-            const liveNodeUpdater = (
-                liveNode: LiveNode,
-                value: DocumentFragment | HTMLElement | SVGElement | Text,
-                i: number
-            ) => {
-                if (Array.isArray(liveNode)) {
-                    const replaceableNode = liveNode.splice(0, 1)[0];
-
-                    liveNode.forEach((node) => node.remove());
-                    liveNodes[i] = Array.from(value.childNodes) as LiveNode;
-                    replaceableNode.replaceWith(value);
-                } else {
-                    liveNodes[i] = value as LiveNode;
-                    liveNode.replaceWith(value);
-                }
-            };
-
-            // Replace the dynamic text node w/ the parsed nodes (static vs. dynamic.)
-            (node as Text)?.replaceWith(textFragment);
-
-            // Return the text node updater.
-            return (values: TemplateTagValue[]) => {
-                // Update for each `LiveNode`.
-                liveNodes.forEach((liveNode, i) => {
-                    const value = resolveValue(values.shift());
-
-                    if (
-                        value instanceof HTMLElement ||
-                        value instanceof SVGElement
-                    ) {
-                        // Handle `Element` nodes.
-                        liveNodeUpdater(liveNode, value, i);
-                    } else if (Array.isArray(value)) {
-                        // Update the textFragment w/ the pending (new) nodes.
-                        value.forEach((newVal) => {
-                            const resolvedValue = resolveValue(newVal);
-
-                            if (
-                                resolvedValue instanceof HTMLElement ||
-                                resolvedValue instanceof SVGElement
-                            ) {
-                                textFragment.appendChild(resolvedValue);
-                            } else {
-                                textFragment.appendChild(
-                                    document.createTextNode(
-                                        String(resolvedValue)
-                                    )
-                                );
-                            }
-                        });
-
-                        liveNodeUpdater(liveNode, textFragment, i);
-                    } else {
-                        // Handle text nodes.
-                        const newTextValue = document.createTextNode(
-                            String(value)
-                        );
-
-                        liveNodeUpdater(liveNode, newTextValue, i);
-                    }
-                });
-            };
-        }
-    });
+                    });
+                };
+            }
+        })
+        // Reverse the updaters back to the original order before the paths were reversed.
+        .reverse();
