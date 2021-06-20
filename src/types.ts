@@ -92,7 +92,7 @@ export type ActivityEffect<T = any> = (
     handler: ActivityHandler<T>,
     cache?: any[]
 ) => Node;
-export type ActivityHandler<T> = (props?: ValueProp<T>) => ContextFunction;
+export type ActivityHandler<T> = (props?: ValueProp<T>) => NectarNode;
 
 // Config
 export type ConfigEvent =
