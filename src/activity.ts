@@ -41,7 +41,6 @@ export const activity = <T>(initialValue?: T) => {
                     let ctxFunction: ContextFunction;
                     let node: Node;
 
-                    currentValue = newValue;
                     ctxFunction = action({
                         value: newValue
                     }) as ContextFunction;
@@ -65,6 +64,8 @@ export const activity = <T>(initialValue?: T) => {
                 }
             }
         );
+
+        currentValue = newValue;
     };
 
     return {
