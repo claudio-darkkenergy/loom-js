@@ -17,13 +17,9 @@ export const activity = <T>(initialValue?: T) => {
         }
     >();
     const effect: ActivityEffect<T> = (action, cache = []) => {
-        const ctxFunction = action({ value: currentValue });
-
-        if (typeof ctxFunction !== 'function') {
-            // Then `ctxFunction` is a pure `Node`, so just return it.
-            return ctxFunction;
-        }
-
+        const result = action({ value: currentValue });
+        const ctxFunction: ContextFunction =
+            typeof result !== 'function' ? () => result : result;
         const ctx: TemplateContext = {};
         const node = ctxFunction(ctx);
 
