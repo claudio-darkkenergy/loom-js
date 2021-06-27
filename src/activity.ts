@@ -1,9 +1,4 @@
-import {
-    ActivityEffect,
-    ActivityHandler,
-    ContextFunction,
-    TemplateContext
-} from './types';
+import { ActivityEffect, ActivityHandler, TemplateContext } from './types';
 
 export const activity = <T>(initialValue?: T) => {
     let currentValue = initialValue;
@@ -17,11 +12,8 @@ export const activity = <T>(initialValue?: T) => {
         }
     >();
     const effect: ActivityEffect<T> = (action, cache = []) => {
-        const result = action({ value: currentValue });
-        const ctxFunction: ContextFunction =
-            typeof result !== 'function' ? () => result : result;
         const ctx: TemplateContext = {};
-        const node = ctxFunction(ctx);
+        const node = renderComponent({ action, ctx, value: currentValue});
 
         liveNodes.set(node, { action, cache, ctx });
         return node;
@@ -32,16 +24,9 @@ export const activity = <T>(initialValue?: T) => {
                 if (
                     document.contains(liveNode) &&
                     (newValue !== currentValue || force)
-                ) {
                     // Do the updates.
-                    let ctxFunction: ContextFunction;
-                    let node: Node;
-
-                    ctxFunction = action({
-                        value: newValue
-                    }) as ContextFunction;
-                    // Render the component.
-                    node = ctxFunction(ctx);
+                ) {
+                    const node = renderComponent({ action, ctx, value: newValue});
 
                     // If the new node is different than the live node, update the live node.
                     if (node && !node.isSameNode(liveNode)) {
@@ -63,6 +48,14 @@ export const activity = <T>(initialValue?: T) => {
 
         currentValue = newValue;
     };
+
+    function renderComponent<T>({action, ctx, value}: {action: ActivityHandler<T>; ctx: TemplateContext; value: T}) {
+        const result = action({ value });
+        const ctxFunction =
+            typeof result !== 'function' ? () => result : result;
+        
+        return ctxFunction(ctx);
+    }
 
     return {
         effect,

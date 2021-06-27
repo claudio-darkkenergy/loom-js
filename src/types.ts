@@ -74,18 +74,17 @@ export interface RenderFunction<T> {
 }
 
 // Event
-export type MouseEventListener = <T = Element>(
-    ev?: SyntheticMouseEvent<T>
-) => void;
+export type MouseEventListener = <T>(ev?: SyntheticMouseEvent<T>) => void;
 
 export type SyntheticMouseEventListener = (
     this: HTMLElement,
     ev: MouseEvent
 ) => any;
 
-export interface SyntheticMouseEvent<T> extends MouseEvent {
-    target: EventTarget & T;
-}
+export type SyntheticMouseEvent<T = EventTarget> = Event & {
+    currentTarget: T;
+    target: T;
+};
 
 // Activity
 export type ActivityEffect<T = any> = (

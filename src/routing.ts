@@ -33,12 +33,12 @@ export const router = (routeConfigCallback: ActivityHandler<Location>) => {
  *          `replace` - If set to `true`, "replaceState" will be used instead of "pushState" as the `History` action.
  */
 export const onRoute = <T>(
-    event?: SyntheticMouseEvent<T>,
+    event: SyntheticMouseEvent<T | HTMLAnchorElement>,
     options?: OnRouteOptions
 ) => {
     const action = (options?.replace && 'replaceState') || 'pushState';
     const href =
-        options?.href || ((event?.target as unknown) as HTMLAnchorElement).href;
+        options?.href || (event?.currentTarget as HTMLAnchorElement).href;
 
     event?.preventDefault();
 
