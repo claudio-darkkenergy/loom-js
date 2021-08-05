@@ -61,9 +61,9 @@ export const activity = <T>(initialValue?: T) => {
         effect,
         // This method is reactive to the parent effect (or router), but not to it's own activity,
         // & therefore is only to be used as a nested effect.
-        // The current value of the activity is always returned &
+        // The current value of the activity is always returned, &
         // because a component `ContextFunction` is returned instead of a `Node`,
-        // the result is always fully render a component each time it's called.
+        // the result is to always fully render a component each time it's called.
         rawEffect: (action: ActivityHandler<T>) =>
             (action({ value: currentValue }) as unknown) as Node,
         initialValue,

@@ -1,160 +1,10 @@
-import { config } from './config';
-import {
-    ConfigEvent,
-    TemplateContext,
-    TemplateNodeUpdate,
-    TemplateTagValue
-} from './types';
+import { config } from '../config';
+import { ConfigEvent, TemplateNodeUpdate, TemplateTagValue } from '../types';
+import { resolveValue } from './resolve-value';
 
 type LiveNode = HTMLElement | Text | (HTMLElement | Text)[];
 
-const templateStore = new Map<
-    TemplateStringsArray,
-    { fragment: DocumentFragment; paths: Map<number[], Attr[] | undefined> }
->();
-const updateStore = new WeakMap<
-    Node,
-    {
-        chunks: TemplateStringsArray;
-        updates: TemplateNodeUpdate[];
-    }
->();
-
-export function template(
-    this: TemplateContext,
-    chunks: TemplateStringsArray,
-    ...interpolations: TemplateTagValue[]
-): Node {
-    let created = false;
-    const ctx = this;
-    let rootNode: Node;
-
-    if (!templateStore.has(chunks)) {
-        const fragment = document
-            .createRange()
-            .createContextualFragment(chunks.join(config.TOKEN));
-        const treeWalker = document.createTreeWalker(
-            fragment,
-            window.NodeFilter.SHOW_ALL
-        );
-
-        templateStore.set(chunks, {
-            fragment,
-            paths: setPaths(treeWalker)
-        });
-    }
-
-    if (
-        !updateStore.has(ctx.root as Node) ||
-        !document.contains(ctx.root as Node)
-    ) {
-        const { fragment, paths } = templateStore.get(chunks) || {};
-        const liveFragment = fragment
-            ? (fragment.cloneNode(true) as DocumentFragment)
-            : document.createDocumentFragment();
-        // Get all the updaters for each dynamic node path.
-        const updates = getLiveUpdates(liveFragment, paths || new Map());
-
-        ctx.root = liveFragment.children[0];
-
-        if (!ctx.root) {
-            console.warn(
-                `Template must contain only one root node - received ${JSON.stringify(
-                    liveFragment.children
-                )}`,
-                'Any additional node will get thrown out and not be rendered.'
-            );
-        } else {
-            updateStore.set(ctx.root, {
-                chunks,
-                updates
-            });
-        }
-    }
-
-    updateStore
-        .get(ctx.root as Node)
-        ?.updates.forEach((update) => update(interpolations));
-
-    rootNode = ctx.root || document.createDocumentFragment();
-
-    // Creation life-cycle handler - only once.
-    if (ctx.created && !created) {
-        created = true;
-        ctx.created(rootNode);
-    }
-
-    // Rendered life-cycle handler - every render.
-    ctx.rendered && ctx.rendered(rootNode);
-    return rootNode;
-}
-
-const resolveValue = (value: TemplateTagValue) => {
-    if (typeof value === 'function') {
-        const templateTagValue = value();
-
-        // Make sure the function returns a valid value, not another function.
-        return templateTagValue && typeof templateTagValue !== 'function'
-            ? templateTagValue
-            : '';
-    } else {
-        return value || '';
-    }
-};
-
-const setPaths = (treeWalker: TreeWalker) => {
-    const paths = new Map<number[], Attr[] | undefined>();
-    const getNewPath = (node: Node) => {
-        // Includes all path-points to the node except the document fragment.
-        const path: number[] = [];
-
-        do {
-            if (node.parentNode) {
-                path.unshift(
-                    Array.from(node.parentNode.childNodes).indexOf(
-                        node as ChildNode
-                    )
-                );
-                node = node.parentNode;
-            }
-        } while (
-            // `treeWalker.root` is the document fragment.
-            node !== treeWalker.root
-        );
-
-        return path;
-    };
-
-    // Walk the node tree to get all dynamic node paths.
-    // The paths will be used to set the updaters.
-    while (treeWalker.nextNode()) {
-        const currentNode = treeWalker.currentNode as ChildNode;
-
-        if (
-            currentNode instanceof HTMLElement ||
-            currentNode instanceof SVGElement
-        ) {
-            // Parse attribute nodes.
-            const attrs = Array.from(currentNode.attributes).filter((attr) =>
-                config.tokenRe.test(attr.value)
-            );
-
-            if (attrs.length) {
-                paths.set(getNewPath(currentNode), attrs);
-            }
-        } else if (
-            currentNode instanceof Text &&
-            config.tokenRe.test(currentNode.textContent || '')
-        ) {
-            // Parse text nodes.
-            paths.set(getNewPath(currentNode), undefined);
-        }
-    }
-
-    return paths;
-};
-
-const getLiveUpdates = (
+export const getLiveUpdates = (
     liveFragment: DocumentFragment,
     paths: Map<number[], Attr[]>
 ): TemplateNodeUpdate[] =>
@@ -164,12 +14,12 @@ const getLiveUpdates = (
         .reverse()
         .map(([nodePath, attrs]) => {
             let node = nodePath.reduce<
-            DocumentFragment | HTMLElement | SVGElement | Text
-        >(
-            (parent, i) =>
-                parent.childNodes[i] as HTMLElement | SVGElement | Text,
-            liveFragment
-        );
+                DocumentFragment | HTMLElement | SVGElement | Text
+            >(
+                (parent, i) =>
+                    parent.childNodes[i] as HTMLElement | SVGElement | Text,
+                liveFragment
+            );
 
             if (attrs) {
                 // Attribute handling
@@ -205,12 +55,20 @@ const getLiveUpdates = (
                             } else {
                                 // Safely handle other attrs which are not known dom-event attrs.
                                 updater = (values: TemplateTagValue[]) => {
-                                    (
-                                        node as HTMLElement | SVGElement
-                                    ).setAttribute(
-                                        nodeName,
-                                        String(resolveValue(values.shift()))
+                                    const value = String(
+                                        resolveValue(values.shift())
                                     );
+                                    const element = node as
+                                        | HTMLElement
+                                        | SVGElement;
+
+                                    if (value) {
+                                        element.setAttribute(nodeName, value);
+                                    } else {
+                                        // If `value` is falsy, we'll cleanup the attribute by removing it.
+                                        // Removing the attribute also solves for boolean attributes, i.e. `disabled`.
+                                        element.removeAttribute(nodeName);
+                                    }
                                 };
                             }
 
@@ -220,21 +78,33 @@ const getLiveUpdates = (
                                     attr.name
                                 )
                             ) {
-                                (
-                                    node as HTMLElement | SVGElement
-                                ).removeAttribute(attr.name);
+                                (node as
+                                    | HTMLElement
+                                    | SVGElement).removeAttribute(attr.name);
                             }
                         } else {
                             // Handle dynamic standard attributes.
                             updater = (values: TemplateTagValue[]) => {
-                                const attrNode = (
-                                    node as HTMLElement | SVGElement
-                                ).attributes.getNamedItem(attr.name);
+                                const value = String(
+                                    resolveValue(values.shift())
+                                );
+                                const element = node as
+                                    | HTMLElement
+                                    | SVGElement;
+                                const attrNode = element.attributes.getNamedItem(
+                                    attr.name
+                                );
 
                                 if (attrNode) {
-                                    attrNode.value = String(
-                                        resolveValue(values.shift())
-                                    );
+                                    if (value) {
+                                        attrNode.value = String(value);
+                                    } else {
+                                        // If `value` is falsy, we'll cleanup the attribute by removing it.
+                                        // Removing the attribute also solves for boolean attributes, i.e. `disabled`.
+                                        element.removeAttributeNode(attrNode);
+                                    }
+                                } else if (value) {
+                                    element.setAttribute(attr.name, value);
                                 }
                             };
                         }
