@@ -2,7 +2,7 @@ import { config } from '../config';
 import { ConfigEvent, TemplateNodeUpdate, TemplateTagValue } from '../types';
 import { resolveValue } from './resolve-value';
 
-type LiveNode = HTMLElement | Text | (HTMLElement | Text)[];
+type LiveNode = HTMLElement | SVGElement | Text;
 
 export const getLiveUpdates = (
     liveFragment: DocumentFragment,
@@ -78,9 +78,9 @@ export const getLiveUpdates = (
                                     attr.name
                                 )
                             ) {
-                                (node as
-                                    | HTMLElement
-                                    | SVGElement).removeAttribute(attr.name);
+                                (
+                                    node as HTMLElement | SVGElement
+                                ).removeAttribute(attr.name);
                             }
                         } else {
                             // Handle dynamic standard attributes.
@@ -91,9 +91,8 @@ export const getLiveUpdates = (
                                 const element = node as
                                     | HTMLElement
                                     | SVGElement;
-                                const attrNode = element.attributes.getNamedItem(
-                                    attr.name
-                                );
+                                const attrNode =
+                                    element.attributes.getNamedItem(attr.name);
 
                                 if (attrNode) {
                                     if (value) {
@@ -119,10 +118,14 @@ export const getLiveUpdates = (
                 // Text Node handling
                 const textFragment = document.createDocumentFragment();
                 // The original live nodes - will update on future renders.
-                const liveNodes: LiveNode[] = (node.textContent || '')
+                const liveNodes: (LiveNode | LiveNode[])[] = (
+                    node.textContent || ''
+                )
                     .split(config.TOKEN)
                     .reduce<Text[]>((acc, part, i, parts) => {
                         if (part) {
+                            // Fills in any connecting parts which contain 1 or more characters
+                            // including newline, etc.
                             textFragment.appendChild(
                                 document.createTextNode(part)
                             );
@@ -133,6 +136,8 @@ export const getLiveUpdates = (
                                 config.TOKEN
                             );
 
+                            // Re-adds the dynamic text node using the `TOKEN` & pushes it into
+                            // the `liveNodes` array - to be replaced during the intial update.
                             acc.push(textFragment.appendChild(dynamicTextNode));
                         }
 
@@ -140,18 +145,40 @@ export const getLiveUpdates = (
                     }, []);
                 // Updates the live nodes.
                 const liveNodeUpdater = (
-                    liveNode: LiveNode,
-                    value: DocumentFragment | HTMLElement | SVGElement | Text,
+                    liveNode: LiveNode | LiveNode[],
+                    value: DocumentFragment | LiveNode,
                     i: number
                 ) => {
                     if (Array.isArray(liveNode)) {
                         const replaceableNode = liveNode.splice(0, 1)[0];
 
+                        // Clear out the live node array...
                         liveNode.forEach((node) => node.remove());
-                        liveNodes[i] = Array.from(value.childNodes) as LiveNode;
+                        // ...then reassign it to the new live node array.
+                        liveNodes[i] = Array.from(
+                            value.childNodes
+                        ) as LiveNode[];
                         replaceableNode.replaceWith(value);
                     } else {
-                        liveNodes[i] = value as LiveNode;
+                        if (value instanceof DocumentFragment) {
+                            // Handle a `DocumentFragment` properly, which can contain any
+                            // number of child nodes & is array-like (`LiveNode[]`.)
+                            const nodes = Array.from(
+                                value.childNodes
+                            ) as LiveNode[];
+
+                            // If there are no child nodes, then create a new text node to
+                            // become the live node.
+                            liveNodes[i] = nodes.length
+                                ? nodes
+                                : value.appendChild(
+                                      document.createTextNode('')
+                                  );
+                        } else {
+                            // Handle a single-value live node (1 for 1.)
+                            liveNodes[i] = value as LiveNode;
+                        }
+
                         liveNode.replaceWith(value);
                     }
                 };
