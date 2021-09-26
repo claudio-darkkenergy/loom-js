@@ -13,7 +13,7 @@ export const activity = <T>(initialValue?: T) => {
     >();
     const effect: ActivityEffect<T> = (action, cache = []) => {
         const ctx: TemplateContext = {};
-        const node = renderComponent({ action, ctx, value: currentValue});
+        const node = renderComponent({ action, ctx, value: currentValue });
 
         liveNodes.set(node, { action, cache, ctx });
         return node;
@@ -26,7 +26,11 @@ export const activity = <T>(initialValue?: T) => {
                     (newValue !== currentValue || force)
                     // Do the updates.
                 ) {
-                    const node = renderComponent({ action, ctx, value: newValue});
+                    const node = renderComponent({
+                        action,
+                        ctx,
+                        value: newValue
+                    });
 
                     // If the new node is different than the live node, update the live node.
                     if (node && !node.isSameNode(liveNode)) {
@@ -49,11 +53,19 @@ export const activity = <T>(initialValue?: T) => {
         currentValue = newValue;
     };
 
-    function renderComponent<T>({action, ctx, value}: {action: ActivityHandler<T>; ctx: TemplateContext; value: T}) {
+    function renderComponent<T>({
+        action,
+        ctx,
+        value
+    }: {
+        action: ActivityHandler<T>;
+        ctx: TemplateContext;
+        value: T;
+    }) {
         const result = action({ value });
         const ctxFunction =
             typeof result !== 'function' ? () => result : result;
-        
+
         return ctxFunction(ctx);
     }
 
@@ -65,7 +77,7 @@ export const activity = <T>(initialValue?: T) => {
         // because a component `ContextFunction` is returned instead of a `Node`,
         // the result is to always fully render a component each time it's called.
         rawEffect: (action: ActivityHandler<T>) =>
-            (action({ value: currentValue }) as unknown) as Node,
+            action({ value: currentValue }) as unknown as Node,
         initialValue,
         update,
         value: () => currentValue

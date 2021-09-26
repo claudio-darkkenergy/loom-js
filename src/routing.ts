@@ -3,6 +3,7 @@ import { ActivityHandler, SyntheticMouseEvent } from './types';
 
 export interface OnRouteOptions {
     href?: string;
+    onHash?: (loc: Location) => void;
     replace?: boolean;
 }
 
@@ -30,6 +31,7 @@ export const router = (routeConfigCallback: ActivityHandler<Location>) => {
  * @param options Options should be passed when the event-target is not an `HTMLAnchorElement`.
  *      Options properties accepted:
  *          `href` - The href url to use - this overrides the href attribute of an `HTMLAnchorElement`.
+ *          `onHash` - A callback which fires whenever `Window.Location` hash exists & the route otherwise hasn't changed.
  *          `replace` - If set to `true`, "replaceState" will be used instead of "pushState" as the `History` action.
  */
 export const onRoute = <T>(
@@ -39,16 +41,31 @@ export const onRoute = <T>(
     const action = (options?.replace && 'replaceState') || 'pushState';
     const href =
         options?.href || (event?.currentTarget as HTMLAnchorElement).href;
+    const locationSnapshot = Object.assign({}, window.location);
 
     event?.preventDefault();
 
-    if (href) {
-        // Update the browser url.
-        window.history[action]({}, 'onRoute', href);
+    // Update the browser url.
+    window.history[action]({}, 'onRoute', href);
+
+    if (didRouteChange(locationSnapshot)) {
         // Update the view.
         update(window.location, true);
+    } else if (window.location.hash) {
+        // Call `onHash` callback w/ current `Window.Location` state.
+        options?.onHash && options.onHash(window.location);
     }
 };
+
+/**
+ * Returns `true` if `Window.Location` has changed in consideration to `origin`, `pathname`, & `search`.
+ * @param locationSnapshot A snapshot of `Window.Location` before any browser history updates were made.
+ * @returns `true` if only the `Window.Location` has changed.
+ */
+const didRouteChange = ({ origin, pathname, search }: Location) =>
+    origin !== window.location.origin ||
+    pathname !== window.location.pathname ||
+    search !== window.location.search;
 
 /**
  * Sanitizes the `Window.Location` object as follows:
