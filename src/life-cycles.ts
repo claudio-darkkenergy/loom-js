@@ -18,10 +18,7 @@ export const lifeCycles = {
         const observer = new MutationObserver(domChanged);
 
         // Execute all the handlers since all the nodes are now in the DOM.
-        mountedHandlerQueue.forEach((handler) => {
-            console.log('handler', handler);
-            handler();
-        });
+        mountedHandlerQueue.forEach((handler) => handler());
         // Observe future DOM updates.
         observer.observe(node, { childList: true });
     }
