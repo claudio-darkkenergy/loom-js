@@ -25,10 +25,12 @@ export interface TaggedTemplate {
 export interface TemplateContext {
     created?: LifeCycleHandler;
     fingerPrint?: RenderFunction<unknown>;
+    mounted?: LifeCycleHandler;
     node?: ContextNodeGetter;
     render?: TaggedTemplate;
     rendered?: LifeCycleHandler;
     root?: Node;
+    unmounted?: LifeCycleHandler;
 }
 
 export type TemplateTagValue =
@@ -57,7 +59,9 @@ export type ComponentFunction = <T>(
         T & {
             node: ContextNodeGetter;
             onCreated(handler: LifeCycleHandler): void;
+            onMounted(handler: LifeCycleHandler): void;
             onRendered(handler: LifeCycleHandler): void;
+            onUnmounted(handler: LifeCycleHandler): void;
         }
     >
 ) => Component<T>;

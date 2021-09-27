@@ -1,4 +1,5 @@
 import { config } from '../config';
+import { lifeCycles } from '../life-cycles';
 import {
     TemplateContext,
     TemplateNodeUpdate,
@@ -24,7 +25,6 @@ export function template(
     chunks: TemplateStringsArray,
     ...interpolations: TemplateTagValue[]
 ): Node {
-    let created = false;
     const ctx = this;
     let rootNode: Node;
 
@@ -77,13 +77,8 @@ export function template(
 
     rootNode = ctx.root || document.createDocumentFragment();
 
-    // Creation life-cycle handler - only once.
-    if (ctx.created && !created) {
-        created = true;
-        ctx.created(rootNode);
-    }
+    // Handle life-cycles for the node.
+    lifeCycles.init(rootNode, ctx);
 
-    // Rendered life-cycle handler - every render.
-    ctx.rendered && ctx.rendered(rootNode);
     return rootNode;
 }
