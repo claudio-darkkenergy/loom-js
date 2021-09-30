@@ -23,12 +23,13 @@ export interface TaggedTemplate {
 }
 
 export interface TemplateContext {
+    connected?: boolean;
     created?: LifeCycleHandler;
     fingerPrint?: RenderFunction<unknown>;
     mounted?: LifeCycleHandler;
     node?: ContextNodeGetter;
     render?: TaggedTemplate;
-    rendered?: LifeCycleHandler;
+    rendered?: LifeCycleHandler<LifeCycleState>;
     root?: Node;
     unmounted?: LifeCycleHandler;
 }
@@ -60,14 +61,21 @@ export type ComponentFunction = <T>(
             node: ContextNodeGetter;
             onCreated(handler: LifeCycleHandler): void;
             onMounted(handler: LifeCycleHandler): void;
-            onRendered(handler: LifeCycleHandler): void;
+            onRendered(handler: LifeCycleHandler<LifeCycleState>): void;
             onUnmounted(handler: LifeCycleHandler): void;
         }
     >
 ) => Component<T>;
 
 export type ContextFunction = (ctx?: TemplateContext) => Node;
-export type LifeCycleHandler = (node: Node | undefined) => any;
+export type LifeCycleHandler<T = PlainObject> = (
+    node: Node | undefined,
+    state: T
+) => any;
+
+export interface LifeCycleState {
+    mounted: boolean;
+}
 
 export interface ReactiveComponent<T = any, P = any> {
     (transform?: (props?: T) => P): NectarNode;

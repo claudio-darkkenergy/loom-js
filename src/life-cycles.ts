@@ -12,14 +12,20 @@ const domChanged: MutationCallback = (diffNodes) =>
                 node.removedNodes.forEach((node) => {
                     const handler = lifeCycleNodes.get(node)?.unmounted;
 
-                    handler && handler(node);
+                    handler && handler(node, {});
                     lifeCycleNodes.delete(node);
                 });
 
                 // Calls the `onMounted` life-cycle handler for each added node if defined.
                 node.addedNodes.forEach((node) => {
-                    const handler = lifeCycleNodes.get(node)?.mounted;
-                    handler && handler(node);
+                    const ctx = lifeCycleNodes.get(node);
+                    const handler = ctx?.mounted;
+
+                    if (ctx) {
+                        ctx.connected = true;
+                    }
+
+                    handler && handler(node, {});
                 });
         }
     });
@@ -47,8 +53,14 @@ export const lifeCycles = {
         if (!lifeCycleNodes.has(node)) {
             lifeCycleNodes.set(node, ctx);
             // Mounted life-cycle handler - append to the life-cycle "mounted" queue.
-            ctx.mounted && mountedHandlerQueue.add(() => ctx.mounted(node));
-            ctx.created && ctx.created(node);
+            ctx.mounted &&
+                mountedHandlerQueue.add(() => {
+                    if (lifeCycleNodes.has(node)) {
+                        ctx.connected = true;
+                        ctx.mounted(node, {});
+                    }
+                });
+            ctx.created && ctx.created(node, {});
         }
 
         // Process the rendered hook for the node.
@@ -80,7 +92,8 @@ const mountedHandlerQueue = new Set<() => any>();
  * @param node The rendered node.
  */
 const rendered = (node: Node) => {
-    const handler = lifeCycleNodes.get(node)?.rendered;
+    const ctx = lifeCycleNodes.get(node);
+    const handler = ctx?.rendered;
     // Rendered life-cycle handler - called on every render.
-    handler && handler(node);
+    handler && handler(node, { mounted: !!ctx?.connected || false });
 };
