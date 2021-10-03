@@ -78,7 +78,7 @@ export function template(
     rootNode = ctx.root || document.createDocumentFragment();
 
     // Handle life-cycles for the node.
-    lifeCycles.init(rootNode, ctx);
+    lifeCycles.init(ctx);
 
     return rootNode;
 }

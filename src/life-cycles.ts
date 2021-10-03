@@ -1,32 +1,70 @@
 import { TemplateContext } from './types';
-
 /**
  * The `MutationCallback` to get call by the `MutationObserver` on DOM mutations.
  * @param diffNodes The nodes which have been added or removed from the DOM.
  */
 const domChanged: MutationCallback = (diffNodes) =>
-    diffNodes.forEach((node) => {
-        switch (node.type) {
+    diffNodes.forEach(({ addedNodes, removedNodes, type }) => {
+        switch (type) {
             case 'childList':
-                // Calls the `onUnmounted` life-cycle handler for each removed node if defined.
-                node.removedNodes.forEach((node) => {
-                    const handler = lifeCycleNodes.get(node)?.unmounted;
+                // Handle removed nodes.
+                if (removedNodes.length) {
+                    const cleanUp = (node: Node) => {
+                        const ctx = lifeCycleNodes.get(node);
 
-                    handler && handler(node, {});
-                    lifeCycleNodes.delete(node);
-                });
+                        if (ctx) {
+                            ctx.connected = false;
+                            ctx.unmounted && ctx.unmounted(node, {});
+                            lifeCycleNodes.delete(node);
+                        }
+                    };
 
-                // Calls the `onMounted` life-cycle handler for each added node if defined.
-                node.addedNodes.forEach((node) => {
-                    const ctx = lifeCycleNodes.get(node);
-                    const handler = ctx?.mounted;
+                    // Calls the `onUnmounted` life-cycle handler for each removed node if defined.
+                    removedNodes.forEach((node) => {
+                        const treeWalker = document.createTreeWalker(
+                            node,
+                            window.NodeFilter.SHOW_ELEMENT
+                        );
 
-                    if (ctx) {
-                        ctx.connected = true;
-                    }
+                        // Cleanup & handle the unmount of this node...
+                        cleanUp(treeWalker.currentNode);
 
-                    handler && handler(node, {});
-                });
+                        // ...and all of its children.
+                        while (treeWalker.nextNode()) {
+                            const currentNode = treeWalker.currentNode;
+                            cleanUp(currentNode);
+                        }
+                    });
+                }
+
+                // Handle added nodes.
+                if (addedNodes.length) {
+                    const handleMount = (node: Node) => {
+                        const ctx = lifeCycleNodes.get(node);
+
+                        if (ctx) {
+                            ctx.connected = true;
+                            ctx.mounted && ctx.mounted(node, {});
+                        }
+                    };
+
+                    // Calls the `onMounted` life-cycle handler for each added node if defined.
+                    addedNodes.forEach((node) => {
+                        const treeWalker = document.createTreeWalker(
+                            node,
+                            window.NodeFilter.SHOW_ELEMENT
+                        );
+
+                        // Handle the mount of this node...
+                        handleMount(treeWalker.currentNode);
+
+                        // ...and all of its children.
+                        while (treeWalker.nextNode()) {
+                            const currentNode = treeWalker.currentNode;
+                            handleMount(currentNode);
+                        }
+                    });
+                }
         }
     });
 
@@ -48,52 +86,46 @@ export const lifeCycles = {
      * @param node The node to initialize its life-cycles hooks.
      * @param ctx `TemplateContext` which holds life-cycle handlers for the node.
      */
-    init(node: Node, ctx: TemplateContext) {
+    init(ctx: TemplateContext) {
         // Creation life-cycle handler - only once.
-        if (!lifeCycleNodes.has(node)) {
-            lifeCycleNodes.set(node, ctx);
-            // Mounted life-cycle handler - append to the life-cycle "mounted" queue.
-            ctx.mounted &&
-                mountedHandlerQueue.add(() => {
-                    if (lifeCycleNodes.has(node)) {
-                        ctx.connected = true;
-                        ctx.mounted(node, {});
-                    }
-                });
-            ctx.created && ctx.created(node, {});
+        if (!lifeCycleNodes.has(ctx.root)) {
+            lifeCycleNodes.set(ctx.root, ctx);
+            ctx.created && ctx.created(ctx.root, {});
         }
 
         // Process the rendered hook for the node.
-        rendered(node);
+        rendered(ctx);
     },
     /**
      * Kicks off the observation via `MutationObserver` to listen for DOM tree adds/removals.
      * @param node The App node to observe for changes in its DOM tree.
      */
-    observe(node: Node) {
+    observe(observableNode: Node) {
         const observer = new MutationObserver(domChanged);
 
-        // Execute all the handlers since all the nodes are now in the DOM.
-        mountedHandlerQueue.forEach((handler) => handler());
+        // Execute all the `onMounted` handlers since all the nodes are now in the DOM.
+        lifeCycleNodes.forEach((ctx, node) => {
+            if (document.contains(ctx.root)) {
+                ctx.connected = true;
+                ctx.mounted && ctx.mounted(ctx.root, ctx);
+            } else {
+                lifeCycleNodes.delete(node);
+            }
+        });
+
         // Observe future DOM updates.
-        observer.observe(node, { childList: true });
+        observer.observe(observableNode, { childList: true, subtree: true });
     }
 };
 
 // Holds reference to the life-cycle handlers for each component node.
 const lifeCycleNodes = new Map<Node, TemplateContext>();
 
-// The life-cycle "mounted" queue to call once the App has been appended to the DOM
-// & therefore, all the other nodes have been appended to the DOM, as well.
-const mountedHandlerQueue = new Set<() => any>();
-
 /**
  * Calls the `onRender` life-cycle handler if defined.
  * @param node The rendered node.
  */
-const rendered = (node: Node) => {
-    const ctx = lifeCycleNodes.get(node);
-    const handler = ctx?.rendered;
+const rendered = (ctx: TemplateContext) =>
     // Rendered life-cycle handler - called on every render.
-    handler && handler(node, { mounted: !!ctx?.connected || false });
-};
+    ctx.rendered &&
+    ctx.rendered(ctx.root, { mounted: !!ctx?.connected || false });
