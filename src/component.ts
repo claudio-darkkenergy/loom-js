@@ -1,5 +1,5 @@
 import { template } from './template';
-import { ComponentFunction, LifeCycleHandler, LifeCycleState } from './types';
+import { ComponentFunction, LifeCycleHandler } from './types';
 
 export const component: ComponentFunction =
     (renderFunction) =>
@@ -30,7 +30,7 @@ export const component: ComponentFunction =
                 onMounted: (handler: LifeCycleHandler) => {
                     ctx.mounted = handler;
                 },
-                onRendered: (handler: LifeCycleHandler<LifeCycleState>) => {
+                onRendered: (handler: LifeCycleHandler) => {
                     ctx.rendered = handler;
                 },
                 onUnmounted: (handler: LifeCycleHandler) => {

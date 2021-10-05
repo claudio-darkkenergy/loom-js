@@ -13,8 +13,7 @@ const domChanged: MutationCallback = (diffNodes) =>
                         const ctx = lifeCycleNodes.get(node);
 
                         if (ctx) {
-                            ctx.connected = false;
-                            ctx.unmounted && ctx.unmounted(node, {});
+                            ctx.unmounted && ctx.unmounted(node);
                             lifeCycleNodes.delete(node);
                         }
                     };
@@ -41,11 +40,7 @@ const domChanged: MutationCallback = (diffNodes) =>
                 if (addedNodes.length) {
                     const handleMount = (node: Node) => {
                         const ctx = lifeCycleNodes.get(node);
-
-                        if (ctx) {
-                            ctx.connected = true;
-                            ctx.mounted && ctx.mounted(node, {});
-                        }
+                        ctx?.mounted && ctx.mounted(node);
                     };
 
                     // Calls the `onMounted` life-cycle handler for each added node if defined.
@@ -90,7 +85,7 @@ export const lifeCycles = {
         // Creation life-cycle handler - only once.
         if (!lifeCycleNodes.has(ctx.root)) {
             lifeCycleNodes.set(ctx.root, ctx);
-            ctx.created && ctx.created(ctx.root, {});
+            ctx.created && ctx.created(ctx.root);
         }
 
         // Process the rendered hook for the node.
@@ -106,8 +101,7 @@ export const lifeCycles = {
         // Execute all the `onMounted` handlers since all the nodes are now in the DOM.
         lifeCycleNodes.forEach((ctx, node) => {
             if (document.contains(ctx.root)) {
-                ctx.connected = true;
-                ctx.mounted && ctx.mounted(ctx.root, ctx);
+                ctx.mounted && ctx.mounted(ctx.root);
             } else {
                 lifeCycleNodes.delete(node);
             }
@@ -127,5 +121,4 @@ const lifeCycleNodes = new Map<Node, TemplateContext>();
  */
 const rendered = (ctx: TemplateContext) =>
     // Rendered life-cycle handler - called on every render.
-    ctx.rendered &&
-    ctx.rendered(ctx.root, { mounted: !!ctx?.connected || false });
+    ctx.rendered && ctx.rendered(ctx.root);
