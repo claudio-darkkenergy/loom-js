@@ -21,9 +21,12 @@ export const activity = <T>(initialValue?: T) => {
     const update = (newValue: T, force = false) => {
         Array.from(liveNodes.entries()).forEach(
             async ([liveNode, { action, cache, ctx }]) => {
-                if (
-                    document.contains(liveNode) &&
-                    (newValue !== currentValue || force)
+                if (!document.contains(liveNode)) {
+                    // Cleanup old nodes which have been removed from the DOM.
+                    liveNodes.delete(liveNode);
+                } else if (
+                    newValue !== currentValue ||
+                    force
                     // Do the updates.
                 ) {
                     const node = renderComponent({
@@ -43,9 +46,6 @@ export const activity = <T>(initialValue?: T) => {
                         (liveNode as Element).replaceWith(node);
                         liveNodes.delete(liveNode);
                     }
-                } else {
-                    // Cleanup old nodes which have been removed from the DOM.
-                    liveNodes.delete(liveNode);
                 }
             }
         );
