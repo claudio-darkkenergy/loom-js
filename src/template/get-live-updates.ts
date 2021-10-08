@@ -220,9 +220,10 @@ export const getLiveUpdates = (
                             liveNodeUpdater(liveNode, textFragment, i);
                         } else {
                             // Handle text nodes.
-                            const newTextValue = document.createTextNode(
-                                String(value)
-                            );
+                            const newTextValue =
+                                value instanceof Node
+                                    ? (value as Text)
+                                    : document.createTextNode(String(value));
 
                             liveNodeUpdater(liveNode, newTextValue, i);
                         }
