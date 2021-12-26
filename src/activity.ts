@@ -64,7 +64,9 @@ export const activity = <T>(initialValue?: T) => {
     }) {
         const result = action({ value });
         const ctxFunction =
-            typeof result !== 'function' ? () => result : result;
+            typeof result !== 'function'
+                ? () => result || document.createTextNode('')
+                : result;
 
         return ctxFunction(ctx);
     }
