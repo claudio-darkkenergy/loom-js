@@ -1,24 +1,36 @@
-import { ActivityEffect, ActivityHandler, TemplateContext } from './types';
+import {
+    ActivityEffect,
+    ActivityHandler,
+    ActivityTransform,
+    TemplateContext
+} from './types';
 
-export const activity = <T>(initialValue?: T) => {
+export const activity = <V, I = V>(
+    initialValue: V,
+    transform?: ActivityTransform<I, V>
+) => {
     let currentValue = initialValue;
     const liveNodes = new Map<
         Node,
         {
-            action: ActivityHandler<T>;
+            action: ActivityHandler<V>;
             // @TODO Use the cache for handler memoization.
             cache: any[];
             ctx: TemplateContext;
         }
     >();
-    const effect: ActivityEffect<T> = (action, cache = []) => {
+    const effect: ActivityEffect<V> = (action, cache = []) => {
         const ctx: TemplateContext = {};
         const node = renderComponent({ action, ctx, value: currentValue });
 
         liveNodes.set(node, { action, cache, ctx });
         return node;
     };
-    const update = (newValue: T, force = false) => {
+    const update = (valueInput: I, force = false) => {
+        const newValue = transform
+            ? transform(valueInput)
+            : (valueInput as unknown as V);
+
         Array.from(liveNodes.entries()).forEach(
             async ([liveNode, { action, cache, ctx }]) => {
                 if (!document.contains(liveNode)) {
@@ -53,14 +65,14 @@ export const activity = <T>(initialValue?: T) => {
         currentValue = newValue;
     };
 
-    function renderComponent<T>({
+    function renderComponent<V>({
         action,
         ctx,
         value
     }: {
-        action: ActivityHandler<T>;
+        action: ActivityHandler<V>;
         ctx: TemplateContext;
-        value: T;
+        value: V;
     }) {
         const result = action({ value });
         const ctxFunction =
@@ -78,7 +90,7 @@ export const activity = <T>(initialValue?: T) => {
         // The current value of the activity is always returned, &
         // because a component `ContextFunction` is returned instead of a `Node`,
         // the result is to always fully render a component each time it's called.
-        rawEffect: (action: ActivityHandler<T>) =>
+        rawEffect: (action: ActivityHandler<V>) =>
             action({ value: currentValue }) as unknown as Node,
         initialValue,
         update,
