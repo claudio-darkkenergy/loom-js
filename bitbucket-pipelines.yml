@@ -1,14 +1,10 @@
-#  Template NodeJS build
-
-#  This template allows you to validate your NodeJS code.
-#  The workflow allows running tests and code linting on the default branch.
+#  Build & Publish
 
 image: node:lts-alpine3.15
 
-pipelines:
-  default:
-    - step:
-        # name: Run Intern
+definitions:
+  steps:
+    - step: &build
         name: Build
         caches:
           - node
@@ -17,17 +13,24 @@ pipelines:
           - npm run build
         artifacts: # defining the artifacts to be passed to each future step.
           - dist/**
-    - step:
-        name: Publish
-        deployment: production
-        image: atlassian/default-image:latest
-        script:
-          - npm version patch -m "Upgrade to %s [skip ci]"
-          - git push && git push --tags
-          - pipe: atlassian/npm-publish:0.3.2
-            variables:
-              NPM_TOKEN: $NPM_TOKEN
-              # FOLDER: '<string>' # Optional.
-              # EXTRA_ARGS: '<string>' # Optional.
-              # NPM_REGISTRY_AUTH_URL: '<string>' # Optional.
-              # DEBUG: '<boolean>' # Optional.
+
+pipelines:
+  branches:
+    develop:
+      - step: *build
+    master:
+      - step: *build
+      - step:
+          name: Publish
+          deployment: production
+          image: atlassian/default-image:latest
+          script:
+            - npm version patch -m "Upgrade to %s [skip ci]"
+            - git push && git push --tags
+            - pipe: atlassian/npm-publish:0.3.2
+              variables:
+                NPM_TOKEN: $NPM_TOKEN
+                # FOLDER: '<string>' # Optional.
+                # EXTRA_ARGS: '<string>' # Optional.
+                # NPM_REGISTRY_AUTH_URL: '<string>' # Optional.
+                # DEBUG: '<boolean>' # Optional.
