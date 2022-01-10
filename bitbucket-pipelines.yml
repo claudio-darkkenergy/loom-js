@@ -3,7 +3,7 @@
 #  This template allows you to validate your NodeJS code.
 #  The workflow allows running tests and code linting on the default branch.
 
-image: node:15.3.0-alpine3.10
+image: node:lts-alpine3.15
 
 pipelines:
   default:
@@ -20,6 +20,7 @@ pipelines:
     - step:
         name: Publish
         deployment: production
+        image: atlassian/default-image:latest
         script:
           - npm version patch -m "Upgrade to %s [skip ci]"
           - git push && git push --tags
