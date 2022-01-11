@@ -25,6 +25,7 @@ pipelines:
           deployment: production
           image: atlassian/default-image:latest
           script:
+            - git remote set-url origin ${BITBUCKET_GIT_SSH_ORIGIN}
             - npm version patch -m "Upgrade to %s [skip ci]"
             - git push && git push --tags
             - pipe: atlassian/npm-publish:0.3.2
