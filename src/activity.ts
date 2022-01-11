@@ -5,9 +5,9 @@ import {
     TemplateContext
 } from './types';
 
-export const activity = <V, I = V>(
-    initialValue: V,
-    transform?: ActivityTransform<I, V>
+export const activity = <V = undefined, I = V>(
+    initialValue: V = undefined,
+    transform?: ActivityTransform<V, I>
 ) => {
     let currentValue = initialValue;
     const liveNodes = new Map<
@@ -26,10 +26,15 @@ export const activity = <V, I = V>(
         liveNodes.set(node, { action, cache, ctx });
         return node;
     };
-    const update = (valueInput: I, force = false) => {
+    const update = async (valueInput: I, force = false) => {
         const newValue = transform
-            ? transform(valueInput)
+            ? await transform({ input: valueInput, value: currentValue })
             : (valueInput as unknown as V);
+        
+        if ((newValue === null || newValue === undefined) && (initialValue !== null || initialValue !== undefined)) {
+            // Error out.
+            throw new TypeError(`ActivityTransform returned ${ JSON.stringify(newValue) } which is not of the expected type - example value: ${ JSON.stringify(initialValue) }`);
+        }
 
         Array.from(liveNodes.entries()).forEach(
             async ([liveNode, { action, cache, ctx }]) => {

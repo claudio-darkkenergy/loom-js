@@ -97,7 +97,9 @@ export type ActivityEffect<T = any> = (
 ) => Node;
 
 export type ActivityHandler<T> = (props?: ValueProp<T>) => NectarNode;
-export type ActivityTransform<I, V> = (valueInput: I) => V;
+export type ActivityTransform<V, I = V> = (
+    props: ValueProp<V> & { input: I }
+) => V;
 
 // Config
 export type ConfigEvent =
