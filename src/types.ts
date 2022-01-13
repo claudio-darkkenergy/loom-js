@@ -54,7 +54,7 @@ export interface Component<T> {
     (props?: T): ContextFunction;
 }
 
-export type ComponentFunction = <T>(
+export type ComponentFunction = <T = unknown>(
     renderFunction: RenderFunction<
         T & {
             node: ContextNodeGetter;

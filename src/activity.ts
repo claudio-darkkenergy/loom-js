@@ -31,9 +31,20 @@ export const activity = <V = undefined, I = V>(
             ? await transform({ input: valueInput, value: currentValue })
             : (valueInput as unknown as V);
         
-        if ((newValue === null || newValue === undefined) && (initialValue !== null || initialValue !== undefined)) {
-            // Error out.
-            throw new TypeError(`ActivityTransform returned ${ JSON.stringify(newValue) } which is not of the expected type - example value: ${ JSON.stringify(initialValue) }`);
+        if (
+            (newValue === null || newValue === undefined) &&
+            currentValue !== null &&
+            currentValue !== undefined
+        ) {
+            // TypeScript does not complain when a function returns `void` when returning
+            // a generic type which was set to a non-nullable value.
+            // Warn about a possible type mismatch
+            // & suggest the transform may have returned an unexpected `void` (`null` | `undefined`) value.
+            console.warn(
+                `The \`ActivityTransform\` returned \`${newValue}\` which may not be of the expected type - last known value was \`${JSON.stringify(
+                    currentValue
+                )}\`. If the expected type is a union & \`${newValue}\` is part of that union, this warning should be ignored.`
+            );
         }
 
         Array.from(liveNodes.entries()).forEach(

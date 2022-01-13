@@ -36,19 +36,43 @@ export const getLiveUpdates = (
                                 config.events.includes(nodeName as ConfigEvent)
                             ) {
                                 // Handle special dom-event attributes.
+                                let eventListener: EventListenerOrEventListenerObject;
+
                                 updater = (values: TemplateTagValue[]) => {
                                     const eventValue = values.shift();
 
-                                    // Special event attrs' values must be a function.
-                                    if (typeof eventValue === 'function') {
-                                        node.addEventListener(
+                                    if (eventListener) {
+                                        // Remove the old `EventListener` to prevent them from stacking on the node.
+                                        (
+                                            node as HTMLElement | SVGElement
+                                        ).removeEventListener(
                                             nodeName,
-                                            eventValue as EventListenerOrEventListenerObject,
+                                            eventListener,
                                             false
                                         );
-                                    } else {
+                                    }
+
+                                    // Special event attrs' values must be a function.
+                                    if (typeof eventValue === 'function') {
+                                        eventListener =
+                                            eventValue as EventListenerOrEventListenerObject;
+                                        (
+                                            node as HTMLElement | SVGElement
+                                        ).addEventListener(
+                                            nodeName,
+                                            eventListener,
+                                            false
+                                        );
+                                    }
+                                    // Falsy is okay - warn for anything else.
+                                    // This is non-breaking, so just want to warn in case the provided value was a mistake.
+                                    else if (eventValue) {
                                         console.warn(
-                                            `Template Warning | Invalid attribute value used, "${eventValue}"`
+                                            `[Template Update Warning] The provided special attribute ("${
+                                                attr['nodeName']
+                                            }") contains a value of ${JSON.stringify(
+                                                eventValue
+                                            )} which may not be the intended value. While this is non-breaking, a valid value would be falsy or an event-listener.`
                                         );
                                     }
                                 };
@@ -72,7 +96,7 @@ export const getLiveUpdates = (
                                 };
                             }
 
-                            // Do cleanup.
+                            // Do cleanup - remove the special attribute from the node since it's been processed.
                             if (
                                 (node as HTMLElement | SVGElement).hasAttribute(
                                     attr.name
