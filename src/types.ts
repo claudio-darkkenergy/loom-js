@@ -98,8 +98,12 @@ export type ActivityEffect<T = any> = (
 
 export type ActivityHandler<T> = (props?: ValueProp<T>) => NectarNode;
 export type ActivityTransform<V, I = V> = (
-    props: ValueProp<V> & { input: I }
-) => V;
+    props: ValueProp<V> & {
+        input: I;
+        update: (valueInput: V, force?: boolean) => void;
+    },
+    force?: boolean
+) => void;
 
 // Config
 export type ConfigEvent =
