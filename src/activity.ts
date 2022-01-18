@@ -26,17 +26,17 @@ export const activity = <V = undefined, I = V>(
         liveNodes.set(node, { action, cache, ctx });
         return node;
     };
-    const update = (valueInput: I | V, force = false) =>
+    const update = (valueInput: I, force = false) =>
         typeof transform === 'function'
             ? transform(
                   {
-                      input: valueInput as I,
+                      input: valueInput,
                       update: updateActivity,
                       value: currentValue
                   },
                   force
               )
-            : updateActivity(valueInput as V, force);
+            : updateActivity(valueInput as unknown as V, force);
 
     function updateActivity(newValue: V, force = false) {
         Array.from(liveNodes.entries()).forEach(
@@ -71,7 +71,7 @@ export const activity = <V = undefined, I = V>(
         );
 
         currentValue = newValue;
-    };
+    }
 
     function renderComponent<V>({
         action,
