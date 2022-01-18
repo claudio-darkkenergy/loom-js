@@ -103,7 +103,7 @@ export type ActivityTransform<V, I = V> = (
         update: (valueInput: V, force?: boolean) => void;
     },
     force?: boolean
-) => void;
+) => void | Promise<void>;
 
 // Config
 export type ConfigEvent =
