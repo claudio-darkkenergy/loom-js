@@ -27,6 +27,7 @@ export interface TemplateContext {
     fingerPrint?: RenderFunction<unknown>;
     mounted?: LifeCycleHandler;
     node?: ContextNodeGetter;
+    ref?: RefContext;
     render?: TaggedTemplate;
     rendered?: LifeCycleHandler;
     root?: Node;
@@ -51,27 +52,36 @@ export type TemplateNodeUpdate = (values: TemplateTagValue[]) => void;
 
 // Component
 export interface Component<T> {
-    (props?: T): ContextFunction;
+    (props?: T & { ref?: RefContext }): ContextFunction;
 }
 
 export type ComponentFunction = <T = unknown>(
     renderFunction: RenderFunction<
         T & {
             node: ContextNodeGetter;
-            onCreated(handler: LifeCycleHandler): void;
-            onMounted(handler: LifeCycleHandler): void;
-            onRendered(handler: LifeCycleHandler): void;
-            onUnmounted(handler: LifeCycleHandler): void;
-        }
+        } & LifeCycleHandlerProps & { ref?: RefContext }
     >
 ) => Component<T>;
 
 export type ContextFunction = (ctx?: TemplateContext) => Node;
 export type LifeCycleHandler = (node: Node | undefined) => any;
 
+export interface LifeCycleHandlerProps {
+    onCreated(handler: LifeCycleHandler): void;
+    onMounted(handler: LifeCycleHandler): void;
+    onRendered(handler: LifeCycleHandler): void;
+    onUnmounted(handler: LifeCycleHandler): void;
+}
+
 export interface ReactiveComponent<T = any, P = any> {
     (transform?: (props?: T) => P): NectarNode;
 }
+
+export type RefContext = Omit<
+    TemplateContext,
+    'fingerPrint' | 'render' | 'root'
+> &
+    LifeCycleHandlerProps;
 
 export interface RenderFunction<T> {
     (render: TaggedTemplate, props: T): Node;
