@@ -51,15 +51,17 @@ export type TemplateTagValueFunction = () => TemplateTagValue;
 export type TemplateNodeUpdate = (values: TemplateTagValue[]) => void;
 
 // Component
+// The component callable (external values to internal props)
 export interface Component<T> {
-    (props?: T & { ref?: RefContext }): ContextFunction;
+    (props?: T & Partial<LifeCycleHandlerProps> & { ref?: Partial<RefContext> }): ContextFunction;
 }
 
+// The component definition (internal props from external values)
 export type ComponentFunction = <T = unknown>(
     renderFunction: RenderFunction<
-        T & {
-            node: ContextNodeGetter;
-        } & LifeCycleHandlerProps & { ref?: RefContext }
+        T & { node: ContextNodeGetter } & LifeCycleHandlerProps & {
+                ref?: Partial<RefContext>;
+            }
     >
 ) => Component<T>;
 
@@ -79,9 +81,8 @@ export interface ReactiveComponent<T = any, P = any> {
 
 export type RefContext = Omit<
     TemplateContext,
-    'fingerPrint' | 'render' | 'root'
-> &
-    LifeCycleHandlerProps;
+    'fingerPrint' | 'ref' | 'render' | 'root'
+>;
 
 export interface RenderFunction<T> {
     (render: TaggedTemplate, props: T): Node;
