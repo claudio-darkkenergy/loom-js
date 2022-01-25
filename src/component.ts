@@ -6,7 +6,60 @@ import {
     RefContext
 } from './types';
 
-export const ctx: () => RefContext = () => ({
+export const component: ComponentFunction =
+    (renderFunction) =>
+    // Component
+    (props) =>
+    // ContextFunction
+    (ctx = {}) => {
+        const lifeCycles: LifeCycleHandlerProps = {
+            onCreated: getLifeCycleHandler(ctx.created),
+            onMounted: getLifeCycleHandler(ctx.mounted),
+            onRendered: getLifeCycleHandler(ctx.rendered),
+            onUnmounted: getLifeCycleHandler(ctx.unmounted)
+        };
+
+        // Ensures the template context is fresh during 1st render &
+        // whenever the fingerprint doesn't match the render function.
+        if (ctx.fingerPrint !== renderFunction) {
+            const ref = props?.ref;
+            
+            // Reset the template context, but maintain the reference.
+            for (const key in ctx) {
+                delete ctx[key];
+            }
+
+            ctx.fingerPrint = renderFunction;
+            ctx.node = () => ctx.root;
+            ctx.render = template.bind(ctx);
+            
+            if (ref) {
+                // Connect to the component's `RefContext`.
+                ctx.ref = ref;
+                ctx.ref.node = ctx.node;
+                ctx.created = ctx.ref.created;
+                ctx.mounted = ctx.ref.mounted;
+                ctx.rendered = ctx.ref.rendered;
+                ctx.unmounted = ctx.ref.unmounted;
+            }
+        }
+
+        return renderFunction(
+            ctx.render,
+            Object.assign({}, props, {
+                ...lifeCycles,
+                node: ctx.node
+            })
+        );
+    };
+
+/**
+ * Creates a reference which can be hooked into by the nested component which receives
+ * this as the prop, `ref`. Use this reference to hook into the component-of-context's life-cycle
+ * & gain access to its root node.
+ * @returns Access to the nested component which receives this reference.
+ */
+export const ctx: () => RefContext & LifeCycleHandlerProps = () => ({
     onCreated(handler) {
         this.created = handler;
     },
@@ -21,65 +74,9 @@ export const ctx: () => RefContext = () => ({
     }
 });
 
-export const component: ComponentFunction =
-    (renderFunction) =>
-    // Component
-    (props) =>
-    // ContextFunction
-    (ctx = {}) => {
-        let node: Node;
-        const lifeCycles: LifeCycleHandlerProps = {
-            onCreated: (handler: LifeCycleHandler) => {
-                ctx.created = ctx.created
-                    ? (...args) => handler(...args) & ctx.created(...args)
-                    : handler;
-            },
-            onMounted: (handler: LifeCycleHandler) => {
-                ctx.mounted = ctx.mounted
-                    ? (...args) => handler(...args) & ctx.mounted(...args)
-                    : handler;
-            },
-            onRendered: (handler: LifeCycleHandler) => {
-                ctx.rendered = ctx.rendered
-                    ? (...args) => handler(...args) & ctx.rendered(...args)
-                    : handler;
-            },
-            onUnmounted: (handler: LifeCycleHandler) => {
-                ctx.unmounted = ctx.unmounted
-                    ? (...args) => handler(...args) & ctx.unmounted(...args)
-                    : handler;
-            }
-        };
-        
-        // Ensures the template context is fresh during 1st render &
-        // whenever the fingerprint doesn't match the render function.
-        if (ctx.fingerPrint !== renderFunction) {
-            // Reset the template context, but maintain the reference.
-            for (const key in ctx) {
-                delete ctx[key];
-            }
-
-            ctx.fingerPrint = renderFunction;
-            ctx.node = () => ctx.root;
-            ctx.ref = props.ref;
-            ctx.render = template.bind(ctx);
-    
-            if (ctx.ref) {
-                ctx.ref.node = ctx.node;
-                ctx.created = ctx.ref.created;
-                ctx.mounted = ctx.ref.mounted;
-                ctx.rendered = ctx.ref.rendered;
-                ctx.unmounted = ctx.ref.unmounted;
-            }
-        }
-
-        node = renderFunction(
-            ctx.render,
-            Object.assign({}, props, {
-                ...lifeCycles,
-                node: ctx.node
-            })
-        );
-        
-        return node;
+const getLifeCycleHandler =
+    (event: LifeCycleHandler) => (handler: LifeCycleHandler) => {
+        event = event
+            ? (...args) => handler(...args) & event(...args)
+            : handler;
     };
