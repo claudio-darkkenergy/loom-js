@@ -3,7 +3,8 @@ import {
     ComponentFunction,
     LifeCycleHandler,
     LifeCycleHandlerProps,
-    RefContext
+    RefContext,
+    TemplateContext
 } from './types';
 
 export const component: ComponentFunction =
@@ -13,10 +14,10 @@ export const component: ComponentFunction =
     // ContextFunction
     (ctx = {}) => {
         const lifeCycles: LifeCycleHandlerProps = {
-            onCreated: getLifeCycleHandler(ctx.created),
-            onMounted: getLifeCycleHandler(ctx.mounted),
-            onRendered: getLifeCycleHandler(ctx.rendered),
-            onUnmounted: getLifeCycleHandler(ctx.unmounted)
+            onCreated: getLifeCycleHandler(ctx, 'created'),
+            onMounted: getLifeCycleHandler(ctx, 'mounted'),
+            onRendered: getLifeCycleHandler(ctx, 'rendered'),
+            onUnmounted: getLifeCycleHandler(ctx, 'unmounted')
         };
 
         // Ensures the template context is fresh during 1st render &
@@ -75,8 +76,10 @@ export const ctx: () => RefContext & LifeCycleHandlerProps = () => ({
 });
 
 const getLifeCycleHandler =
-    (event: LifeCycleHandler) => (handler: LifeCycleHandler) => {
-        event = event
-            ? (...args) => handler(...args) & event(...args)
+    (ctx: TemplateContext, eventName: string) =>
+    (handler: LifeCycleHandler) => {
+        const event: LifeCycleHandler = ctx[eventName];
+        ctx[eventName] = event
+            ? (((node) => handler(node) & event(node)) as LifeCycleHandler)
             : handler;
     };
