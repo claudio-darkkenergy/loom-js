@@ -19,13 +19,16 @@ export const activity = <V = undefined, I = V>(
             ctx: TemplateContext;
         }
     >();
-    const effect: ActivityEffect<V> = (action, cache = []) => {
-        const ctx: TemplateContext = {};
-        const node = renderComponent({ action, ctx, value: currentValue });
+    const effect: ActivityEffect<V> =
+        (action, cache = []) =>
+        // Returning a `ContextFunction` so a `TemplateContext` can be passed into it later on.
+        // This helps w/ rerenders of non-specified `component`s (when `component` wasn't used for the component.)
+        (ctx = {}) => {
+            const node = renderComponent({ action, ctx, value: currentValue });
 
-        liveNodes.set(node, { action, cache, ctx });
-        return node;
-    };
+            liveNodes.set(node, { action, cache, ctx });
+            return node;
+        };
     const update = (valueInput: I, force = false) =>
         typeof transform === 'function'
             ? transform(

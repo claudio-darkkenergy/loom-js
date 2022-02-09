@@ -1,4 +1,4 @@
-import { template } from './template';
+import { taggedTemplate } from './template';
 import {
     ComponentFunction,
     LifeCycleHandler,
@@ -24,7 +24,7 @@ export const component: ComponentFunction =
         // whenever the fingerprint doesn't match the render function.
         if (ctx.fingerPrint !== renderFunction) {
             const ref = props?.ref;
-            
+
             // Reset the template context, but maintain the reference.
             for (const key in ctx) {
                 delete ctx[key];
@@ -32,8 +32,8 @@ export const component: ComponentFunction =
 
             ctx.fingerPrint = renderFunction;
             ctx.node = () => ctx.root;
-            ctx.render = template.bind(ctx);
-            
+            ctx.render = taggedTemplate.bind(ctx);
+
             if (ref) {
                 // Connect to the component's `RefContext`.
                 ctx.ref = ref;
@@ -80,6 +80,8 @@ const getLifeCycleHandler =
     (handler: LifeCycleHandler) => {
         const event: LifeCycleHandler = ctx[eventName];
         ctx[eventName] = event
-            ? (((node) => handler(node) & event(node)) as LifeCycleHandler)
-            : handler;
+            ? // Process the component lifecycle event for the component, then the `RefContext` owner.
+              (((node) => handler(node) & event(node)) as LifeCycleHandler)
+            : // Process the component lifecycle event.
+              handler;
     };
