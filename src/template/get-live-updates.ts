@@ -1,5 +1,10 @@
 import { config } from '../config';
-import { ConfigEvent, TemplateNodeUpdate, TemplateTagValue } from '../types';
+import {
+    ConfigEvent,
+    TemplateContext,
+    TemplateNodeUpdate,
+    TemplateTagValue
+} from '../types';
 import { resolveValue } from './resolve-value';
 
 type LiveNode = HTMLElement | SVGElement | Text;
@@ -115,19 +120,39 @@ export const getLiveUpdates = (
                                 const element = node as
                                     | HTMLElement
                                     | SVGElement;
-                                const attrNode =
-                                    element.attributes.getNamedItem(attr.name);
 
-                                if (attrNode) {
-                                    if (value) {
-                                        attrNode.value = String(value);
-                                    } else {
-                                        // If `value` is falsy, we'll cleanup the attribute by removing it.
-                                        // Removing the attribute also solves for boolean attributes, i.e. `disabled`.
-                                        element.removeAttributeNode(attrNode);
+                                if (value) {
+                                    if (
+                                        attr.name === 'type' &&
+                                        value === 'number' &&
+                                        isNaN((element as any).value)
+                                    ) {
+                                        // Fixes "The specified value * cannot be parsed, or is out of range." warning which occurs on inputs
+                                        // where the type will be set to 'number' while the current value is not a parsable number value.
+                                        // In this case, the value attribute should be set to a parsable value by calling `setAttribute`.
+                                        (element as HTMLInputElement).value =
+                                            '';
                                     }
-                                } else if (value) {
-                                    element.setAttribute(attr.name, value);
+
+                                    if (attr.name === 'value') {
+                                        // Set the value prop instead of the value attribute, i.e. using `setAttribute`, which only works when no value
+                                        // has been set for the UI to update at all.
+                                        (
+                                            element as
+                                                | HTMLButtonElement
+                                                | HTMLFormElement
+                                                | HTMLInputElement
+                                                | HTMLOptionElement
+                                                | HTMLSelectElement
+                                                | HTMLTextAreaElement
+                                        ).value = value;
+                                    } else {
+                                        element.setAttribute(attr.name, value);
+                                    }
+                                } else {
+                                    // If `value` is falsy, we'll cleanup the attribute by removing it.
+                                    // Removing the attribute also solves for boolean attributes, i.e. `disabled`.
+                                    element.removeAttribute(attr.name);
                                 }
                             };
                         }
@@ -140,6 +165,10 @@ export const getLiveUpdates = (
                     attrUpdates.forEach((update) => update(values));
             } else {
                 // Text Node handling
+                const liveNodeCtxWeakMap = new WeakMap<
+                    LiveNode | LiveNode[],
+                    TemplateContext
+                >();
                 const textFragment = document.createDocumentFragment();
                 // The original live nodes - will update on future renders.
                 const liveNodes: (LiveNode | LiveNode[])[] = (
@@ -178,7 +207,7 @@ export const getLiveUpdates = (
 
                         // Clear out the live node array...
                         liveNode.forEach((node) => node.remove());
-                        // ...then reassign it to the new live node array.
+                        // ...then update w/ the new live node array.
                         liveNodes[i] = Array.from(
                             value.childNodes
                         ) as LiveNode[];
@@ -203,7 +232,10 @@ export const getLiveUpdates = (
                             liveNodes[i] = value as LiveNode;
                         }
 
-                        liveNode.replaceWith(value);
+                        // Only replace if the node is different than what's currently live to avoid unnecessary paints.
+                        if (!liveNode.isSameNode(value)) {
+                            liveNode.replaceWith(value);
+                        }
                     }
                 };
 
@@ -214,13 +246,15 @@ export const getLiveUpdates = (
                 return (values: TemplateTagValue[]) => {
                     // Update for each `LiveNode`.
                     liveNodes.forEach((liveNode, i) => {
-                        const value = resolveValue(values.shift());
+                        const ctx = liveNodeCtxWeakMap.get(liveNode) || {};
+                        const value = resolveValue(values.shift(), ctx);
 
                         if (
                             value instanceof HTMLElement ||
                             value instanceof SVGElement
                         ) {
                             // Handle `Element` nodes.
+                            liveNodeCtxWeakMap.set(value, ctx);
                             liveNodeUpdater(liveNode, value, i);
                         } else if (Array.isArray(value)) {
                             // Update the textFragment w/ the pending (new) nodes.

@@ -53,7 +53,10 @@ export type TemplateNodeUpdate = (values: TemplateTagValue[]) => void;
 // Component
 // The component callable (external values to internal props)
 export interface Component<T> {
-    (props?: T & Partial<LifeCycleHandlerProps> & { ref?: Partial<RefContext> }): ContextFunction;
+    (
+        props?: T &
+            Partial<LifeCycleHandlerProps> & { ref?: Partial<RefContext> }
+    ): ContextFunction;
 }
 
 // The component definition (internal props from external values)
@@ -105,7 +108,7 @@ export type SyntheticMouseEvent<T = EventTarget> = Event & {
 export type ActivityEffect<T = any> = (
     handler: ActivityHandler<T>,
     cache?: any[]
-) => Node;
+) => ContextFunction;
 
 export type ActivityHandler<T> = (props?: ValueProp<T>) => NectarNode;
 export type ActivityTransform<V, I = V> = (
