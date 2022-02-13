@@ -50,5 +50,5 @@
         "test": "intern"
     },
     "types": "dist/index.d.ts",
-    "version": "1.0.47"
+    "version": "1.0.48"
 }
