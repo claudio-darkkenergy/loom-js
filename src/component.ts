@@ -19,6 +19,20 @@ export const component: ComponentFunction =
             onRendered: getLifeCycleHandler(ctx, 'rendered'),
             onUnmounted: getLifeCycleHandler(ctx, 'unmounted')
         };
+        let refIterator: IterableIterator<RefContext>;
+        // Ensures the ref context is never lost.
+        const memoizedRefContext = () => {
+            let ref = refIterator.next().value as RefContext;
+
+            if (ref) {
+                return ref;
+            }
+
+            ref = refContext();
+            ctx.refs.add(ref);
+
+            return ref;
+        };
 
         // Ensures the template context is fresh during 1st render &
         // whenever the fingerprint doesn't match the render function.
@@ -32,10 +46,14 @@ export const component: ComponentFunction =
 
             ctx.fingerPrint = renderFunction;
             ctx.node = () => ctx.root;
+            // Holds all the created refs for the current component `TemplateContext`.
+            ctx.refs = new Set<RefContext>();
             ctx.render = taggedTemplate.bind(ctx);
 
             if (ref) {
-                // Connect to the component's `RefContext`.
+                // Set component's received `RefContext` prop onto the the current component `TemplateContext`.
+                // This creates a connection between part of this context & a component ascendant that needs
+                // a reference to it.
                 ctx.ref = ref;
                 ctx.ref.node = ctx.node;
                 ctx.created = ctx.ref.created;
@@ -45,10 +63,13 @@ export const component: ComponentFunction =
             }
         }
 
+        refIterator = ctx.refs.values();
+
         return renderFunction(
             ctx.render,
             Object.assign({}, props, {
                 ...lifeCycles,
+                ctx: memoizedRefContext,
                 node: ctx.node
             })
         );
@@ -60,7 +81,7 @@ export const component: ComponentFunction =
  * & gain access to its root node.
  * @returns Access to the nested component which receives this reference.
  */
-export const ctx: () => RefContext & LifeCycleHandlerProps = () => ({
+const refContext = (): RefContext => ({
     onCreated(handler) {
         this.created = handler;
     },

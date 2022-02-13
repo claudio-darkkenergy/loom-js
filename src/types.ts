@@ -28,6 +28,7 @@ export interface TemplateContext {
     mounted?: LifeCycleHandler;
     node?: ContextNodeGetter;
     ref?: RefContext;
+    refs?: Set<RefContext>;
     render?: TaggedTemplate;
     rendered?: LifeCycleHandler;
     root?: Node;
@@ -62,7 +63,10 @@ export interface Component<T> {
 // The component definition (internal props from external values)
 export type ComponentFunction = <T = unknown>(
     renderFunction: RenderFunction<
-        T & { node: ContextNodeGetter } & LifeCycleHandlerProps & {
+        T &
+            LifeCycleHandlerProps & {
+                ctx: () => RefContext;
+                node: ContextNodeGetter;
                 ref?: Partial<RefContext>;
             }
     >
@@ -85,7 +89,8 @@ export interface ReactiveComponent<T = any, P = any> {
 export type RefContext = Omit<
     TemplateContext,
     'fingerPrint' | 'ref' | 'render' | 'root'
->;
+> &
+    Partial<LifeCycleHandlerProps>;
 
 export interface RenderFunction<T> {
     (render: TaggedTemplate, props: T): Node;
