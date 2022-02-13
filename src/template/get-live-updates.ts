@@ -196,50 +196,32 @@ export const getLiveUpdates = (
 
                         return acc;
                     }, []);
-                // Updates the live nodes.
+                // Updates a single live node - 1 for 1.
                 const liveNodeUpdater = (
                     liveNode: LiveNode | LiveNode[],
-                    value: DocumentFragment | LiveNode,
+                    value: LiveNode,
                     i: number
                 ) => {
+                    let replaceableNode: LiveNode;
+
                     if (Array.isArray(liveNode)) {
-                        const replaceableNode = liveNode.splice(0, 1)[0];
-
-                        // Clear out the live node array...
+                        replaceableNode = liveNode.splice(0, 1)[0];
                         liveNode.forEach((node) => node.remove());
-                        // ...then update w/ the new live node array.
-                        liveNodes[i] = Array.from(
-                            value.childNodes
-                        ) as LiveNode[];
-                        replaceableNode.replaceWith(value);
                     } else {
-                        if (value instanceof DocumentFragment) {
-                            // Handle a `DocumentFragment` properly, which can contain any
-                            // number of child nodes & is array-like (`LiveNode[]`.)
-                            const nodes = Array.from(
-                                value.childNodes
-                            ) as LiveNode[];
+                        replaceableNode = liveNode;
+                    }
 
-                            // If there are no child nodes, then create a new text node to
-                            // become the live node.
-                            liveNodes[i] = nodes.length
-                                ? nodes
-                                : value.appendChild(
-                                      document.createTextNode('')
-                                  );
-                        } else {
-                            // Handle a single-value live node (1 for 1.)
-                            liveNodes[i] = value as LiveNode;
-                        }
+                    // Handle a single-value live node (1 for 1.)
+                    liveNodes[i] = value as LiveNode;
 
-                        // Only replace if the node is different than what's currently live to avoid unnecessary paints.
-                        if (!liveNode.isSameNode(value)) {
-                            liveNode.replaceWith(value);
-                        }
+                    // Only replace if the node is different than what's currently live to avoid unnecessary paints.
+                    if (!replaceableNode.isSameNode(value)) {
+                        replaceableNode.replaceWith(value);
                     }
                 };
 
-                // Replace the dynamic text node w/ the parsed nodes (static vs. dynamic.)
+                // Replace the dynamic single text node w/ all the parsed text nodes,
+                // which includes static (glue/joints) & dynamic (tokenized) nodes.
                 (node as Text)?.replaceWith(textFragment);
 
                 // Return the text node updater.
@@ -257,25 +239,112 @@ export const getLiveUpdates = (
                             liveNodeCtxWeakMap.set(value, ctx);
                             liveNodeUpdater(liveNode, value, i);
                         } else if (Array.isArray(value)) {
-                            // Update the textFragment w/ the pending (new) nodes.
-                            value.forEach((newVal) => {
-                                const resolvedValue = resolveValue(newVal);
+                            const liveNodeIsArray = Array.isArray(liveNode);
+                            const liveNodeParent = liveNodeIsArray
+                                ? liveNode[0].parentElement
+                                : (liveNode as LiveNode).parentElement;
+                            let lastResolvedValue: LiveNode;
+
+                            if (!value.length) {
+                                // Ensure a value array has at least one defined value.
+                                value.push(document.createTextNode(''));
+                            }
+
+                            // Update the DOM  w/ the pending (new) nodes.
+                            liveNodes[i] = value.map((newVal, j) => {
+                                // The resolved `TemplateTagValue` coerced to `LiveNode`.
+                                let currentLiveNode: LiveNode;
+                                // The `TemplateContext` (cached or newly created.)
+                                const ctx = liveNodeIsArray
+                                    ? liveNodeCtxWeakMap.get(liveNode[j]) || {}
+                                    : {};
+                                // The resolve `TemplateTagValue`
+                                const resolvedValue = resolveValue(newVal, ctx);
 
                                 if (
                                     resolvedValue instanceof HTMLElement ||
                                     resolvedValue instanceof SVGElement
                                 ) {
-                                    textFragment.appendChild(resolvedValue);
+                                    // Handle `Element` nodes.
+                                    liveNodeCtxWeakMap.set(resolvedValue, ctx);
+
+                                    // Handle single `LiveNode` updates.
+                                    if (!liveNodeIsArray) {
+                                        // Insert before the live node.
+                                        // The live node will be removed from the DOM after all insertions.
+                                        liveNodeParent.insertBefore(
+                                            resolvedValue,
+                                            liveNode
+                                        );
+                                    }
+                                    // Handle `LiveNode[]` updates when the resolved vs. live nodes are not the same.
+                                    else if (
+                                        !resolvedValue.isSameNode(liveNode[j])
+                                    ) {
+                                        if (liveNode[j] !== undefined) {
+                                            liveNode[j].replaceWith(
+                                                resolvedValue
+                                            );
+                                        }
+                                        // Handle `undefined` live node
+                                        else if (
+                                            lastResolvedValue.nextSibling
+                                        ) {
+                                            // Insert before the last updated node.
+                                            liveNodeParent.insertBefore(
+                                                resolvedValue,
+                                                lastResolvedValue.nextSibling
+                                            );
+                                        } else {
+                                            // Or append to the live node parent if there are no "next" siblings.
+                                            liveNodeParent.appendChild(
+                                                resolvedValue
+                                            );
+                                        }
+                                    }
+
+                                    lastResolvedValue = currentLiveNode =
+                                        resolvedValue;
                                 } else {
-                                    textFragment.appendChild(
-                                        document.createTextNode(
-                                            String(resolvedValue)
-                                        )
-                                    );
+                                    // Handle `Text` nodes.
+                                    // Coerce to a valid `LiveNode` as if not already.
+                                    const textValue =
+                                        resolvedValue instanceof Text
+                                            ? resolvedValue
+                                            : document.createTextNode(
+                                                  String(resolvedValue)
+                                              );
+
+                                    // Handle single `LiveNode` updates.
+                                    if (!liveNodeIsArray) {
+                                        // Insert before the live node.
+                                        // The live node will be removed from the DOM after all insertions.
+                                        liveNodeParent.insertBefore(
+                                            textValue,
+                                            liveNode
+                                        );
+                                    } else {
+                                        // Handle `undefined` live node
+                                        // Always replace when the new value is `Text`.
+                                        liveNode[j].replaceWith(textValue);
+                                    }
+
+                                    lastResolvedValue = currentLiveNode =
+                                        textValue;
                                 }
+
+                                return currentLiveNode;
                             });
 
-                            liveNodeUpdater(liveNode, textFragment, i);
+                            if (liveNodeIsArray) {
+                                // Cleanup the excess old live nodes.
+                                (liveNode as LiveNode[])
+                                    .slice(value.length)
+                                    .forEach((node) => node.remove());
+                            } else {
+                                // Cleanup the old live node anchor.
+                                (liveNode as LiveNode).remove();
+                            }
                         } else {
                             // Handle text nodes.
                             const newTextValue =

@@ -21,8 +21,6 @@ const updateStore = new WeakMap<
         updates: TemplateNodeUpdate[];
     }
 >();
-console.log('template store', templateStore);
-console.log('update store', updateStore);
 
 export function taggedTemplate(
     this: TemplateContext,
