@@ -4,7 +4,8 @@ export interface Aria {
     role?: string;
 }
 
-export type NectarNode = ContextFunction | Node;
+export type AsyncComponentNode = () => Promise<ComponentNode>;
+export type ComponentNode = ContextFunction | Node;
 
 export interface PlainObject<T = any> {
     [key: string]: T;
@@ -37,8 +38,8 @@ export interface TemplateContext {
 
 export type TemplateTagValue =
     | boolean
+    | ComponentNode
     | MouseEventListener
-    | NectarNode
     | null
     | number
     | string
@@ -56,7 +57,10 @@ export type TemplateNodeUpdate = (values: TemplateTagValue[]) => void;
 export interface Component<T> {
     (
         props?: T &
-            Partial<LifeCycleHandlerProps> & { ref?: Partial<RefContext> }
+            Partial<LifeCycleHandlerProps> & {
+                className?: string;
+                ref?: Partial<RefContext>;
+            }
     ): ContextFunction;
 }
 
@@ -83,7 +87,7 @@ export interface LifeCycleHandlerProps {
 }
 
 export interface ReactiveComponent<T = any, P = any> {
-    (transform?: (props?: T) => P): NectarNode;
+    (transform?: (props?: T) => P): ComponentNode;
 }
 
 export type RefContext = Omit<
@@ -115,7 +119,9 @@ export type ActivityEffect<T = any> = (
     cache?: any[]
 ) => ContextFunction;
 
-export type ActivityHandler<T> = (props?: ValueProp<T>) => NectarNode;
+export type ActivityHandler<T> = (
+    props?: ValueProp<T>
+) => ComponentNode | AsyncComponentNode;
 export type ActivityTransform<V, I = V> = (
     props: ValueProp<V> & {
         input: I;

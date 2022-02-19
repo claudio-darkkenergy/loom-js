@@ -2,6 +2,8 @@ import {
     ActivityEffect,
     ActivityHandler,
     ActivityTransform,
+    AsyncComponentNode,
+    ComponentNode,
     TemplateContext
 } from './types';
 
@@ -90,19 +92,47 @@ export const activity = <V = undefined, I = V>(
             typeof result !== 'function'
                 ? () => result || document.createTextNode('')
                 : result;
+        let node = ctxFunction(ctx) as Node;
+        const isAsyncNode = node instanceof Promise;
 
-        return ctxFunction(ctx);
+        if (isAsyncNode) {
+            node = document.createTextNode('');
+        }
+
+        isAsyncNode &&
+            (result as AsyncComponentNode)().then((componentNode) =>
+                renderAsync({ componentNode, liveNode: node })
+            );
+        return node;
+    }
+
+    function renderAsync({
+        componentNode,
+        liveNode
+    }: {
+        componentNode: ComponentNode;
+        liveNode: Node;
+    }) {
+        const liveNodeData = liveNodes.get(liveNode);
+
+        if (liveNodeData) {
+            const ctxFunction =
+                typeof componentNode !== 'function'
+                    ? () => componentNode || document.createTextNode('')
+                    : componentNode;
+            const asyncNode = ctxFunction(liveNodeData.ctx);
+
+            if (asyncNode && !asyncNode.isSameNode(liveNode)) {
+                liveNodes.set(asyncNode, liveNodeData);
+                // Replace the old node & perform cleanup on it for garbage colleciton.
+                (liveNode as Element).replaceWith(asyncNode);
+                liveNodes.delete(liveNode);
+            }
+        }
     }
 
     return {
         effect,
-        // This method is reactive to the parent effect (or router), but not to it's own activity,
-        // & therefore is only to be used as a nested effect.
-        // The current value of the activity is always returned, &
-        // because a component `ContextFunction` is returned instead of a `Node`,
-        // the result is to always fully render a component each time it's called.
-        rawEffect: (action: ActivityHandler<V>) =>
-            action({ value: currentValue }) as unknown as Node,
         initialValue,
         update,
         value: () => currentValue
