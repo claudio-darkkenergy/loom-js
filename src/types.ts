@@ -69,6 +69,7 @@ export type ComponentFunction = <T = unknown>(
     renderFunction: RenderFunction<
         T &
             LifeCycleHandlerProps & {
+                className?: string;
                 ctx: () => RefContext;
                 node: ContextNodeGetter;
                 ref?: Partial<RefContext>;
