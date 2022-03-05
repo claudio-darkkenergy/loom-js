@@ -111,8 +111,9 @@ export const getLiveUpdates = (
                                     node as HTMLElement | SVGElement
                                 ).removeAttribute(attr.name);
                             }
-                        } else {
-                            // Handle dynamic standard attributes.
+                        }
+                        // Handle dynamic standard attributes.
+                        else {
                             updater = (values: TemplateTagValue[]) => {
                                 const value = String(
                                     resolveValue(values.shift())

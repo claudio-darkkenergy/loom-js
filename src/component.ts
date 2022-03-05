@@ -2,7 +2,7 @@ import { taggedTemplate } from './template';
 import {
     ComponentFunction,
     LifeCycleHandler,
-    LifeCycleHandlerProps,
+    LifeCycleListener,
     RefContext,
     TemplateContext
 } from './types';
@@ -13,26 +13,7 @@ export const component: ComponentFunction =
     (props) =>
     // ContextFunction
     (ctx = {}) => {
-        const lifeCycles: LifeCycleHandlerProps = {
-            onCreated: getLifeCycleHandler(ctx, 'created'),
-            onMounted: getLifeCycleHandler(ctx, 'mounted'),
-            onRendered: getLifeCycleHandler(ctx, 'rendered'),
-            onUnmounted: getLifeCycleHandler(ctx, 'unmounted')
-        };
         let refIterator: IterableIterator<RefContext>;
-        // Ensures the ref context is never lost.
-        const memoizedRefContext = () => {
-            let ref = refIterator.next().value as RefContext;
-
-            if (ref) {
-                return ref;
-            }
-
-            ref = refContext();
-            ctx.refs.add(ref);
-
-            return ref;
-        };
 
         // Ensures the template context is fresh during 1st render &
         // whenever the fingerprint doesn't match the render function.
@@ -45,6 +26,12 @@ export const component: ComponentFunction =
             }
 
             ctx.fingerPrint = renderFunction;
+            ctx.lifeCycles = {
+                onCreated: getLifeCycleHandler(ctx, 'created'),
+                onMounted: getLifeCycleHandler(ctx, 'mounted'),
+                onRendered: getLifeCycleHandler(ctx, 'rendered'),
+                onUnmounted: getLifeCycleHandler(ctx, 'unmounted')
+            };
             ctx.node = () => ctx.root;
             // Holds all the created refs for the current component `TemplateContext`.
             ctx.refs = new Set<RefContext>();
@@ -68,11 +55,49 @@ export const component: ComponentFunction =
         return renderFunction(
             ctx.render,
             Object.assign({}, props, {
-                ...lifeCycles,
-                ctx: memoizedRefContext,
+                ...ctx.lifeCycles,
+                ctx: memoizedRefContext(ctx, refIterator),
                 node: ctx.node
             })
         );
+    };
+
+const getLifeCycleHandler =
+    (ctx: TemplateContext, eventName: string): LifeCycleListener =>
+    (handler: LifeCycleHandler) => {
+        let event: LifeCycleHandler;
+
+        if (ctx.ref) {
+            event = ctx.ref[eventName];
+        }
+
+        ctx[eventName] = event
+            ? // Process the component lifecycle event for the component, then the `RefContext` owner.
+              (((node) => handler(node) & event(node)) as LifeCycleHandler)
+            : // Process the component lifecycle event.
+              handler;
+    };
+
+/**
+ * Ensures the ref context is never lost.
+ * This allows a component to create many ref contexts w/o losing them on re-renders.
+ * @param ctx The cached/scoped template context
+ * @param iterator This is the `Iterator` of cached refs to traverse & return.
+ *      If the list is empty, new ones will be created & cached for future renders.
+ * @returns RefContext
+ */
+const memoizedRefContext =
+    (ctx: TemplateContext, iterator: IterableIterator<RefContext>) => () => {
+        let ref = iterator.next().value as RefContext;
+
+        if (ref) {
+            return ref;
+        }
+
+        ref = refContext();
+        ctx.refs.add(ref);
+
+        return ref;
     };
 
 /**
@@ -95,14 +120,3 @@ const refContext = (): RefContext => ({
         this.unmouned = handler;
     }
 });
-
-const getLifeCycleHandler =
-    (ctx: TemplateContext, eventName: string) =>
-    (handler: LifeCycleHandler) => {
-        const event: LifeCycleHandler = ctx[eventName];
-        ctx[eventName] = event
-            ? // Process the component lifecycle event for the component, then the `RefContext` owner.
-              (((node) => handler(node) & event(node)) as LifeCycleHandler)
-            : // Process the component lifecycle event.
-              handler;
-    };

@@ -62,10 +62,10 @@ export function taggedTemplate(
 
         if (!ctx.root) {
             console.warn(
-                `Template must contain only one root node - received ${JSON.stringify(
-                    liveFragment.children
-                )}`,
-                'Any additional node will get thrown out and not be rendered.'
+                `Template must contain at least one root node - received \`${JSON.stringify(
+                    ctx.root
+                )}\`.`,
+                'Only the first node will be used, and any additional nodes will get thrown out and not rendered.'
             );
         } else {
             updateStore.set(ctx.root, {
