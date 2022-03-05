@@ -26,6 +26,7 @@ export interface TaggedTemplate {
 export interface TemplateContext {
     created?: LifeCycleHandler;
     fingerPrint?: RenderFunction<unknown>;
+    lifeCycles?: LifeCycleHandlerProps;
     mounted?: LifeCycleHandler;
     node?: ContextNodeGetter;
     ref?: RefContext;
@@ -81,11 +82,13 @@ export type ContextFunction = (ctx?: TemplateContext) => Node;
 export type LifeCycleHandler = (node: Node | undefined) => any;
 
 export interface LifeCycleHandlerProps {
-    onCreated(handler: LifeCycleHandler): void;
-    onMounted(handler: LifeCycleHandler): void;
-    onRendered(handler: LifeCycleHandler): void;
-    onUnmounted(handler: LifeCycleHandler): void;
+    onCreated: LifeCycleListener;
+    onMounted: LifeCycleListener;
+    onRendered: LifeCycleListener;
+    onUnmounted: LifeCycleListener;
 }
+
+export type LifeCycleListener = (handler: LifeCycleHandler) => void;
 
 export interface ReactiveComponent<T = any, P = any> {
     (transform?: (props?: T) => P): ComponentNode;

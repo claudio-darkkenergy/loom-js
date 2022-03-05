@@ -73,7 +73,7 @@ const events: ConfigEvent[] = [
     'wheel'
 ];
 const TOKEN = '⚡';
-const tokenRe = new RegExp(TOKEN);
+const tokenRe = new RegExp(`${TOKEN}|${window.encodeURIComponent(TOKEN)}`);
 
 export const config: Config = {
     events,
