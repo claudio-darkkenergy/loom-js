@@ -47,6 +47,7 @@ export const component: ComponentFunction =
                 ctx.mounted = ctx.ref.mounted;
                 ctx.rendered = ctx.ref.rendered;
                 ctx.unmounted = ctx.ref.unmounted;
+                delete props.ref;
             }
         }
 
