@@ -58,9 +58,9 @@ export type TemplateNodeUpdate = (values: TemplateTagValue[]) => void;
 export interface Component<T> {
     (
         props?: T &
-            Partial<LifeCycleHandlerProps> & {
+            {
                 className?: string;
-                ref?: Partial<RefContext>;
+                ref?: RefContext;
             }
     ): ContextFunction;
 }
@@ -73,7 +73,6 @@ export type ComponentFunction = <T = unknown>(
                 className?: string;
                 ctx: () => RefContext;
                 node: ContextNodeGetter;
-                ref?: Partial<RefContext>;
             }
     >
 ) => Component<T>;
@@ -96,9 +95,9 @@ export interface ReactiveComponent<T = any, P = any> {
 
 export type RefContext = Omit<
     TemplateContext,
-    'fingerPrint' | 'ref' | 'render' | 'root'
+    'fingerPrint' | 'lifeCycles' | 'ref' | 'render' | 'root'
 > &
-    Partial<LifeCycleHandlerProps>;
+    LifeCycleHandlerProps;
 
 export interface RenderFunction<T> {
     (render: TaggedTemplate, props: T): Node;
