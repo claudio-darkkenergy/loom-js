@@ -1,10 +1,40 @@
 {
     "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "baseUrl": ".",
+        "declaration": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "isolatedModules": true,
         "lib": [
             "dom",
             "es6"
         ],
+        "module": "es6",
         "moduleResolution": "node",
-        "target": "esnext"
-    }
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "outDir": "dist",
+        "paths": {
+            "nectar": [
+                "types/nectar"
+            ]
+        },
+        "removeComments": true,
+        "sourceMap": true,
+        "strictBindCallApply": true,
+        "target": "esnext",
+        "typeRoots": [
+            "./node_modules/@types",
+            "./typings"
+        ]
+    },
+    "exclude": [
+        "dist",
+        "node_modules"
+    ],
+    "include": [
+        "src/**/*.ts",
+        "typings"
+    ]
 }
