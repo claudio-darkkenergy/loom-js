@@ -2,7 +2,7 @@
 
 <h1 align="center">
   <img width="86" height="91" src="https://images.ctfassets.net/2x238mu87414/6XeR7Z8onDfOTi9GK7pyTr/000f41ee0d845efdd3bf796491dba73f/nectar-logo-v1.png">
-  <div>nectar ( js )</div>
+  <div>café ( js )</div>
 </h1>
 
 > A reactive components-first JavaScript framework.
@@ -20,20 +20,20 @@
 ## Install
 
 ```bash
-npm i @darkkenergy/nectar -S
+npm i @cafe/core -S
 ```
 
 ## Inclusion
 
 ```ts
 // CommonJS
-const Nectar = require('@darkkenergy/nectar');
+const Cafe = require('@cafe/core');
 
 // ES6
-import * as Nectar from '@darkkenergy/nectar';
+import * as Cafe from '@cafe/core';
 
 // Typescript Types
-import * as NectarTypes from '@darkkenergy/nectar/dist/types';
+import * as NectarTypes from '@cafe/core/dist/types';
 ```
 
 ## Concepts
@@ -44,7 +44,7 @@ The app is where you first introduce your component ecosystem (one or more compo
 
 **API** `init(options)`
 
-**Inclusion** `import { init } from '@darkkenergy/nectar';`
+**Inclusion** `import { init } from '@cafe/core';`
 
 **Arguments**
 
@@ -59,7 +59,7 @@ The app is where you first introduce your component ecosystem (one or more compo
 **Quick Example**
 
 ```ts
-import { init } from '@darkkenergy/nectar';
+import { init } from '@cafe/core';
 import { App } from './app';
 
 init({
@@ -73,13 +73,13 @@ init({
 
 A component uses a "tagged template" (w/ [template literal](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) syntax) - the template render function - to define its template.
 
-Use `component` to register a template render function. It takes a render function as its argument, passing Nectar's template renderer to the render function along with some props, and a getter for the component's rendered node. A template context is bound to the renderer to achieve optimal rerenders.
+Use `component` to register a template render function. It takes a render function as its argument, passing Café's template renderer to the render function along with some props, and a getter for the component's rendered node. A template context is bound to the renderer to achieve optimal rerenders.
 
 When using `component`, the tagged template's template string must contain only one element opening & closing tag at the start & end of the template string and must belong to the same element.
 
 **API** `component<T>(template)`
 
-**Inclusion** `import { component } from '@darkkenergy/nectar';`
+**Inclusion** `import { component } from '@cafe/core';`
 
 **Arguments**
 
@@ -104,7 +104,7 @@ When using `component`, the tagged template's template string must contain only 
 **Quick Example**
 
 ```ts
-import { component } from '@darkkenergy/nectar';
+import { component } from '@cafe/core';
 
 interface ButtonProps {
     label: string;
@@ -127,7 +127,7 @@ When creating a new activity, you may provide a default value. One or more effec
 
 **API** `activity<T>(initialValue)`
 
-**Inclusion** `import { activity } from '@darkkenergy/nectar';`
+**Inclusion** `import { activity } from '@cafe/core';`
 
 **Arguments**
 
@@ -155,7 +155,7 @@ When creating a new activity, you may provide a default value. One or more effec
 **Quick Example**
 
 ```ts
-import { activity } from '@darkkenergy/nectar';
+import { activity } from '@cafe/core';
 
 const initialValue = 0;
 export const buttonClickActivity = activity(initialValue);
@@ -190,12 +190,12 @@ There are two main technologies leveraged in the routing system - the activity s
         -   `href?: string`
         -   `replace?: boolean` - Will set the `replaceState` flag to true so that the url will update in the browser's address bar, but it will not add an entry to the history stack.
 
-**Inclusion** `import { router, onRoute } from '@darkkenergy/nectar';`
+**Inclusion** `import { router, onRoute } from '@cafe/core';`
 
 **Quick Example**
 
 ```ts
-import { component, onRoute, router } from '@darkkenergy/nectar';
+import { component, onRoute, router } from '@cafe/core';
 import { About, Home, NotFound } from '@app/component/pages';
 
 export const App = component<unknown>(
@@ -228,7 +228,7 @@ export const App = component<unknown>(
 ### App Initialization (bootstrapping the app)
 
 ```ts
-import { init } from '@darkkenergy/nectar';
+import { init } from '@cafe/core';
 
 import { Page } from './page';
 import content from './content.json';
@@ -258,7 +258,7 @@ init({
 **Simple example**
 
 ```ts
-import { component } from '@darkkenergy/nectar';
+import { component } from '@cafe/core';
 
 export const Button = component(
     (html) => html`<button type="button">Click me!</button>`
@@ -271,8 +271,8 @@ Props passed into a component can be accessed via the second argument of the `co
 Interpolation is achieved using the JS ES6 standard [template literal](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) syntax
 
 ```ts
-import { component } from '@darkkenergy/nectar';
-import { MouseEventListener } from '@darkkenergy/nectar/dist/types';
+import { component } from '@cafe/core';
+import { MouseEventListener } from '@cafe/core/dist/types';
 
 export interface ButtonProps {
     className: string;
@@ -304,7 +304,7 @@ export const SuperButton = ({ label }: { label: string }) =>
 **Access the rendered component node**
 
 ```ts
-import { component } from '@darkkenergy/nectar';
+import { component } from '@cafe/core';
 
 // `node` is a getter method which all components receive in the props argument,
 // and will return the rendered node of the component.
@@ -320,8 +320,8 @@ export const Button = component((html, { node }) => {
 **Life Cycles**
 
 ```ts
-import { component } from '@darkkenergy/nectar';
-import { LifeCycleHandler } from '@darkkenergy/nectar/dist/types';
+import { component } from '@cafe/core';
+import { LifeCycleHandler } from '@cafe/core/dist/types';
 
 // There are two component life-cycle methods - `onCreated` & `onRendered`.
 // Each will take life-cycle handler as its argument, and each handler will receive the rendered component node.
@@ -346,7 +346,7 @@ export const Button = component((html, { onCreated, onRendered }) => {
 **Activity example**
 
 ```ts
-import { activity, component } from '@darkkenergy/nectar';
+import { activity, component } from '@cafe/core';
 
 // Initialize a new activity with an initial value.
 export const buttonClickActivity = activity(0);
@@ -387,8 +387,8 @@ export const Button = component(
 **Routing example**
 
 ```ts
-import { component, onRoute, router } from '@darkkenergy/nectar';
-import { MouseEventListener } from '@darkkenergy/nectar/dist/types';
+import { component, onRoute, router } from '@cafe/core';
+import { MouseEventListener } from '@cafe/core/dist/types';
 import { About, Home, NotFound } from '@app/component/pages';
 
 export const App = component<unknown>(
@@ -403,7 +403,7 @@ export const App = component<unknown>(
                         })) as MouseEventListener})}"
                     type="button"
                 >
-                    nectar (js)
+                    café (js)
                 </button>
                 ${/* Anchor example demonstrating the simpler `onRoute` usage */}
                 <nav>
