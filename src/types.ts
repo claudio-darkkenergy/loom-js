@@ -12,7 +12,7 @@ export interface PlainObject<T = any> {
 }
 
 export interface ValueProp<T = TemplateTagValue> {
-    value?: T;
+    value: T;
 }
 
 /* Template */
@@ -40,6 +40,7 @@ export interface TemplateContext {
 export type TemplateTagValue =
     | boolean
     | ComponentNode
+    | EventListenerOrEventListenerObject
     | MouseEventListener
     | null
     | number
@@ -55,13 +56,12 @@ export type TemplateNodeUpdate = (values: TemplateTagValue[]) => void;
 
 // Component
 // The component callable (external values to internal props)
-export interface Component<T> {
+export interface Component<T = unknown> {
     (
-        props?: T &
-            {
-                className?: string;
-                ref?: RefContext;
-            }
+        props?: T & {
+            className?: string;
+            ref?: RefContext;
+        }
     ): ContextFunction;
 }
 
@@ -123,7 +123,7 @@ export type ActivityEffect<T = any> = (
 ) => ContextFunction;
 
 export type ActivityHandler<T> = (
-    props?: ValueProp<T>
+    props: ValueProp<T>
 ) => ComponentNode | AsyncComponentNode;
 export type ActivityTransform<V, I = V> = (
     props: ValueProp<V> & {
@@ -206,13 +206,12 @@ export type ConfigEvent =
     | 'wheel';
 
 export interface Config {
-    events: ConfigEvent[];
-    global?: GlobalWindow;
+    events: ConfigEvent[] & string[];
     TOKEN: string;
     tokenRe: RegExp;
 }
 
-export type GlobalWindow = Window & { NodeFilter: NodeFilter };
+export type GlobalWindow = Window & typeof globalThis;
 
 export interface NodeFilter {
     SHOW_ALL: -1;

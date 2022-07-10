@@ -1,16 +1,33 @@
 import { lifeCycles } from './life-cycles';
-import { ContextFunction } from './types';
+import { ComponentNode } from './types';
 
 export interface AppInitProps {
-    app: ContextFunction;
-    onAppMounted: (mountedApp: Node) => any;
-    root: HTMLElement;
+    app: ComponentNode;
+    append?: Boolean | null;
+    onAppMounted?: (mountedApp: Node) => any;
+    root?: HTMLElement;
 }
 
-export const init = ({ app, onAppMounted, root }: AppInitProps) => {
-    // Ensure the root element is empty.
-    root.innerHTML = '';
-    const mountedApp = root.appendChild(app());
+export const init = ({
+    app,
+    append = null,
+    onAppMounted,
+    root = document.body
+}: AppInitProps) => {
+    const mountedApp = typeof app === 'function' ? app() : app;
+
+    if (append === null) {
+        // Ensure the root element is empty.
+        root.innerHTML = '';
+    }
+
+    if (append === false) {
+        // Prepend the root element.
+        root.insertBefore(mountedApp, root.firstChild);
+    } else {
+        // Append the root element.
+        root.appendChild(mountedApp);
+    }
 
     // First handle the app-mounted callback.
     if (typeof onAppMounted === 'function') {

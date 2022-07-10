@@ -7,9 +7,15 @@ import {
     TemplateContext
 } from './types';
 
+/**
+ * Hooks up a template w/ the framework system.
+ * @param renderFunction A component template.
+ * @returns A component factory - caches the component instance returning the cached instance
+ *      when the component's root node still exists in the DOM.
+ */
 export const component: ComponentFunction =
     (renderFunction) =>
-    // Component
+    // Component (component factory)
     (props) =>
     // ContextFunction
     (ctx = {}) => {
