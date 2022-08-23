@@ -33,6 +33,7 @@ export const component: ComponentFunction =
 
             ctx.fingerPrint = renderFunction;
             ctx.lifeCycles = {
+                onBeforeRender: getLifeCycleHandler(ctx, 'beforeRender'),
                 onCreated: getLifeCycleHandler(ctx, 'created'),
                 onMounted: getLifeCycleHandler(ctx, 'mounted'),
                 onRendered: getLifeCycleHandler(ctx, 'rendered'),
@@ -49,6 +50,7 @@ export const component: ComponentFunction =
                 // a reference to it.
                 ctx.ref = ref;
                 ctx.ref.node = ctx.node;
+                ctx.beforeRender = ctx.ref.beforeRender;
                 ctx.created = ctx.ref.created;
                 ctx.mounted = ctx.ref.mounted;
                 ctx.rendered = ctx.ref.rendered;
@@ -64,6 +66,7 @@ export const component: ComponentFunction =
             Object.assign({}, props, {
                 ...ctx.lifeCycles,
                 ctx: memoizedRefContext(ctx, refIterator),
+                ctxRefs: () => ctx.refs.values(),
                 node: ctx.node
             })
         );
@@ -114,6 +117,9 @@ const memoizedRefContext =
  * @returns Access to the nested component which receives this reference.
  */
 const refContext = (): RefContext => ({
+    onBeforeRender(handler) {
+        this.beforeRender = handler;
+    },
     onCreated(handler) {
         this.created = handler;
     },

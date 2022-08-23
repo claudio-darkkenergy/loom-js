@@ -70,6 +70,8 @@ const defaultEvents: ConfigEvent[] = [
     'touchstart',
     'transitioncancel',
     'transitionend',
+    'transitionrun',
+    'transitionstart',
     'wheel'
 ];
 let events: ConfigEvent[] & string[] = defaultEvents;

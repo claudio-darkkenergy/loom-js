@@ -134,6 +134,7 @@ export const activity = <V = undefined, I = V>(
     return {
         effect,
         initialValue,
+        reset: () => updateActivity(initialValue),
         update,
         value: () => currentValue
     };

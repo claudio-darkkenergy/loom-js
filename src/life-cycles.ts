@@ -76,9 +76,16 @@ const domChanged: MutationCallback = (diffNodes) =>
  *                   - processed for each component, observed by the `MutationObserver`.
  */
 export const lifeCycles = {
+    creation(ctx: TemplateContext) {
+        // Creation life-cycle handler - only once.
+        if (!lifeCycleNodes.has(ctx.root)) {
+            lifeCycleNodes.set(ctx.root, ctx);
+            ctx.created && ctx.created(ctx.root);
+        }
+    },
     /**
      * Initializes the life-cycle hooks for a given node.
-     * @param node The node to initialize its life-cycles hooks.
+     * @param node The node to initialize its life-cycle hooks.
      * @param ctx `TemplateContext` which holds life-cycle handlers for the node.
      */
     init(ctx: TemplateContext) {
@@ -109,6 +116,14 @@ export const lifeCycles = {
 
         // Observe future DOM updates.
         observer.observe(observableNode, { childList: true, subtree: true });
+    },
+    preRender(ctx: TemplateContext) {
+        // Before-rendered life-cycle handler - called on every render.
+        ctx.beforeRender && ctx.beforeRender(ctx.root);
+    },
+    postRender(ctx: TemplateContext) {
+        // Rendered life-cycle handler - called on every render.
+        ctx.rendered && ctx.rendered(ctx.root);
     }
 };
 

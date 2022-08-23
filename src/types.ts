@@ -24,6 +24,7 @@ export interface TaggedTemplate {
 }
 
 export interface TemplateContext {
+    beforeRender?: LifeCycleHandler;
     created?: LifeCycleHandler;
     fingerPrint?: RenderFunction<unknown>;
     lifeCycles?: LifeCycleHandlerProps;
@@ -72,6 +73,7 @@ export type ComponentFunction = <T = unknown>(
             LifeCycleHandlerProps & {
                 className?: string;
                 ctx: () => RefContext;
+                ctxRefs: () => IterableIterator<RefContext>;
                 node: ContextNodeGetter;
             }
     >
@@ -81,6 +83,7 @@ export type ContextFunction = (ctx?: TemplateContext) => Node;
 export type LifeCycleHandler = (node: Node | undefined) => any;
 
 export interface LifeCycleHandlerProps {
+    onBeforeRender: LifeCycleListener;
     onCreated: LifeCycleListener;
     onMounted: LifeCycleListener;
     onRendered: LifeCycleListener;
@@ -203,6 +206,8 @@ export type ConfigEvent =
     | 'touchstart'
     | 'transitioncancel'
     | 'transitionend'
+    | 'transitionrun'
+    | 'transitionstart'
     | 'wheel';
 
 export interface Config {
