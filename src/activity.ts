@@ -1,35 +1,42 @@
+import { getTemplateRoot } from './helpers';
 import {
     ActivityEffect,
     ActivityHandler,
     ActivityTransform,
     AsyncComponentNode,
     ComponentNode,
-    TemplateContext
+    TemplateContext,
+    TemplateRoot
 } from './types';
+
+interface ActivityLiveNodeData<V> {
+    action: ActivityHandler<V>;
+    // @TODO Use the cache for handler memoization.
+    cache: any[];
+    ctx: TemplateContext;
+}
+
+type ActivityLiveNodes<V> = Map<TemplateRoot, ActivityLiveNodeData<V>>;
 
 export const activity = <V = undefined, I = V>(
     initialValue: V = undefined,
     transform?: ActivityTransform<V, I>
 ) => {
     let currentValue = initialValue;
-    const liveNodes = new Map<
-        Node,
-        {
-            action: ActivityHandler<V>;
-            // @TODO Use the cache for handler memoization.
-            cache: any[];
-            ctx: TemplateContext;
-        }
-    >();
+    const liveNodes: ActivityLiveNodes<V> = new Map();
     const effect: ActivityEffect<V> =
         (action, cache = []) =>
         // Returning a `ContextFunction` so a `TemplateContext` can be passed into it later on.
         // This helps w/ rerenders of non-specified `component`s (when `component` wasn't used for the component.)
         (ctx = {}) => {
-            const node = renderComponent({ action, ctx, value: currentValue });
+            const rootNode = renderComponent({
+                action,
+                ctx,
+                value: currentValue
+            });
 
-            liveNodes.set(node, { action, cache, ctx });
-            return node;
+            liveNodes.set(rootNode, { action, cache, ctx });
+            return rootNode;
         };
     const update = (valueInput: I, force = false) =>
         typeof transform === 'function'
@@ -46,7 +53,9 @@ export const activity = <V = undefined, I = V>(
     function updateActivity(newValue: V, force = false) {
         Array.from(liveNodes.entries()).forEach(
             async ([liveNode, { action, cache, ctx }]) => {
-                if (!document.contains(liveNode)) {
+                const liveRootNode = getTemplateRoot(liveNode);
+
+                if (!document.contains(liveRootNode)) {
                     // Cleanup old nodes which have been removed from the DOM.
                     liveNodes.delete(liveNode);
                 } else if (
@@ -54,23 +63,24 @@ export const activity = <V = undefined, I = V>(
                     force
                     // Do the updates.
                 ) {
+                    // Render the component.
                     const node = renderComponent({
                         action,
                         ctx,
                         value: newValue
                     });
 
-                    // If the new node is different than the live node, update the live node.
-                    if (node && !node.isSameNode(liveNode)) {
-                        liveNodes.set(node, {
+                    // Update the live node(s).
+                    doLiveNodeUpdates<V>({
+                        liveNode,
+                        liveNodeData: {
                             action,
                             cache,
                             ctx
-                        });
-                        // Replace the old node & perform cleanup on it for garbage colleciton.
-                        (liveNode as Element).replaceWith(node);
-                        liveNodes.delete(liveNode);
-                    }
+                        },
+                        liveNodes,
+                        newNode: node
+                    });
                 }
             }
         );
@@ -92,18 +102,19 @@ export const activity = <V = undefined, I = V>(
             typeof result !== 'function'
                 ? () => result || document.createTextNode('')
                 : result;
-        let node = ctxFunction(ctx) as Node;
-        const isAsyncNode = node instanceof Promise;
+        let rootNode = ctxFunction(ctx) as TemplateRoot;
+        const isAsyncNode = rootNode instanceof Promise;
 
         if (isAsyncNode) {
-            node = document.createTextNode('');
+            // Create a temporary node to be replaced w/ once async node resolves.
+            rootNode = document.createTextNode('');
         }
 
         isAsyncNode &&
             (result as AsyncComponentNode)().then((componentNode) =>
-                renderAsync({ componentNode, liveNode: node })
+                renderAsync({ componentNode, liveNode: rootNode })
             );
-        return node;
+        return rootNode;
     }
 
     function renderAsync({
@@ -111,7 +122,7 @@ export const activity = <V = undefined, I = V>(
         liveNode
     }: {
         componentNode: ComponentNode;
-        liveNode: Node;
+        liveNode: TemplateRoot;
     }) {
         const liveNodeData = liveNodes.get(liveNode);
 
@@ -122,12 +133,13 @@ export const activity = <V = undefined, I = V>(
                     : componentNode;
             const asyncNode = ctxFunction(liveNodeData.ctx);
 
-            if (asyncNode && !asyncNode.isSameNode(liveNode)) {
-                liveNodes.set(asyncNode, liveNodeData);
-                // Replace the old node & perform cleanup on it for garbage colleciton.
-                (liveNode as Element).replaceWith(asyncNode);
-                liveNodes.delete(liveNode);
-            }
+            // Update the live node(s).
+            doLiveNodeUpdates<V>({
+                liveNode,
+                liveNodeData,
+                liveNodes,
+                newNode: asyncNode
+            });
         }
     }
 
@@ -138,4 +150,45 @@ export const activity = <V = undefined, I = V>(
         update,
         value: () => currentValue
     };
+};
+
+const doLiveNodeUpdates = <V>({
+    liveNodeData,
+    liveNode,
+    liveNodes,
+    newNode
+}: {
+    liveNodeData: ActivityLiveNodeData<V>;
+    liveNode: TemplateRoot;
+    liveNodes: ActivityLiveNodes<V>;
+    newNode: TemplateRoot;
+}) => {
+    const areNodeLists =
+        liveNode instanceof NodeList && newNode instanceof NodeList;
+    const nodesChanged = !(newNode as Node).isSameNode(liveNode as Node);
+
+    // Update the live node.
+    if (newNode && (areNodeLists || nodesChanged)) {
+        // Cache the node & live-node data.
+        liveNodes.set(newNode, liveNodeData);
+
+        if (areNodeLists) {
+            const fragment = document.createDocumentFragment();
+            const liveRootNode = liveNode[0].parentElement;
+
+            // Perform the updates
+            fragment.replaceChildren(...Array.from(newNode));
+            liveRootNode.insertBefore(fragment, liveNode[0]);
+            // Cleanup the old child nodes.
+            liveNode.forEach((liveChildNode) =>
+                (liveChildNode as Element).remove()
+            );
+        } else if (nodesChanged) {
+            // Replace the old node w/ the new one...
+            (liveNode as Element).replaceWith(newNode as Node);
+        }
+
+        // ...& perform cleanup on it for garbage colleciton.
+        liveNodes.delete(liveNode);
+    }
 };

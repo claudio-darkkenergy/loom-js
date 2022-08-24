@@ -11,10 +11,16 @@ export const resolveValue = (
             ctx
         ) as TemplateTagValue;
 
-        // Make sure the function returns a valid value, not another function.
-        return templateTagValue && typeof templateTagValue !== 'function'
-            ? templateTagValue
-            : '';
+        if (templateTagValue instanceof NodeList) {
+            return Array.from(templateTagValue);
+        } else {
+            // Make sure the function returns a valid value, not another function.
+            return templateTagValue && typeof templateTagValue !== 'function'
+                ? templateTagValue
+                : '';
+        }
+    } else if (value instanceof NodeList) {
+        return Array.from(value);
     } else {
         return value || '';
     }

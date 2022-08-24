@@ -5,7 +5,7 @@ export interface Aria {
 }
 
 export type AsyncComponentNode = () => Promise<ComponentNode>;
-export type ComponentNode = ContextFunction | Node;
+export type ComponentNode = ContextFunction | TemplateRoot;
 
 export interface PlainObject<T = any> {
     [key: string]: T;
@@ -16,11 +16,14 @@ export interface ValueProp<T = TemplateTagValue> {
 }
 
 /* Template */
-export type ContextNodeGetter = () => Node | undefined;
+export type ContextNodeGetter = () => TemplateRoot | undefined;
 
 export interface TaggedTemplate {
     this?: TemplateContext;
-    (chunks: TemplateStringsArray, ...interpolations: TemplateTagValue[]): Node;
+    (
+        chunks: TemplateStringsArray,
+        ...interpolations: TemplateTagValue[]
+    ): TemplateRoot;
 }
 
 export interface TemplateContext {
@@ -34,9 +37,11 @@ export interface TemplateContext {
     refs?: Set<RefContext>;
     render?: TaggedTemplate;
     rendered?: LifeCycleHandler;
-    root?: Node;
+    root?: TemplateRoot;
     unmounted?: LifeCycleHandler;
 }
+
+export type TemplateRoot = Node | NodeListOf<ChildNode>;
 
 export type TemplateTagValue =
     | boolean
@@ -79,7 +84,7 @@ export type ComponentFunction = <T = unknown>(
     >
 ) => Component<T>;
 
-export type ContextFunction = (ctx?: TemplateContext) => Node;
+export type ContextFunction = (ctx?: TemplateContext) => TemplateRoot;
 export type LifeCycleHandler = (node: Node | undefined) => any;
 
 export interface LifeCycleHandlerProps {
@@ -103,7 +108,7 @@ export type RefContext = Omit<
     LifeCycleHandlerProps;
 
 export interface RenderFunction<T> {
-    (render: TaggedTemplate, props: T): Node;
+    (render: TaggedTemplate, props: T): TemplateRoot;
 }
 
 // Event

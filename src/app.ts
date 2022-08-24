@@ -14,7 +14,7 @@ export const init = ({
     onAppMounted,
     root = document.body
 }: AppInitProps) => {
-    const mountedApp = typeof app === 'function' ? app() : app;
+    const mountedApp = (typeof app === 'function' ? app() : app) as Node;
 
     if (append === null) {
         // Ensure the root element is empty.
