@@ -1,10 +1,11 @@
-import { activity, component } from '../../../src';
-import { Component, LifeCycleHandlerProps } from '../../../src/types';
+import { LifeCyclesProp } from 'tests/types';
+import { component } from '../../../src';
+import { Component } from '../../../src/types';
 import { TestComponentProps } from './container';
 
 export interface WithRefContextPropValue {
     child: Component;
-    refLifecycles: Partial<LifeCycleHandlerProps>;
+    refLifeCycles: LifeCyclesProp;
 }
 
 export interface WithRefContextProps extends TestComponentProps {
@@ -13,21 +14,13 @@ export interface WithRefContextProps extends TestComponentProps {
 
 export const WithRefContext = component<WithRefContextProps>(
     (html, { className, ctx, value }) => {
-        // const { effect, update } = activity;
         const ref = ctx();
 
-        ref.onCreated((node) =>
-            value?.refLifecycles.onCreated?.call(ref, node)
-        );
-        ref.onMounted((node) =>
-            value?.refLifecycles.onMounted?.call(ref, node)
-        );
-        ref.onRendered((node) =>
-            value?.refLifecycles.onRendered?.call(ref, node)
-        );
-        ref.onUnmounted((node) =>
-            value?.refLifecycles.onUnmounted?.call(ref, node)
-        );
+        ref.onCreated(value.refLifeCycles.onCreated?.bind(ref));
+        ref.onMounted(value.refLifeCycles.onMounted?.bind(ref));
+        ref.onRendered(value.refLifeCycles.onBeforeRender?.bind(ref));
+        ref.onRendered(value.refLifeCycles.onRendered?.bind(ref));
+        ref.onUnmounted(value.refLifeCycles.onUnmounted?.bind(ref));
 
         return html` <div class=${className}>${value?.child({ ref })}</div> `;
     }

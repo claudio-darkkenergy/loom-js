@@ -21,6 +21,19 @@ describe('activity', () => {
             }
         });
 
+    it('reset()', async () => {
+        const initValue = Math.random() * 100 / 10;
+        const updateValue = Math.random() * 100 / 10;
+        const { initialValue, reset, update, value } = activity(initValue);
+
+        expect(initialValue).to.equal(initValue);
+        expect(value()).to.equal(initValue);
+        await update(updateValue);
+        expect(value()).to.equal(updateValue);
+        reset();
+        expect(value()).to.equal(initValue);
+    });
+
     describe('update() w/o transform', () => {
         const { effect, update, value } = activity<TestComponentProps>({});
 

@@ -1,4 +1,5 @@
 import { expect } from '@esm-bundle/chai';
+import { LifeCyclesProp } from 'tests/types';
 import { Input } from '../support/components/input';
 import {
     WithLifeCycles,
@@ -47,40 +48,47 @@ describe('component', () => {
                                 WithLifeCycles({
                                     ...props,
                                     value: {
-                                        lifecycles: {
+                                        lifeCycles: {
                                             onCreated: (node) =>
                                                 console.log(
                                                     'created',
-                                                    node.name
+                                                    node.nodeName
                                                 ),
                                             onMounted: (node) =>
                                                 console.log(
                                                     'mounted',
-                                                    node.name
+                                                    node.nodeName
+                                                ),
+                                            onBeforeRender: (node) =>
+                                                console.log(
+                                                    'rendered',
+                                                    node.nodeName
                                                 ),
                                             onRendered: (node) =>
                                                 console.log(
                                                     'rendered',
-                                                    node.name
+                                                    node.nodeName
                                                 ),
                                             onUnmounted: (node) =>
                                                 console.log(
                                                     'unmounted',
-                                                    node.name
+                                                    node.nodeName
                                                 )
                                         }
                                     }
                                 }),
                             refLifeCycles: {
                                 onCreated: (node) =>
-                                    console.log('ref created', node.name),
+                                    console.log('ref created', node.nodeName),
                                 onMounted: (node) =>
-                                    console.log('ref mounted', node.name),
+                                    console.log('ref mounted', node.nodeName),
+                                onBeforeRender: (node) =>
+                                    console.log('ref rendered', node.nodeName),
                                 onRendered: (node) =>
-                                    console.log('ref rendered', node.name),
+                                    console.log('ref rendered', node.nodeName),
                                 onUnmounted: (node) =>
-                                    console.log('ref unmounted', node.name)
-                            }
+                                    console.log('ref unmounted', node.nodeName)
+                            } as LifeCyclesProp
                         }
                     },
                     TestComponent: WithRefContext
