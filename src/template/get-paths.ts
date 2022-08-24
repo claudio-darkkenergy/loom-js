@@ -1,7 +1,6 @@
 import { config } from '../config';
 
-export const setPaths = (treeWalker: TreeWalker) => {
-    const paths = new Map<number[], Attr[] | undefined>();
+export const getPaths = (treeWalker: TreeWalker) => {
     const getNewPath = (node: Node) => {
         // Includes all path-points to the node except the document fragment.
         const path: number[] = [];
@@ -22,12 +21,7 @@ export const setPaths = (treeWalker: TreeWalker) => {
 
         return path;
     };
-
-    // Walk the node tree to get all dynamic node paths.
-    // The paths will be used to set the updaters.
-    while (treeWalker.nextNode()) {
-        const currentNode = treeWalker.currentNode;
-
+    const handleTreeNode = (currentNode: Node) => {
         if (
             currentNode instanceof HTMLElement ||
             currentNode instanceof SVGElement
@@ -41,12 +35,20 @@ export const setPaths = (treeWalker: TreeWalker) => {
                 paths.set(getNewPath(currentNode), attrs);
             }
         } else if (
-            currentNode instanceof Text &&
+            // @TODO Handle Comment w/ dynamic nodes.
+            (currentNode instanceof Text || currentNode instanceof Comment) &&
             config.tokenRe.test(currentNode.textContent || '')
         ) {
             // Parse text nodes.
             paths.set(getNewPath(currentNode), undefined);
         }
+    };
+    const paths = new Map<number[], Attr[] | undefined>();
+
+    // Walk the node tree to get all dynamic node paths.
+    // The paths will be used to set the updaters.
+    while (treeWalker.nextNode()) {
+        handleTreeNode(treeWalker.currentNode);
     }
 
     return paths;

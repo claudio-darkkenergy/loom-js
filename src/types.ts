@@ -5,25 +5,29 @@ export interface Aria {
 }
 
 export type AsyncComponentNode = () => Promise<ComponentNode>;
-export type ComponentNode = ContextFunction | Node;
+export type ComponentNode = ContextFunction | TemplateRoot;
 
 export interface PlainObject<T = any> {
     [key: string]: T;
 }
 
 export interface ValueProp<T = TemplateTagValue> {
-    value?: T;
+    value: T;
 }
 
 /* Template */
-export type ContextNodeGetter = () => Node | undefined;
+export type ContextNodeGetter = () => TemplateRoot | undefined;
 
 export interface TaggedTemplate {
     this?: TemplateContext;
-    (chunks: TemplateStringsArray, ...interpolations: TemplateTagValue[]): Node;
+    (
+        chunks: TemplateStringsArray,
+        ...interpolations: TemplateTagValue[]
+    ): TemplateRoot;
 }
 
 export interface TemplateContext {
+    beforeRender?: LifeCycleHandler;
     created?: LifeCycleHandler;
     fingerPrint?: RenderFunction<unknown>;
     lifeCycles?: LifeCycleHandlerProps;
@@ -33,13 +37,16 @@ export interface TemplateContext {
     refs?: Set<RefContext>;
     render?: TaggedTemplate;
     rendered?: LifeCycleHandler;
-    root?: Node;
+    root?: TemplateRoot;
     unmounted?: LifeCycleHandler;
 }
+
+export type TemplateRoot = Node | NodeListOf<ChildNode>;
 
 export type TemplateTagValue =
     | boolean
     | ComponentNode
+    | EventListenerOrEventListenerObject
     | MouseEventListener
     | null
     | number
@@ -55,13 +62,12 @@ export type TemplateNodeUpdate = (values: TemplateTagValue[]) => void;
 
 // Component
 // The component callable (external values to internal props)
-export interface Component<T> {
+export interface Component<T = unknown> {
     (
-        props?: T &
-            {
-                className?: string;
-                ref?: RefContext;
-            }
+        props?: T & {
+            className?: string;
+            ref?: RefContext;
+        }
     ): ContextFunction;
 }
 
@@ -72,15 +78,17 @@ export type ComponentFunction = <T = unknown>(
             LifeCycleHandlerProps & {
                 className?: string;
                 ctx: () => RefContext;
+                ctxRefs: () => IterableIterator<RefContext>;
                 node: ContextNodeGetter;
             }
     >
 ) => Component<T>;
 
-export type ContextFunction = (ctx?: TemplateContext) => Node;
+export type ContextFunction = (ctx?: TemplateContext) => TemplateRoot;
 export type LifeCycleHandler = (node: Node | undefined) => any;
 
 export interface LifeCycleHandlerProps {
+    onBeforeRender: LifeCycleListener;
     onCreated: LifeCycleListener;
     onMounted: LifeCycleListener;
     onRendered: LifeCycleListener;
@@ -100,7 +108,7 @@ export type RefContext = Omit<
     LifeCycleHandlerProps;
 
 export interface RenderFunction<T> {
-    (render: TaggedTemplate, props: T): Node;
+    (render: TaggedTemplate, props: T): TemplateRoot;
 }
 
 // Event
@@ -123,7 +131,7 @@ export type ActivityEffect<T = any> = (
 ) => ContextFunction;
 
 export type ActivityHandler<T> = (
-    props?: ValueProp<T>
+    props: ValueProp<T>
 ) => ComponentNode | AsyncComponentNode;
 export type ActivityTransform<V, I = V> = (
     props: ValueProp<V> & {
@@ -203,16 +211,17 @@ export type ConfigEvent =
     | 'touchstart'
     | 'transitioncancel'
     | 'transitionend'
+    | 'transitionrun'
+    | 'transitionstart'
     | 'wheel';
 
 export interface Config {
-    events: ConfigEvent[];
-    global?: GlobalWindow;
+    events: ConfigEvent[] & string[];
     TOKEN: string;
     tokenRe: RegExp;
 }
 
-export type GlobalWindow = Window & { NodeFilter: NodeFilter };
+export type GlobalWindow = Window & typeof globalThis;
 
 export interface NodeFilter {
     SHOW_ALL: -1;

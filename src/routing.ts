@@ -7,12 +7,41 @@ export interface OnRouteOptions {
     replace?: boolean;
 }
 
+export interface RouteUpdateHandler {
+    (loc: Location): any;
+}
+
 // Setup the activity for the History API
-const historyApiActivity = activity<Location>(window.location);
+const historyApiActivity = activity<Location>(
+    window.location,
+    ({ input, update }) => {
+        // On-change handlers should be resolved first.
+        callRouteOnChangeHandlers(input);
+        // Finally, update the route effects.
+        update(input, true);
+    }
+);
 const { update } = historyApiActivity;
 
 // Hook into the History API onpopstate event when the browser history updates via back/forward controls.
-window.addEventListener('popstate', () => update(window.location, true));
+window.addEventListener('popstate', () => update(window.location));
+
+// Calls all registered on-change handlers when the route updates.
+const callRouteOnChangeHandlers = (loc: Location) =>
+    onRouteHandlers.forEach((handler) => handler(loc));
+// Stores the route handlers.
+const onRouteHandlers = new Set<any>();
+
+/**
+ * Accepts a handler which is called any time the route is updated
+ * & before any route effects run.
+ * @param handler A handler to be called whenever the route udpates.
+ * @returns An unsubscriber method to perform handler cleanup.
+ */
+export const onRouteUpdate = (handler: RouteUpdateHandler) => {
+    onRouteHandlers.add(handler);
+    return () => onRouteHandlers.delete(handler);
+};
 
 /**
  * Hooks into the framework's routing system.
@@ -22,7 +51,10 @@ window.addEventListener('popstate', () => update(window.location, true));
 export const router = (routeConfigCallback: ActivityHandler<Location>) => {
     const { effect } = historyApiActivity;
     // Return the resolved route.
-    return effect((props) => routeConfigCallback(props));
+    return effect((props) =>
+        // @TODO Possibly handle async here (async/await.)
+        routeConfigCallback(props)
+    );
 };
 
 /**
@@ -50,7 +82,7 @@ export const onRoute = <T>(
 
     if (didRouteChange(locationSnapshot)) {
         // Update the view.
-        update(window.location, true);
+        update(window.location);
     } else if (window.location.hash) {
         // Call `onHash` callback w/ current `Window.Location` state.
         options?.onHash && options.onHash(window.location);

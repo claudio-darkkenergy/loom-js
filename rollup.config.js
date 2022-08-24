@@ -18,9 +18,10 @@ export default [
         plugins: [
             typescript({
                 clean: true,
-                tsconfig: './tsconfig-nectar.json',
+                tsconfig: './tsconfig.json',
                 typescript: require('typescript')
-            }), // so Rollup can convert TypeScript to JavaScript
+            }),
+            // so Rollup can convert TypeScript to JavaScript
             terser()
         ],
         output: [

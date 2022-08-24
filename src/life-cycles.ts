@@ -1,4 +1,6 @@
-import { TemplateContext } from './types';
+import { getTemplateRoot } from './helpers';
+import { TemplateContext, TemplateRoot } from './types';
+
 /**
  * The `MutationCallback` to get call by the `MutationObserver` on DOM mutations.
  * @param diffNodes The nodes which have been added or removed from the DOM.
@@ -78,30 +80,26 @@ const domChanged: MutationCallback = (diffNodes) =>
 export const lifeCycles = {
     /**
      * Initializes the life-cycle hooks for a given node.
-     * @param node The node to initialize its life-cycles hooks.
+     * The component has been created, but not mounted.
      * @param ctx `TemplateContext` which holds life-cycle handlers for the node.
      */
-    init(ctx: TemplateContext) {
+    creation(ctx: TemplateContext) {
         // Creation life-cycle handler - only once.
-        if (!lifeCycleNodes.has(ctx.root)) {
-            lifeCycleNodes.set(ctx.root, ctx);
-            ctx.created && ctx.created(ctx.root);
-        }
-
-        // Process the rendered hook for the node.
-        rendered(ctx);
+        created(ctx);
     },
     /**
      * Kicks off the observation via `MutationObserver` to listen for DOM tree adds/removals.
-     * @param node The App node to observe for changes in its DOM tree.
+     * @param observableNode The App node to observe for changes in its DOM tree.
      */
     observe(observableNode: Node) {
         const observer = new MutationObserver(domChanged);
 
         // Execute all the `onMounted` handlers since all the nodes are now in the DOM.
         lifeCycleNodes.forEach((ctx, node) => {
-            if (document.contains(ctx.root)) {
-                ctx.mounted && ctx.mounted(ctx.root);
+            const root = getTemplateRoot(ctx.root);
+
+            if (document.contains(root)) {
+                ctx.mounted && ctx.mounted(root);
             } else {
                 lifeCycleNodes.delete(node);
             }
@@ -109,16 +107,34 @@ export const lifeCycles = {
 
         // Observe future DOM updates.
         observer.observe(observableNode, { childList: true, subtree: true });
+    },
+    preRender(ctx: TemplateContext) {
+        // Before-rendered life-cycle handler - called on every render.
+        if (ctx.beforeRender) {
+            const root = getTemplateRoot(ctx.root);
+            ctx.beforeRender(root);
+        }
+    },
+    postRender(ctx: TemplateContext) {
+        // Rendered life-cycle handler - called on every render.
+        if (ctx.rendered) {
+            const root = getTemplateRoot(ctx.root);
+            ctx.rendered(root);
+        }
+    }
+};
+
+const created = (ctx: TemplateContext) => {
+    // Creation life-cycle handler - only once.
+    if (!lifeCycleNodes.has(ctx.root)) {
+        lifeCycleNodes.set(ctx.root, ctx);
+
+        if (ctx.created) {
+            const root = getTemplateRoot(ctx.root);
+            ctx.created(root);
+        }
     }
 };
 
 // Holds reference to the life-cycle handlers for each component node.
-const lifeCycleNodes = new Map<Node, TemplateContext>();
-
-/**
- * Calls the `onRender` life-cycle handler if defined.
- * @param node The rendered node.
- */
-const rendered = (ctx: TemplateContext) =>
-    // Rendered life-cycle handler - called on every render.
-    ctx.rendered && ctx.rendered(ctx.root);
+const lifeCycleNodes = new Map<TemplateRoot, TemplateContext>();
