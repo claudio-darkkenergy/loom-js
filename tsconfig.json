@@ -3,6 +3,7 @@
         "allowSyntheticDefaultImports": true,
         "baseUrl": ".",
         "declaration": true,
+        "declarationDir": "./dist/typings",
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
         "isolatedModules": true,
@@ -12,15 +13,11 @@
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "outDir": "dist",
-        "paths": {
-            "nectar": ["types/nectar"]
-        },
         "removeComments": true,
         "sourceMap": true,
-        "strictBindCallApply": true,
-        "target": "esnext",
-        "typeRoots": ["./node_modules/@types", "./typings"]
+        "strict": true,
+        "target": "esnext"
     },
     "exclude": ["dist", "node_modules"],
-    "include": ["src/**/*.ts", "tests/**/*.ts", "typings"]
+    "include": ["src/**/*.ts"]
 }

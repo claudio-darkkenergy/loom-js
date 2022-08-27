@@ -20,20 +20,20 @@
 ## Install
 
 ```bash
-npm i @cafe/core -S
+npm i @loomjs/core -S
 ```
 
 ## Inclusion
 
 ```ts
 // CommonJS
-const Cafe = require('@cafe/core');
+const Loom = require('@loomjs/core');
 
 // ES6
-import * as Cafe from '@cafe/core';
+import * as Loom from '@loomjs/core';
 
 // Typescript Types
-import * as NectarTypes from '@cafe/core/dist/types';
+import * as NectarTypes from '@loomjs/core/dist/types';
 ```
 
 ## Concepts
@@ -44,11 +44,11 @@ The app is where you first introduce your component ecosystem (one or more compo
 
 **API** `init(options)`
 
-**Inclusion** `import { init } from '@cafe/core';`
+**Inclusion** `import { init } from '@loomjs/core';`
 
 **Arguments**
 
--   interface `AppInitProps` = `{ app: (ctx?: TemplateContext) => Node; onAppMounted?: (mountedApp: Node) => any; root: HTMLElement; }`
+-   interface `AppInitProps` = `{ app: (ctx?: ComponentContext) => Node; onAppMounted?: (mountedApp: Node) => any; root: HTMLElement; }`
 
     -   `app` - A `ContextFunction` which returns a single node (the app node) that will contain all other nodes from your app's component ecosystem, and it will eventually be appended to the app's root node once the initial render is complete.
 
@@ -59,12 +59,14 @@ The app is where you first introduce your component ecosystem (one or more compo
 **Quick Example**
 
 ```ts
-import { init } from '@cafe/core';
+import { init } from '@loomjs/core';
 import { App } from './app';
-
 init({
     app: App(),
-    onAppMounted: (app) => console.log(document.contains(app)), // => true
+    onAppMounted: (app) => {
+        console.log(document.contains(app));
+        // => true
+    }
     root: document.body
 });
 ```
@@ -79,7 +81,7 @@ When using `component`, the tagged template's template string must contain only 
 
 **API** `component<T>(template)`
 
-**Inclusion** `import { component } from '@cafe/core';`
+**Inclusion** `import { component } from '@loomjs/core';`
 
 **Arguments**
 
@@ -104,19 +106,17 @@ When using `component`, the tagged template's template string must contain only 
 **Quick Example**
 
 ```ts
-import { component } from '@cafe/core';
+import { component } from '@loomjs/core';
 
 interface ButtonProps {
     label: string;
     type: string;
 }
-
-export const Button =
-    component <
-    ButtonProps >
-    ((html, props) => html`
+export const Button = component<ButtonProps>(
+    (html, props) => html`
         <button type="${props.type}">${props.label}</button>
-    `);
+    `
+);
 ```
 
 ### Activities (reactivity)
@@ -127,7 +127,7 @@ When creating a new activity, you may provide a default value. One or more effec
 
 **API** `activity<T>(initialValue)`
 
-**Inclusion** `import { activity } from '@cafe/core';`
+**Inclusion** `import { activity } from '@loomjs/core';`
 
 **Arguments**
 
@@ -144,7 +144,7 @@ When creating a new activity, you may provide a default value. One or more effec
 
     _Methods_
 
-    -   `effect(({ value }) => (ctx?: TemplateContext) => Node)`
+    -   `effect(({ value }) => (ctx?: ComponentContext) => Node)`
         -   An effect is called at least once per use, when it's first introducted during the component render process. Additionally, it's called once per activity update.
         -   `value` - the initial activity value, or the new value on updates.
     -   `update(newValue)`
@@ -155,19 +155,19 @@ When creating a new activity, you may provide a default value. One or more effec
 **Quick Example**
 
 ```ts
-import { activity } from '@cafe/core';
+import { activity } from '@loomjs/core';
 
 const initialValue = 0;
 export const buttonClickActivity = activity(initialValue);
+console.log(buttonClickActivity.initialValue); /* => 0 */
 
-console.log(buttonClickActivity.initialValue); // => 0
-console.log(buttonClickActivity.value()); // => 0
+console.log(buttonClickActivity.value()); /* => 0 */
 buttonClickActivity.update(1);
-console.log(buttonClickActivity.initialValue); // => 0
-console.log(buttonClickActivity.value()); // => 1
-
-// See the Activity Example, below, for an `effect()` usage example.
+console.log(buttonClickActivity.initialValue); /* => 0 */
+console.log(buttonClickActivity.value()); /* => 1 */
 ```
+
+See the Activity Example, below, for an `effect()` usage example.
 
 ### Routing
 
@@ -177,12 +177,12 @@ There are two main technologies leveraged in the routing system - the activity s
 
 **API**
 
-- `router(routeConfigCallback: ActivityHandler<Location>)` - Hooks up reactivity based on `Location` data & History API updates.
+-   `router(routeConfigCallback: ActivityHandler<Location>)` - Hooks up reactivity based on `Location` data & History API updates.
     -   `routeConfigCallback`
         -   Has the following function signature: `({ value }) => ContextFunction`
         -   The value of `value` will always be the current browser's `Location` object.
         -   A `ContextFunction` must always be returned - this the value which a component returns when you call it.
-- `onRoute(event: SyntheticMouseEvent<T>, options: OnRouteOptions)` - A `MouseEventListener` to hook up as an element's click-handler.
+-   `onRoute(event: SyntheticMouseEvent<T>, options: OnRouteOptions)` - A `MouseEventListener` to hook up as an element's click-handler.
     -   `event`
         -   must be passed to the event handler.
         -   If `onRoute` is wrapped by another acting function, then `event` will have to be passed to the `onRoute` call, manually. Example: `(e) => onRoute(e);`
@@ -190,13 +190,13 @@ There are two main technologies leveraged in the routing system - the activity s
         -   `href?: string`
         -   `replace?: boolean` - Will set the `replaceState` flag to true so that the url will update in the browser's address bar, but it will not add an entry to the history stack.
 
-**Inclusion** `import { router, onRoute } from '@cafe/core';`
+**Inclusion** `import { router, onRoute } from '@loomjs/core';`
 
 **Quick Example**
 
 ```ts
-import { component, onRoute, router } from '@cafe/core';
 import { About, Home, NotFound } from '@app/component/pages';
+import { component, onRoute, router } from '@loomjs/core';
 
 export const App = component<unknown>(
     (html) => html`
@@ -220,7 +220,6 @@ export const App = component<unknown>(
         </div>
     `
 );
-
 ```
 
 ## Examples
@@ -228,22 +227,21 @@ export const App = component<unknown>(
 ### App Initialization (bootstrapping the app)
 
 ```ts
-import { init } from '@cafe/core';
+import { init } from '@loomjs/core';
 
-import { Page } from './page';
 import content from './content.json';
-
+import { Page } from './page';
 const rootNode = document.querySelector('#page-content');
-
 init({
     app: Page(content),
     onAppMounted: () => {
-        // Used for manual trigger of `PrerenderSsgWebpackPlugin` static-site-generation.
-        // This method of prerendering is meant to be called after some async operation
-        // to allow for fetching content & saturating the DOM before capturing the page content.
-        // Here, the setTimeout is mimicking this scenario - there are other more appropriate methods
-        // which may used for async or syncronous rendering use cases.
-        setTimeout(() => {
+        /*
+        Used for manual trigger of `PrerenderSsgWebpackPlugin` static-site-generation.
+        This method of prerendering is meant to be called after some async operation
+        to allow for fetching content & saturating the DOM before capturing the page content.
+        Here, the setTimeout is mimicking this scenario - there are other more appropriate methods
+        which may used for async or syncronous rendering use cases.
+        */ setTimeout(() => {
             if ((window as any).snapshot) {
                 (window as any).snapshot();
             }
@@ -258,7 +256,7 @@ init({
 **Simple example**
 
 ```ts
-import { component } from '@cafe/core';
+import { component } from '@loomjs/core';
 
 export const Button = component(
     (html) => html`<button type="button">Click me!</button>`
@@ -271,8 +269,8 @@ Props passed into a component can be accessed via the second argument of the `co
 Interpolation is achieved using the JS ES6 standard [template literal](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) syntax
 
 ```ts
-import { component } from '@cafe/core';
-import { MouseEventListener } from '@cafe/core/dist/types';
+import { component } from '@loomjs/core';
+import { MouseEventListener } from '@loomjs/core/dist/types';
 
 export interface ButtonProps {
     className: string;
@@ -280,20 +278,20 @@ export interface ButtonProps {
     onClick?: MouseEventListener;
     type: string;
 }
-
-export const Button =
-    component <
-    ButtonProps >
-    ((html, { className, label, onClick, type = 'button' }) => html`
+export const Button = component<ButtonProps>(
+    (html, { className, label, onClick, type = 'button' }) => html`
         <button $click="${onClick}" class="${className}" type="${type}">
             ${label}
         </button>
-    `);
+    `
+);
 
-// A component can be a simple function without using the framework `component` method,
-// and is considered as such so long as it returns a `ContextFunction`.
-// Since `Button` is created using the `component` method, it will return a `ContextFunction` when called.
-// Below, `SuperButton` will return the `ContextFunction` of the `Button` output when called - so we're good here.
+/*
+A component can be a simple function without using the framework `component` method,
+and is considered as such so long as it returns a `ContextFunction`.
+Since `Button` is created using the `component` method, it will return a `ContextFunction` when called.
+Below, `SuperButton` will return the `ContextFunction` of the `Button` output when called - so we're good here.
+*/
 export const SuperButton = ({ label }: { label: string }) =>
     Button({
         className: 'super-button',
@@ -304,15 +302,18 @@ export const SuperButton = ({ label }: { label: string }) =>
 **Access the rendered component node**
 
 ```ts
-import { component } from '@cafe/core';
+import { component } from '@loomjs/core';
 
-// `node` is a getter method which all components receive in the props argument,
-// and will return the rendered node of the component.
-// The component node will be undefined until the initial render is complete.
-// Warning: be careful when accessing the node that you're not messing with things which are expected to be intact for each rerender process,
-// i.e dynamic nodes or attributes within the template.
+/*
+`node` is a getter method which all components receive in the props argument,
+and will return the rendered node of the component.
+The component node will be undefined until the initial render is complete.
+Warning: be careful when accessing the node that you're not messing with things which are expected to be intact for each rerender process,
+i.e dynamic nodes or attributes within the template.
+*/
 export const Button = component((html, { node }) => {
-    const onClick = () => console.log(document.contains(node())); // => true
+    const onClick = () => console.log(document.contains(node()));
+    / => true
     return html`<button $click="${onClick}" type="button">Click me!</button>`;
 });
 ```
@@ -320,25 +321,25 @@ export const Button = component((html, { node }) => {
 **Life Cycles**
 
 ```ts
-import { component } from '@cafe/core';
-import { LifeCycleHandler } from '@cafe/core/dist/types';
+import { component } from '@loomjs/core';
+import { LifeCycleHandler } from '@loomjs/core/dist/types';
 
-// There are two component life-cycle methods - `onCreated` & `onRendered`.
-// Each will take life-cycle handler as its argument, and each handler will receive the rendered component node.
-// `onCreated` is called only the first time the component is rendered, firing just before `onRendered`.
-// `onRendered` is called each time the component is rerendered.
+/ There are two component life-cycle methods - `onCreated` & `onRendered`.
+/ Each will take life-cycle handler as its argument, and each handler will receive the rendered component node.
+/ `onCreated` is called only the first time the component is rendered, firing just before `onRendered`.
+/ `onRendered` is called each time the component is rerendered.
 export const Button = component((html, { onCreated, onRendered }) => {
     const lifeCycleHandler: LifeCycleHandler = (node) => {
-        console.log(node instanceof Node); // => true
+        console.log(node instanceof Node);
+        // => true
         console.log(document.contains(node));
         // => false (on creation & 1st render);
         // => true (on rerenders)
     };
-    
-    // Called only once - on creation.
-    onCreated(lifeCycleHandler);
-    // Called on every render - onCreated will always be called first.
-    onRendered(lifeCycleHandler);
+
+    onCreated(lifeCycleHandler); /* Called only once - on creation. */
+    onRendered(lifeCycleHandler); /* Called on every render - onCreated will always be called first. */
+
     return html`<button type="button">Click me!</button>`;
 });
 ```
@@ -346,7 +347,7 @@ export const Button = component((html, { onCreated, onRendered }) => {
 **Activity example**
 
 ```ts
-import { activity, component } from '@cafe/core';
+import { activity, component } from '@loomjs/core';
 
 // Initialize a new activity with an initial value.
 export const buttonClickActivity = activity(0);
@@ -387,8 +388,8 @@ export const Button = component(
 **Routing example**
 
 ```ts
-import { component, onRoute, router } from '@cafe/core';
-import { MouseEventListener } from '@cafe/core/dist/types';
+import { component, onRoute, router } from '@loomjs/core';
+import { MouseEventListener } from '@loomjs/core/dist/types';
 import { About, Home, NotFound } from '@app/component/pages';
 
 export const App = component<unknown>(

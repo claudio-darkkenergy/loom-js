@@ -1,5 +1,11 @@
 {
     "bracketSpacing": true,
+    "importOrder": [
+        "^[./]"
+    ],
+    "importOrderCaseInsensitive": true,
+    "importOrderSeparation": true,
+    "importOrderSortSpecifiers": true,
     "noMultipleEmptyLines": true,
     "semi": true,
     "singleQuote": true,

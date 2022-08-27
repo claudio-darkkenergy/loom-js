@@ -3,9 +3,9 @@ import {
     ActivityEffect,
     ActivityHandler,
     ActivityTransform,
-    AsyncComponentNode,
+    ComponentContextPartial,
     ComponentNode,
-    TemplateContext,
+    ComponentNodeAsync,
     TemplateRoot
 } from './types';
 
@@ -13,20 +13,20 @@ interface ActivityLiveNodeData<V> {
     action: ActivityHandler<V>;
     // @TODO Use the cache for handler memoization.
     cache: any[];
-    ctx: TemplateContext;
+    ctx: ComponentContextPartial;
 }
 
 type ActivityLiveNodes<V> = Map<TemplateRoot, ActivityLiveNodeData<V>>;
 
 export const activity = <V = undefined, I = V>(
-    initialValue: V = undefined,
+    initialValue: V,
     transform?: ActivityTransform<V, I>
 ) => {
     let currentValue = initialValue;
     const liveNodes: ActivityLiveNodes<V> = new Map();
     const effect: ActivityEffect<V> =
         (action, cache = []) =>
-        // Returning a `ContextFunction` so a `TemplateContext` can be passed into it later on.
+        // Returning a `ContextFunction` so a `ComponentContext` can be passed into it later on.
         // This helps w/ rerenders of non-specified `component`s (when `component` wasn't used for the component.)
         (ctx = {}) => {
             const rootNode = renderComponent({
@@ -55,7 +55,7 @@ export const activity = <V = undefined, I = V>(
             async ([liveNode, { action, cache, ctx }]) => {
                 const liveRootNode = getTemplateRoot(liveNode);
 
-                if (!document.contains(liveRootNode)) {
+                if (liveRootNode && !document.contains(liveRootNode)) {
                     // Cleanup old nodes which have been removed from the DOM.
                     liveNodes.delete(liveNode);
                 } else if (
@@ -88,13 +88,14 @@ export const activity = <V = undefined, I = V>(
         currentValue = newValue;
     }
 
+    // Handle component rendering.
     function renderComponent<V>({
         action,
         ctx,
         value
     }: {
         action: ActivityHandler<V>;
-        ctx: TemplateContext;
+        ctx: ComponentContextPartial;
         value: V;
     }) {
         const result = action({ value });
@@ -110,13 +111,15 @@ export const activity = <V = undefined, I = V>(
             rootNode = document.createTextNode('');
         }
 
+        // Render async?
         isAsyncNode &&
-            (result as AsyncComponentNode)().then((componentNode) =>
+            (result as ComponentNodeAsync)().then((componentNode) =>
                 renderAsync({ componentNode, liveNode: rootNode })
             );
         return rootNode;
     }
 
+    // Handle async rendering - when an `effect`'s return value is an `ComponentNodeAsync`.
     function renderAsync({
         componentNode,
         liveNode
@@ -168,7 +171,10 @@ const doLiveNodeUpdates = <V>({
     const nodesChanged = !(newNode as Node).isSameNode(liveNode as Node);
 
     // Update the live node.
-    if (newNode && (areNodeLists || nodesChanged)) {
+    if (
+        newNode &&
+        ((areNodeLists && liveNode[0].parentElement) || nodesChanged)
+    ) {
         // Cache the node & live-node data.
         liveNodes.set(newNode, liveNodeData);
 
@@ -176,13 +182,15 @@ const doLiveNodeUpdates = <V>({
             const fragment = document.createDocumentFragment();
             const liveRootNode = liveNode[0].parentElement;
 
-            // Perform the updates
-            fragment.replaceChildren(...Array.from(newNode));
-            liveRootNode.insertBefore(fragment, liveNode[0]);
-            // Cleanup the old child nodes.
-            liveNode.forEach((liveChildNode) =>
-                (liveChildNode as Element).remove()
-            );
+            if (liveRootNode) {
+                // Perform the updates
+                fragment.replaceChildren(...Array.from(newNode));
+                liveRootNode.insertBefore(fragment, liveNode[0]);
+                // Cleanup the old child nodes.
+                liveNode.forEach((liveChildNode) =>
+                    (liveChildNode as Element).remove()
+                );
+            }
         } else if (nodesChanged) {
             // Replace the old node w/ the new one...
             (liveNode as Element).replaceWith(newNode as Node);

@@ -1,7 +1,8 @@
 import { config } from '../config';
 import { lifeCycles } from '../life-cycles';
 import {
-    TemplateContext,
+    ComponentContext,
+    ComponentContextPartial,
     TemplateNodeUpdate,
     TemplateRoot,
     TemplateTagValue
@@ -24,7 +25,7 @@ const updateStore = new WeakMap<
 >();
 
 export function taggedTemplate(
-    this: TemplateContext,
+    this: ComponentContextPartial,
     chunks: TemplateStringsArray,
     ...interpolations: TemplateTagValue[]
 ) {
@@ -64,6 +65,7 @@ export function taggedTemplate(
 
     // Runs only once per component "instance", while its root node or node-list is "alive".
     if (
+        !ctx.root ||
         !updateStore.has(ctx.root) ||
         !document.contains(
             ctx.root instanceof NodeList ? ctx.root[0].parentElement : ctx.root
@@ -97,11 +99,11 @@ export function taggedTemplate(
         }
 
         // Creation hook
-        lifeCycles.creation(ctx);
+        lifeCycles.creation(ctx as ComponentContext);
     }
 
     // Before-render hook
-    lifeCycles.preRender(ctx);
+    lifeCycles.preRender(ctx as ComponentContext);
 
     // Call all the updates for the component for every render cycle.
     updateStore
@@ -109,7 +111,7 @@ export function taggedTemplate(
         ?.updates.forEach((update) => update(interpolations));
 
     // After-render hook
-    lifeCycles.postRender(ctx);
+    lifeCycles.postRender(ctx as ComponentContext);
 
     return ctx.root;
 }

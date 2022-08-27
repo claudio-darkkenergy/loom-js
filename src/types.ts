@@ -4,9 +4,6 @@ export interface Aria {
     role?: string;
 }
 
-export type AsyncComponentNode = () => Promise<ComponentNode>;
-export type ComponentNode = ContextFunction | TemplateRoot;
-
 export interface PlainObject<T = any> {
     [key: string]: T;
 }
@@ -16,33 +13,16 @@ export interface ValueProp<T = TemplateTagValue> {
 }
 
 /* Template */
-export type ContextNodeGetter = () => TemplateRoot | undefined;
 
 export interface TaggedTemplate {
-    this?: TemplateContext;
+    this?: ComponentContextPartial;
     (
         chunks: TemplateStringsArray,
         ...interpolations: TemplateTagValue[]
     ): TemplateRoot;
 }
 
-export interface TemplateContext {
-    beforeRender?: LifeCycleHandler;
-    created?: LifeCycleHandler;
-    fingerPrint?: RenderFunction<unknown>;
-    lifeCycles?: LifeCycleHandlerProps;
-    mounted?: LifeCycleHandler;
-    node?: ContextNodeGetter;
-    ref?: RefContext;
-    refs?: Set<RefContext>;
-    render?: TaggedTemplate;
-    rendered?: LifeCycleHandler;
-    root?: TemplateRoot;
-    unmounted?: LifeCycleHandler;
-}
-
 export type TemplateRoot = Node | NodeListOf<ChildNode>;
-
 export type TemplateTagValue =
     | boolean
     | ComponentNode
@@ -55,84 +35,127 @@ export type TemplateTagValue =
     | TemplateTagValueFunction
     | undefined
     | void;
-
 export type TemplateTagValueFunction = () => TemplateTagValue;
-
 export type TemplateNodeUpdate = (values: TemplateTagValue[]) => void;
 
-// Component
+/* Component */
+
 // The component callable (external values to internal props)
-export interface Component<T = unknown> {
+export interface Component<T = never> {
     (
-        props?: T & {
+        props?: { [P in keyof T]: T[P] } & {
             className?: string;
             ref?: RefContext;
         }
     ): ContextFunction;
 }
 
-// The component definition (internal props from external values)
-export type ComponentFunction = <T = unknown>(
-    renderFunction: RenderFunction<
-        T &
-            LifeCycleHandlerProps & {
-                className?: string;
-                ctx: () => RefContext;
-                ctxRefs: () => IterableIterator<RefContext>;
-                node: ContextNodeGetter;
-            }
-    >
-) => Component<T>;
-
-export type ContextFunction = (ctx?: TemplateContext) => TemplateRoot;
-export type LifeCycleHandler = (node: Node | undefined) => any;
-
-export interface LifeCycleHandlerProps {
-    onBeforeRender: LifeCycleListener;
-    onCreated: LifeCycleListener;
-    onMounted: LifeCycleListener;
-    onRendered: LifeCycleListener;
-    onUnmounted: LifeCycleListener;
+// This is internal context for a component & its template,
+// which essentially provides caching capabilities w/ associated meta-data.
+export interface ComponentContext extends LifeCycleHandlerProps {
+    fingerPrint?: RenderFunction<never>;
+    lifeCycles?: LifeCycleHookProps;
+    node?: ContextNodeGetter;
+    ref?: RefContext;
+    refs?: Set<RefContext>;
+    render?: TaggedTemplate;
+    root?: TemplateRoot;
 }
 
-export type LifeCycleListener = (handler: LifeCycleHandler) => void;
+export type ComponentNodeAsync = () => Promise<ComponentNode>;
+export type ComponentNode = ContextFunction | TemplateRoot;
+export type ComponentContextPartial = Partial<ComponentContext>;
+// Every component will get these.
+// `className` could be `undefined` since that would need to get passed
+// into the component as a prop.
+export type ComponentDefaultProps = LifeCycleHookProps & {
+    ctx(): RefContext;
+    ctxRefs(): IterableIterator<RefContext>;
+    node: ContextNodeGetter;
+};
+// The component definition (internal props from external values)
+// It takes a `RenderFunction`.
+export type ComponentFactory = <T extends {} = {}>(
+    renderFunction: RenderFunction<T & RenderProps>
+) => Component<T>;
+
+export interface ComponentOptionalProps {
+    children?: TemplateTagValue;
+    className?: string;
+    ref?: RefContext;
+}
+
+// `ComponentContext` related types
+export type ContextFunction = (ctx?: ComponentContextPartial) => TemplateRoot;
+export type ContextNodeGetter = () => TemplateRoot | null | undefined;
+
+/* Life-cycles */
+
+export type LifeCycleHandler = (node: Node | undefined) => any;
+
+// Life-cycle handlers counterparts for caching the handlers.
+// The handler will never change once set for a component.
+export interface LifeCycleHandlerProps {
+    beforeRender: LifeCycleHandler;
+    created: LifeCycleHandler;
+    mounted: LifeCycleHandler;
+    rendered: LifeCycleHandler;
+    unmounted: LifeCycleHandler;
+}
+
+// Life-cycle hooks are passed to each component as default props.
+export interface LifeCycleHookProps {
+    onBeforeRender: LifeCycleHook;
+    onCreated: LifeCycleHook;
+    onMounted: LifeCycleHook;
+    onRendered: LifeCycleHook;
+    onUnmounted: LifeCycleHook;
+}
+
+export type LifeCycleHook = (handler: LifeCycleHandler) => void;
 
 export interface ReactiveComponent<T = any, P = any> {
     (transform?: (props?: T) => P): ComponentNode;
 }
 
-export type RefContext = Omit<
-    TemplateContext,
-    'fingerPrint' | 'lifeCycles' | 'ref' | 'render' | 'root'
-> &
-    LifeCycleHandlerProps;
-
-export interface RenderFunction<T> {
-    (render: TaggedTemplate, props: T): TemplateRoot;
+// export type RefContext = Omit<
+//     ComponentContext,
+//     'fingerPrint' | 'lifeCycles' | 'ref' | 'render' | 'root'
+// > &
+//     LifeCycleHookProps;
+export interface RefContext
+    extends Partial<LifeCycleHandlerProps>,
+        LifeCycleHookProps {
+    node?: ContextNodeGetter;
 }
 
-// Event
-export type MouseEventListener = <T>(ev?: SyntheticMouseEvent<T>) => void;
+export interface RenderFunction<P = {}> {
+    (render: TaggedTemplate, props: P & RenderProps): TemplateRoot;
+}
 
+export type RenderProps = ComponentDefaultProps & ComponentOptionalProps;
+
+/* Event */
+
+export type MouseEventListener = <T>(ev?: SyntheticMouseEvent<T>) => void;
 export type SyntheticMouseEventListener = (
     this: HTMLElement,
     ev: MouseEvent
 ) => any;
-
 export type SyntheticMouseEvent<T = EventTarget> = Event & {
     currentTarget: T;
     target: T;
 };
 
-// Activity
+/* Activity */
+
 export type ActivityEffect<T = any> = (
     handler: ActivityHandler<T>,
     cache?: any[]
 ) => ContextFunction;
-
 export type ActivityHandler<T> = (
     props: ValueProp<T>
-) => ComponentNode | AsyncComponentNode;
+) => ComponentNode | ComponentNodeAsync;
 export type ActivityTransform<V, I = V> = (
     props: ValueProp<V> & {
         input: I;
@@ -141,7 +164,7 @@ export type ActivityTransform<V, I = V> = (
     force?: boolean
 ) => void | Promise<void>;
 
-// Config
+/* Config */
 export type ConfigEvent =
     | 'abort'
     | 'animationcancel'

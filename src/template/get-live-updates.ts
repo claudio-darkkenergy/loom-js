@@ -1,7 +1,7 @@
 import { config } from '../config';
 import {
+    ComponentContextPartial,
     ConfigEvent,
-    TemplateContext,
     TemplateNodeUpdate,
     TemplateTagValue
 } from '../types';
@@ -168,7 +168,7 @@ export const getLiveUpdates = (
                 // Text Node handling
                 const liveNodeCtxWeakMap = new WeakMap<
                     LiveNode | LiveNode[],
-                    TemplateContext
+                    ComponentContextPartial
                 >();
                 const textFragment = document.createDocumentFragment();
                 // The original live nodes - will update on future renders.
@@ -255,7 +255,7 @@ export const getLiveUpdates = (
                             liveNodes[i] = value.map((newVal, j) => {
                                 // The resolved `TemplateTagValue` coerced to `LiveNode`.
                                 let currentLiveNode: LiveNode;
-                                // The `TemplateContext` (cached or newly created.)
+                                // The `ComponentContext` (cached or newly created.)
                                 const ctx = liveNodeIsArray
                                     ? liveNodeCtxWeakMap.get(liveNode[j]) || {}
                                     : {};
@@ -273,7 +273,7 @@ export const getLiveUpdates = (
                                     if (!liveNodeIsArray) {
                                         // Insert before the live node.
                                         // The live node will be removed from the DOM after all insertions.
-                                        liveNodeParent.insertBefore(
+                                        liveNodeParent?.insertBefore(
                                             resolvedValue,
                                             liveNode
                                         );
@@ -292,13 +292,13 @@ export const getLiveUpdates = (
                                             lastResolvedValue.nextSibling
                                         ) {
                                             // Insert before the last updated node.
-                                            liveNodeParent.insertBefore(
+                                            liveNodeParent?.insertBefore(
                                                 resolvedValue,
                                                 lastResolvedValue.nextSibling
                                             );
                                         } else {
                                             // Or append to the live node parent if there are no "next" siblings.
-                                            liveNodeParent.appendChild(
+                                            liveNodeParent?.appendChild(
                                                 resolvedValue
                                             );
                                         }
@@ -320,7 +320,7 @@ export const getLiveUpdates = (
                                     if (!liveNodeIsArray) {
                                         // Insert before the live node.
                                         // The live node will be removed from the DOM after all insertions.
-                                        liveNodeParent.insertBefore(
+                                        liveNodeParent?.insertBefore(
                                             textValue,
                                             liveNode
                                         );
