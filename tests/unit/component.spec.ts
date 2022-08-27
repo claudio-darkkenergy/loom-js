@@ -1,5 +1,5 @@
 import { expect } from '@esm-bundle/chai';
-import { LifeCyclesProp } from 'tests/types';
+
 import { Input } from '../support/components/input';
 import {
     WithLifeCycles,
@@ -49,30 +49,30 @@ describe('component', () => {
                                     ...props,
                                     value: {
                                         lifeCycles: {
-                                            onCreated: (node) =>
+                                            created: (node) =>
                                                 console.log(
                                                     'created',
-                                                    node.nodeName
+                                                    node?.nodeName
                                                 ),
-                                            onMounted: (node) =>
+                                            mounted: (node) =>
                                                 console.log(
                                                     'mounted',
-                                                    node.nodeName
+                                                    node?.nodeName
                                                 ),
-                                            onBeforeRender: (node) =>
+                                            beforeRender: (node) =>
                                                 console.log(
                                                     'rendered',
-                                                    node.nodeName
+                                                    node?.nodeName
                                                 ),
-                                            onRendered: (node) =>
+                                            rendered: (node) =>
                                                 console.log(
                                                     'rendered',
-                                                    node.nodeName
+                                                    node?.nodeName
                                                 ),
-                                            onUnmounted: (node) =>
+                                            unmounted: (node) =>
                                                 console.log(
                                                     'unmounted',
-                                                    node.nodeName
+                                                    node?.nodeName
                                                 )
                                         }
                                     }
@@ -88,7 +88,7 @@ describe('component', () => {
                                     console.log('ref rendered', node.nodeName),
                                 onUnmounted: (node) =>
                                     console.log('ref unmounted', node.nodeName)
-                            } as LifeCyclesProp
+                            }
                         }
                     },
                     TestComponent: WithRefContext
