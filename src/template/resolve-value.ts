@@ -1,11 +1,15 @@
-import { ContextFunction, TemplateContext, TemplateTagValue } from '../types';
+import {
+    ComponentContextPartial,
+    ContextFunction,
+    TemplateTagValue
+} from '../types';
 
 export const resolveValue = (
     value: TemplateTagValue,
-    ctx?: TemplateContext
+    ctx?: ComponentContextPartial
 ) => {
     if (typeof value === 'function') {
-        // Passing down a `TemplateContext` in the case the function value is a `ContextFunction`
+        // Passing down a `ComponentContext` in the case the function value is a `ContextFunction`
         // which supports maintaining the component context so we don't unnecessarily create & replace w/ new nodes.
         const templateTagValue = (value as ContextFunction)(
             ctx

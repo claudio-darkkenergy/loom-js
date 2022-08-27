@@ -1,10 +1,16 @@
+import { getTemplateRoot } from './helpers';
 import { taggedTemplate } from './template';
 import {
-    ComponentFunction,
+    ComponentContext,
+    ComponentContextPartial,
+    ComponentDefaultProps,
+    ComponentFactory,
+    ContextNodeGetter,
     LifeCycleHandler,
-    LifeCycleListener,
+    LifeCycleHook,
+    LifeCycleHookProps,
     RefContext,
-    TemplateContext
+    TaggedTemplate
 } from './types';
 
 /**
@@ -13,39 +19,42 @@ import {
  * @returns A component factory - caches the component instance returning the cached instance
  *      when the component's root node still exists in the DOM.
  */
-export const component: ComponentFunction =
+export const component: ComponentFactory =
     (renderFunction) =>
     // Component (component factory)
     (props) =>
-    // ContextFunction
+    // ContextFunction - it receives a new or existing `ComponentContext`.
     (ctx = {}) => {
+        // Holds any possible child `RefContext`s.
         let refIterator: IterableIterator<RefContext>;
 
         // Ensures the template context is fresh during 1st render &
         // whenever the fingerprint doesn't match the render function.
         if (ctx.fingerPrint !== renderFunction) {
             const ref = props?.ref;
+            let key: keyof ComponentContext;
 
             // Reset the template context, but maintain the reference.
-            for (const key in ctx) {
+            for (key in ctx) {
                 delete ctx[key];
             }
 
             ctx.fingerPrint = renderFunction;
             ctx.lifeCycles = {
-                onBeforeRender: getLifeCycleHandler(ctx, 'beforeRender'),
-                onCreated: getLifeCycleHandler(ctx, 'created'),
-                onMounted: getLifeCycleHandler(ctx, 'mounted'),
-                onRendered: getLifeCycleHandler(ctx, 'rendered'),
-                onUnmounted: getLifeCycleHandler(ctx, 'unmounted')
+                onBeforeRender: getLifeCycleHook(ctx, 'beforeRender'),
+                onCreated: getLifeCycleHook(ctx, 'created'),
+                onMounted: getLifeCycleHook(ctx, 'mounted'),
+                onRendered: getLifeCycleHook(ctx, 'rendered'),
+                onUnmounted: getLifeCycleHook(ctx, 'unmounted')
             };
-            ctx.node = () => ctx.root;
-            // Holds all the created refs for the current component `TemplateContext`.
+            ctx.node = () => getTemplateRoot(ctx.root);
+            // Holds all the created refs for the current component `ComponentContext`.
             ctx.refs = new Set<RefContext>();
-            ctx.render = taggedTemplate.bind(ctx);
+            // Caches the context w/ the template engine (tagged template.)
+            ctx.render = taggedTemplate.bind(ctx) as TaggedTemplate;
 
             if (ref) {
-                // Set component's received `RefContext` prop onto the the current component `TemplateContext`.
+                // Set component's received `RefContext` prop onto the the current component `ComponentContext`.
                 // This creates a connection between part of this context & a component ascendant that needs
                 // a reference to it.
                 ctx.ref = ref;
@@ -59,33 +68,53 @@ export const component: ComponentFunction =
             }
         }
 
-        refIterator = ctx.refs.values();
+        refIterator = (ctx.refs as Set<RefContext>).values();
 
+        /*
+         * ```
+         * component(
+         *    // This is the render function that gets called now.
+         *    (html, {}) => html`<h1>Hello World!</h1>`
+         * );
+         * ```
+         */
         return renderFunction(
-            ctx.render,
-            Object.assign({}, props, {
-                ...ctx.lifeCycles,
+            // html`...` tagged template
+            ctx.render as TaggedTemplate,
+            // Props
+            Object.assign<any, ComponentDefaultProps>(props, {
+                ...(ctx.lifeCycles as LifeCycleHookProps),
                 ctx: memoizedRefContext(ctx, refIterator),
-                ctxRefs: () => ctx.refs.values(),
-                node: ctx.node
+                ctxRefs: () => (ctx.refs as Set<RefContext>).values(),
+                node: ctx.node as ContextNodeGetter
             })
         );
     };
 
-const getLifeCycleHandler =
-    (ctx: TemplateContext, eventName: string): LifeCycleListener =>
+// This returns the hook which will wrap a handler
+// or handler group (when a parent component registers a handler for a child-`RefContext`.)
+const getLifeCycleHook =
+    (
+        ctx: Partial<ComponentContext>,
+        eventName: keyof Pick<
+            ComponentContext,
+            'beforeRender' | 'created' | 'mounted' | 'rendered' | 'unmounted'
+        >
+    ): LifeCycleHook =>
+    // The returned hook.
     (handler: LifeCycleHandler) => {
-        let event: LifeCycleHandler;
+        const getEvent = () =>
+            ctx.ref?.[eventName] !== undefined
+                ? ctx.ref?.[eventName]
+                : undefined;
+        const event = getEvent();
 
-        if (ctx.ref) {
-            event = ctx.ref[eventName];
-        }
-
-        ctx[eventName] = event
-            ? // Process the component lifecycle event for the component, then the `RefContext` owner.
-              (((node) => handler(node) & event(node)) as LifeCycleHandler)
-            : // Process the component lifecycle event.
-              handler;
+        ctx[eventName] =
+            typeof event === 'function'
+                ? // Process the component lifecycle event for the component, then the `RefContext` owner.
+                  (node) => handler(node) & event(node)
+                : // Process the component lifecycle event.
+                  handler;
     };
 
 /**
@@ -97,15 +126,17 @@ const getLifeCycleHandler =
  * @returns RefContext
  */
 const memoizedRefContext =
-    (ctx: TemplateContext, iterator: IterableIterator<RefContext>) => () => {
-        let ref = iterator.next().value as RefContext;
+    (ctx: ComponentContextPartial, iterator: IterableIterator<RefContext>) =>
+    // This is the `ctx` prop which is provided to each component & returns the `RefContext`.
+    () => {
+        let ref: RefContext = iterator.next().value;
 
         if (ref) {
             return ref;
         }
 
         ref = refContext();
-        ctx.refs.add(ref);
+        ctx.refs?.add(ref);
 
         return ref;
     };
@@ -114,6 +145,7 @@ const memoizedRefContext =
  * Creates a reference which can be hooked into by the nested component which receives
  * this as the prop, `ref`. Use this reference to hook into the component-of-context's life-cycle
  * & gain access to its root node.
+ * Handler props are added once the hook is called so that it can be referenced for later execution.
  * @returns Access to the nested component which receives this reference.
  */
 const refContext = (): RefContext => ({
@@ -130,6 +162,6 @@ const refContext = (): RefContext => ({
         this.rendered = handler;
     },
     onUnmounted(handler) {
-        this.unmouned = handler;
+        this.unmounted = handler;
     }
 });

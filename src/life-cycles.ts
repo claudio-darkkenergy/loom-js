@@ -1,5 +1,5 @@
 import { getTemplateRoot } from './helpers';
-import { TemplateContext, TemplateRoot } from './types';
+import { ComponentContextPartial, TemplateRoot } from './types';
 
 /**
  * The `MutationCallback` to get call by the `MutationObserver` on DOM mutations.
@@ -81,9 +81,9 @@ export const lifeCycles = {
     /**
      * Initializes the life-cycle hooks for a given node.
      * The component has been created, but not mounted.
-     * @param ctx `TemplateContext` which holds life-cycle handlers for the node.
+     * @param ctx `ComponentContextPartial` which holds life-cycle handlers for the node.
      */
-    creation(ctx: TemplateContext) {
+    creation(ctx: ComponentContextPartial) {
         // Creation life-cycle handler - only once.
         created(ctx);
     },
@@ -98,7 +98,7 @@ export const lifeCycles = {
         lifeCycleNodes.forEach((ctx, node) => {
             const root = getTemplateRoot(ctx.root);
 
-            if (document.contains(root)) {
+            if (root && document.contains(root)) {
                 ctx.mounted && ctx.mounted(root);
             } else {
                 lifeCycleNodes.delete(node);
@@ -108,33 +108,27 @@ export const lifeCycles = {
         // Observe future DOM updates.
         observer.observe(observableNode, { childList: true, subtree: true });
     },
-    preRender(ctx: TemplateContext) {
+    preRender(ctx: ComponentContextPartial) {
         // Before-rendered life-cycle handler - called on every render.
-        if (ctx.beforeRender) {
-            const root = getTemplateRoot(ctx.root);
-            ctx.beforeRender(root);
-        }
+        const root = getTemplateRoot(ctx.root);
+        ctx.beforeRender && root && ctx.beforeRender(root);
     },
-    postRender(ctx: TemplateContext) {
+    postRender(ctx: ComponentContextPartial) {
         // Rendered life-cycle handler - called on every render.
-        if (ctx.rendered) {
-            const root = getTemplateRoot(ctx.root);
-            ctx.rendered(root);
-        }
+        const root = getTemplateRoot(ctx.root);
+        ctx.rendered && root && ctx.rendered(root);
     }
 };
 
-const created = (ctx: TemplateContext) => {
+const created = (ctx: ComponentContextPartial) => {
     // Creation life-cycle handler - only once.
-    if (!lifeCycleNodes.has(ctx.root)) {
+    if (ctx.root && !lifeCycleNodes.has(ctx.root)) {
         lifeCycleNodes.set(ctx.root, ctx);
 
-        if (ctx.created) {
-            const root = getTemplateRoot(ctx.root);
-            ctx.created(root);
-        }
+        const root = getTemplateRoot(ctx.root);
+        ctx.created && root && ctx.created(root);
     }
 };
 
 // Holds reference to the life-cycle handlers for each component node.
-const lifeCycleNodes = new Map<TemplateRoot, TemplateContext>();
+const lifeCycleNodes = new Map<TemplateRoot, ComponentContextPartial>();

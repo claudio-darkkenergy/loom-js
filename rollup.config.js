@@ -1,9 +1,12 @@
-import typescript from 'rollup-plugin-typescript2';
+import del from 'rollup-plugin-delete';
+import dts from 'rollup-plugin-dts';
 import { terser } from 'rollup-plugin-terser';
+import typescript from 'rollup-plugin-typescript2';
+
 import pkg from './package.json';
 
 // Delete old typings to avoid issues
-require('fs').unlink('dist/index.d.ts', (err) => {});
+require('fs').unlink('dist/index.d.ts', (err) => console.error(err));
 
 export default [
     // CommonJS (for Node) and ES module (for bundlers) build.
@@ -13,20 +16,25 @@ export default [
     // an array for the `output` option, where we can specify
     // `file` and `format` for each target)
     {
-        input: 'src/index.ts',
+        input: './src/index.ts',
         external: [...Object.keys(pkg.dependencies || {})],
         plugins: [
+            // so Rollup can convert TypeScript to JavaScript
             typescript({
                 clean: true,
                 tsconfig: './tsconfig.json',
-                typescript: require('typescript')
+                typescript: require('typescript'),
+                useTsconfigDeclarationDir: true
             }),
-            // so Rollup can convert TypeScript to JavaScript
             terser()
         ],
-        output: [
-            { file: pkg.main, format: 'cjs', sourcemap: true },
-            { file: pkg.module, format: 'es', sourcemap: true }
-        ]
+        output: [{ file: pkg.module, format: 'es', sourcemap: true }]
+    },
+    // Consolidates all the type defintion files into 1,
+    // & then deletes the root typings folder & defintion files.
+    {
+        input: './dist/typings/index.d.ts',
+        output: [{ file: './dist/index.d.ts', format: 'es' }],
+        plugins: [dts(), del({ hook: 'buildEnd', targets: 'dist/typings' })]
     }
 ];

@@ -1,11 +1,10 @@
-import { LifeCyclesProp } from 'tests/types';
 import { component } from '../../../src';
-import { Component } from '../../../src/types';
+import { Component, LifeCycleHandlerProps } from '../../../src/types';
 import { TestComponentProps } from './container';
 
 export interface WithRefContextPropValue {
     child: Component;
-    refLifeCycles: LifeCyclesProp;
+    refLifeCycles: LifeCycleHandlerProps;
 }
 
 export interface WithRefContextProps extends TestComponentProps {
@@ -16,11 +15,11 @@ export const WithRefContext = component<WithRefContextProps>(
     (html, { className, ctx, value }) => {
         const ref = ctx();
 
-        ref.onCreated(value.refLifeCycles.onCreated?.bind(ref));
-        ref.onMounted(value.refLifeCycles.onMounted?.bind(ref));
-        ref.onRendered(value.refLifeCycles.onBeforeRender?.bind(ref));
-        ref.onRendered(value.refLifeCycles.onRendered?.bind(ref));
-        ref.onUnmounted(value.refLifeCycles.onUnmounted?.bind(ref));
+        ref.onCreated(value?.refLifeCycles.created?.bind(ref));
+        ref.onMounted(value?.refLifeCycles.mounted?.bind(ref));
+        ref.onRendered(value?.refLifeCycles.beforeRender?.bind(ref));
+        ref.onRendered(value?.refLifeCycles.rendered?.bind(ref));
+        ref.onUnmounted(value?.refLifeCycles.unmounted?.bind(ref));
 
         return html` <div class=${className}>${value?.child({ ref })}</div> `;
     }
