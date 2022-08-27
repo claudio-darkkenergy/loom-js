@@ -1,12 +1,5 @@
 import { lifeCycles } from './life-cycles';
-import { ComponentNode } from './types';
-
-export interface AppInitProps {
-    app: ComponentNode;
-    append?: Boolean | null;
-    onAppMounted?: (mountedApp: Node) => any;
-    root?: HTMLElement;
-}
+import { AppInitProps } from './types';
 
 export const init = ({
     app,
