@@ -1,3 +1,10 @@
+export interface AppInitProps {
+    app: ComponentNode;
+    append?: Boolean | null;
+    onAppMounted?: (mountedApp: Node) => any;
+    root?: HTMLElement;
+}
+
 export interface Aria {
     label?: string;
     live?: 'assertive' | 'polite';
