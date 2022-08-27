@@ -82,7 +82,7 @@ export const component: ComponentFactory =
             // html`...` tagged template
             ctx.render as TaggedTemplate,
             // Props
-            Object.assign<any, ComponentDefaultProps>(props, {
+            Object.assign<{}, typeof props, ComponentDefaultProps>({}, props, {
                 ...(ctx.lifeCycles as LifeCycleHookProps),
                 ctx: memoizedRefContext(ctx, refIterator),
                 ctxRefs: () => (ctx.refs as Set<RefContext>).values(),
