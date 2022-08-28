@@ -20,7 +20,6 @@ export interface ValueProp<T = TemplateTagValue> {
 }
 
 /* Template */
-
 export interface TaggedTemplate {
     this?: ComponentContextPartial;
     (
@@ -46,7 +45,6 @@ export type TemplateTagValueFunction = () => TemplateTagValue;
 export type TemplateNodeUpdate = (values: TemplateTagValue[]) => void;
 
 /* Component */
-
 // The component callable (external values to internal props)
 export interface Component<T extends {} = {}> {
     (props?: T & Partial<RenderProps>): ContextFunction;
@@ -92,7 +90,6 @@ export type ContextFunction = (ctx?: ComponentContextPartial) => TemplateRoot;
 export type ContextNodeGetter = () => TemplateRoot | null | undefined;
 
 /* Life-cycles */
-
 export type LifeCycleHandler = (node: Node | undefined) => any;
 
 // Life-cycle handlers counterparts for caching the handlers.
@@ -120,11 +117,6 @@ export interface ReactiveComponent<T = any, P = any> {
     (transform?: (props?: T) => P): ComponentNode;
 }
 
-// export type RefContext = Omit<
-//     ComponentContext,
-//     'fingerPrint' | 'lifeCycles' | 'ref' | 'render' | 'root'
-// > &
-//     LifeCycleHookProps;
 export interface RefContext
     extends Partial<LifeCycleHandlerProps>,
         LifeCycleHookProps {
@@ -138,7 +130,6 @@ export interface RenderFunction<P = {}> {
 export type RenderProps = ComponentDefaultProps & ComponentOptionalProps;
 
 /* Event */
-
 export type MouseEventListener = <T>(ev?: SyntheticMouseEvent<T>) => void;
 export type SyntheticMouseEventListener = (
     this: HTMLElement,
@@ -150,7 +141,6 @@ export type SyntheticMouseEvent<T = EventTarget> = Event & {
 };
 
 /* Activity */
-
 export type ActivityEffect<T = any> = (
     handler: ActivityHandler<T>,
     cache?: any[]
@@ -165,6 +155,17 @@ export type ActivityTransform<V, I = V> = (
     },
     force?: boolean
 ) => void | Promise<void>;
+
+/* Routing */
+export interface OnRouteOptions {
+    href?: string;
+    onHash?: (loc: Location) => void;
+    replace?: boolean;
+}
+
+export interface RouteUpdateHandler {
+    (loc: Location): any;
+}
 
 /* Config */
 export type ConfigEvent =

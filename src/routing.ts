@@ -1,15 +1,10 @@
 import { activity } from './activity';
-import { ActivityHandler, SyntheticMouseEvent } from './types';
-
-export interface OnRouteOptions {
-    href?: string;
-    onHash?: (loc: Location) => void;
-    replace?: boolean;
-}
-
-export interface RouteUpdateHandler {
-    (loc: Location): any;
-}
+import {
+    ActivityHandler,
+    OnRouteOptions,
+    RouteUpdateHandler,
+    SyntheticMouseEvent
+} from './types';
 
 // Setup the activity for the History API
 const historyApiActivity = activity<Location>(
@@ -22,15 +17,14 @@ const historyApiActivity = activity<Location>(
     }
 );
 const { update } = historyApiActivity;
-
-// Hook into the History API onpopstate event when the browser history updates via back/forward controls.
-window.addEventListener('popstate', () => update(window.location));
-
 // Calls all registered on-change handlers when the route updates.
 const callRouteOnChangeHandlers = (loc: Location) =>
     onRouteHandlers.forEach((handler) => handler(loc));
 // Stores the route handlers.
 const onRouteHandlers = new Set<any>();
+
+// Hook into the History API onpopstate event when the browser history updates via back/forward controls.
+window.addEventListener('popstate', () => update(window.location));
 
 /**
  * Accepts a handler which is called any time the route is updated
