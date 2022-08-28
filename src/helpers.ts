@@ -6,4 +6,4 @@ import { TemplateRoot } from './types';
  * @returns `Node`
  */
 export const getTemplateRoot = (root?: TemplateRoot) =>
-    root instanceof NodeList ? root[0].parentElement : root;
+    root instanceof NodeList ? root[0]?.parentElement : root;
