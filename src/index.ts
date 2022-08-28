@@ -8,13 +8,18 @@ export type {
     ActivityHandler,
     ActivityTransform,
     AppInitProps,
+    Aria,
     Component,
     ComponentNode,
     ComponentNodeAsync,
     ContextFunction,
     MouseEventListener,
+    OnRouteOptions,
     PlainObject,
     ReactiveComponent,
     RefContext,
+    RenderFunction,
+    RenderProps,
+    RouteUpdateHandler,
     TemplateTagValue
 } from './types';
