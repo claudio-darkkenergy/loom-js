@@ -12,6 +12,7 @@ export type {
     Component,
     ComponentNode,
     ComponentNodeAsync,
+    ComponentOptionalProps,
     ContextFunction,
     MouseEventListener,
     OnRouteOptions,

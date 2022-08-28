@@ -47,7 +47,9 @@ export type TemplateNodeUpdate = (values: TemplateTagValue[]) => void;
 /* Component */
 // The component callable (external values to internal props)
 export interface Component<T extends {} = {}> {
-    (props?: T & Partial<RenderProps>): ContextFunction;
+    (
+        props?: ComponentOptionalProps & T & Partial<ComponentDefaultProps>
+    ): ContextFunction;
 }
 
 // This is internal context for a component & its template,
@@ -82,6 +84,7 @@ export type ComponentFactory = <T extends {} = {}>(
 export interface ComponentOptionalProps {
     children?: TemplateTagValue;
     className?: string;
+    onClick?: MouseEventListener;
     ref?: RefContext;
 }
 
