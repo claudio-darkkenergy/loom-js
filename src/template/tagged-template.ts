@@ -68,7 +68,7 @@ export function taggedTemplate(
         !ctx.root ||
         !updateStore.has(ctx.root) ||
         !document.contains(
-            ctx.root instanceof NodeList ? ctx.root[0].parentElement : ctx.root
+            ctx.root instanceof NodeList ? ctx.root[0]?.parentElement : ctx.root
         )
     ) {
         const { fragment, paths } = templateStore.get(chunks) || {};

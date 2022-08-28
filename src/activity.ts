@@ -166,14 +166,15 @@ const doLiveNodeUpdates = <V>({
     liveNodes: ActivityLiveNodes<V>;
     newNode: TemplateRoot;
 }) => {
+    const areNodes = liveNode instanceof Node && newNode instanceof Node;
     const areNodeLists =
         liveNode instanceof NodeList && newNode instanceof NodeList;
-    const nodesChanged = !(newNode as Node).isSameNode(liveNode as Node);
+    const nodesChanged = areNodes ? !newNode.isSameNode(liveNode) : null;
 
     // Update the live node.
     if (
         newNode &&
-        ((areNodeLists && liveNode[0].parentElement) || nodesChanged)
+        ((areNodeLists && liveNode[0]?.parentElement) || nodesChanged)
     ) {
         // Cache the node & live-node data.
         liveNodes.set(newNode, liveNodeData);
