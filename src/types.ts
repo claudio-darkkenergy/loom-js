@@ -90,7 +90,8 @@ export interface ComponentOptionalProps {
 
 // `ComponentContext` related types
 export type ContextFunction = (ctx?: ComponentContextPartial) => TemplateRoot;
-export type ContextNodeGetter = () => TemplateRoot | null | undefined;
+// Node - not `TemplateRoot` - b/c `parentElement` will be returned for `NodeList`'s.
+export type ContextNodeGetter = () => Node | null | undefined;
 
 /* Life-cycles */
 export type LifeCycleHandler = (node: Node | undefined) => any;
