@@ -52,13 +52,13 @@
     "license": "ISC",
     "main": "dist/index.js",
     "module": "dist/index.js",
-    "name": "@darkkenergy/nectar",
+    "name": "@loomjs/core",
     "publishConfig": {
         "access": "public"
     },
     "repository": {
         "type": "git",
-        "url": "https://claudio-darkkenergy@bitbucket.org/darkkenergy/nectar.git"
+        "url": "https://github.com/darkkenergy/loomjs.git"
     },
     "scripts": {
         "build": "rollup -c",
