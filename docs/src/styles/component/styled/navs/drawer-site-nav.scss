@@ -1,0 +1,27 @@
+@use 'color';
+@use 'media';
+@use 'spacing';
+
+.drawer-site-nav {
+    color: color.$primary-0;
+    font-size: x-large;
+    width: 100%;
+
+    a {
+        background-color: color.$bg-0;
+        color: currentColor;
+        padding: 20px;
+        width: 100%;
+    }
+
+    @media (media.$min-med) {
+        display: flex;
+        padding: spacing.$content-gap-3;
+        justify-content: center;
+        text-align: center;
+
+        a {
+            color: color.$secondary-0;
+        }
+    }
+}

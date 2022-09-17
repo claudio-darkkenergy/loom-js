@@ -1,0 +1,19 @@
+@use 'color';
+@use 'media';
+@use 'spacing';
+
+.site-nav {
+    color: color.$primary-0;
+    display: none;
+    font-size: large;
+
+    a {
+        color: currentColor;
+        padding: spacing.$content-gap-3;
+        margin: 1px 0;
+    }
+
+    @media (min-width: media.$tablet-0) {
+        display: inline-block;
+    }
+}

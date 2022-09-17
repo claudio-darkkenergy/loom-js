@@ -1,0 +1,28 @@
+$distance--2: 5px;
+$distance--1: 10px;
+$distance--0: 15px;
+$distance-0: 20px;
+$distance-1: 30px;
+$distance-2: 40px;
+$distance-3: 50px;
+$distance-6: 100px;
+
+$distance-rel-0: 0.4em;
+$distance-rel-1: 1em;
+
+// Content gap levels
+// Use for any content spacing/distances.
+$content-gap-0: $distance--2;
+$content-gap-1: $distance--1;
+$content-gap-2: $distance--0;
+$content-gap-3: $distance-0;
+$content-gap-4: $distance-1;
+$content-gap-5: $distance-2;
+$content-gap-6: $distance-3;
+
+$page-header: 84px;
+
+// [Deprecated]
+// @TODO Remove any use of these - use `$content-gap-*` instead.
+$indent-padding-0: $distance-2;
+$section-padding-0: $distance-0;

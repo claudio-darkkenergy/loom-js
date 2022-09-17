@@ -1,0 +1,74 @@
+@use 'color';
+
+// Fg Colors
+.current {
+    color: currentColor;
+}
+
+.neutral {
+    color: color.$neutral-1;
+}
+
+.primary {
+    color: color.$primary-0;
+}
+
+.text {
+    color: color.$text-0;
+}
+
+.secondary {
+    color: color.$secondary-0;
+}
+
+// Bg Colors
+.bg-current {
+    background-color: currentColor;
+}
+
+.bg-neutral {
+    background-color: color.$neutral-1;
+}
+
+.bg-primary {
+    background-color: color.$primary-0;
+}
+
+.bg-text {
+    background-color: color.$text-0;
+}
+
+.bg-secondary {
+    background-color: color.$secondary-0;
+}
+
+// Presets
+.round {
+    border-radius: 50%;
+}
+
+.sharp {
+    border-radius: 0;
+}
+
+.ghost {
+    background-color: transparent;
+    border-color: transparent;
+    color: color.$primary-0;
+}
+
+.hollow {
+    background-color: transparent;
+    color: color.$primary-0;
+}
+
+.outline {
+    background-color: color.$bg-0;
+    color: color.$primary-0;
+}
+
+.solid {
+    background-color: color.$bg-0;
+    border-color: color.$bg-0;
+    color: color.$primary-0;
+}

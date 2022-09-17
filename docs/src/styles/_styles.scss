@@ -1,0 +1,188 @@
+@use 'fonts';
+@use 'media';
+
+body {
+    font-family: fonts.$ff-pelinka;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: Spartan, sans-serif;
+}
+
+h2 {
+    color: #a52a2a;
+    text-align: center;
+}
+
+h1 {
+    font-size: 16px;
+    text-align: center;
+}
+
+#page-content {
+    height: 100vh;
+}
+
+.loader {
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    height: 100%;
+    overflow: hidden;
+}
+
+.loader svg {
+    animation: spin 1.5s infinite ease;
+    color: #b8860b;
+    margin: auto;
+}
+
+section {
+    display: none;
+}
+
+.show {
+    display: initial;
+}
+
+article,
+header,
+footer {
+    padding: 25px;
+}
+
+header {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}
+
+header nav {
+    color: darkgoldenrod;
+    display: none;
+    justify-content: space-evenly;
+    margin-top: 25px;
+}
+
+header nav > li {
+    display: inline-block;
+    list-style: none;
+}
+
+header a {
+    color: currentColor;
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+}
+
+article {
+    background-color: #fff;
+    color: #333;
+}
+
+button {
+    background-color: transparent;
+    border: none;
+    color: currentColor;
+}
+
+.page-width {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 1366px;
+}
+
+.logo {
+    height: 150px;
+    width: 150px;
+}
+
+.mini-navi {
+    color: darkgoldenrod;
+    height: 50px;
+    left: 0;
+    position: absolute;
+    width: 50px;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(-30deg);
+    }
+    to {
+        transform: rotate(330deg);
+    }
+}
+
+.bg-dark {
+    background-color: #333;
+    color: #fff;
+}
+
+.bg-light {
+    background-color: #efefef;
+    color: #333;
+}
+
+article + article {
+    border-top-style: solid;
+    border-width: 1px;
+    padding-top: 25px;
+}
+
+.bg-dark article + article {
+    border-color: #333;
+}
+
+.bg-light article + article {
+    border-color: #efefef;
+}
+
+article article {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+@media (media.$min-med) {
+    h1 {
+        font-size: 28px;
+    }
+
+    h2 {
+        text-align: left;
+    }
+
+    header,
+    main,
+    footer {
+        padding: 25px;
+    }
+
+    header nav {
+        display: flex;
+        margin-right: auto;
+        margin-top: 0;
+    }
+
+    article {
+        border-radius: 8px;
+    }
+
+    article + article {
+        border: none;
+        margin-top: 25px;
+    }
+
+    .logo {
+        margin-left: auto;
+    }
+
+    .mini-navi {
+        display: none;
+    }
+}

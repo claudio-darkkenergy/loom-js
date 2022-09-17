@@ -1,0 +1,36 @@
+@use 'media';
+
+.animated-site-nav-button {
+    display: grid;
+
+    &.enter {
+        .close-icon {
+            opacity: 1;
+        }
+
+        .open-icon {
+            opacity: 0;
+        }
+    }
+
+    &.leave {
+        .close-icon {
+            opacity: 0;
+        }
+
+        .open-icon {
+            opacity: 1;
+        }
+    }
+
+    @media (min-width: media.$tablet-0) {
+        display: none;
+    }
+}
+
+.close-icon,
+.open-icon {
+    grid-area: 1 / 1;
+    transition: opacity 0.3s ease;
+    will-change: opacity;
+}

@@ -1,0 +1,43 @@
+/* @import must be at top of file, otherwise CSS will not work */
+@import url('//hello.myfonts.net/count/40024c');
+
+@font-face {
+    font-family: 'Pelinka-Light';
+    src: url('@app/fonts/PelinkaLight/font.woff2') format('woff2'),
+        url('@app/fonts/PelinkaLight/font.woff') format('woff');
+}
+@font-face {
+    font-family: 'Pelinka-ExtraBold';
+    src: url('@app/fonts/PelinkaExtraBold/font.woff2') format('woff2'),
+        url('@app/fonts/PelinkaExtraBold/font.woff') format('woff');
+}
+@font-face {
+    font-family: 'Pelinka-Medium';
+    src: url('@app/fonts/PelinkaMedium/font.woff2') format('woff2'),
+        url('@app/fonts/PelinkaMedium/font.woff') format('woff');
+}
+@font-face {
+    font-family: 'Pelinka-Thin';
+    src: url('@app/fonts/PelinkaThin/font.woff2') format('woff2'),
+        url('@app/fonts/PelinkaThin/font.woff') format('woff');
+}
+@font-face {
+    font-family: 'Pelinka-SemiBold';
+    src: url('@app/fonts/PelinkaSemiBold/font.woff2') format('woff2'),
+        url('@app/fonts/PelinkaSemiBold/font.woff') format('woff');
+}
+@font-face {
+    font-family: 'Pelinka-ExtraLight';
+    src: url('@app/fonts/PelinkaExtraLight/font.woff2') format('woff2'),
+        url('@app/fonts/PelinkaExtraLight/font.woff') format('woff');
+}
+@font-face {
+    font-family: 'Pelinka-Bold';
+    src: url('@app/fonts/PelinkaBold/font.woff2') format('woff2'),
+        url('@app/fonts/PelinkaBold/font.woff') format('woff');
+}
+@font-face {
+    font-family: 'Pelinka-Regular';
+    src: url('@app/fonts/PelinkaRegular/font.woff2') format('woff2'),
+        url('@app/fonts/PelinkaRegular/font.woff') format('woff');
+}
