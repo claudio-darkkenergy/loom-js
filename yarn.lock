@@ -481,7 +481,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@loomjs/core@1.0.0, @loomjs/core@workspace:packages/core":
+"@loomjs/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@loomjs/core@workspace:packages/core"
   dependencies:
@@ -522,7 +522,6 @@ __metadata:
   dependencies:
     "@contentful/rich-text-types": ^15.12.1
     "@koa/router": ^10.0.0
-    "@loomjs/core": 1.0.0
     "@testing-library/dom": ^8.13.0
     "@trivago/prettier-plugin-sort-imports": ^3.3.0
     "@types/classnames": ^2.2.11
