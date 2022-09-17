@@ -4,9 +4,10 @@
 # VSCode
 *.code-workspace
 .vscode
+
 # Generated directories & files
 dist
 coverage
 node_modules
-.yarn/cache
-.pnp.*
+
+designs

@@ -1,9 +1,7 @@
 {
     "bracketSpacing": true,
     "importOrder": [
-        "^@app/(.*)$",
-        "^[./]",
-        ".(css|scss)$"
+        "^[./]"
     ],
     "importOrderCaseInsensitive": true,
     "importOrderSeparation": true,
@@ -12,5 +10,14 @@
     "semi": true,
     "singleQuote": true,
     "tabWidth": 4,
-    "trailingComma": "none"
+    "trailingComma": "none",
+    "overrides": [
+        {
+            "files": "*.mjs",
+            "options": {
+                "editorconfig": false,
+                "parser": "typescript"
+            }
+        }
+    ]
 }

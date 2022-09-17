@@ -9,5 +9,5 @@ export default {
     nodeResolve: true,
     plugins: [esbuildPlugin({ ts: true })],
     puppeteer: true,
-    watch: true
+    watch: true,
 };
