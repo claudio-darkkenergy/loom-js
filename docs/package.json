@@ -6,12 +6,12 @@
     "license": "ISC",
     "main": "app.js",
     "scripts": {
-        "build": "ts-node -P \"tsconfig.webpack.json\" && webpack --env production --progress",
+        "build": "TS_NODE_PROJECT=\"tsconfig.webpack.json\" && webpack --env production --progress",
         "start": "nodemon -e ts,css,scss,html,json,js --exec 'yarn vercel-dev'",
         "test": "echo \"Error: no test specified\" && exit 1",
         "vercel-dev": "VERCEL_DEV=true && vercel dev -l 4001",
         "vercel-logout": "vercel logout",
-        "webpack-start": "ts-node -P \"tsconfig.webpack.json\" && webpack serve --stats-error-details"
+        "webpack-start": "TS_NODE_PROJECT=\"tsconfig.webpack.json\" && webpack serve --stats-error-details"
     },
     "dependencies": {
         "@contentful/rich-text-types": "^15.12.1",
