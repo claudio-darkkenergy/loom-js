@@ -1,13 +1,3 @@
-/*
- * Debugging Webpack
- * `npm install --global node-nightly`
- * Run this only once.
- * `node-nightly`
- * Access the Webpack bin from the node_modules.
- * `node-nightly --inspect --inspect-brk ./node_modules/webpack/bin/webpack.js`
- * To Upgrade...
- * `node-nightly --upgrade`
- */
 import CopyPlugin from 'copy-webpack-plugin';
 import Dotenv from 'dotenv-webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
