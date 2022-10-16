@@ -6,6 +6,9 @@ on:
 jobs:
     build:
         runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: packages/core
         steps:
             - uses: actions/checkout@v3
             # Setup .npmrc file to publish to npm
@@ -17,7 +20,6 @@ jobs:
                   scope: '@loom-js'
                   cache: 'yarn'
                   cache-dependency-path: 'yarn.lock'
-                  working-directory: packages/core
             - run: yarn
             - run: yarn publish
               env:
