@@ -1,8 +1,8 @@
 [TOC]
 
 <h1 align="center">
-  <img width="86" height="91" src="https://images.ctfassets.net/2x238mu87414/6XeR7Z8onDfOTi9GK7pyTr/000f41ee0d845efdd3bf796491dba73f/nectar-logo-v1.png">
-  <div>café ( js )</div>
+  <img width="86" height="91" src="../../docs/assets/img/loom-logo.png">
+  <div>loomjs</div>
 </h1>
 
 > A reactive components-first JavaScript framework.
@@ -20,21 +20,17 @@
 ## Install
 
 ```bash
-npm i @loomjs/core -S
+npm i @loom-js/core -S
+```
+
+```bash
+yarn add @loom-js/core
 ```
 
 ## Inclusion
 
-```ts
-// CommonJS
-const Loom = require('@loomjs/core');
-
-// ES6
-import * as Loom from '@loomjs/core';
-
-// Typescript Types
-import * as NectarTypes from '@loomjs/core/dist/types';
-```
+````ts
+import * as Loom from '@loom-js/core';
 
 ## Concepts
 
@@ -44,7 +40,7 @@ The app is where you first introduce your component ecosystem (one or more compo
 
 **API** `init(options)`
 
-**Inclusion** `import { init } from '@loomjs/core';`
+**Inclusion** `import { init } from '@loom-js/core';`
 
 **Arguments**
 
@@ -59,7 +55,7 @@ The app is where you first introduce your component ecosystem (one or more compo
 **Quick Example**
 
 ```ts
-import { init } from '@loomjs/core';
+import { init } from '@loom-js/core';
 import { App } from './app';
 init({
     app: App(),
@@ -69,19 +65,19 @@ init({
     }
     root: document.body
 });
-```
+````
 
 ### Components
 
 A component uses a "tagged template" (w/ [template literal](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) syntax) - the template render function - to define its template.
 
-Use `component` to register a template render function. It takes a render function as its argument, passing Café's template renderer to the render function along with some props, and a getter for the component's rendered node. A template context is bound to the renderer to achieve optimal rerenders.
+Use `component` to register a template render function. It takes a render function as its argument, passing Loom's template renderer to the render function along with some props, and a getter for the component's rendered node. A template context is bound to the renderer to achieve optimal rerenders.
 
 When using `component`, the tagged template's template string must contain only one element opening & closing tag at the start & end of the template string and must belong to the same element.
 
 **API** `component<T>(template)`
 
-**Inclusion** `import { component } from '@loomjs/core';`
+**Inclusion** `import { component } from '@loom-js/core';`
 
 **Arguments**
 
@@ -106,7 +102,7 @@ When using `component`, the tagged template's template string must contain only 
 **Quick Example**
 
 ```ts
-import { component } from '@loomjs/core';
+import { component } from '@loom-js/core';
 
 interface ButtonProps {
     label: string;
@@ -127,7 +123,7 @@ When creating a new activity, you may provide a default value. One or more effec
 
 **API** `activity<T>(initialValue)`
 
-**Inclusion** `import { activity } from '@loomjs/core';`
+**Inclusion** `import { activity } from '@loom-js/core';`
 
 **Arguments**
 
@@ -155,7 +151,7 @@ When creating a new activity, you may provide a default value. One or more effec
 **Quick Example**
 
 ```ts
-import { activity } from '@loomjs/core';
+import { activity } from '@loom-js/core';
 
 const initialValue = 0;
 export const buttonClickActivity = activity(initialValue);
@@ -190,13 +186,14 @@ There are two main technologies leveraged in the routing system - the activity s
         -   `href?: string`
         -   `replace?: boolean` - Will set the `replaceState` flag to true so that the url will update in the browser's address bar, but it will not add an entry to the history stack.
 
-**Inclusion** `import { router, onRoute } from '@loomjs/core';`
+**Inclusion** `import { router, onRoute } from '@loom-js/core';`
 
 **Quick Example**
 
 ```ts
+import { component, onRoute, router } from '@loom-js/core';
+
 import { About, Home, NotFound } from '@app/component/pages';
-import { component, onRoute, router } from '@loomjs/core';
 
 export const App = component<unknown>(
     (html) => html`
@@ -227,10 +224,11 @@ export const App = component<unknown>(
 ### App Initialization (bootstrapping the app)
 
 ```ts
-import { init } from '@loomjs/core';
+import { init } from '@loom-js/core';
 
 import content from './content.json';
 import { Page } from './page';
+
 const rootNode = document.querySelector('#page-content');
 init({
     app: Page(content),
@@ -256,7 +254,7 @@ init({
 **Simple example**
 
 ```ts
-import { component } from '@loomjs/core';
+import { component } from '@loom-js/core';
 
 export const Button = component(
     (html) => html`<button type="button">Click me!</button>`
@@ -269,8 +267,7 @@ Props passed into a component can be accessed via the second argument of the `co
 Interpolation is achieved using the JS ES6 standard [template literal](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) syntax
 
 ```ts
-import { component } from '@loomjs/core';
-import { MouseEventListener } from '@loomjs/core/dist/types';
+import { component, MouseEventListener } from '@loom-js/core';
 
 export interface ButtonProps {
     className: string;
@@ -302,7 +299,7 @@ export const SuperButton = ({ label }: { label: string }) =>
 **Access the rendered component node**
 
 ```ts
-import { component } from '@loomjs/core';
+import { component } from '@loom-js/core';
 
 /*
 `node` is a getter method which all components receive in the props argument,
@@ -321,8 +318,7 @@ export const Button = component((html, { node }) => {
 **Life Cycles**
 
 ```ts
-import { component } from '@loomjs/core';
-import { LifeCycleHandler } from '@loomjs/core/dist/types';
+import { component, LifeCycleHandler } from '@loom-js/core';
 
 / There are two component life-cycle methods - `onCreated` & `onRendered`.
 / Each will take life-cycle handler as its argument, and each handler will receive the rendered component node.
@@ -347,7 +343,7 @@ export const Button = component((html, { onCreated, onRendered }) => {
 **Activity example**
 
 ```ts
-import { activity, component } from '@loomjs/core';
+import { activity, component } from '@loom-js/core';
 
 // Initialize a new activity with an initial value.
 export const buttonClickActivity = activity(0);
@@ -388,8 +384,7 @@ export const Button = component(
 **Routing example**
 
 ```ts
-import { component, onRoute, router } from '@loomjs/core';
-import { MouseEventListener } from '@loomjs/core/dist/types';
+import { component, MouseEventListener, onRoute, router } from '@loom-js/core';
 import { About, Home, NotFound } from '@app/component/pages';
 
 export const App = component<unknown>(
@@ -404,7 +399,7 @@ export const App = component<unknown>(
                         })) as MouseEventListener})}"
                     type="button"
                 >
-                    café (js)
+                    loomjs
                 </button>
                 ${/* Anchor example demonstrating the simpler `onRoute` usage */}
                 <nav>
