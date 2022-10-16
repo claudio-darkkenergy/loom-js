@@ -1,4 +1,4 @@
-import { ContextFunction } from '@loomjs/core';
+import { ContextFunction } from '@loom-js/core';
 import classNames from 'classnames';
 
 import styles from './styles.scss';

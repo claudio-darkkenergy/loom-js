@@ -1,4 +1,4 @@
-import { component, MouseEventListener } from '@loomjs/core';
+import { component, MouseEventListener } from '@loom-js/core';
 
 export interface LinkProps {
     href: string;

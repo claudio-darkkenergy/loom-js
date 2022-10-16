@@ -1,4 +1,4 @@
-import { component, onRoute } from '@loomjs/core';
+import { component, onRoute } from '@loom-js/core';
 import classNames from 'classnames';
 
 import { pageContentActivity } from '@app/activities/page-content';

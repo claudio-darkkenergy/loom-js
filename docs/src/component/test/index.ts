@@ -1,4 +1,4 @@
-import { activity, component, MouseEventListener } from '@loomjs/core';
+import { activity, component, MouseEventListener } from '@loom-js/core';
 
 import { TestInput } from './test-input';
 

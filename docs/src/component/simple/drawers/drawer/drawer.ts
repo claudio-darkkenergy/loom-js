@@ -1,4 +1,4 @@
-import { component, ComponentNode, TemplateTagValue } from '@loomjs/core';
+import { component, ComponentNode, TemplateTagValue } from '@loom-js/core';
 import classNames from 'classnames';
 
 import styles from './styles.scss';

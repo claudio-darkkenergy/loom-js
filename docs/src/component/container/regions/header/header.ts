@@ -3,7 +3,7 @@ import {
     MouseEventListener,
     onRoute,
     onRouteUpdate
-} from '@loomjs/core';
+} from '@loom-js/core';
 
 import { siteNavToggleActivity } from '@app/activities/site-nav-toggle';
 import { ReactiveSiteNavDrawer } from '@app/component/reactive/site-nav-drawer';

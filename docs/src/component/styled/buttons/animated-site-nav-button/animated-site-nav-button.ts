@@ -1,4 +1,4 @@
-import { component, onRouteUpdate } from '@loomjs/core';
+import { component, onRouteUpdate } from '@loom-js/core';
 import classNames from 'classnames';
 
 import { siteNavToggleActivity } from '@app/activities/site-nav-toggle';

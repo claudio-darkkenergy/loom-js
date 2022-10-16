@@ -1,4 +1,4 @@
-import { component, onRoute } from '@loomjs/core';
+import { component, onRoute } from '@loom-js/core';
 
 import { ReactiveSiteNavDrawer } from '@app/component/reactive/site-nav-drawer';
 import { LinkProps } from '@app/component/simple';

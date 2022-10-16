@@ -1,4 +1,4 @@
-import { component } from '@loomjs/core';
+import { component } from '@loom-js/core';
 
 export const Code = component(
     (html, { children, className }) =>

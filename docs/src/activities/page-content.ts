@@ -1,4 +1,4 @@
-import { activity } from '@loomjs/core';
+import { activity } from '@loom-js/core';
 
 import { getPage } from '@app/helpers/api/content/contentful';
 import { Page } from '@app/types';

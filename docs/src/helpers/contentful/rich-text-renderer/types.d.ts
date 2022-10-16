@@ -1,5 +1,5 @@
 import { Block, Inline, Text as RichText } from '@contentful/rich-text-types';
-import { TemplateTagValue } from '@loomjs/core';
+import { TemplateTagValue } from '@loom-js/core';
 
 export type { Document as ContentfulDocument } from '@contentful/rich-text-types';
 

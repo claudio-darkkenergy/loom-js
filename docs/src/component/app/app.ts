@@ -1,4 +1,4 @@
-import { component } from '@loomjs/core';
+import { component } from '@loom-js/core';
 
 import { appContentActivity } from '@app/activities/app-content';
 import { AppLayout } from '@app/component/reactive/layout/app-layout';

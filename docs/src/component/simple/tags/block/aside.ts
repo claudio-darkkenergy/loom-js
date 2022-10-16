@@ -1,4 +1,4 @@
-import { component, TemplateTagValue } from '@loomjs/core';
+import { component, TemplateTagValue } from '@loom-js/core';
 
 export interface AsideProps {
     content: TemplateTagValue;

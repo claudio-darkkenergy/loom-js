@@ -1,5 +1,5 @@
 import { Document as RichTextDocument } from '@contentful/rich-text-types';
-import { PlainObject } from '@loomjs/core';
+import { PlainObject } from '@loom-js/core';
 import { ContentfulCollection } from 'contentful';
 
 import { LinkProps } from '@app/component/simple';

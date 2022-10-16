@@ -1,4 +1,4 @@
-import { component, TemplateTagValue } from '@loomjs/core';
+import { component, TemplateTagValue } from '@loom-js/core';
 
 import { documentToComponents } from '@app/helpers/contentful/rich-text-renderer';
 import {

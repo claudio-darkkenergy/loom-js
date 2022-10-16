@@ -1,4 +1,4 @@
-import { component, router } from '@loomjs/core';
+import { component, router } from '@loom-js/core';
 
 import { HeaderNav } from '@app/component/app/header-nav';
 

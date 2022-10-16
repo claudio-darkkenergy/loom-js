@@ -1,4 +1,4 @@
-import { ComponentNode } from '@loomjs/core';
+import { ComponentNode } from '@loom-js/core';
 
 import { Drawer, DrawerProps } from '@app/component/simple/drawers';
 

@@ -1,4 +1,4 @@
-import { activity } from '@loomjs/core';
+import { activity } from '@loom-js/core';
 
 export const GetStartedActivity = activity<'hide' | 'show', boolean>(
     'hide',

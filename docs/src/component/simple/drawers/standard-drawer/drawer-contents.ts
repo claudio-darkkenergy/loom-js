@@ -1,4 +1,4 @@
-import { component, ComponentNode } from '@loomjs/core';
+import { component, ComponentNode } from '@loom-js/core';
 
 export interface DrawerContentsProps {
     body: ComponentNode;

@@ -1,4 +1,4 @@
-import { component, MouseEventListener, onRoute } from '@loomjs/core';
+import { component, MouseEventListener, onRoute } from '@loom-js/core';
 
 import { Link } from '@app/component/simple';
 

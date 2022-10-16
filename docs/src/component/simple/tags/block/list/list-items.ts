@@ -3,7 +3,7 @@ import {
     MouseEventListener,
     PlainObject,
     TemplateTagValue
-} from '@loomjs/core';
+} from '@loom-js/core';
 
 import { Li, LiProps } from '@app/component/simple';
 

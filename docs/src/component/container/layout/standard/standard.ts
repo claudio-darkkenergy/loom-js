@@ -1,4 +1,4 @@
-import { component, ComponentNode } from '@loomjs/core';
+import { component, ComponentNode } from '@loom-js/core';
 
 import styles from './styles.scss';
 

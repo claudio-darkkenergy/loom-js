@@ -1,4 +1,4 @@
-import { Component } from '@loomjs/core';
+import { Component } from '@loom-js/core';
 
 export const Styled =
     <T>(BaseComponent: Component<T>, style: string | ((props: T) => string)) =>

@@ -1,4 +1,4 @@
-import { component } from '@loomjs/core';
+import { component } from '@loom-js/core';
 import classNames from 'classnames';
 
 import { Button, ButtonProps } from '@app/component/simple';

@@ -1,4 +1,4 @@
-import { ComponentNodeAsync, router, sanitizeLocation } from '@loomjs/core';
+import { ComponentNodeAsync, router, sanitizeLocation } from '@loom-js/core';
 
 import { pageContentActivity } from '@app/activities/page-content';
 import { Site } from '@app/types';

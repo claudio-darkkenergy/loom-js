@@ -115,7 +115,7 @@ export default (env: {
     };
     config.entry = {
         app: { dependOn: 'shared', import: './src/app.ts' },
-        shared: ['@loomjs/core', 'classnames']
+        shared: ['@loom-js/core', 'classnames']
     };
     config.mode = isProd && !ofVervelDev ? 'production' : 'development';
     config.module = { rules: [tsRuleSet, stylesRuleSet, fontsRuleSet] };
@@ -127,8 +127,8 @@ export default (env: {
     };
     config.resolve = {
         alias: {
-            // '@loomjs/core': path.join(CWD, 'src/framework'),
-            // '@loomjs/core/dist/types': path.join(
+            // '@loom-js/core': path.join(CWD, 'src/framework'),
+            // '@loom-js/core/dist/types': path.join(
             //     CWD,
             //     'src/framework/types'
             // ),
@@ -143,9 +143,9 @@ export default (env: {
 };
 
 // .tsconfig
-// "@loomjs/core/*": ["src/framework/*"],
-// "@loomjs/core/dist/types": ["src/framework/types"]
+// "@loom-js/core/*": ["src/framework/*"],
+// "@loom-js/core/dist/types": ["src/framework/types"]
 
-// "@loomjs/core/types/*": [
-//     "@loomjs/core/dist/types/*"
+// "@loom-js/core/types/*": [
+//     "@loom-js/core/dist/types/*"
 // ]

@@ -1,4 +1,4 @@
-import { init } from '@loomjs/core';
+import { init } from '@loom-js/core';
 
 import { App } from '@app/component/app';
 

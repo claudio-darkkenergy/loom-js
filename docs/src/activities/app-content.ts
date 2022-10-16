@@ -1,4 +1,4 @@
-import { activity } from '@loomjs/core';
+import { activity } from '@loom-js/core';
 
 import { Site } from '@app/types';
 

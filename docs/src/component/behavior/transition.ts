@@ -3,7 +3,7 @@ import {
     ActivityTransform,
     component,
     ContextFunction
-} from '@loomjs/core';
+} from '@loom-js/core';
 
 interface TransitionActivityInput {
     event?: TransitionEvent | null;

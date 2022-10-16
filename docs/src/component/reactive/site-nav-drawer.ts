@@ -1,4 +1,4 @@
-import { ReactiveComponent } from '@loomjs/core';
+import { ReactiveComponent } from '@loom-js/core';
 
 import { siteNavToggleActivity } from '@app/activities/site-nav-toggle';
 import {

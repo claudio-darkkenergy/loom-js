@@ -1,4 +1,4 @@
-import { MouseEventListener } from '@loomjs/core';
+import { MouseEventListener } from '@loom-js/core';
 
 import { Link, LinkProps, Ul } from '@app/component/simple';
 

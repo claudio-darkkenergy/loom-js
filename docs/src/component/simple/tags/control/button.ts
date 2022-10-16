@@ -1,4 +1,4 @@
-import { Aria, component, MouseEventListener } from '@loomjs/core';
+import { Aria, component, MouseEventListener } from '@loom-js/core';
 
 export interface ButtonProps {
     aria?: Aria;
