@@ -14,6 +14,7 @@
 -   **Reactivity** to rerender any number of components used within a component template.
 -   **Tagged Templates** for performant processing of component templates.
 -   **Client-side Routing** for dynamic rendering of components based on `Location` data.
+-   **Support for Lazy-loading** of routes.
 -   **0 Dependencies** (you're welcome)
 -   **Typescript Types** included.
 
@@ -425,10 +426,6 @@ export const App = component<unknown>(
 );
 
 ```
-
-## Roadmap
-
--   **Lazy-loading Routes:** Support for lazy-loading of routes.
 
 ## Recognition
 
