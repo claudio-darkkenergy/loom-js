@@ -8,6 +8,5 @@ export default {
     files: ['tests/**/*.spec.ts'],
     nodeResolve: true,
     plugins: [esbuildPlugin({ ts: true })],
-    puppeteer: true,
-    watch: true,
+    puppeteer: true
 };

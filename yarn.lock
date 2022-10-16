@@ -481,9 +481,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@loomjs/core@workspace:packages/core":
+"@loom-js/core@workspace:packages/core":
   version: 0.0.0-use.local
-  resolution: "@loomjs/core@workspace:packages/core"
+  resolution: "@loom-js/core@workspace:packages/core"
   dependencies:
     "@esm-bundle/chai": ^4.3.4-fix.0
     "@testing-library/dom": ^8.13.0

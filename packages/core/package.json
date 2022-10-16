@@ -52,22 +52,23 @@
     "license": "ISC",
     "main": "dist/index.js",
     "module": "dist/index.js",
-    "name": "@loomjs/core",
+    "name": "@loom-js/core",
     "publishConfig": {
         "access": "public"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/darkkenergy/loomjs.git"
+        "url": "https://github.com/darkkenergy/loomjs/packages/core"
     },
     "scripts": {
         "build": "rollup -c",
         "format": "prettier",
         "start": "rollup -c -w",
-        "test-run": "wtr --config \"web-test-runner.config.mjs\"",
-        "test-debug": "wtr --config \"web-test-runner.config.mjs\" --debug",
+        "test-ci": "wtr --config \"web-test-runner.config.mjs\"",
+        "test-dev": "wtr --config \"web-test-runner.config.mjs\" --watch",
+        "test-debug": "wtr --config \"web-test-runner.config.mjs\" --watch --debug",
         "test-pupp": "TS_NODE_PROJECT=\"tsconfig-tests.json\" && ts-node -r tsconfig-paths/register tests/index.ts"
     },
     "types": "dist/index.d.ts",
-    "version": "1.0.0"
+    "version": "0.0.0"
 }

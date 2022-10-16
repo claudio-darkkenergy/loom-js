@@ -1,6 +1,10 @@
 {
   "packageManager": "yarn@3.2.3",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/darkkenergy/loomjs"
+  },
   "workspaces": [
     "docs",
     "packages/*"
