@@ -8,21 +8,22 @@ on:
 jobs:
     build:
         runs-on: ubuntu-latest
-        defaults:
-            run:
-                working-directory: packages/core
         steps:
             - uses: actions/checkout@v3
             # Setup .npmrc file to publish to npm
             - uses: actions/setup-node@v3
               with:
                   node-version: '16.x'
-                  registry-url: 'https://registry.npmjs.org'
                   # Defaults to the user or organization that owns the workflow file
-                  scope: '@loom-js'
-                  cache: 'yarn'
-                  cache-dependency-path: 'yarn.lock'
-            - run: yarn
-            - run: yarn npm publish
+            - name: Setup .yarnrc.yml
+              run: |
+                  yarn config set npmScopes.@loom-js.npmRegistryServer "https://registry.npmjs.org"
+                  yarn config set npmScopes.@loom-js.npmAlwaysAuth true
+                  yarn config set npmScopes.@loom-js.npmAuthToken ${NPM_AUTH_TOKEN}
+                  cat .yarnrc.yml
               env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+            - name: Install dependencies
+              run: yarn workspace @loom-js/core install --immutable
+            - name: Publish
+              run: yarn workspaces foreach --no-private npm publish
