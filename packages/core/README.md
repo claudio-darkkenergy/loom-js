@@ -1,7 +1,5 @@
-[TOC]
-
 <h1 align="center">
-  <img width="86" height="91" src="../../docs/assets/img/loom-logo.png">
+  <img width="140" height="140" src="https://github.com/darkkenergy/loomjs/blob/main/packages/core/assets/img/loom-logo.png">
   <div>loomjs</div>
 </h1>
 

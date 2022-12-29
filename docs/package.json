@@ -1,5 +1,5 @@
 {
-    "name": "@loomjs/docs",
+    "name": "@loom-js/docs",
     "version": "1.0.0",
     "description": "Loom is a lightweight, functional JavaScript framework for building component-based reactive applications.",
     "author": "Claudio Nunez Jr",
