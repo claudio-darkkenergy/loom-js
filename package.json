@@ -6,6 +6,16 @@
     "url": "https://github.com/darkkenergy/loomjs"
   },
   "workspaces": [
+    "docs",
     "packages/core"
-  ]
+  ],
+  "devDependencies": {
+    "@nrwl/js": "^15.3.0",
+    "@nrwl/node": "^15.3.0",
+    "@nrwl/nx-cloud": "latest",
+    "nx": "15.3.0"
+  },
+  "scripts": {
+    "build": "nx g @nrwl/node:lib packages/core --dry-run"
+  }
 }
