@@ -24,6 +24,6 @@ jobs:
               env:
                   NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
             - name: Install dependencies
-              run: yarn workspace @loom-js/core install --immutable
+              run: YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn workspace @loom-js/core install --immutable
             - name: Publish
               run: yarn workspaces foreach --no-private npm publish
