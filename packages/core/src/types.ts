@@ -159,6 +159,7 @@ export type ActivityTransform<V, I = V> = (
     },
     force?: boolean
 ) => void | Promise<void>;
+export type ActivityWatchEffect = <V>(args: { value: V }) => any;
 
 /* Routing */
 export interface OnRouteOptions {

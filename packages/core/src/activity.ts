@@ -3,6 +3,7 @@ import {
     ActivityEffect,
     ActivityHandler,
     ActivityTransform,
+    ActivityWatchEffect,
     ComponentContextPartial,
     ComponentNode,
     ComponentNodeAsync,
@@ -24,6 +25,7 @@ export const activity = <V = undefined, I = V>(
 ) => {
     let currentValue = initialValue;
     const liveNodes: ActivityLiveNodes<V> = new Map();
+    const watchers = new Set<ActivityWatchEffect>();
     const effect: ActivityEffect<V> =
         (action, cache = []) =>
         // Returning a `ContextFunction` so a `ComponentContext` can be passed into it later on.
@@ -49,8 +51,18 @@ export const activity = <V = undefined, I = V>(
                   force
               )
             : updateActivity(valueInput as unknown as V, force);
+    const watch = (watchEffect: ActivityWatchEffect) => {
+        watchers.add(watchEffect);
+        return () => watchers.delete(watchEffect);
+    };
+
+    // Calls all registered on-change handlers when the route updates.
+    function callWatchers() {
+        watchers.forEach((watchEffect) => watchEffect({ value: currentValue }));
+    }
 
     function updateActivity(newValue: V, force = false) {
+        callWatchers();
         Array.from(liveNodes.entries()).forEach(
             async ([liveNode, { action, cache, ctx }]) => {
                 const liveRootNode = getTemplateRoot(liveNode);
@@ -119,7 +131,7 @@ export const activity = <V = undefined, I = V>(
         return rootNode;
     }
 
-    // Handle async rendering - when an `effect`'s return value is an `ComponentNodeAsync`.
+    // Handle async rendering - when an `effect`'s return value is a `ComponentNodeAsync`.
     function renderAsync({
         componentNode,
         liveNode
@@ -151,7 +163,8 @@ export const activity = <V = undefined, I = V>(
         initialValue,
         reset: () => updateActivity(initialValue),
         update,
-        value: () => currentValue
+        value: () => currentValue,
+        watch
     };
 };
 

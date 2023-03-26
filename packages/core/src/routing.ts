@@ -21,7 +21,7 @@ const { update } = historyApiActivity;
 const callRouteOnChangeHandlers = (loc: Location) =>
     onRouteHandlers.forEach((handler) => handler(loc));
 // Stores the route handlers.
-const onRouteHandlers = new Set<any>();
+const onRouteHandlers = new Set<RouteUpdateHandler>();
 
 // Hook into the History API onpopstate event when the browser history updates via back/forward controls.
 window.addEventListener('popstate', () => update(window.location));
