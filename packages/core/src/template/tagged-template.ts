@@ -40,7 +40,7 @@ export function taggedTemplate(
 
         // Check for a "rootless" component template.
         // This will inherit its connected parent element as its root.
-        if (/^<template/.test(chunks[0].trim())) {
+        if (/^<>/.test(chunks[0].trim())) {
             // Replace the template node w/ a deep copy of its contents.
             fragment.children[0].replaceWith(
                 (fragment.children[0] as HTMLTemplateElement).content.cloneNode(
