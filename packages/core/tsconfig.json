@@ -6,6 +6,7 @@
         "declarationDir": "./dist/typings",
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
+        "importHelpers": true,
         "isolatedModules": true,
         "lib": ["dom", "es6"],
         "module": "es6",
