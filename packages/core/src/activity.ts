@@ -62,7 +62,6 @@ export const activity = <V = undefined, I = V>(
     }
 
     function updateActivity(newValue: V, force = false) {
-        callWatchers();
         Array.from(liveNodes.entries()).forEach(
             async ([liveNode, { action, cache, ctx }]) => {
                 const liveRootNode = getTemplateRoot(liveNode);
@@ -98,6 +97,7 @@ export const activity = <V = undefined, I = V>(
         );
 
         currentValue = newValue;
+        callWatchers();
     }
 
     // Handle component rendering.
