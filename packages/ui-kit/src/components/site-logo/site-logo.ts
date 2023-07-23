@@ -1,6 +1,10 @@
 import classNames from 'classnames';
 
-import { ContentfulImage, Figure, FigureProps } from '@app/component/simple';
+import {
+    ContentfulImage,
+    Figure,
+    FigureProps
+} from '@loom-js/components/simple';
 
 import styles from './styles.scss';
 

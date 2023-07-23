@@ -22,5 +22,6 @@ export type {
     RenderFunction,
     RenderProps,
     RouteUpdateHandler,
+    SimpleComponent,
     TemplateTagValue
 } from './types';

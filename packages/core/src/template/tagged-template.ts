@@ -24,15 +24,35 @@ const updateStore = new WeakMap<
     }
 >();
 
+const handleFragmentTemplate = (fragment: DocumentFragment) => {
+    if (!fragment.children.length) {
+        // if (fragment.children.length) {
+        fragment.textContent = fragment.textContent?.replace('<>', '') || null;
+    } else {
+        // Replace the template node w/ a deep copy of its contents.
+        fragment.replaceChildren(
+            ...Array.from(
+                (fragment.cloneNode(true) as typeof fragment).children
+            )
+        );
+        console.log('fragment', fragment);
+    }
+    console.log('fragment.textContent', fragment.textContent);
+    console.log('fragment.children', fragment.children);
+    console.log('fragment.childNodes', fragment.childNodes);
+};
+
 export function taggedTemplate(
     this: ComponentContextPartial,
     chunks: TemplateStringsArray,
     ...interpolations: TemplateTagValue[]
 ) {
+    console.log('--------------------');
     const ctx = this;
 
     // This only runs once per component "definition" (`TaggedTemplate`.)
     if (!templateStore.has(chunks)) {
+        console.log('--------------------');
         // Creates a `DocumentFragment` using the component HTML template as its context (children.)
         const fragment = document
             .createRange()
@@ -41,12 +61,8 @@ export function taggedTemplate(
         // Check for a "rootless" component template.
         // This will inherit its connected parent element as its root.
         if (/^<>/.test(chunks[0].trim())) {
-            // Replace the template node w/ a deep copy of its contents.
-            fragment.children[0].replaceWith(
-                (fragment.children[0] as HTMLTemplateElement).content.cloneNode(
-                    true
-                )
-            );
+            handleFragmentTemplate(fragment);
+            console.log('--------------------');
         }
 
         // Will be "walked" to obtain the dynamic paths mappings.
@@ -61,6 +77,7 @@ export function taggedTemplate(
             // Results in the dynamic paths mappings - used for making updates.
             paths: getPaths(treeWalker)
         });
+        console.log('--------------------');
     }
 
     // Runs only once per component "instance", while its root node or node-list is "alive".
@@ -77,20 +94,22 @@ export function taggedTemplate(
         const liveFragment = fragment
             ? (fragment.cloneNode(true) as DocumentFragment)
             : document.createDocumentFragment();
+        console.log('liveFragment', liveFragment.childNodes);
         // Get all the updaters for each dynamic node path.
         const updates = getLiveUpdates(liveFragment, paths || new Map());
-        const rootNode = liveFragment.children[0];
+        // const rootNode = liveFragment.children[0];
 
-        ctx.root = !rootNode ? liveFragment.childNodes : rootNode;
-
-        if (!ctx.root) {
+        if (!liveFragment.childNodes.length) {
             // Must have at least one root node.
-            console.warn(
+            console.error(
                 `Template must contain at least one root node - received \`${JSON.stringify(
                     ctx.root
                 )}\`.`
             );
         } else {
+            // Update the context root with the latest nodes.
+            ctx.root = liveFragment.childNodes;
+
             // Cache the updates & chunks for the root node or node-list.
             updateStore.set(ctx.root, {
                 chunks,
@@ -100,6 +119,7 @@ export function taggedTemplate(
 
         // Creation hook
         lifeCycles.creation(ctx as ComponentContext);
+        // console.log('--------------------');
     }
 
     // Before-render hook
@@ -113,5 +133,6 @@ export function taggedTemplate(
     // After-render hook
     lifeCycles.postRender(ctx as ComponentContext);
 
+    console.log('--------------------');
     return ctx.root;
 }

@@ -8,7 +8,7 @@
         "forceConsistentCasingInFileNames": true,
         "importHelpers": true,
         "isolatedModules": true,
-        "lib": ["dom", "es6"],
+        "lib": ["dom", "esnext"],
         "module": "es6",
         "moduleResolution": "node",
         "noUnusedLocals": true,
@@ -17,7 +17,7 @@
         "removeComments": true,
         "sourceMap": true,
         "strict": true,
-        "target": "esnext"
+        "target": "es2022"
     },
     "exclude": ["dist", "node_modules"],
     "include": ["src/**/*.ts"]

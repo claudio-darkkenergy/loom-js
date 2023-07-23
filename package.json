@@ -1,21 +1,20 @@
 {
-  "packageManager": "yarn@3.3.1",
   "private": true,
+  "version": "0.0.10",
   "repository": {
     "type": "git",
     "url": "https://github.com/darkkenergy/loomjs"
   },
-  "workspaces": [
-    "docs",
-    "packages/core"
-  ],
-  "devDependencies": {
-    "@nrwl/js": "^15.3.0",
-    "@nrwl/node": "^15.3.0",
-    "@nrwl/nx-cloud": "latest",
-    "nx": "15.3.0"
-  },
   "scripts": {
-    "build": "nx g @nrwl/node:lib packages/core --dry-run"
+    "clean": "find ./ -name node_modules -type d -exec rm -rf {} +",
+    "docs:start": "pnpm -F @loom-js/docs start",
+    "update:all": "pnpm -r update -i -L"
+  },
+  "dependencies": {
+    "typescript": "^5.1.6"
+  },
+  "engines": {
+    "node": ">=16.16.0",
+    "pnpm": ">=8.6.0"
   }
 }

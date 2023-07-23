@@ -1,6 +1,5 @@
 import { component } from '@loom-js/core';
-
-import { MediaMimeTypes } from '@app/types';
+import { MediaMimeTypes } from '@loom-js/components/types';
 
 export interface SourceProps {
     media?: string;

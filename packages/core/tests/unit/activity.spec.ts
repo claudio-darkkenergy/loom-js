@@ -30,12 +30,20 @@ describe('activity', () => {
             $test = await testRunSetup({ effect });
             $unit = $test.querySelector('input');
             expect($unit?.localName).to.equal('input');
+            console.log('+++++++++++++++++');
         });
 
         it('should render an async component', async () => {
             $test = await testRunSetup({ asyncEffect: true, effect });
-            $unit = $test.querySelector('input');
-            expect($unit?.localName).to.equal('input');
+            await new Promise<void>((resolve) => {
+                setTimeout(() => {
+                    $unit = $test.querySelector('input');
+                    console.log({ $test, $unit });
+                    console.log('localName', $unit?.localName);
+                    expect($unit?.localName).to.equal('input');
+                    resolve();
+                }, 0);
+            });
         });
     });
 
@@ -144,7 +152,7 @@ describe('activity', () => {
         update(updateValue);
     });
 
-    afterEach(() => {
-        $test?.remove();
-    });
+    // afterEach(() => {
+    //     $test?.remove();
+    // });
 });

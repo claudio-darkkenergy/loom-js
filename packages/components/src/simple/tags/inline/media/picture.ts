@@ -1,6 +1,5 @@
 import { component } from '@loom-js/core';
-
-import { Img, ImgProps, Source, SourceProps } from '@app/component/simple';
+import { Img, ImgProps, Source, SourceProps } from '@loom-js/components/simple';
 
 export type PictureProps = ImgProps & {
     sources?: SourceProps[];

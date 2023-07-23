@@ -5,7 +5,7 @@ import {
     TemplateTagValue
 } from '@loom-js/core';
 
-import { Li, LiProps } from '@app/component/simple';
+import { Li, LiProps } from '@loom-js/components/simple';
 
 export interface ListItemsProps {
     listItem?: Component<PlainObject>;

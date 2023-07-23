@@ -1,7 +1,7 @@
 export interface AppInitProps {
     app: ComponentNode;
     append?: Boolean | null;
-    onAppMounted?: (mountedApp: Node) => any;
+    onAppMounted?: (mountedApp: Node[]) => any;
     root?: HTMLElement;
 }
 
@@ -46,11 +46,9 @@ export type TemplateNodeUpdate = (values: TemplateTagValue[]) => void;
 
 /* Component */
 // The component callable (external values to internal props)
-export interface Component<T extends {} = {}> {
-    (
-        props?: ComponentOptionalProps & T & Partial<ComponentDefaultProps>
-    ): ContextFunction;
-}
+export type Component<T extends {} = {}> = (
+    props?: ComponentOptionalProps & T & Partial<ComponentDefaultProps>
+) => ContextFunction;
 
 // This is internal context for a component & its template,
 // which essentially provides caching capabilities w/ associated meta-data.
@@ -132,9 +130,10 @@ export interface RenderFunction<P = {}> {
 }
 
 export type RenderProps = ComponentDefaultProps & ComponentOptionalProps;
+export type SimpleComponent<P = any> = (props: P) => ContextFunction;
 
 /* Event */
-export type MouseEventListener = <T>(ev?: SyntheticMouseEvent<T>) => void;
+export type MouseEventListener = <T>(ev: SyntheticMouseEvent<T>) => void;
 export type SyntheticMouseEventListener = (
     this: HTMLElement,
     ev: MouseEvent
@@ -151,7 +150,7 @@ export type ActivityEffect<T = any> = (
 ) => ContextFunction;
 export type ActivityHandler<T> = (
     props: ValueProp<T>
-) => ComponentNode | ComponentNodeAsync;
+) => ComponentNode | ComponentNodeAsync | false | undefined;
 export type ActivityTransform<V, I = V> = (
     props: ValueProp<V> & {
         input: I;

@@ -1,6 +1,6 @@
 import { component, MouseEventListener } from '@loom-js/core';
 
-import { Link, LinkProps } from '@app/component/simple';
+import { Link, LinkProps } from '@loom-js/components/simple';
 
 export interface NavProps {
     navigation: Omit<LinkProps, 'onClick'>[];

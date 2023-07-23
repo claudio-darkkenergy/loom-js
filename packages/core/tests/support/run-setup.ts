@@ -9,7 +9,7 @@ export const runSetup = ({
     containerProps: { className = 'test-scope', ...containerProps }
 }: SetupOptions): Promise<HTMLElement> =>
     new Promise((resolve) => {
-        const root = document.body;
+        const root = document.body.querySelector('main') || document.body;
 
         // Initialize the app
         init({
@@ -18,7 +18,19 @@ export const runSetup = ({
                 className
             }),
             append: false,
-            onAppMounted: (app) => resolve(app as HTMLElement),
+            onAppMounted: (app) => {
+                console.log({ app });
+                resolve(
+                    // Find & resolve the test-scope node.
+                    app.find((node) => {
+                        console.log('node', (node as Element).className);
+                        return (
+                            node instanceof HTMLElement &&
+                            Array.from(node.classList).includes('test-scope')
+                        );
+                    }) as HTMLElement
+                );
+            },
             root
         });
     });

@@ -1,4 +1,4 @@
-import { Img, Picture, PictureProps } from '@app/component/simple';
+import { Img, Picture, PictureProps } from '@loom-js/components/simple';
 
 export type ResponsiveImageProps = PictureProps;
 

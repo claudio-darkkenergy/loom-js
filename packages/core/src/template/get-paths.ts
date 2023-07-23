@@ -51,5 +51,6 @@ export const getPaths = (treeWalker: TreeWalker) => {
         handleTreeNode(treeWalker.currentNode);
     }
 
+    console.log({ paths: Array.from(paths.keys()) });
     return paths;
 };

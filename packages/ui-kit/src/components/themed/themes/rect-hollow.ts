@@ -2,8 +2,7 @@ import {
     ThemeBorderStyle,
     Themed,
     ThemePreset
-} from '@app/component/styled/themed';
-import { ThemeProps } from '@app/component/styled/themed/types';
+} from '@loom-js/ui-kit/styled/themed';
 
 export type { ThemeProps };
 

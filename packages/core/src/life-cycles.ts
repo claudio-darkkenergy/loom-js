@@ -91,7 +91,7 @@ export const lifeCycles = {
      * Kicks off the observation via `MutationObserver` to listen for DOM tree adds/removals.
      * @param observableNode The App node to observe for changes in its DOM tree.
      */
-    observe(observableNode: Node) {
+    observe(observableNode: Node | NodeList) {
         const observer = new MutationObserver(domChanged);
 
         // Execute all the `onMounted` handlers since all the nodes are now in the DOM.
@@ -106,7 +106,11 @@ export const lifeCycles = {
         });
 
         // Observe future DOM updates.
-        observer.observe(observableNode, { childList: true, subtree: true });
+        observableNode instanceof NodeList
+            ? Array.from(observableNode)
+            : [observableNode].forEach((node) => {
+                  observer.observe(node, { childList: true, subtree: true });
+              });
     },
     preRender(ctx: ComponentContextPartial) {
         // Before-rendered life-cycle handler - called on every render.

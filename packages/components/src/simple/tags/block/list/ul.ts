@@ -1,5 +1,4 @@
 import { component } from '@loom-js/core';
-
 import { ListItems, ListItemsProps } from './list-items';
 
 export type UlProps = ListItemsProps;

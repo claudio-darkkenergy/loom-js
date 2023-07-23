@@ -1,7 +1,7 @@
 import { ComponentOptionalProps } from '@loom-js/core';
 import classNames from 'classnames';
 
-import { Button, ButtonProps } from '@app/component/simple';
+import { Button, ButtonProps } from '@loom-js/components/simple';
 
 import styles from './styles.scss';
 

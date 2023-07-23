@@ -5,9 +5,9 @@ import { siteNavToggleActivity } from '@app/activities/site-nav-toggle';
 import {
     Transition,
     TransitionPhase
-} from '@app/component/behavior/transition';
-import { UiSprite, UiSpriteId } from '@app/component/simple';
-import { StyledSiteNavButton } from '@app/component/styled';
+} from '@loom-js/components/behavior/transition';
+import { UiSprite, UiSpriteId } from '@loom-js/components/simple';
+import { StyledSiteNavButton } from '@loom-js/components/styled';
 
 import styles from './styles.scss';
 

@@ -60,8 +60,8 @@ export const router = (routeConfigCallback: ActivityHandler<Location>) => {
  *          `onHash` - A callback which fires whenever `Window.Location` hash exists & the route otherwise hasn't changed.
  *          `replace` - If set to `true`, "replaceState" will be used instead of "pushState" as the `History` action.
  */
-export const onRoute = <T>(
-    event: SyntheticMouseEvent<T | HTMLAnchorElement>,
+export const onRoute = <T = HTMLAnchorElement>(
+    event: SyntheticMouseEvent<T>,
     options?: OnRouteOptions
 ) => {
     const action = (options?.replace && 'replaceState') || 'pushState';

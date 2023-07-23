@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import {
     ContentfulRichText,
     ContentfulRichTextProps
-} from '@app/component/simple';
+} from '@loom-js/components/simple';
 
 export type { ContentfulDocument } from '@app/helpers/contentful/rich-text-renderer/types';
 

@@ -1,6 +1,6 @@
 import { MouseEventListener } from '@loom-js/core';
 
-import { Link, LinkProps, Ul } from '@app/component/simple';
+import { Link, LinkProps, Ul } from '@loom-js/components/simple';
 
 export interface LinkGroupProps {
     className?: string;
@@ -8,9 +8,9 @@ export interface LinkGroupProps {
     onClick?: MouseEventListener;
 }
 
-export const LinkGroup = ({ className, linkProps, onClick }: LinkGroupProps) =>
+export const LinkGroup = ({ className, linkProps = [], onClick }: LinkGroupProps) =>
     Ul({
         className,
-        listItem: (props: LinkProps) => Link({ ...props, onClick }),
+        listItem: (props) => Link({ ...(props as LinkProps), onClick }),
         listProps: linkProps
     });

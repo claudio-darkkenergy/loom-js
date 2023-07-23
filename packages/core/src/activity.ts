@@ -81,6 +81,7 @@ export const activity = <V = undefined, I = V>(
                         value: newValue
                     });
 
+                    console.group('Sync live node updates...');
                     // Update the live node(s).
                     doLiveNodeUpdates<V>({
                         liveNode,
@@ -92,6 +93,7 @@ export const activity = <V = undefined, I = V>(
                         liveNodes,
                         newNode: node
                     });
+                    console.groupEnd();
                 }
             }
         );
@@ -113,7 +115,7 @@ export const activity = <V = undefined, I = V>(
         const result = action({ value });
         const ctxFunction =
             typeof result !== 'function'
-                ? () => result || document.createTextNode('')
+                ? () => result || (document.createTextNode('') as Node)
                 : result;
         let rootNode = ctxFunction(ctx) as TemplateRoot;
         const isAsyncNode = rootNode instanceof Promise;
@@ -148,6 +150,11 @@ export const activity = <V = undefined, I = V>(
                     : componentNode;
             const asyncNode = ctxFunction(liveNodeData.ctx);
 
+            // @TODO Handle deep level async rendering - see `renderComponent()`.
+            // Possibly call it from here. Or, maybe `renderAsync()` should be removed &
+            // `renderComponent()` should be called recursively.
+
+            console.group('Async live node updates...');
             // Update the live node(s).
             doLiveNodeUpdates<V>({
                 liveNode,
@@ -155,6 +162,7 @@ export const activity = <V = undefined, I = V>(
                 liveNodes,
                 newNode: asyncNode
             });
+            console.groupEnd();
         }
     }
 
@@ -184,6 +192,7 @@ const doLiveNodeUpdates = <V>({
         liveNode instanceof NodeList && newNode instanceof NodeList;
     const nodesChanged = areNodes ? !newNode.isSameNode(liveNode) : null;
 
+    console.group({ liveNode, newNode, nodesChanged });
     // Update the live node.
     if (
         newNode &&
@@ -193,6 +202,7 @@ const doLiveNodeUpdates = <V>({
         liveNodes.set(newNode, liveNodeData);
 
         if (areNodeLists) {
+            console.log('updating node lists...');
             const fragment = document.createDocumentFragment();
             const liveRootNode = liveNode[0].parentElement;
 
@@ -206,6 +216,7 @@ const doLiveNodeUpdates = <V>({
                 );
             }
         } else if (nodesChanged) {
+            console.log('replacing old node...');
             // Replace the old node w/ the new one...
             (liveNode as Element).replaceWith(newNode as Node);
         }
@@ -213,4 +224,5 @@ const doLiveNodeUpdates = <V>({
         // ...& perform cleanup on it for garbage colleciton.
         liveNodes.delete(liveNode);
     }
+    console.groupEnd();
 };

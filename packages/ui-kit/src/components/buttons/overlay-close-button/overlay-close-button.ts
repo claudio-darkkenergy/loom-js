@@ -1,4 +1,4 @@
-import { CloseButton } from '@app/component/simple/buttons/close-button';
+import { CloseButton } from '@loom-js/components/simple/buttons/close-button';
 import { Styled } from '@app/utils';
 
 import styles from './styles.scss';

@@ -1,4 +1,4 @@
-import { Nav, NavProps } from '@app/component/simple';
+import { Nav, NavProps } from '@loom-js/components/simple';
 import { Styled } from '@app/utils';
 
 import styles from './styles.scss';

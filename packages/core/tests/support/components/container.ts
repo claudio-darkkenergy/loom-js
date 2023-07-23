@@ -39,15 +39,26 @@ export const Container = component<ContainerProps>(
                 ...Object.assign({}, value)
             });
         const ReactiveTestComponent: ReactiveComponent = () =>
-            (effect as ActivityEffect)(({ value }) =>
-                SimpleTestComponent({ value })
-            );
+            // console.log(`SimpleTestComponent({ value: ${value} })`);
+            (effect as ActivityEffect)(({ value }) => {
+                console.log(
+                    `SimpleTestComponent({ value: ${JSON.stringify(value)} })`
+                );
+                return SimpleTestComponent({ value });
+            });
         const AsyncReactiveTestComponent: ReactiveComponent = () =>
-            (effect as ActivityEffect)(
-                ({ value }) =>
-                    () =>
-                        Promise.resolve(SimpleTestComponent({ value }))
-            );
+            (effect as ActivityEffect)(({ value }) => {
+                console.log({ value });
+
+                const lazyComponent = async () => {
+                    console.log(value);
+                    return await Promise.resolve(
+                        SimpleTestComponent({ value })
+                    );
+                };
+
+                return lazyComponent;
+            });
 
         return html`
             <div class=${className}>
