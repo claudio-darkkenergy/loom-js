@@ -1,4 +1,4 @@
-import { config } from '../config';
+import { config } from '../../config';
 
 export const getPaths = (treeWalker: TreeWalker) => {
     const getNewPath = (node: Node) => {
@@ -32,18 +32,29 @@ export const getPaths = (treeWalker: TreeWalker) => {
             );
 
             if (attrs.length) {
-                paths.set(getNewPath(currentNode), attrs);
+                const nodePath = getNewPath(currentNode);
+                // Set paths for each dynamic attribute.
+                attrs.forEach((attr) => {
+                    return paths.add([nodePath, attr]);
+                });
             }
         } else if (
-            // @TODO Handle Comment w/ dynamic nodes.
             (currentNode instanceof Text || currentNode instanceof Comment) &&
             config.tokenRe.test(currentNode.textContent || '')
         ) {
             // Parse text nodes.
-            paths.set(getNewPath(currentNode), undefined);
+            const nodePath = getNewPath(currentNode);
+            const dynamicSlotsIterator = currentNode.textContent?.matchAll(
+                config.tokenReGlobal
+            );
+
+            // Set paths for each dynamic slot.
+            while (dynamicSlotsIterator?.next().value) {
+                paths.add([nodePath, undefined]);
+            }
         }
     };
-    const paths = new Map<number[], Attr[] | undefined>();
+    const paths = new Set<[number[], Attr | undefined]>();
 
     // Walk the node tree to get all dynamic node paths.
     // The paths will be used to set the updaters.
@@ -51,6 +62,5 @@ export const getPaths = (treeWalker: TreeWalker) => {
         handleTreeNode(treeWalker.currentNode);
     }
 
-    console.log({ paths: Array.from(paths.keys()) });
     return paths;
 };
