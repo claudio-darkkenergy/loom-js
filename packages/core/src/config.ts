@@ -1,5 +1,18 @@
-import { Config, ConfigEvent } from './types';
+import {
+    Config,
+    ConfigDebug,
+    ConfigDebugAllowable,
+    ConfigEvent
+} from './types';
 
+const debugAllowable: ConfigDebugAllowable = {
+    error: true,
+    parser: true,
+    updates: true,
+    warn: true
+};
+let debug: ConfigDebug =
+    process.env.NODE_ENV === 'production' ? false : debugAllowable;
 // Accepted events: https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers
 const defaultEvents: ConfigEvent[] = [
     'abort',
@@ -75,10 +88,13 @@ const defaultEvents: ConfigEvent[] = [
     'wheel'
 ];
 let events: ConfigEvent[] & string[] = defaultEvents;
-const getTokenRe = () =>
-    new RegExp(`${TOKEN}|${window.encodeURIComponent(TOKEN)}`);
+const getConfig = () => ({ events, TOKEN, tokenRe, tokenReGlobal });
+const getTokenRe = (flags?: string) =>
+    new RegExp(`${TOKEN}|${window.encodeURIComponent(TOKEN)}`, flags);
+const syncConfig = () => Object.assign(config, getConfig());
 let TOKEN = '⚡';
 let tokenRe = getTokenRe();
+let tokenReGlobal = getTokenRe('g');
 
 /**
  * If there are missing events from the `config` list of events (see
@@ -88,17 +104,23 @@ let tokenRe = getTokenRe();
  *      will be appended to the default list of events (see `ConfigEvent`.)
  * @returns The updated list of the `config` events.
  */
-export const appendEvents = (eventsToAppend: string[]) =>
-    ((events as unknown) = events.concat(eventsToAppend));
+export const appendEvents = (eventsToAppend: string[]) => {
+    (events as unknown) = events.concat(eventsToAppend);
+    syncConfig();
+};
+
+export const canDebug = (type: keyof ConfigDebugAllowable) =>
+    debug && debug[type];
 
 /**
  * Contains the framework configuration.
  */
-export const config: Config = {
-    events,
-    TOKEN,
-    tokenRe
-};
+export const config: Config = getConfig();
+
+export const setDebug = (
+    isOn = true,
+    types: ConfigDebugAllowable = debugAllowable
+) => (debug = isOn && types);
 
 /**
  * Use this to customize the `config` TOKEN used by the template renderer during dynamic value resolution.
@@ -109,5 +131,8 @@ export const config: Config = {
 export const setToken = (value: string) => {
     TOKEN = value;
     tokenRe = getTokenRe();
+    tokenReGlobal = getTokenRe('g');
+    syncConfig();
+
     return TOKEN;
 };

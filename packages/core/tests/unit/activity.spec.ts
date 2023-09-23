@@ -1,4 +1,5 @@
 import { expect } from '@esm-bundle/chai';
+
 import { activity } from '../../src/activity';
 import { TestComponentProps } from '../support/components/container';
 import { Input } from '../support/components/input';
@@ -9,9 +10,10 @@ describe('activity', () => {
     let $unit: HTMLInputElement | null;
     const componentClassName = 'activity-test';
     const testText = 'Testing `activity`...';
-    const testRunSetup = ({ effect }) =>
+    const testRunSetup = ({ asyncEffect = false, effect }) =>
         runSetup({
             containerProps: {
+                asyncEffect,
                 componentProps: {
                     className: componentClassName,
                     value: testText
@@ -21,9 +23,33 @@ describe('activity', () => {
             }
         });
 
+    describe('effect()', () => {
+        const { effect } = activity<TestComponentProps>({});
+
+        it('should render a component', async () => {
+            $test = await testRunSetup({ effect });
+            $unit = $test.querySelector('input');
+            expect($unit?.localName).to.equal('input');
+            console.log('+++++++++++++++++');
+        });
+
+        it('should render an async component', async () => {
+            $test = await testRunSetup({ asyncEffect: true, effect });
+            await new Promise<void>((resolve) => {
+                setTimeout(() => {
+                    $unit = $test.querySelector('input');
+                    console.log({ $test, $unit });
+                    console.log('localName', $unit?.localName);
+                    expect($unit?.localName).to.equal('input');
+                    resolve();
+                }, 0);
+            });
+        });
+    });
+
     it('reset()', async () => {
-        const initValue = Math.random() * 100 / 10;
-        const updateValue = Math.random() * 100 / 10;
+        const initValue = (Math.random() * 100) / 10;
+        const updateValue = (Math.random() * 100) / 10;
         const { initialValue, reset, update, value } = activity(initValue);
 
         expect(initialValue).to.equal(initValue);
@@ -114,7 +140,19 @@ describe('activity', () => {
         });
     });
 
-    afterEach(() => {
-        $test?.remove();
+    it('watch()', () => {
+        const initValue = 'hello';
+        const updateValue = 'world';
+        const { update, value, watch } = activity(initValue);
+
+        watch(({ value: newValue }) => {
+            expect(newValue).to.equal(updateValue);
+            expect(value()).to.equal(updateValue);
+        });
+        update(updateValue);
     });
+
+    // afterEach(() => {
+    //     $test?.remove();
+    // });
 });

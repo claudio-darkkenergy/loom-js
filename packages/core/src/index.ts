@@ -4,23 +4,28 @@ export * from './component';
 export * from './config';
 export * from './routing';
 export type {
-    ActivityEffect,
-    ActivityHandler,
+    ActivityEffectAction,
+    ActivityOptions,
     ActivityTransform,
     AppInitProps,
     Aria,
     Component,
-    ComponentNode,
-    ComponentNodeAsync,
+    ComponentArgs,
+    ComponentContext,
     ComponentOptionalProps,
+    ComponentProps,
     ContextFunction,
+    LifeCycleHandler,
     MouseEventListener,
     OnRouteOptions,
-    PlainObject,
     ReactiveComponent,
     RefContext,
     RenderFunction,
     RenderProps,
-    RouteUpdateHandler,
-    TemplateTagValue
+    SimpleComponent,
+    SyntheticMouseEvent,
+    SyntheticMouseEventListener,
+    TemplateFunction,
+    TemplateTagValue,
+    TemplateTagValueFunction
 } from './types';

@@ -1,203 +1,121 @@
-import { getTemplateRoot } from './helpers';
-import {
-    ActivityEffect,
-    ActivityHandler,
+import { reactive, updateEffect } from './lib/reactive';
+import { textUpdater } from './lib/templating/get-text-update';
+import type {
+    ActivityEffectAction,
+    ActivityOptions,
     ActivityTransform,
     ComponentContextPartial,
-    ComponentNode,
-    ComponentNodeAsync,
-    TemplateRoot
+    PlainObject,
+    TemplateRoot,
+    TemplateRootArray,
+    TemplateTagValue,
+    ValueProp
 } from './types';
 
-interface ActivityLiveNodeData<V> {
-    action: ActivityHandler<V>;
-    // @TODO Use the cache for handler memoization.
-    cache: any[];
-    ctx: ComponentContextPartial;
-}
-
-type ActivityLiveNodes<V> = Map<TemplateRoot, ActivityLiveNodeData<V>>;
-
-export const activity = <V = undefined, I = V>(
+export const activity = <V = unknown, I = V>(
     initialValue: V,
-    transform?: ActivityTransform<V, I>
+    transformOrOptions?: ActivityTransform<V, I> | ActivityOptions,
+    options: ActivityOptions = {}
 ) => {
-    let currentValue = initialValue;
-    const liveNodes: ActivityLiveNodes<V> = new Map();
-    const effect: ActivityEffect<V> =
-        (action, cache = []) =>
-        // Returning a `ContextFunction` so a `ComponentContext` can be passed into it later on.
-        // This helps w/ rerenders of non-specified `component`s (when `component` wasn't used for the component.)
-        (ctx = {}) => {
-            const rootNode = renderComponent({
-                action,
-                ctx,
-                value: currentValue
-            });
+    const transformIsSet = typeof transformOrOptions === 'function';
+    const transform = transformIsSet ? transformOrOptions : undefined;
+    const { deep = false, force = false } = transformIsSet
+        ? options
+        : transformOrOptions || {};
+    const isObject = (value: V) =>
+        typeof value === 'object' && !Array.isArray(value);
+    // Will only shallow clone the passed value if it's a plain object, otherwise returned as is.
+    const resolveCurrentValue = (value: V) =>
+        isObject(value) && (value as Object).constructor.name === 'Object'
+            ? Object.assign({}, value)
+            : value;
+    let currentValue = resolveCurrentValue(initialValue);
+    const shouldUpdate = (oldValue: V, newValue: V) => {
+        let valueChanged = false;
 
-            liveNodes.set(rootNode, { action, cache, ctx });
-            return rootNode;
-        };
-    const update = (valueInput: I, force = false) =>
-        typeof transform === 'function'
-            ? transform(
-                  {
-                      input: valueInput,
-                      update: updateActivity,
-                      value: currentValue
-                  },
-                  force
-              )
-            : updateActivity(valueInput as unknown as V, force);
-
-    function updateActivity(newValue: V, force = false) {
-        Array.from(liveNodes.entries()).forEach(
-            async ([liveNode, { action, cache, ctx }]) => {
-                const liveRootNode = getTemplateRoot(liveNode);
-
-                if (liveRootNode && !document.contains(liveRootNode)) {
-                    // Cleanup old nodes which have been removed from the DOM.
-                    liveNodes.delete(liveNode);
-                } else if (
-                    newValue !== currentValue ||
-                    force
-                    // Do the updates.
-                ) {
-                    // Render the component.
-                    const node = renderComponent({
-                        action,
-                        ctx,
-                        value: newValue
-                    });
-
-                    // Update the live node(s).
-                    doLiveNodeUpdates<V>({
-                        liveNode,
-                        liveNodeData: {
-                            action,
-                            cache,
-                            ctx
-                        },
-                        liveNodes,
-                        newNode: node
-                    });
+        if (force) {
+            valueChanged = true;
+        } else if (deep && isObject(oldValue) && isObject(newValue)) {
+            // Handle Object values when they share the same reference.
+            // Allow updates if at least 1 value has changed.
+            valueChanged = Object.entries(oldValue as PlainObject).some(
+                ([key, value]) => {
+                    return value !== (newValue as PlainObject)[key];
                 }
-            }
-        );
-
-        currentValue = newValue;
-    }
-
-    // Handle component rendering.
-    function renderComponent<V>({
-        action,
-        ctx,
-        value
-    }: {
-        action: ActivityHandler<V>;
-        ctx: ComponentContextPartial;
-        value: V;
-    }) {
-        const result = action({ value });
-        const ctxFunction =
-            typeof result !== 'function'
-                ? () => result || document.createTextNode('')
-                : result;
-        let rootNode = ctxFunction(ctx) as TemplateRoot;
-        const isAsyncNode = rootNode instanceof Promise;
-
-        if (isAsyncNode) {
-            // Create a temporary node to be replaced w/ once async node resolves.
-            rootNode = document.createTextNode('');
-        }
-
-        // Render async?
-        isAsyncNode &&
-            (result as ComponentNodeAsync)().then((componentNode) =>
-                renderAsync({ componentNode, liveNode: rootNode })
             );
-        return rootNode;
-    }
-
-    // Handle async rendering - when an `effect`'s return value is an `ComponentNodeAsync`.
-    function renderAsync({
-        componentNode,
-        liveNode
-    }: {
-        componentNode: ComponentNode;
-        liveNode: TemplateRoot;
-    }) {
-        const liveNodeData = liveNodes.get(liveNode);
-
-        if (liveNodeData) {
-            const ctxFunction =
-                typeof componentNode !== 'function'
-                    ? () => componentNode || document.createTextNode('')
-                    : componentNode;
-            const asyncNode = ctxFunction(liveNodeData.ctx);
-
-            // Update the live node(s).
-            doLiveNodeUpdates<V>({
-                liveNode,
-                liveNodeData,
-                liveNodes,
-                newNode: asyncNode
-            });
+        } else {
+            valueChanged = oldValue !== newValue;
         }
-    }
+
+        currentValue = valueChanged ? resolveCurrentValue(newValue) : oldValue;
+        return valueChanged;
+    };
+    const valueProp: ValueProp<V> = reactive(
+        { value: currentValue },
+        shouldUpdate
+    ) as {
+        value: V;
+    };
+    // Update Handler
+    const update = (valueInput: V) => {
+        Object.assign(valueProp, { value: valueInput });
+    };
+    const value = () => {
+        return resolveCurrentValue(currentValue);
+    };
+
+    isObject(initialValue) && Object.freeze(initialValue);
 
     return {
-        effect,
-        initialValue,
-        reset: () => updateActivity(initialValue),
-        update,
-        value: () => currentValue
-    };
-};
+        effect(action: ActivityEffectAction<V>) {
+            function contextFunction(ctx: ComponentContextPartial = {}) {
+                const renderEffect = (templateTagValue: TemplateTagValue) => {
+                    ctx.root = textUpdater(
+                        ctx.root as TemplateRoot | TemplateRootArray,
+                        templateTagValue,
+                        ctx
+                    );
 
-const doLiveNodeUpdates = <V>({
-    liveNodeData,
-    liveNode,
-    liveNodes,
-    newNode
-}: {
-    liveNodeData: ActivityLiveNodeData<V>;
-    liveNode: TemplateRoot;
-    liveNodes: ActivityLiveNodes<V>;
-    newNode: TemplateRoot;
-}) => {
-    const areNodes = liveNode instanceof Node && newNode instanceof Node;
-    const areNodeLists =
-        liveNode instanceof NodeList && newNode instanceof NodeList;
-    const nodesChanged = areNodes ? !newNode.isSameNode(liveNode) : null;
+                    // setParentOnContext(ctx);
+                };
 
-    // Update the live node.
-    if (
-        newNode &&
-        ((areNodeLists && liveNode[0]?.parentElement) || nodesChanged)
-    ) {
-        // Cache the node & live-node data.
-        liveNodes.set(newNode, liveNodeData);
+                const activityEffect = (valueProp: ValueProp<V>) => {
+                    const templateTagValue = action({ value: valueProp.value });
 
-        if (areNodeLists) {
-            const fragment = document.createDocumentFragment();
-            const liveRootNode = liveNode[0].parentElement;
+                    if (templateTagValue instanceof Promise) {
+                        templateTagValue.then(renderEffect);
+                    } else {
+                        renderEffect(templateTagValue);
+                    }
+                };
 
-            if (liveRootNode) {
-                // Perform the updates
-                fragment.replaceChildren(...Array.from(newNode));
-                liveRootNode.insertBefore(fragment, liveNode[0]);
-                // Cleanup the old child nodes.
-                liveNode.forEach((liveChildNode) =>
-                    (liveChildNode as Element).remove()
-                );
+                // Create a temporary node to be replaced w/ once async node resolves.
+                ctx.root = ctx.root || document.createTextNode('');
+                ctx.ctxScopes = new Map();
+                // Set up the reactive effect for the activity.
+                updateEffect(activityEffect, valueProp);
+                return ctx;
             }
-        } else if (nodesChanged) {
-            // Replace the old node w/ the new one...
-            (liveNode as Element).replaceWith(newNode as Node);
-        }
 
-        // ...& perform cleanup on it for garbage colleciton.
-        liveNodes.delete(liveNode);
-    }
+            return contextFunction;
+        },
+        initialValue,
+        reset: () => update(initialValue),
+        update(valueInput: I) {
+            typeof transform === 'function'
+                ? transform({
+                      input: valueInput,
+                      update,
+                      value: value()
+                  })
+                : update(valueInput as unknown as V);
+        },
+        // Returns a shallow copy of the current value.
+        value,
+        watch(action: (valueProp: ValueProp<V>) => any) {
+            updateEffect((valueProp) => {
+                action({ value: valueProp.value });
+            }, valueProp);
+        }
+    };
 };

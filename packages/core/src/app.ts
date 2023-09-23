@@ -1,4 +1,5 @@
-import { lifeCycles } from './life-cycles';
+import { _lifeCycles } from './lib/context/life-cycles';
+import { mount } from './lib/mount';
 import { AppInitProps } from './types';
 
 export const init = ({
@@ -7,26 +8,25 @@ export const init = ({
     onAppMounted,
     root = document.body
 }: AppInitProps) => {
-    const mountedApp = (typeof app === 'function' ? app() : app) as Node;
+    const appCtx = app();
 
-    if (append === null) {
-        // Ensure the root element is empty.
-        root.innerHTML = '';
+    if (
+        root === null ||
+        root instanceof HTMLHeadElement ||
+        root instanceof HTMLBodyElement
+    ) {
+        // `root` cannot be the document HEAD or BODY.
+        root = document.createElement('div');
+        root.id = 'loom-app';
     }
 
-    if (append === false) {
-        // Prepend the root element.
-        root.insertBefore(mountedApp, root.firstChild);
-    } else {
-        // Append the root element.
-        root.appendChild(mountedApp);
-    }
-
-    // First handle the app-mounted callback.
-    if (typeof onAppMounted === 'function') {
-        onAppMounted(mountedApp);
-    }
-
+    mount(root, appCtx, append);
     // Observe DOM changes for some component life-cycle events.
-    lifeCycles.observe(mountedApp);
+    _lifeCycles.observe(root);
+
+    // Execute the app-fully-mounted callback.
+    if (typeof onAppMounted === 'function') {
+        // The app has fully mounted, including all component descendants.
+        onAppMounted(root);
+    }
 };

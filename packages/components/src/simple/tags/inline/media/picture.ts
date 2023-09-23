@@ -1,0 +1,14 @@
+import { component } from '@loom-js/core';
+import { Img, ImgProps, Source, SourceProps } from '@loom-js/components/simple';
+
+export type PictureProps = ImgProps & {
+    sources?: SourceProps[];
+};
+
+export const Picture = component<PictureProps>(
+    (html, { className, sources, ...imgProps }) => html`
+        <picture class=${className}>
+            ${sources?.map((srcProps) => Source(srcProps))} ${Img(imgProps)}
+        </picture>
+    `
+);

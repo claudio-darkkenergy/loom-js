@@ -1,0 +1,27 @@
+{
+  "defaultBase": "main",
+  "targetDefaults": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "test-ci": {
+      "dependsOn": [
+        "build"
+      ]
+    }
+  },
+  "tasksRunnerOptions": {
+    "default": {
+      "runner": "@nrwl/nx-cloud",
+      "options": {
+        "cacheableOperations": [
+          "build",
+          "test-ci"
+        ],
+        "accessToken": "NmE0N2Q3NGMtNjUwOS00NTQ5LTg3YTAtNjdlYzViYzQyMzg0fHJlYWQtd3JpdGU="
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@loom-js/ui-kit",
+  "version": "0.0.10",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "exports": "./src/components/index.ts",
+  "dependencies": {
+    "@loom-js/components": "workspace:*",
+    "@loom-js/core": "workspace:*",
+    "classnames": "^2.3.2"
+  }
+}
