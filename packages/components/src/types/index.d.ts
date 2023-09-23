@@ -1,12 +1,10 @@
-import { PlainObject } from '@loom-js/core';
-
 import { LinkProps } from '@loom-js/components/simple';
 
 // GraphQl
 
 export interface GraphQlRequestPayload {
     query: string;
-    variables?: PlainObject;
+    variables?: object;
 }
 
 // Content Structure Types
