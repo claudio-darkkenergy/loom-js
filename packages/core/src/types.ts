@@ -1,8 +1,8 @@
 export interface AppInitProps {
-    app: ComponentNode;
+    app: ContextFunction;
     append?: Boolean | null;
-    onAppMounted?: (mountedApp: Node[]) => any;
-    root?: HTMLElement;
+    onAppMounted?: (mountedApp: Element) => any;
+    root?: Element | null;
 }
 
 export interface Aria {
@@ -11,73 +11,102 @@ export interface Aria {
     role?: string;
 }
 
-export interface PlainObject<T = any> {
-    [key: string]: T;
+export interface Es6Object<T = unknown> {
+    [key: string | symbol]: T;
 }
 
-export interface ValueProp<T = TemplateTagValue> {
-    value: T;
+export interface PlainObject<T = unknown> {
+    [key: string]: T;
 }
 
 /* Template */
 export interface TaggedTemplate {
-    this?: ComponentContextPartial;
+    this?: ComponentContext;
     (
         chunks: TemplateStringsArray,
         ...interpolations: TemplateTagValue[]
-    ): TemplateRoot;
+    ): ComponentContext;
 }
 
-export type TemplateRoot = Node | NodeListOf<ChildNode>;
+export interface TemplateFunction<Props extends object = {}> {
+    (html: TaggedTemplate, props: ComponentArgs<Props>): ComponentContext;
+}
+
+export type TemplateRoot = Comment | Element | Text;
+
+export type TemplateRootArray = TemplateRoot[];
+
 export type TemplateTagValue =
     | boolean
-    | ComponentNode
+    | ContextFunction
     | EventListenerOrEventListenerObject
     | MouseEventListener
+    | Node
     | null
     | number
     | string
+    | TemplateRoot
+    | TemplateRootArray
     | TemplateTagValue[]
     | TemplateTagValueFunction
     | undefined
     | void;
+
 export type TemplateTagValueFunction = () => TemplateTagValue;
-export type TemplateNodeUpdate = (values: TemplateTagValue[]) => void;
+
+export type TemplateNodeUpdate = (
+    value: TemplateTagValue,
+    valueCtx?: ComponentContextPartial
+) => void;
 
 /* Component */
 // The component callable (external values to internal props)
-export type Component<T extends {} = {}> = (
-    props?: ComponentOptionalProps & T & Partial<ComponentDefaultProps>
+export type Component<Props extends object = {}> = (
+    props?: ComponentProps<Props>
 ) => ContextFunction;
+
+export type ComponentArgs<Props extends object = {}> = ComponentBaseArgs &
+    ComponentProps<Props>;
+
+export type ComponentProps<Props extends object = {}> = {
+    [P in keyof Props]: Props[P];
+} & ComponentOptionalProps;
+// Partial<ComponentOptionalProps> & T & Partial<ComponentBaseArgs>;
 
 // This is internal context for a component & its template,
 // which essentially provides caching capabilities w/ associated meta-data.
-export interface ComponentContext extends LifeCycleHandlerProps {
-    fingerPrint?: RenderFunction<never>;
-    lifeCycles?: LifeCycleHookProps;
-    node?: ContextNodeGetter;
-    ref?: RefContext;
-    refs?: Set<RefContext>;
-    render?: TaggedTemplate;
-    root?: TemplateRoot;
+export interface ComponentContext<Props extends object = {}>
+    extends LifeCycleHandlerProps {
+    children: ComponentContextPartial[];
+    chunks: TemplateStringsArray;
+    ctxScopes: Map<TemplateFunction<Props>, ComponentContextPartial>;
+    fingerPrint: TemplateFunction<Props>;
+    fragment: boolean;
+    lifeCycleState: LifeCycleState;
+    lifeCycles: LifeCycleHookProps;
+    node: ContextNodeGetter;
+    name: string;
+    parent: ComponentContextPartial;
+    props: ComponentProps<Props>;
+    render: TaggedTemplate;
+    ref: RefContext;
+    refs: Set<RefContext>;
+    root: TemplateRoot | TemplateRootArray;
+    values: Es6Object<TemplateTagValue>;
 }
 
-export type ComponentNodeAsync = () => Promise<ComponentNode>;
-export type ComponentNode = ContextFunction | TemplateRoot;
 export type ComponentContextPartial = Partial<ComponentContext>;
 // Every component will get these.
-// `className` could be `undefined` since that would need to get passed
-// into the component as a prop.
-export type ComponentDefaultProps = LifeCycleHookProps & {
-    ctx(): RefContext;
+export type ComponentBaseArgs = LifeCycleHookProps & {
+    createRef(): RefContext;
     ctxRefs(): IterableIterator<RefContext>;
     node: ContextNodeGetter;
 };
 // The component definition (internal props from external values)
-// It takes a `RenderFunction`.
-export type ComponentFactory = <T extends {} = {}>(
-    renderFunction: RenderFunction<T & RenderProps>
-) => Component<T>;
+// It takes a `TemplateFunction`.
+export type ComponentFactory = <Props extends object = {}>(
+    templateFunction: TemplateFunction<Props>
+) => Component<Props>;
 
 export interface ComponentOptionalProps {
     children?: TemplateTagValue;
@@ -87,12 +116,14 @@ export interface ComponentOptionalProps {
 }
 
 // `ComponentContext` related types
-export type ContextFunction = (ctx?: ComponentContextPartial) => TemplateRoot;
-// Node - not `TemplateRoot` - b/c `parentElement` will be returned for `NodeList`'s.
-export type ContextNodeGetter = () => Node | null | undefined;
+export type ContextFunction = (
+    ctx?: ComponentContextPartial
+) => ComponentContextPartial;
+// Returns the parent of `TemplateRoot` or `TemplateRootArray`.
+export type ContextNodeGetter = () => TemplateRoot | TemplateRootArray;
 
 /* Life-cycles */
-export type LifeCycleHandler = (node: Node | undefined) => any;
+export type LifeCycleHandler = (root?: TemplateRoot | TemplateRootArray) => any;
 
 // Life-cycle handlers counterparts for caching the handlers.
 // The handler will never change once set for a component.
@@ -115,8 +146,12 @@ export interface LifeCycleHookProps {
 
 export type LifeCycleHook = (handler: LifeCycleHandler) => void;
 
+export type LifeCycleState = {
+    value: keyof LifeCycleHandlerProps | null;
+};
+
 export interface ReactiveComponent<T = any, P = any> {
-    (transform?: (props?: T) => P): ComponentNode;
+    (transform?: (props?: T) => P): ContextFunction;
 }
 
 export interface RefContext
@@ -125,15 +160,18 @@ export interface RefContext
     node?: ContextNodeGetter;
 }
 
-export interface RenderFunction<P = {}> {
-    (render: TaggedTemplate, props: P & RenderProps): TemplateRoot;
-}
+// @Deprecated
+export type RenderFunction = TemplateFunction;
 
-export type RenderProps = ComponentDefaultProps & ComponentOptionalProps;
+// @Deprecated
+export type RenderProps = ComponentProps;
+
+// A pass-through component
 export type SimpleComponent<P = any> = (props: P) => ContextFunction;
 
 /* Event */
 export type MouseEventListener = <T>(ev: SyntheticMouseEvent<T>) => void;
+
 export type SyntheticMouseEventListener = (
     this: HTMLElement,
     ev: MouseEvent
@@ -144,34 +182,41 @@ export type SyntheticMouseEvent<T = EventTarget> = Event & {
 };
 
 /* Activity */
-export type ActivityEffect<T = any> = (
-    handler: ActivityHandler<T>,
-    cache?: any[]
-) => ContextFunction;
-export type ActivityHandler<T> = (
-    props: ValueProp<T>
-) => ComponentNode | ComponentNodeAsync | false | undefined;
-export type ActivityTransform<V, I = V> = (
-    props: ValueProp<V> & {
+export type ActivityEffectAction<V> = (valueProp: {
+    value: V;
+}) => TemplateTagValue | Promise<TemplateTagValue>;
+
+export interface ActivityOptions {
+    deep?: boolean;
+    force?: boolean;
+}
+
+export type ActivityTransform<V = unknown, I = V> = (
+    ctx: { value: V } & {
         input: I;
-        update: (valueInput: V, force?: boolean) => void;
-    },
-    force?: boolean
+        update: (valueInput: V) => void;
+    }
 ) => void | Promise<void>;
-export type ActivityWatchEffect = <V>(args: { value: V }) => any;
+
+export interface ValueProp<T = unknown> {
+    value: T;
+}
 
 /* Routing */
 export interface OnRouteOptions {
     href?: string;
-    onHash?: (loc: Location) => void;
     replace?: boolean;
 }
 
-export interface RouteUpdateHandler {
-    (loc: Location): any;
-}
-
 /* Config */
+export type ConfigDebug = false | ConfigDebugAllowable;
+
+export interface ConfigDebugAllowable {
+    error?: boolean;
+    parser?: boolean;
+    updates?: boolean;
+    warn?: boolean;
+}
 export type ConfigEvent =
     | 'abort'
     | 'animationcancel'
@@ -249,6 +294,7 @@ export interface Config {
     events: ConfigEvent[] & string[];
     TOKEN: string;
     tokenRe: RegExp;
+    tokenReGlobal: RegExp;
 }
 
 export type GlobalWindow = Window & typeof globalThis;

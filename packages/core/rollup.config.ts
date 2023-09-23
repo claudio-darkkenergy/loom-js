@@ -32,9 +32,11 @@ export default [
                 tsconfig: './tsconfig.json',
                 typescript
             }),
-            terser()
+            terser({
+                keep_fnames: true
+            })
         ],
-        output: [{ file: pkg.module, format: 'es', sourcemap: true }]
+        output: { file: pkg.module, format: 'es', sourcemap: true }
     },
     // Consolidates all the type defintion files into 1,
     // & then deletes the root typings folder & defintion files.

@@ -1,14 +1,13 @@
-import {
+import type {
     Component,
     MouseEventListener,
-    PlainObject,
     TemplateTagValue
 } from '@loom-js/core';
 
 import { Li, LiProps } from '@loom-js/components/simple';
 
 export interface ListItemsProps {
-    listItem?: Component<PlainObject>;
+    listItem?: Component;
     listProps: (LiProps | TemplateTagValue)[];
     onItemClick?: MouseEventListener;
 }
