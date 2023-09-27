@@ -182,6 +182,10 @@ export type SyntheticMouseEvent<T = EventTarget> = Event & {
 };
 
 /* Activity */
+export type ActivityEffect<V> = (
+    action: ActivityEffectAction<V>
+) => ContextFunction;
+
 export type ActivityEffectAction<V> = (valueProp: {
     value: V;
 }) => TemplateTagValue | Promise<TemplateTagValue>;

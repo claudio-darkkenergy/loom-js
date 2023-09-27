@@ -4,6 +4,7 @@ export * from './component';
 export * from './config';
 export * from './routing';
 export type {
+    ActivityEffect,
     ActivityEffectAction,
     ActivityOptions,
     ActivityTransform,
