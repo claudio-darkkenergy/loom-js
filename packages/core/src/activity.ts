@@ -23,7 +23,7 @@ export const activity = <V = unknown, I = V>(
         ? options
         : transformOrOptions || {};
     const isObject = (value: V) =>
-        typeof value === 'object' && !Array.isArray(value);
+        value !== null && typeof value === 'object' && !Array.isArray(value);
     // Will only shallow clone the passed value if it's a plain object, otherwise returned as is.
     const resolveCurrentValue = (value: V) =>
         isObject(value) && (value as Object).constructor.name === 'Object'
