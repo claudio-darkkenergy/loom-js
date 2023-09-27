@@ -9,7 +9,7 @@
         "importHelpers": true,
         "isolatedModules": true,
         "lib": ["dom", "esnext"],
-        "module": "es6",
+        "module": "esnext",
         "moduleResolution": "node",
         "noUnusedLocals": true,
         "noUnusedParameters": true,
