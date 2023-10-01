@@ -224,9 +224,9 @@ export interface OnRouteOptions {
 export type ConfigDebug = false | ConfigDebugAllowable;
 
 export interface ConfigDebugAllowable {
+    creation?: boolean;
     console?: boolean;
     error?: boolean;
-    parser?: boolean;
     updates?: boolean;
     warn?: boolean;
 }

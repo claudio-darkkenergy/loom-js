@@ -4,26 +4,17 @@ import type {
     TemplateNodeUpdate,
     TemplateTagValue
 } from '../../types';
+import { loomConsole } from '../globals/loom-console';
 import { resolveValue } from './resolve-value';
 import type { DynamicNode } from './types';
 
 export const getAttrUpdate = (dynamicNode: DynamicNode, dynamicAttr: Attr) => {
     // Special attributes start w/ `$`.
     if (dynamicAttr['nodeName'][0] === '$') {
-        canDebug('updates') &&
-            console.info('Get Special Attr Update', {
-                dynamicNode,
-                dynamicAttr
-            });
         return getSpecialAttrUpdate(dynamicNode, dynamicAttr);
     }
     // Handle dynamic standard attributes.
     else {
-        canDebug('updates') &&
-            console.info('Get Standard Attr Update', {
-                dynamicNode,
-                dynamicAttr
-            });
         return getStandardAttrUpdate(dynamicNode, dynamicAttr);
     }
 };
@@ -59,7 +50,7 @@ const getSpecialAttrUpdate = (dynamicNode: DynamicNode, attr: Attr) => {
             // This is non-breaking, so just want to warn in case the provided value was a mistake.
             else if (newValue) {
                 canDebug('warn') &&
-                    console.warn(
+                    loomConsole.warn(
                         `[Template Update Warning] The provided special attribute ("${
                             attr['nodeName']
                         }") contains a value of ${JSON.stringify(

@@ -1,4 +1,3 @@
-import { canDebug } from '../../config';
 import { ComponentContext } from '../../types';
 import { memo } from '../memo';
 import { getAttrUpdate } from './get-attr-update';
@@ -13,7 +12,6 @@ export const setUpdatesForPaths = (
     ctx: ComponentContext,
     liveFragment: DocumentFragment
 ) => {
-    canDebug('updates') && console.group('Set Updates for Paths');
     const getDynamicElementMemo = memo<
         [number[], DocumentFragment],
         DynamicNode
@@ -37,9 +35,6 @@ export const setUpdatesForPaths = (
             dynamicAttr
         ])
         .forEach(([dynamicNode, dynamicAttr], i) => {
-            canDebug('updates') &&
-                console.group(`Node Path [${Array.from(paths)[i][0]}]`);
-
             // When the dynamic node is `Text` it can have 1 or more dynamic slot
             if (dynamicAttr) {
                 const update = getAttrUpdate(dynamicNode, dynamicAttr);
@@ -78,9 +73,5 @@ export const setUpdatesForPaths = (
                     );
                 }
             }
-
-            canDebug('updates') && console.groupEnd();
         });
-
-    canDebug('updates') && console.groupEnd();
 };

@@ -1,6 +1,7 @@
 import { canDebug } from '../../config';
 import type { ComponentContext, TemplateNodeUpdate } from '../../types';
 import { appendChildContext } from '../context';
+import { loomConsole } from '../globals/loom-console';
 import { updateEffect } from '../reactive';
 
 export const setReactiveUpdates = (
@@ -13,12 +14,7 @@ export const setReactiveUpdates = (
         const childCtx = appendChildContext(ctx, updateValue, i);
 
         canDebug('updates') &&
-            console.info('Run Effect', {
-                ctx,
-                updateValue,
-                values,
-                valueIndex: i
-            });
+            loomConsole.info('should update', { updateValue });
 
         // Call all the updates for the component for every render cycle.
         update(updateValue, childCtx);
