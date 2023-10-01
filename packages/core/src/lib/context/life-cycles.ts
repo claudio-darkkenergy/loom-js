@@ -62,7 +62,11 @@ export const _lifeCycles = {
             if (root && document.contains(root) && ctx.lifeCycleState) {
                 ctx.lifeCycleState.value = 'mounted';
                 canDebugMutations &&
-                    loomConsole.info('mounted', node, getShareableContext(ctx));
+                    loomConsole.info(
+                        `${ctx.key ? ctx.key + ' ' : ''}mounted`,
+                        node,
+                        getShareableContext(ctx)
+                    );
             } else {
                 lifeCycleNodes.delete(node);
             }
@@ -107,7 +111,7 @@ const domChanged: MutationCallback = (diffNodes) => {
                             ctx.lifeCycleState.value = 'unmounted';
                             canDebugMutations &&
                                 loomConsole.info(
-                                    'unmounted',
+                                    `${ctx.key ? ctx.key + ' ' : ''}unmounted`,
                                     node,
                                     getShareableContext(ctx)
                                 );
@@ -141,7 +145,7 @@ const domChanged: MutationCallback = (diffNodes) => {
                             ctx.lifeCycleState.value = 'mounted';
                             canDebugMutations &&
                                 loomConsole.info(
-                                    'mounted',
+                                    `${ctx.key ? ctx.key + ' ' : ''}mounted`,
                                     node,
                                     getShareableContext(ctx)
                                 );

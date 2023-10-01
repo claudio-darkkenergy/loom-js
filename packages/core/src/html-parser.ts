@@ -101,13 +101,16 @@ export function htmlParser(
         // Creation hook
         _lifeCycles.creation(ctx);
         canDebug('creation') &&
-            loomConsole.info('loom (Creation)', getShareableContext(ctx));
+            loomConsole.info(
+                `loom (Creation${ctx.key ? ' ' + ctx.key : ''})`,
+                getShareableContext(ctx)
+            );
         // Pre-render hook
         _lifeCycles.preRender(ctx);
         // Set all the updaters for each dynamic node path & calls them.
         canDebugUpdates &&
             loomConsole.groupCollapsed(
-                'loom (Hydrating...)',
+                `loom (Hydrating${ctx.key ? ' ' + ctx.key : ''}...)`,
                 getShareableContext(ctx)
             );
         setUpdatesForPaths(paths, ctx, liveFragment);
@@ -121,7 +124,7 @@ export function htmlParser(
         _lifeCycles.preRender(ctx);
         canDebugUpdates &&
             loomConsole.groupCollapsed(
-                'loom (Updating...)',
+                `loom (Updating${ctx.key ? ' ' + ctx.key : ''}...)`,
                 getShareableContext(ctx)
             );
 
