@@ -7,6 +7,7 @@ import {
 
 const debugAllowable: ConfigDebugAllowable = {
     console: true,
+    creation: true,
     error: true,
     mutations: true,
     updates: true,
