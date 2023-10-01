@@ -1,4 +1,7 @@
 import { getContextRootAnchor } from './helpers';
+import { loomConsole } from '../globals/loom-console';
+import { reactive, updateEffect } from '../reactive';
+import { canDebug } from '../../config';
 import type {
     ComponentContextPartial,
     LifeCycleHandler,
@@ -6,7 +9,6 @@ import type {
     LifeCycleHookProps,
     LifeCycleState
 } from '../../types';
-import { reactive, updateEffect } from '../reactive';
 
 // Holds reference to the life-cycle handlers for each component node.
 const lifeCycleNodes = new Map<Node, ComponentContextPartial>();
@@ -56,6 +58,10 @@ export const _lifeCycles = {
 
             if (root && document.contains(root) && ctx.lifeCycleState) {
                 ctx.lifeCycleState.value = 'mounted';
+                canDebug('mounted') &&
+                    loomConsole.info('loom (Mounted)', node, {
+                        ...ctx
+                    });
             } else {
                 lifeCycleNodes.delete(node);
             }
@@ -94,6 +100,10 @@ const domChanged: MutationCallback = (diffNodes) =>
                         if (ctx?.lifeCycleState) {
                             lifeCycleNodes.delete(node);
                             ctx.lifeCycleState.value = 'unmounted';
+                            canDebug('unmounted') &&
+                                loomConsole.info('loom (Unmounted)', node, {
+                                    ...ctx
+                                });
                         }
                     };
 
@@ -122,6 +132,10 @@ const domChanged: MutationCallback = (diffNodes) =>
 
                         if (ctx?.lifeCycleState) {
                             ctx.lifeCycleState.value = 'mounted';
+                            canDebug('mounted') &&
+                                loomConsole.info('loom (Mounted)', node, {
+                                    ...ctx
+                                });
                         }
                     };
 

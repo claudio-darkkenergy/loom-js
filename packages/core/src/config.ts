@@ -8,7 +8,8 @@ import {
 const debugAllowable: ConfigDebugAllowable = {
     console: true,
     error: true,
-    parser: true,
+    mounted: true,
+    unmounted: true,
     updates: true,
     warn: true
 };
