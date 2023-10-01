@@ -1,6 +1,14 @@
+export interface AppGlobalConfig {
+    debug?: boolean;
+    debugScope?: ConfigDebugAllowable & object;
+    events?: string[];
+    token?: string;
+}
+
 export interface AppInitProps {
     app: ContextFunction;
     append?: Boolean | null;
+    globalConfig?: AppGlobalConfig;
     onAppMounted?: (mountedApp: Element) => any;
     root?: Element | null;
 }
@@ -216,11 +224,13 @@ export interface OnRouteOptions {
 export type ConfigDebug = false | ConfigDebugAllowable;
 
 export interface ConfigDebugAllowable {
+    console?: boolean;
     error?: boolean;
     parser?: boolean;
     updates?: boolean;
     warn?: boolean;
 }
+
 export type ConfigEvent =
     | 'abort'
     | 'animationcancel'

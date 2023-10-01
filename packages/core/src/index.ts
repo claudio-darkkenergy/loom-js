@@ -8,6 +8,7 @@ export type {
     ActivityEffectAction,
     ActivityOptions,
     ActivityTransform,
+    AppGlobalConfig,
     AppInitProps,
     Aria,
     Component,

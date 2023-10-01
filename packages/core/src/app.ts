@@ -1,13 +1,20 @@
+import { appendEvents, setDebug, setToken } from './config';
 import { _lifeCycles } from './lib/context/life-cycles';
+import { loomConsole } from './lib/globals/loom-console';
 import { mount } from './lib/mount';
-import { AppInitProps } from './types';
+import { AppGlobalConfig, AppInitProps } from './types';
 
 export const init = ({
     app,
     append = null,
+    globalConfig = {},
     onAppMounted,
     root = document.body
 }: AppInitProps) => {
+    bootstrap();
+    // First configure the app.
+    configApp(globalConfig);
+
     const appCtx = app();
 
     if (
@@ -29,4 +36,16 @@ export const init = ({
         // The app has fully mounted, including all component descendants.
         onAppMounted(root);
     }
+};
+
+const bootstrap = () => {
+    globalThis.loom = {
+        console: loomConsole
+    };
+};
+
+const configApp = ({ debug, debugScope, events, token }: AppGlobalConfig) => {
+    setDebug(debug, debugScope);
+    events && appendEvents(events);
+    token && setToken(token);
 };

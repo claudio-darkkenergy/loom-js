@@ -6,13 +6,13 @@ import {
 } from './types';
 
 const debugAllowable: ConfigDebugAllowable = {
+    console: true,
     error: true,
     parser: true,
     updates: true,
     warn: true
 };
-let debug: ConfigDebug =
-    process.env.NODE_ENV === 'production' ? false : debugAllowable;
+let debug: ConfigDebug = debugAllowable;
 // Accepted events: https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers
 const defaultEvents: ConfigEvent[] = [
     'abort',
@@ -110,7 +110,7 @@ export const appendEvents = (eventsToAppend: string[]) => {
 };
 
 export const canDebug = (type: keyof ConfigDebugAllowable) =>
-    debug && debug[type];
+    process.env.NODE_ENV !== 'production' && debug && debug[type];
 
 /**
  * Contains the framework configuration.
@@ -119,8 +119,8 @@ export const config: Config = getConfig();
 
 export const setDebug = (
     isOn = true,
-    types: ConfigDebugAllowable = debugAllowable
-) => (debug = isOn && types);
+    types: ConfigDebugAllowable & object = debugAllowable
+) => (debug = isOn && Object.assign(debug, types));
 
 /**
  * Use this to customize the `config` TOKEN used by the template renderer during dynamic value resolution.
