@@ -227,8 +227,7 @@ export interface ConfigDebugAllowable {
     creation?: boolean;
     console?: boolean;
     error?: boolean;
-    mounted?: boolean;
-    unmounted?: boolean;
+    mutations?: boolean;
     updates?: boolean;
     warn?: boolean;
 }

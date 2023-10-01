@@ -104,7 +104,8 @@ export function htmlParser(
         // Pre-render hook
         _lifeCycles.preRender(ctx);
         // Set all the updaters for each dynamic node path & calls them.
-        canDebugUpdates && loomConsole.groupCollapsed('loom (Hydrating...)');
+        canDebugUpdates &&
+            loomConsole.groupCollapsed('loom (Hydrating...)', { ...ctx });
         setUpdatesForPaths(paths, ctx, liveFragment);
         canDebugUpdates && loomConsole.info('completed', { ...ctx });
         canDebugUpdates && loomConsole.groupEnd();
@@ -113,8 +114,8 @@ export function htmlParser(
     } else {
         // Pre-render hook
         _lifeCycles.preRender(ctx);
-        canDebugUpdates && loomConsole.groupCollapsed('loom (Updating...)');
-        canDebugUpdates && loomConsole.info('before', { ...ctx });
+        canDebugUpdates &&
+            loomConsole.groupCollapsed('loom (Updating...)', { ...ctx });
 
         // Set interpolations as new values of the `props` proxy object.
         interpolations.forEach((value, i) => {
@@ -126,7 +127,7 @@ export function htmlParser(
             ctx.values[i] = value;
         });
 
-        canDebugUpdates && loomConsole.info('after', { ...ctx });
+        canDebugUpdates && loomConsole.info('completed', { ...ctx });
         canDebugUpdates && loomConsole.groupEnd();
     }
 

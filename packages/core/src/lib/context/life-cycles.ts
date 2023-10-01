@@ -50,7 +50,10 @@ export const _lifeCycles = {
      * @param observableNode The App node to observe for changes in its DOM tree.
      */
     observe(observableNode: Element) {
+        const canDebugMutations = canDebug('mutations');
         const observer = new MutationObserver(domChanged);
+
+        canDebugMutations && loomConsole.groupCollapsed('loom (Mounting...)');
 
         // Execute all the `onMounted` handlers since all the nodes are now in the DOM.
         lifeCycleNodes.forEach((ctx, node) => {
@@ -58,8 +61,8 @@ export const _lifeCycles = {
 
             if (root && document.contains(root) && ctx.lifeCycleState) {
                 ctx.lifeCycleState.value = 'mounted';
-                canDebug('mounted') &&
-                    loomConsole.info('loom (Mounted)', node, {
+                canDebugMutations &&
+                    loomConsole.info('mounted', node, {
                         ...ctx
                     });
             } else {
@@ -67,6 +70,7 @@ export const _lifeCycles = {
             }
         });
 
+        canDebugMutations && loomConsole.groupEnd();
         // Observe future DOM updates.
         observer.observe(observableNode, { childList: true, subtree: true });
     },
@@ -88,8 +92,11 @@ export const _lifeCycles = {
  * The `MutationCallback` to get call by the `MutationObserver` on DOM mutations.
  * @param diffNodes The nodes which have been added or removed from the DOM.
  */
-const domChanged: MutationCallback = (diffNodes) =>
-    diffNodes.forEach(({ addedNodes, removedNodes, type }) => {
+const domChanged: MutationCallback = (diffNodes) => {
+    const canDebugMutations = canDebug('mutations');
+    canDebugMutations && loomConsole.groupCollapsed('loom (Mutating...)');
+
+    return diffNodes.forEach(({ addedNodes, removedNodes, type }) => {
         switch (type) {
             case 'childList':
                 // Handle removed nodes.
@@ -100,8 +107,8 @@ const domChanged: MutationCallback = (diffNodes) =>
                         if (ctx?.lifeCycleState) {
                             lifeCycleNodes.delete(node);
                             ctx.lifeCycleState.value = 'unmounted';
-                            canDebug('unmounted') &&
-                                loomConsole.info('loom (Unmounted)', node, {
+                            canDebugMutations &&
+                                loomConsole.info('unmounted', node, {
                                     ...ctx
                                 });
                         }
@@ -132,8 +139,8 @@ const domChanged: MutationCallback = (diffNodes) =>
 
                         if (ctx?.lifeCycleState) {
                             ctx.lifeCycleState.value = 'mounted';
-                            canDebug('mounted') &&
-                                loomConsole.info('loom (Mounted)', node, {
+                            canDebugMutations &&
+                                loomConsole.info('mounted', node, {
                                     ...ctx
                                 });
                         }
@@ -158,6 +165,7 @@ const domChanged: MutationCallback = (diffNodes) =>
                 }
         }
     });
+};
 
 /*
  * Life-cycle hooks occur in the following order:
