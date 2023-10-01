@@ -1,5 +1,5 @@
 import { canDebug, config } from './config';
-import { _lifeCycles } from './lib/context';
+import { _lifeCycles, getShareableContext } from './lib/context';
 import { loomConsole } from './lib/globals/loom-console';
 import { reactive } from './lib/reactive';
 import { getPaths, setUpdatesForPaths } from './lib/templating';
@@ -100,22 +100,30 @@ export function htmlParser(
 
         // Creation hook
         _lifeCycles.creation(ctx);
-        canDebug('creation') && loomConsole.info('loom (Creation)', { ...ctx });
+        canDebug('creation') &&
+            loomConsole.info('loom (Creation)', getShareableContext(ctx));
         // Pre-render hook
         _lifeCycles.preRender(ctx);
         // Set all the updaters for each dynamic node path & calls them.
-        canDebugUpdates && loomConsole.groupCollapsed('loom (Hydrating...)');
-        canDebugUpdates && loomConsole.info({ Component_Context: { ...ctx } });
+        canDebugUpdates &&
+            loomConsole.groupCollapsed(
+                'loom (Hydrating...)',
+                getShareableContext(ctx)
+            );
         setUpdatesForPaths(paths, ctx, liveFragment);
-        canDebugUpdates && loomConsole.info('completed', { ...ctx });
+        canDebugUpdates &&
+            loomConsole.info('completed', getShareableContext(ctx));
         canDebugUpdates && loomConsole.groupEnd();
         // setParentOnContext(ctx);
         instanceContextStore.add(ctx);
     } else {
         // Pre-render hook
         _lifeCycles.preRender(ctx);
-        canDebugUpdates && loomConsole.groupCollapsed('loom (Updating...)');
-        canDebugUpdates && loomConsole.info({ Component_Context: { ...ctx } });
+        canDebugUpdates &&
+            loomConsole.groupCollapsed(
+                'loom (Updating...)',
+                getShareableContext(ctx)
+            );
 
         // Set interpolations as new values of the `props` proxy object.
         interpolations.forEach((value, i) => {
@@ -127,7 +135,8 @@ export function htmlParser(
             ctx.values[i] = value;
         });
 
-        canDebugUpdates && loomConsole.info('completed', { ...ctx });
+        canDebugUpdates &&
+            loomConsole.info('completed', getShareableContext(ctx));
         canDebugUpdates && loomConsole.groupEnd();
     }
 

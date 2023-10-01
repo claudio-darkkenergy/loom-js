@@ -90,10 +90,10 @@ export interface ComponentContext<Props extends object = {}>
     ctxScopes: Map<TemplateFunction<Props>, ComponentContextPartial>;
     fingerPrint: TemplateFunction<Props>;
     fragment: boolean;
+    key: string;
     lifeCycleState: LifeCycleState;
     lifeCycles: LifeCycleHookProps;
     node: ContextNodeGetter;
-    name: string;
     parent: ComponentContextPartial;
     props: ComponentProps<Props>;
     render: TaggedTemplate;
@@ -119,6 +119,7 @@ export type ComponentFactory = <Props extends object = {}>(
 export interface ComponentOptionalProps {
     children?: TemplateTagValue;
     className?: string;
+    key?: string;
     onClick?: MouseEventListener;
     ref?: RefContext;
 }

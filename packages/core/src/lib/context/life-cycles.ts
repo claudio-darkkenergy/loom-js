@@ -1,4 +1,4 @@
-import { getContextRootAnchor } from './helpers';
+import { getContextRootAnchor, getShareableContext } from './helpers';
 import { loomConsole } from '../globals/loom-console';
 import { reactive, updateEffect } from '../reactive';
 import { canDebug } from '../../config';
@@ -62,9 +62,7 @@ export const _lifeCycles = {
             if (root && document.contains(root) && ctx.lifeCycleState) {
                 ctx.lifeCycleState.value = 'mounted';
                 canDebugMutations &&
-                    loomConsole.info('mounted', node, {
-                        ...ctx
-                    });
+                    loomConsole.info('mounted', node, getShareableContext(ctx));
             } else {
                 lifeCycleNodes.delete(node);
             }
@@ -108,9 +106,11 @@ const domChanged: MutationCallback = (diffNodes) => {
                             lifeCycleNodes.delete(node);
                             ctx.lifeCycleState.value = 'unmounted';
                             canDebugMutations &&
-                                loomConsole.info('unmounted', node, {
-                                    ...ctx
-                                });
+                                loomConsole.info(
+                                    'unmounted',
+                                    node,
+                                    getShareableContext(ctx)
+                                );
                         }
                     };
 
@@ -140,9 +140,11 @@ const domChanged: MutationCallback = (diffNodes) => {
                         if (ctx?.lifeCycleState) {
                             ctx.lifeCycleState.value = 'mounted';
                             canDebugMutations &&
-                                loomConsole.info('mounted', node, {
-                                    ...ctx
-                                });
+                                loomConsole.info(
+                                    'mounted',
+                                    node,
+                                    getShareableContext(ctx)
+                                );
                         }
                     };
 

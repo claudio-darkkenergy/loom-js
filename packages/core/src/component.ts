@@ -65,6 +65,7 @@ export const component: ComponentFactory = <Props extends object = {}>(
                 }
             }
 
+            ctx.key = props.key;
             ctx.props = props;
             refIterator = (ctx.refs as Set<RefContext>).values();
 
