@@ -6,6 +6,7 @@ import {
 } from './types';
 
 const debugAllowable: ConfigDebugAllowable = {
+    activity: true,
     console: true,
     creation: true,
     error: true,

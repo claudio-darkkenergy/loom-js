@@ -176,7 +176,9 @@ export type RenderFunction = TemplateFunction;
 export type RenderProps = ComponentProps;
 
 // A pass-through component
-export type SimpleComponent<P = any> = (props: P) => ContextFunction;
+export type SimpleComponent<Props extends object> = (
+    props: ComponentProps<Props>
+) => ContextFunction;
 
 /* Event */
 export type MouseEventListener = <T>(ev: SyntheticMouseEvent<T>) => void;
@@ -225,6 +227,7 @@ export interface OnRouteOptions {
 export type ConfigDebug = false | ConfigDebugAllowable;
 
 export interface ConfigDebugAllowable {
+    activity?: boolean;
     creation?: boolean;
     console?: boolean;
     error?: boolean;

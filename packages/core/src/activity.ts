@@ -1,3 +1,6 @@
+import { canDebug } from './config';
+import { getShareableContext } from './lib/context';
+import { loomConsole } from './lib/globals/loom-console';
 import { reactive, updateEffect } from './lib/reactive';
 import { textUpdater } from './lib/templating/get-text-update';
 import type {
@@ -76,11 +79,27 @@ export const activity = <V = unknown, I = V>(
                         ctx
                     );
 
-                    // setParentOnContext(ctx);
+                    canDebug('activity') &&
+                        loomConsole.info('completed', getShareableContext(ctx));
+                    canDebug('activity') && loomConsole.groupEnd();
                 };
 
                 const activityEffect = (valueProp: ValueProp<V>) => {
+                    canDebug('activity') &&
+                        loomConsole.groupCollapsed(
+                            `loom (Activity effect)${
+                                ctx.key ? ' ' + ctx.key : ''
+                            }...)`,
+                            getShareableContext(ctx)
+                        );
+
                     const templateTagValue = action({ value: valueProp.value });
+
+                    canDebug('activity') &&
+                        loomConsole.info('values', {
+                            templateTagValue,
+                            valueProp
+                        });
 
                     if (templateTagValue instanceof Promise) {
                         templateTagValue.then(renderEffect);
