@@ -63,7 +63,7 @@ export const _lifeCycles = {
                 ctx.lifeCycleState.value = 'mounted';
                 canDebugMutations &&
                     loomConsole.info(
-                        `${ctx.key ? ctx.key + ' ' : ''}mounted`,
+                        `${ctx.key ? `\`${ctx.key}\` ` : ''}mounted`,
                         node,
                         getShareableContext(ctx)
                     );
@@ -98,7 +98,7 @@ const domChanged: MutationCallback = (diffNodes) => {
     const canDebugMutations = canDebug('mutations');
     canDebugMutations && loomConsole.groupCollapsed('loom (Mutating...)');
 
-    return diffNodes.forEach(({ addedNodes, removedNodes, type }) => {
+    diffNodes.forEach(({ addedNodes, removedNodes, type }) => {
         switch (type) {
             case 'childList':
                 // Handle removed nodes.
@@ -111,7 +111,9 @@ const domChanged: MutationCallback = (diffNodes) => {
                             ctx.lifeCycleState.value = 'unmounted';
                             canDebugMutations &&
                                 loomConsole.info(
-                                    `${ctx.key ? ctx.key + ' ' : ''}unmounted`,
+                                    `${
+                                        ctx.key ? `\`${ctx.key}\` ` : ''
+                                    }unmounted`,
                                     node,
                                     getShareableContext(ctx)
                                 );
@@ -145,7 +147,9 @@ const domChanged: MutationCallback = (diffNodes) => {
                             ctx.lifeCycleState.value = 'mounted';
                             canDebugMutations &&
                                 loomConsole.info(
-                                    `${ctx.key ? ctx.key + ' ' : ''}mounted`,
+                                    `${
+                                        ctx.key ? `\`${ctx.key}\` ` : ''
+                                    }mounted`,
                                     node,
                                     getShareableContext(ctx)
                                 );
@@ -171,6 +175,8 @@ const domChanged: MutationCallback = (diffNodes) => {
                 }
         }
     });
+
+    canDebugMutations && loomConsole.groupEnd();
 };
 
 /*
