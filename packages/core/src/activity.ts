@@ -88,7 +88,7 @@ export const activity = <V = unknown, I = V>(
                     canDebug('activity') &&
                         loomConsole.groupCollapsed(
                             `loom (Activity effect)${
-                                ctx.key ? ' ' + ctx.key : ''
+                                ctx.key ? ` \`${ctx.key}\`` : ''
                             }...)`,
                             getShareableContext(ctx)
                         );
