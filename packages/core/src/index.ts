@@ -2,6 +2,7 @@ export * from './activity';
 export * from './app';
 export * from './component';
 export * from './config';
+export * from './lazy-import';
 export * from './routing';
 export type {
     ActivityEffect,
