@@ -17,7 +17,7 @@ export const lazyImport = <ImportType>(path: string) => {
         return importActivity;
     }
 
-    const importActivity = activity<ImportType | undefined>(undefined);
+    const importActivity = activity<ImportType | {}>({});
 
     lazyLoadedCache.set(path, importActivity);
     import(path).then(importActivity.update);
