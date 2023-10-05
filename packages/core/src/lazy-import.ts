@@ -1,26 +1,29 @@
 import { activity } from './activity';
 
-const lazyLoadedCache = new Map<string, object>();
+const lazyLoadedCache = new Map<string | Symbol, ReturnType<typeof activity>>();
 
 /**
  * Takes an import path & lazy loads a resource utilizing a subscribable activity.
  * @param path The import path
  * @returns An activity for the dynamic lazy import.
  */
-export const lazyImport = <ImportType>(path: string) => {
-    if (lazyLoadedCache.has(path)) {
+export const lazyImport = <ImportType>(
+    key: string | Symbol,
+    importer: () => Promise<ImportType>
+) => {
+    if (lazyLoadedCache.has(key)) {
         const {
             reset: _,
             update: __,
             ...importActivity
-        } = lazyLoadedCache.get(path) as ReturnType<typeof activity>;
+        } = lazyLoadedCache.get(key) as ReturnType<typeof activity>;
         return importActivity;
     }
 
     const importActivity = activity<ImportType | {}>({});
 
-    lazyLoadedCache.set(path, importActivity);
-    import(path).then(importActivity.update);
+    lazyLoadedCache.set(key, importActivity);
+    importer().then(importActivity.update);
 
     return importActivity;
 };
