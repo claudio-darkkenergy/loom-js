@@ -197,9 +197,9 @@ export type ActivityEffect<V> = (
     action: ActivityEffectAction<V>
 ) => ContextFunction;
 
-export type ActivityEffectAction<V> = (valueProp: {
-    value: V;
-}) => TemplateTagValue | Promise<TemplateTagValue>;
+export type ActivityEffectAction<V> = (
+    valueProp: ValueProp<V>
+) => TemplateTagValue | Promise<TemplateTagValue>;
 
 export interface ActivityOptions {
     deep?: boolean;
@@ -213,8 +213,8 @@ export type ActivityTransform<V = unknown, I = V> = (
     }
 ) => void | Promise<void>;
 
-export interface ValueProp<T = unknown> {
-    value: T;
+export interface ValueProp<V = unknown> {
+    value: V;
 }
 
 /* Routing */
