@@ -11,15 +11,13 @@ export const lazyImport = <ImportType>(
     key: string | Symbol,
     importer: () => Promise<ImportType>
 ) => {
+    // Check cache
     if (lazyLoadedCache.has(key)) {
-        const {
-            reset: _,
-            update: __,
-            ...importActivity
-        } = lazyLoadedCache.get(key) as ReturnType<typeof activity>;
-        return importActivity;
+        // Return the cached activity for the import key.
+        return lazyLoadedCache.get(key) as ReturnType<typeof activity>;
     }
 
+    // Otherwise, create & cache a new activity for the import key & return.
     const importActivity = activity<ImportType | {}>({});
 
     lazyLoadedCache.set(key, importActivity);
