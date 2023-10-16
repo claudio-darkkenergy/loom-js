@@ -1,7 +1,5 @@
 import { activity } from './activity';
 
-type LazyImportCache<V> = Map<string | Symbol, ReturnType<typeof activity<V>>>;
-
 const lazyImportCache = new Map();
 
 /**
@@ -14,7 +12,7 @@ export const lazyImport = <ImportType>(
     key: string | Symbol,
     importer: () => Promise<ImportType>
 ) => {
-    const cache: LazyImportCache<ImportType | undefined> = lazyImportCache;
+    const cache = lazyImportCache;
 
     // Check cache
     if (cache.has(key)) {
@@ -23,10 +21,15 @@ export const lazyImport = <ImportType>(
     }
 
     // Otherwise, create & cache a new activity for the import key & return.
-    const importActivity = activity<ImportType | undefined>(undefined);
+    const importActivity = activity<
+        ImportType | undefined,
+        () => Promise<ImportType>
+    >(undefined, async ({ input, update }) => {
+        input && update(await input());
+    });
 
     cache.set(key, importActivity);
-    importer().then(importActivity.update);
+    importActivity.update(importer);
 
     return importActivity;
 };

@@ -20,7 +20,6 @@ export const component: ComponentFactory = <Props extends object = {}>(
 ) => {
     const componentFunction: Component = (props = {}) => {
         // This is where we can add to the context to configure each component.
-        // return contextFunction.bind(props) as ContextFunction;
         function contextFunction(liveCtx: ComponentContextPartial = {}) {
             const scopedCtx =
                 liveCtx.ctxScopes &&

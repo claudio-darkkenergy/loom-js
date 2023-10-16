@@ -85,7 +85,7 @@ export function htmlParser(
         ctx.values = reactive(valueObj, (oldValue, newValue) => {
             switch (true) {
                 case oldValue instanceof Node && newValue instanceof Node:
-                    return (oldValue as Node).isSameNode(newValue as Node);
+                    return !(oldValue as Node).isEqualNode(newValue as Node);
                 default:
                     return oldValue !== newValue;
             }

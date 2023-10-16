@@ -12,16 +12,11 @@ export const resolveValue = (
     if (typeof value === 'function') {
         let templateTagValue: TemplateTagValue;
 
+        // Using syntax `function contextFunction() {}` w/ this name, exactly.
         if (value.name === 'contextFunction') {
             // Passing down a `ComponentContext` in the case the function value is a `ContextFunction`
             // which supports maintaining the component context so we don't unnecessarily create & replace w/ new nodes.
             const resultCtx = (value as ContextFunction)(ctx);
-
-            // Handles when a `ContextFunction` return a differnt context.
-            // if (resultCtx !== ctx) {
-            //     Object.assign(ctx, resultCtx);
-            // }
-
             templateTagValue = resultCtx.root;
         } else {
             templateTagValue = (value as TemplateTagValueFunction)();

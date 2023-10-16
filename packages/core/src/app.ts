@@ -45,7 +45,7 @@ const bootstrap = () => {
 };
 
 const configApp = ({ debug, debugScope, events, token }: AppGlobalConfig) => {
-    setDebug(debug, debugScope);
+    debug !== undefined && setDebug(debug, debugScope);
     events && appendEvents(events);
     token && setToken(token);
 };

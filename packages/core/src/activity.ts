@@ -59,9 +59,10 @@ export const activity = <V = unknown, I = V>(
     ) as {
         value: V;
     };
+    const ctxCache = new Map();
     // Update Handler
     const update = (valueInput: V) => {
-        Object.assign(valueProp, { value: valueInput });
+        valueProp.value = valueInput;
     };
     const value = () => {
         return resolveCurrentValue(currentValue);
@@ -71,7 +72,12 @@ export const activity = <V = unknown, I = V>(
 
     return {
         effect(action: ActivityEffectAction<V>) {
-            function contextFunction(ctx: ComponentContextPartial = {}) {
+            const cacheKey = String(action);
+            const cachedCtx = ctxCache.get(cacheKey);
+
+            return function contextFunction(
+                ctx: ComponentContextPartial = cachedCtx || {}
+            ) {
                 const renderEffect = (templateTagValue: TemplateTagValue) => {
                     ctx.root = textUpdater(
                         ctx.root as TemplateRoot | TemplateRootArray,
@@ -83,7 +89,6 @@ export const activity = <V = unknown, I = V>(
                         loomConsole.info('completed', getShareableContext(ctx));
                     canDebug('activity') && loomConsole.groupEnd();
                 };
-
                 const activityEffect = (valueProp: ValueProp<V>) => {
                     canDebug('activity') &&
                         loomConsole.groupCollapsed(
@@ -101,22 +106,17 @@ export const activity = <V = unknown, I = V>(
                             valueProp
                         });
 
-                    if (templateTagValue instanceof Promise) {
-                        templateTagValue.then(renderEffect);
-                    } else {
-                        renderEffect(templateTagValue);
-                    }
+                    renderEffect(templateTagValue);
                 };
 
                 // Create a temporary node to be replaced w/ once async node resolves.
-                ctx.root = ctx.root || document.createTextNode('');
-                ctx.ctxScopes = new Map();
+                ctx.ctxScopes = ctx.ctxScopes || new Map();
+                ctxCache.set(cacheKey, ctx);
                 // Set up the reactive effect for the activity.
-                updateEffect(activityEffect, valueProp);
-                return ctx;
-            }
+                !cachedCtx && updateEffect(activityEffect, valueProp);
 
-            return contextFunction;
+                return ctx;
+            };
         },
         initialValue,
         reset: () => update(initialValue),

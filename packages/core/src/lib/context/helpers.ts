@@ -15,7 +15,7 @@ export const appendChildContext = (
         if (typeof value === 'function' && value.name === 'contextFunction') {
             if (!childCtx) {
                 childCtx = {} as ComponentContextPartial;
-                parentCtx.children.push(childCtx);
+                parentCtx.children[i] = childCtx;
             }
 
             childCtx.parent = parentCtx;

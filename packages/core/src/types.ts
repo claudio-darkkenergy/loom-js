@@ -178,7 +178,7 @@ export type RenderProps = ComponentProps;
 // A pass-through component
 export type SimpleComponent<Props extends object> = (
     props: ComponentProps<Props>
-) => ContextFunction;
+) => TemplateTagValue;
 
 /* Event */
 export type MouseEventListener = <T>(ev: SyntheticMouseEvent<T>) => void;
@@ -199,7 +199,7 @@ export type ActivityEffect<V> = (
 
 export type ActivityEffectAction<V> = (
     valueProp: ValueProp<V>
-) => TemplateTagValue | Promise<TemplateTagValue>;
+) => TemplateTagValue;
 
 export interface ActivityOptions {
     deep?: boolean;

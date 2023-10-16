@@ -55,6 +55,8 @@ export const _lifeCycles = {
 
         canDebugMutations && loomConsole.groupCollapsed('loom (Mounting...)');
 
+        // Observe future DOM updates.
+        observer.observe(observableNode, { childList: true, subtree: true });
         // Execute all the `onMounted` handlers since all the nodes are now in the DOM.
         lifeCycleNodes.forEach((ctx, node) => {
             const root = getContextRootAnchor(ctx);
@@ -73,8 +75,6 @@ export const _lifeCycles = {
         });
 
         canDebugMutations && loomConsole.groupEnd();
-        // Observe future DOM updates.
-        observer.observe(observableNode, { childList: true, subtree: true });
     },
     preRender(ctx: ComponentContextPartial) {
         // Before-rendered life-cycle handler - called on every render.
