@@ -1,5 +1,7 @@
+import { LoomGlobal } from './types';
+
 declare global {
-    var loom: object;
+    var loom: LoomGlobal;
 }
 
 export {};

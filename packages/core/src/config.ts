@@ -14,7 +14,7 @@ const debugAllowable: ConfigDebugAllowable = {
     updates: true,
     warn: true
 };
-let debug: ConfigDebug = debugAllowable;
+let debug: ConfigDebug = false;
 // Accepted events: https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers
 const defaultEvents: ConfigEvent[] = [
     'abort',

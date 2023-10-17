@@ -59,7 +59,7 @@ export const activity = <V = unknown, I = V>(
     ) as {
         value: V;
     };
-    const ctxCache = new Map();
+    const ctxCache = new Map<string, ComponentContextPartial>();
     // Update Handler
     const update = (valueInput: V) => {
         valueProp.value = valueInput;
@@ -112,8 +112,14 @@ export const activity = <V = unknown, I = V>(
                 // Create a temporary node to be replaced w/ once async node resolves.
                 ctx.ctxScopes = ctx.ctxScopes || new Map();
                 ctxCache.set(cacheKey, ctx);
-                // Set up the reactive effect for the activity.
-                !cachedCtx && updateEffect(activityEffect, valueProp);
+
+                if (!cachedCtx) {
+                    // Set up the reactive effect for the activity.
+                    updateEffect(activityEffect, valueProp);
+                } else {
+                    // Or call the effect, directly, so we don't duplicate the effect reactivity.
+                    activityEffect(valueProp);
+                }
 
                 return ctx;
             };

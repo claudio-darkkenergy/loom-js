@@ -23,6 +23,10 @@ export interface Es6Object<T = unknown> {
     [key: string | symbol]: T;
 }
 
+export interface LoomGlobal {
+    console: Console;
+}
+
 export interface PlainObject<T = unknown> {
     [key: string]: T;
 }

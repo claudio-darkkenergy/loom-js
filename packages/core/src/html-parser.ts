@@ -86,6 +86,9 @@ export function htmlParser(
             switch (true) {
                 case oldValue instanceof Node && newValue instanceof Node:
                     return !(oldValue as Node).isEqualNode(newValue as Node);
+                case typeof oldValue === 'function' &&
+                    typeof newValue === 'function':
+                    return String(oldValue) !== String(newValue);
                 default:
                     return oldValue !== newValue;
             }

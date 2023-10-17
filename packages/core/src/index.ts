@@ -19,6 +19,7 @@ export type {
     ComponentProps,
     ContextFunction,
     LifeCycleHandler,
+    LoomGlobal,
     MouseEventListener,
     OnRouteOptions,
     ReactiveComponent,
