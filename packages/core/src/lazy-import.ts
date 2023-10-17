@@ -25,7 +25,8 @@ export const lazyImport = <ImportType>(
         ImportType | undefined,
         () => Promise<ImportType>
     >(undefined, async ({ input, update }) => {
-        input && update(await input());
+        const resolvedImport = await input();
+        update(resolvedImport);
     });
 
     cache.set(key, importActivity);
