@@ -75,7 +75,7 @@ export const activity = <V = unknown, I = V>(
             const cacheKey = String(action);
             const cachedCtx = ctxCache.get(cacheKey);
 
-            return function contextFunction(
+            return function activityContextFunction(
                 ctx: ComponentContextPartial = cachedCtx || {}
             ) {
                 const renderEffect = (templateTagValue: TemplateTagValue) => {

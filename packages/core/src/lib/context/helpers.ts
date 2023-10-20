@@ -12,7 +12,10 @@ export const appendChildContext = (
     if (Array.isArray(parentCtx.children)) {
         let childCtx = parentCtx.children[i];
 
-        if (typeof value === 'function' && value.name === 'contextFunction') {
+        if (
+            typeof value === 'function' &&
+            ['contextFunction', 'activityContextFunction'].includes(value.name)
+        ) {
             if (!childCtx) {
                 childCtx = {} as ComponentContextPartial;
                 parentCtx.children[i] = childCtx;

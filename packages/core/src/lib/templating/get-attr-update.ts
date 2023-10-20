@@ -43,6 +43,8 @@ const getSpecialAttrUpdate = (dynamicNode: DynamicNode, attr: Attr) => {
                 (dynamicNode as HTMLElement | SVGElement).addEventListener(
                     nodeName,
                     eventListener,
+                    // @TODO Use capture can be detected from the attribute name by parsing it out,
+                    // i.e. `$click.capture=`
                     false
                 );
             }

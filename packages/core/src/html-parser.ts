@@ -88,7 +88,16 @@ export function htmlParser(
                     return !(oldValue as Node).isEqualNode(newValue as Node);
                 case typeof oldValue === 'function' &&
                     typeof newValue === 'function':
-                    return String(oldValue) !== String(newValue);
+                    const areContextFns =
+                        ['contextFunction', 'activityContextFunction'].includes(
+                            (oldValue as Function).name
+                        ) &&
+                        ['contextFunction', 'activityContextFunction'].includes(
+                            (newValue as Function).name
+                        );
+                    const areDiffFns = String(oldValue) !== String(newValue);
+
+                    return areContextFns || areDiffFns;
                 default:
                     return oldValue !== newValue;
             }

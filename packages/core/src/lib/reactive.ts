@@ -1,7 +1,9 @@
 import { Es6Object } from '../types';
 
-let activeEffect: null | (() => void) = null;
+// Holds the prop dependency effects per reactive proxy.
 const deps = new WeakMap<Es6Object, Map<string | symbol, Set<() => void>>>();
+// Holds the active effect per reactive proxy.
+const reactiveEffects = new WeakMap<object, null | (() => void)>();
 
 const getDepsForProp = (obj: Es6Object, prop: string | symbol) => {
     const objDeps =
@@ -13,8 +15,13 @@ const getDepsForProp = (obj: Es6Object, prop: string | symbol) => {
 
     return propDeps;
 };
+const track = <T extends object>(
+    obj: Es6Object,
+    prop: string | symbol,
+    proxy: T
+) => {
+    const activeEffect = reactiveEffects.get(proxy);
 
-const track = (obj: Es6Object, prop: string | symbol) => {
     if (activeEffect) {
         const propDeps = getDepsForProp(obj, prop);
         propDeps.add(activeEffect);
@@ -25,11 +32,14 @@ const trigger = (obj: Es6Object, prop: string | symbol) => {
     propDeps.forEach((effect) => effect());
 };
 
-export const updateEffect = <T>(update: (proxy: T) => void, proxy: T) => {
+export const updateEffect = <T extends object>(
+    update: (proxy: T) => void,
+    proxy: T
+) => {
     const effect = () => {
-        activeEffect = effect;
+        reactiveEffects.set(proxy, effect);
         update(proxy);
-        activeEffect = null;
+        reactiveEffects.set(proxy, null);
     };
     effect();
 };
@@ -40,10 +50,10 @@ export const reactive = <T>(
         oldValue,
         newValue
     ) => oldValue !== newValue
-) =>
-    new Proxy(origObj, {
+) => {
+    const reactiveProxy = new Proxy(origObj, {
         get: function (obj, prop) {
-            track(obj, prop);
+            track(obj, prop, reactiveProxy);
             return obj[prop];
         },
         set: function (obj, prop, newValue) {
@@ -57,3 +67,6 @@ export const reactive = <T>(
             return true;
         }
     });
+
+    return reactiveProxy;
+};

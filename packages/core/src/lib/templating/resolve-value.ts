@@ -13,7 +13,9 @@ export const resolveValue = (
         let templateTagValue: TemplateTagValue;
 
         // Using syntax `function contextFunction() {}` w/ this name, exactly.
-        if (value.name === 'contextFunction') {
+        if (
+            ['contextFunction', 'activityContextFunction'].includes(value.name)
+        ) {
             // Passing down a `ComponentContext` in the case the function value is a `ContextFunction`
             // which supports maintaining the component context so we don't unnecessarily create & replace w/ new nodes.
             const resultCtx = (value as ContextFunction)(ctx);
