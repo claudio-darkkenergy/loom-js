@@ -83,21 +83,17 @@ export function htmlParser(
         ctx.chunks = chunks;
         // Create the interpolations' reactive `Proxy`.
         ctx.values = reactive(valueObj, (oldValue, newValue) => {
+            const isContextFunction = (value: TemplateTagValue) =>
+                typeof value === 'function' &&
+                ['contextFunction', 'activityContextFunction'].includes(
+                    value.name
+                );
+
             switch (true) {
                 case oldValue instanceof Node && newValue instanceof Node:
                     return !(oldValue as Node).isEqualNode(newValue as Node);
-                case typeof oldValue === 'function' &&
-                    typeof newValue === 'function':
-                    const areContextFns =
-                        ['contextFunction', 'activityContextFunction'].includes(
-                            (oldValue as Function).name
-                        ) &&
-                        ['contextFunction', 'activityContextFunction'].includes(
-                            (newValue as Function).name
-                        );
-                    const areDiffFns = String(oldValue) !== String(newValue);
-
-                    return areContextFns || areDiffFns;
+                case isContextFunction(oldValue) && isContextFunction(newValue):
+                    return true;
                 default:
                     return oldValue !== newValue;
             }
