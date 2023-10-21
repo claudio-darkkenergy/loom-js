@@ -59,7 +59,6 @@ export const activity = <V = unknown, I = V>(
     ) as {
         value: V;
     };
-    const ctxCache = new Map<string, ComponentContextPartial>();
     // Update Handler
     const update = (valueInput: V) => {
         valueProp.value = valueInput;
@@ -72,11 +71,8 @@ export const activity = <V = unknown, I = V>(
 
     return {
         effect(action: ActivityEffectAction<V>) {
-            const cacheKey = String(action);
-            const cachedCtx = ctxCache.get(cacheKey);
-
             return function activityContextFunction(
-                ctx: ComponentContextPartial = cachedCtx || {}
+                ctx: ComponentContextPartial = {}
             ) {
                 const renderEffect = (templateTagValue: TemplateTagValue) => {
                     ctx.root = textUpdater(
@@ -111,9 +107,8 @@ export const activity = <V = unknown, I = V>(
 
                 // Create a temporary node to be replaced w/ once async node resolves.
                 ctx.ctxScopes = ctx.ctxScopes || new Map();
-                ctxCache.set(cacheKey, ctx);
 
-                if (!cachedCtx) {
+                if (!ctx.root) {
                     // Set up the reactive effect for the activity.
                     updateEffect(activityEffect, valueProp);
                 } else {
