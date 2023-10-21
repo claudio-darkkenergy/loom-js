@@ -91,7 +91,7 @@ export function htmlParser(
 
             switch (true) {
                 case oldValue instanceof Node && newValue instanceof Node:
-                    return !(oldValue as Node).isEqualNode(newValue as Node);
+                    return !(oldValue as Node).isSameNode(newValue as Node);
                 case isContextFunction(oldValue) && isContextFunction(newValue):
                     return true;
                 default:

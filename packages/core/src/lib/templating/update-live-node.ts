@@ -15,7 +15,7 @@ export const updateLiveNode = ([liveNode, value]: [
     }
 
     // Only replace if the node is different than what's currently live to avoid unnecessary paints.
-    if (replaceableNode && !replaceableNode.isEqualNode(value)) {
+    if (replaceableNode && !replaceableNode.isSameNode(value)) {
         replaceableNode.replaceWith(
             ...(Array.isArray(value) ? value : [value])
         );
