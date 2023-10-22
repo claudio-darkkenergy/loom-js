@@ -86,7 +86,7 @@ export const activity = <V = unknown, I = V>(
 
                 if (!ctx.root || !activeEffect) {
                     // Set up the reactive effect for the activity.
-                    updateEffect(activeEffect, valueProp);
+                    updateEffect(renderEffect, valueProp);
                 } else {
                     // Or call the effect, directly, so we don't duplicate the effect reactivity.
                     activeEffect();
