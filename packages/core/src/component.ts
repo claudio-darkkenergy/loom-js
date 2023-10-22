@@ -24,13 +24,13 @@ export const component: ComponentFactory = <Props extends object = {}>(
             const scopedCtx =
                 liveCtx.ctxScopes &&
                 liveCtx.ctxScopes.get(templateFunction as TemplateFunction);
-            const ctx = scopedCtx || {};
+            const ctx = scopedCtx || (!liveCtx.ctxScopes ? liveCtx : {});
             // Holds any possible child `RefContext`s.
             let refIterator: IterableIterator<RefContext>;
 
             // Ensures the template context is fresh during 1st render &
             // whenever the fingerprint doesn't match the render function.
-            if (!liveCtx.ctxScopes || !scopedCtx) {
+            if (!liveCtx.root) {
                 const ref = props.ref;
 
                 ctx.children = [];
@@ -56,7 +56,7 @@ export const component: ComponentFactory = <Props extends object = {}>(
                 }
 
                 if (liveCtx.ctxScopes) {
-                    ctx.parent = liveCtx.parent;
+                    ctx.parent = liveCtx;
                     liveCtx.ctxScopes.set(
                         templateFunction as TemplateFunction,
                         ctx

@@ -22,5 +22,5 @@ export const updateLiveNode = ([liveNode, value]: [
         return value;
     }
 
-    return replaceableNode;
+    return replaceableNode || value;
 };

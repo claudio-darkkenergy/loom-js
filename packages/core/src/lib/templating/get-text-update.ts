@@ -24,17 +24,14 @@ export const textUpdater = (
 
     if (value instanceof Element) {
         // Handle `Element` nodes.
-        updateLiveNode([currentLiveNode, value]);
-        currentLiveNode = value;
+        currentLiveNode = updateLiveNode([currentLiveNode, value]);
     } else if (Array.isArray(value)) {
         currentLiveNode = handleArrayValue([currentLiveNode, value], valueCtx);
     } else {
         // Handle `Text` nodes.
         // Coerce to a valid `LiveNode` as if not already.
         const newTextValue = getNewTextValue(value);
-
-        updateLiveNode([currentLiveNode, newTextValue]);
-        currentLiveNode = newTextValue;
+        currentLiveNode = updateLiveNode([currentLiveNode, newTextValue]);
     }
 
     return currentLiveNode;
@@ -98,12 +95,6 @@ const handleArrayValue = (
             // lastResolvedValue = currentLiveNode = resolvedValue;
             currentLiveNode = resolvedValue;
         } else {
-            if (
-                resolvedValue instanceof Comment &&
-                resolvedValue.nodeName === '#comment'
-            ) {
-                debugger;
-            }
             // Handle `Text` or `Comment` nodes.
             const textOrCommentValue =
                 resolvedValue instanceof Comment

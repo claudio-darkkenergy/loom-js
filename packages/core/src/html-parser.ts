@@ -25,7 +25,6 @@ export function htmlParser(
     ...interpolations: TemplateTagValue[]
 ) {
     const ctx = this as ComponentContext;
-    const canDebugUpdates = canDebug('updates');
 
     // This only runs once per component "definition" (`TaggedTemplate`.)
     if (!templateCacheStore.has(chunks)) {
@@ -108,26 +107,15 @@ export function htmlParser(
 
         // Creation hook
         _lifeCycles.creation(ctx);
-        canDebug('creation') &&
-            loomConsole.info(
-                `loom (Creation${ctx.key ? ` \`${ctx.key}\`` : ''})`,
-                getShareableContext(ctx)
-            );
         // Pre-render hook
         _lifeCycles.preRender(ctx);
         // Set all the updaters for each dynamic node path & calls them.
-        canDebugUpdates &&
-            loomConsole.groupCollapsed(
-                `loom (Hydrating${ctx.key ? ` \`${ctx.key}\`` : ''}...)`,
-                getShareableContext(ctx)
-            );
         setUpdatesForPaths(paths, ctx, liveFragment);
-        canDebugUpdates &&
-            loomConsole.info('completed', getShareableContext(ctx));
-        canDebugUpdates && loomConsole.groupEnd();
         // setParentOnContext(ctx);
         instanceContextStore.add(ctx);
     } else {
+        const canDebugUpdates = canDebug('updates');
+
         // Pre-render hook
         _lifeCycles.preRender(ctx);
         canDebugUpdates &&

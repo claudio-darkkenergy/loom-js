@@ -1,6 +1,3 @@
-import { canDebug } from './config';
-import { getShareableContext } from './lib/context';
-import { loomConsole } from './lib/globals/loom-console';
 import { reactive, updateEffect } from './lib/reactive';
 import { textUpdater } from './lib/templating/get-text-update';
 import type {
@@ -11,7 +8,6 @@ import type {
     PlainObject,
     TemplateRoot,
     TemplateRootArray,
-    TemplateTagValue,
     ValueProp
 } from './types';
 
@@ -20,6 +16,8 @@ export const activity = <V = unknown, I = V>(
     transformOrOptions?: ActivityTransform<V, I> | ActivityOptions,
     options: ActivityOptions = {}
 ) => {
+    // The cached `renderEffect` for the given activity scope.
+    let activeEffect: () => void;
     const transformIsSet = typeof transformOrOptions === 'function';
     const transform = transformIsSet ? transformOrOptions : undefined;
     const { deep = false, force = false } = transformIsSet
@@ -74,46 +72,26 @@ export const activity = <V = unknown, I = V>(
             return function activityContextFunction(
                 ctx: ComponentContextPartial = {}
             ) {
-                const renderEffect = (templateTagValue: TemplateTagValue) => {
+                const renderEffect = () => {
+                    const templateTagValue = action({ value: valueProp.value });
                     ctx.root = textUpdater(
                         ctx.root as TemplateRoot | TemplateRootArray,
                         templateTagValue,
                         ctx
                     );
-
-                    canDebug('activity') &&
-                        loomConsole.info('completed', getShareableContext(ctx));
-                    canDebug('activity') && loomConsole.groupEnd();
-                };
-                const activityEffect = (valueProp: ValueProp<V>) => {
-                    canDebug('activity') &&
-                        loomConsole.groupCollapsed(
-                            `loom (Activity effect)${
-                                ctx.key ? ` \`${ctx.key}\`` : ''
-                            }...)`,
-                            getShareableContext(ctx)
-                        );
-
-                    const templateTagValue = action({ value: valueProp.value });
-
-                    canDebug('activity') &&
-                        loomConsole.info('values', {
-                            templateTagValue,
-                            valueProp
-                        });
-
-                    renderEffect(templateTagValue);
                 };
 
                 // Create a temporary node to be replaced w/ once async node resolves.
                 ctx.ctxScopes = ctx.ctxScopes || new Map();
 
-                if (!ctx.root) {
+                if (!ctx.root || !activeEffect) {
+                    // Cache the `renderEffect` for the current activity scope.
+                    activeEffect = renderEffect;
                     // Set up the reactive effect for the activity.
-                    updateEffect(activityEffect, valueProp);
+                    updateEffect(activeEffect, valueProp);
                 } else {
                     // Or call the effect, directly, so we don't duplicate the effect reactivity.
-                    activityEffect(valueProp);
+                    activeEffect();
                 }
 
                 return ctx;
