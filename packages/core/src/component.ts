@@ -21,16 +21,16 @@ export const component: ComponentFactory = <Props extends object = {}>(
     const componentFunction: Component = (props = {}) => {
         // This is where we can add to the context to configure each component.
         function contextFunction(liveCtx: ComponentContextPartial = {}) {
-            const scopedCtx =
-                liveCtx.ctxScopes &&
-                liveCtx.ctxScopes.get(templateFunction as TemplateFunction);
+            const scopedCtx = liveCtx.ctxScopes
+                ? liveCtx.ctxScopes.get(templateFunction as TemplateFunction)
+                : null;
             const ctx = scopedCtx || (!liveCtx.ctxScopes ? liveCtx : {});
             // Holds any possible child `RefContext`s.
             let refIterator: IterableIterator<RefContext>;
 
             // Ensures the template context is fresh during 1st render &
             // whenever the fingerprint doesn't match the render function.
-            if (!liveCtx.root) {
+            if (!liveCtx.root || scopedCtx === undefined) {
                 const ref = props.ref;
 
                 ctx.children = [];
