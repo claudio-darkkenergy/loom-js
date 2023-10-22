@@ -16,8 +16,7 @@ export const activity = <V = unknown, I = V>(
     transformOrOptions?: ActivityTransform<V, I> | ActivityOptions,
     options: ActivityOptions = {}
 ) => {
-    // The cached `renderEffect` for the given activity scope.
-    let activeEffect: () => void;
+    let activeEffectIsSet = false;
     const transformIsSet = typeof transformOrOptions === 'function';
     const transform = transformIsSet ? transformOrOptions : undefined;
     const { deep = false, force = false } = transformIsSet
@@ -84,16 +83,15 @@ export const activity = <V = unknown, I = V>(
                 // Create a temporary node to be replaced w/ once async node resolves.
                 ctx.ctxScopes = ctx.ctxScopes || new Map();
 
-                if (!ctx.root || !activeEffect) {
+                if (!ctx.root || !activeEffectIsSet) {
+                    // Set for the current activity scope.
+                    activeEffectIsSet = true;
                     // Set up the reactive effect for the activity.
                     updateEffect(renderEffect, valueProp);
                 } else {
                     // Or call the effect, directly, so we don't duplicate the effect reactivity.
-                    activeEffect();
+                    renderEffect();
                 }
-
-                // Caches or updates the cached `renderEffect` for the current activity scope.
-                activeEffect = renderEffect;
 
                 return ctx;
             };
