@@ -85,14 +85,15 @@ export const activity = <V = unknown, I = V>(
                 ctx.ctxScopes = ctx.ctxScopes || new Map();
 
                 if (!ctx.root || !activeEffect) {
-                    // Cache the `renderEffect` for the current activity scope.
-                    activeEffect = renderEffect;
                     // Set up the reactive effect for the activity.
                     updateEffect(activeEffect, valueProp);
                 } else {
                     // Or call the effect, directly, so we don't duplicate the effect reactivity.
                     activeEffect();
                 }
+
+                // Caches or updates the cached `renderEffect` for the current activity scope.
+                activeEffect = renderEffect;
 
                 return ctx;
             };
