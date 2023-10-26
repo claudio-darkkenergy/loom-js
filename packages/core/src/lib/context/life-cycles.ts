@@ -1,6 +1,3 @@
-import { getContextRootAnchor, getShareableContext } from './helpers';
-import { loomConsole } from '../globals/loom-console';
-import { reactive, updateEffect } from '../reactive';
 import { canDebug } from '../../config';
 import type {
     ComponentContextPartial,
@@ -9,6 +6,9 @@ import type {
     LifeCycleHookProps,
     LifeCycleState
 } from '../../types';
+import { loomConsole } from '../globals/loom-console';
+import { reactive, reactiveEffect } from '../reactive';
+import { getContextRootAnchor, getShareableContext } from './helpers';
 
 // Holds reference to the life-cycle handlers for each component node.
 const lifeCycleNodes = new Map<Node, ComponentContextPartial>();
@@ -199,7 +199,7 @@ export const lifeCycles: (
         value: null
     }) as LifeCycleState;
 
-    updateEffect(
+    reactiveEffect(
         (state) => lifeCycleStateUpdateEffect(ctx, state),
         lifeCycleState
     );

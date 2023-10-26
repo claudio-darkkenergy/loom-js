@@ -1,4 +1,5 @@
-import { reactive, updateEffect } from './lib/reactive';
+import { appendChildContext } from './lib/context';
+import { reactive, reactiveEffect } from './lib/reactive';
 import { textUpdater } from './lib/templating/get-text-update';
 import type {
     ActivityEffectAction,
@@ -16,7 +17,11 @@ export const activity = <V = unknown, I = V>(
     transformOrOptions?: ActivityTransform<V, I> | ActivityOptions,
     options: ActivityOptions = {}
 ) => {
-    let activeEffectIsSet = false;
+    // Holds the latest scoped action per `ctx` so that any update will be called in the correct scope.
+    const scopedActions = new Map<
+        ComponentContextPartial,
+        ActivityEffectAction<V>
+    >();
     const transformIsSet = typeof transformOrOptions === 'function';
     const transform = transformIsSet ? transformOrOptions : undefined;
     const { deep = false, force = false } = transformIsSet
@@ -72,23 +77,32 @@ export const activity = <V = unknown, I = V>(
                 ctx: ComponentContextPartial = {}
             ) {
                 const renderEffect = () => {
-                    const templateTagValue = action({ value: valueProp.value });
+                    const scopedAction = scopedActions.get(ctx);
+                    const templateTagValue =
+                        scopedAction &&
+                        scopedAction({ value: valueProp.value });
+
                     ctx.root = textUpdater(
                         ctx.root as TemplateRoot | TemplateRootArray,
                         templateTagValue,
-                        ctx
+                        typeof templateTagValue === 'function' &&
+                            templateTagValue.name === 'activityContextFunction'
+                            ? appendChildContext(ctx, templateTagValue, 0)
+                            : ctx
                     );
                 };
 
                 // Create a temporary node to be replaced w/ once async node resolves.
                 ctx.ctxScopes = ctx.ctxScopes || new Map();
 
-                if (!ctx.root || !activeEffectIsSet) {
-                    // Set for the current activity scope.
-                    activeEffectIsSet = true;
+                if (!ctx.root || !scopedActions.has(ctx)) {
+                    // Set the current action scope.
+                    scopedActions.set(ctx, action);
                     // Set up the reactive effect for the activity.
-                    updateEffect(renderEffect, valueProp);
+                    reactiveEffect(renderEffect, valueProp);
                 } else {
+                    // Update the current action scope.
+                    scopedActions.set(ctx, action);
                     // Or call the effect, directly, so we don't duplicate the effect reactivity.
                     renderEffect();
                 }
@@ -110,7 +124,7 @@ export const activity = <V = unknown, I = V>(
         // Returns a shallow copy of the current value.
         value,
         watch(action: (valueProp: ValueProp<V>) => any) {
-            updateEffect((valueProp) => {
+            reactiveEffect((valueProp) => {
                 action({ value: valueProp.value });
             }, valueProp);
         }

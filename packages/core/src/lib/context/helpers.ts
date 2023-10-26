@@ -9,6 +9,8 @@ export const appendChildContext = (
     value: TemplateTagValue,
     i: number
 ) => {
+    parentCtx.children = parentCtx.children || [];
+
     if (Array.isArray(parentCtx.children)) {
         let childCtx = parentCtx.children[i];
 

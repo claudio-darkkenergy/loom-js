@@ -2,14 +2,14 @@ import { canDebug } from '../../config';
 import type { ComponentContext, TemplateNodeUpdate } from '../../types';
 import { appendChildContext } from '../context';
 import { loomConsole } from '../globals/loom-console';
-import { updateEffect } from '../reactive';
+import { reactiveEffect } from '../reactive';
 
 export const setReactiveUpdates = (
     update: TemplateNodeUpdate,
     i: number,
     ctx: ComponentContext
 ) =>
-    updateEffect((values) => {
+    reactiveEffect((values) => {
         const updateValue = values[i];
         const childCtx = appendChildContext(ctx, updateValue, i);
 

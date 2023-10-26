@@ -35,6 +35,6 @@ export const resolveValue = (
     } else if (value instanceof NodeList) {
         return Array.from(value);
     } else {
-        return value || '';
+        return value || value === 0 ? value : '';
     }
 };
