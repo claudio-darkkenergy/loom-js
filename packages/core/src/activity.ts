@@ -69,7 +69,12 @@ export const activity = <V = unknown, I = V>(
         return resolveCurrentValue(currentValue);
     };
 
-    isObject(initialValue) && Object.freeze(initialValue);
+    try {
+        isObject(initialValue) && Object.freeze(initialValue);
+    } catch (_e) {
+        // The initial value will not pass through Object-freeze since it can't be frozen.
+        // No harm, no foul - there's a good reason.
+    }
 
     return {
         effect(action: ActivityEffectAction<V>) {
