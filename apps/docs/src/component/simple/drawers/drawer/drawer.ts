@@ -1,11 +1,11 @@
-import { component, ComponentNode, TemplateTagValue } from '@loom-js/core';
+import { component, Component, TemplateTagValue } from '@loom-js/core';
 import classNames from 'classnames';
 
 import styles from './styles.scss';
 
 export interface DrawerProps {
     className?: string;
-    closeButton?: ComponentNode;
+    closeButton?: Component;
     contents: TemplateTagValue;
     isActive: boolean;
 }

@@ -1,12 +1,12 @@
-import { ComponentNode } from '@loom-js/core';
+import { Component } from '@loom-js/core';
 
 import { Drawer, DrawerProps } from '@app/component/simple/drawers';
 
 import { DrawerContents } from './drawer-contents';
 
 export interface StandardDrawerProps extends Omit<DrawerProps, 'contents'> {
-    body: ComponentNode;
-    header?: ComponentNode;
+    body: Component;
+    header?: Component;
 }
 
 export const StandardDrawer = ({

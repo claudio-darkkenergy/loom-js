@@ -21,40 +21,36 @@ interface HeaderProps {
     title?: string;
 }
 
-export const Header = component<HeaderProps>(
-    (html, { navigation, onUnmounted, title }) => {
-        const { update: showNav } = siteNavToggleActivity;
-        const onMenuItemClick: MouseEventListener = (e) => onRoute(e);
-        // Close the site nav on route updates.
-        const unsubRouteUpdate = onRouteUpdate(() => showNav(false));
+export const Header = component<HeaderProps>((html, { navigation, title }) => {
+    const { update: showNav } = siteNavToggleActivity;
+    const onMenuItemClick: MouseEventListener = (e) => onRoute(e);
 
-        // Do cleanup.
-        onUnmounted(() => unsubRouteUpdate());
+    // Close the site nav on route updates.
+    onRouteUpdate(() => showNav(false));
 
-        return html`
-            <header class=${styles.header}>
-                <hgroup>
-                    <a $click=${onRoute} href="/">
-                        ${SiteLogo({
-                            caption: title,
-                            className: styles.siteLogo,
-                            height: 64,
-                            width: 64
-                        })}
-                    </a>
-                    <div class=${styles.toolbar}>
-                        ${StyledSiteNav({
-                            navigation,
-                            onClick: onRoute
-                        })}
-                        ${AnimatedSiteNavButton()}
-                    </div>
-                </hgroup>
-                ${ReactiveSiteNavDrawer(() => ({
-                    navigation,
-                    onClick: onMenuItemClick
-                }))}
-            </header>
-        `;
-    }
-);
+    return html`
+        <header class=${styles.header}>
+            <hgroup>
+                <a $click=${onRoute} href="/">
+                    ${SiteLogo({
+                        caption: title,
+                        className: styles.siteLogo,
+                        height: 64,
+                        width: 64
+                    })}
+                </a>
+                <div class=${styles.toolbar}>
+                    ${StyledSiteNav({
+                        navigation,
+                        onClick: onRoute
+                    })}
+                    ${AnimatedSiteNavButton()}
+                </div>
+            </hgroup>
+            ${ReactiveSiteNavDrawer(() => ({
+                navigation,
+                onClick: onMenuItemClick
+            }))}
+        </header>
+    `;
+});

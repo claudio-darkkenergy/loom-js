@@ -1,9 +1,9 @@
-import { component, ComponentNode } from '@loom-js/core';
+import { component, Component } from '@loom-js/core';
 
 export interface DrawerContentsProps {
-    body: ComponentNode;
+    body: Component;
     className?: string;
-    header?: ComponentNode;
+    header?: Component;
 }
 
 export const DrawerContents = component<DrawerContentsProps>(

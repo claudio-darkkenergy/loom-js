@@ -1,13 +1,13 @@
-import { component, ComponentNode } from '@loom-js/core';
+import { component, Component } from '@loom-js/core';
 
 import styles from './styles.scss';
 
 export interface StandardLayoutProps {
-    bodyTop?: ComponentNode;
-    footer?: ComponentNode;
-    header?: ComponentNode;
-    leftAside?: ComponentNode;
-    main?: ComponentNode;
+    bodyTop?: Component;
+    footer?: Component;
+    header?: Component;
+    leftAside?: Component;
+    main?: Component;
 }
 
 export const StandardLayout = component<StandardLayoutProps>(
