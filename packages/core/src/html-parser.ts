@@ -1,11 +1,13 @@
 import { canDebug, config } from './config';
 import { _lifeCycles, getShareableContext } from './lib/context';
 import { loomConsole } from './lib/globals/loom-console';
+import { deepDiffObject, isObject } from './lib/helpers';
 import { reactive } from './lib/reactive';
 import { getPaths, setUpdatesForPaths } from './lib/templating';
 import type {
     ComponentContext,
     ComponentContextPartial,
+    PlainObject,
     TemplateRoot, // TemplateNodeUpdate,
     TemplateRootArray,
     TemplateTagValue
@@ -72,11 +74,11 @@ export function htmlParser(
         const liveFragment = fragment.cloneNode(true) as DocumentFragment;
         // Convert `interpolations[]` to object.
         const valueObj = interpolations.reduce(
-            (acc, value, i) => {
+            (acc: { [key: number]: TemplateTagValue }, value, i) => {
                 acc[i] = value;
                 return acc;
             },
-            {} as { [key: number]: TemplateTagValue }
+            {}
         );
 
         ctx.chunks = chunks;
@@ -84,15 +86,25 @@ export function htmlParser(
         ctx.values = reactive(valueObj, (oldValue, newValue) => {
             const isContextFunction = (value: TemplateTagValue) =>
                 typeof value === 'function' &&
+                // @TODO Move `'activityContextFunction'` to activity logic via configuration.
                 ['contextFunction', 'activityContextFunction'].includes(
                     value.name
                 );
 
             switch (true) {
+                // Handle DOM Nodes.
                 case oldValue instanceof Node && newValue instanceof Node:
                     return !(oldValue as Node).isSameNode(newValue as Node);
+                // Handle `ContextFunction`s.
                 case isContextFunction(oldValue) && isContextFunction(newValue):
                     return true;
+                // Handle object literals.
+                case isObject(oldValue) && isObject(newValue):
+                    return deepDiffObject(
+                        oldValue as PlainObject,
+                        newValue as PlainObject
+                    );
+                // Handle primitives & everything else using strict comparison.
                 default:
                     return oldValue !== newValue;
             }

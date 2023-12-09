@@ -7,7 +7,7 @@ export interface AppGlobalConfig {
 
 export interface AppInitProps {
     app: ContextFunction;
-    append?: Boolean | null;
+    append?: boolean | null;
     globalConfig?: AppGlobalConfig;
     onAppMounted?: (mountedApp: Element) => any;
     root?: Element | null;
@@ -32,6 +32,16 @@ export interface PlainObject<T = unknown> {
 }
 
 /* Template */
+
+export type AttrsTemplateTagValue = PlainObject<TemplateTagValue> & {
+    style?: TemplateTagValue | PlainObject<TemplateTagValue>;
+};
+
+export type OnTemplateTagValue =
+    PlainObject<EventListenerOrEventListenerObject>;
+
+type SpecialTemplateTagValue = AttrsTemplateTagValue | OnTemplateTagValue;
+
 export interface TaggedTemplate {
     this?: ComponentContext;
     (
@@ -56,6 +66,8 @@ export type TemplateTagValue =
     | Node
     | null
     | number
+    | PlainObject<TemplateTagValue>
+    | SpecialTemplateTagValue
     | string
     | TemplateRoot
     | TemplateRootArray
@@ -120,13 +132,17 @@ export type ComponentFactory = <Props extends object = {}>(
     templateFunction: TemplateFunction<Props>
 ) => Component<Props>;
 
-export interface ComponentOptionalProps {
-    children?: TemplateTagValue;
-    className?: string;
-    key?: string;
-    onClick?: MouseEventListener;
-    ref?: RefContext;
-}
+export type ComponentOptionalProps = Partial<{
+    attrs: AttrsTemplateTagValue;
+    children: TemplateTagValue;
+    className: string;
+    id: string;
+    key: string;
+    on: OnTemplateTagValue;
+    onClick: MouseEventListener;
+    ref: RefContext;
+    style: TemplateTagValue | PlainObject<TemplateTagValue>;
+}>;
 
 // `ComponentContext` related types
 export type ContextFunction = (
@@ -134,6 +150,11 @@ export type ContextFunction = (
 ) => ComponentContextPartial;
 // Returns the parent of `TemplateRoot` or `TemplateRootArray`.
 export type ContextNodeGetter = () => TemplateRoot | TemplateRootArray;
+
+// A pass-through component
+export type SimpleComponent<Props extends object = {}> = (
+    props: ComponentProps<Props>
+) => TemplateTagValue;
 
 /* Life-cycles */
 export type LifeCycleHandler = (root?: TemplateRoot | TemplateRootArray) => any;
@@ -178,11 +199,6 @@ export type RenderFunction = TemplateFunction;
 
 // @Deprecated
 export type RenderProps = ComponentProps;
-
-// A pass-through component
-export type SimpleComponent<Props extends object> = (
-    props: ComponentProps<Props>
-) => TemplateTagValue;
 
 /* Event */
 export type MouseEventListener = <T>(ev: SyntheticMouseEvent<T>) => void;

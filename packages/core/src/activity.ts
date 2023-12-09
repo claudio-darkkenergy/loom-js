@@ -1,4 +1,5 @@
 import { appendChildContext } from './lib/context';
+import { isObject, shallowDiffObject } from './lib/helpers';
 import { reactive, reactiveEffect } from './lib/reactive';
 import { textUpdater } from './lib/templating/get-text-update';
 import type {
@@ -27,8 +28,6 @@ export const activity = <V = unknown, I = V>(
     const { deep = false, force = false } = transformIsSet
         ? options
         : transformOrOptions || {};
-    const isObject = (value: V) =>
-        value !== null && typeof value === 'object' && !Array.isArray(value);
     // Will only shallow clone the passed value if it's a plain object, otherwise returned as is.
     const resolveCurrentValue = (value: V) =>
         isObject(value) && (value as Object).constructor.name === 'Object'
@@ -43,10 +42,9 @@ export const activity = <V = unknown, I = V>(
         } else if (deep && isObject(oldValue) && isObject(newValue)) {
             // Handle Object values when they share the same reference.
             // Allow updates if at least 1 value has changed.
-            valueChanged = Object.entries(oldValue as PlainObject).some(
-                ([key, value]) => {
-                    return value !== (newValue as PlainObject)[key];
-                }
+            valueChanged = shallowDiffObject(
+                oldValue as PlainObject,
+                newValue as PlainObject
             );
         } else {
             valueChanged = oldValue !== newValue;
