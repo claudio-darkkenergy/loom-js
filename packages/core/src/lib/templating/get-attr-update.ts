@@ -4,7 +4,8 @@ import type {
     ConfigEvent,
     OnTemplateTagValue,
     TemplateNodeUpdate,
-    TemplateTagValue
+    TemplateTagValue,
+    TemplateTagValueFunction
 } from '../../types';
 import { loomConsole } from '../globals/loom-console';
 import { isObject } from '../helpers';
@@ -119,6 +120,12 @@ const getStandardAttrUpdate =
                             | HTMLTextAreaElement
                     ).value = String(value);
                     break;
+                case attr.name === 'style' && Array.isArray(value):
+                    mergeAndSetStyleValues(
+                        element,
+                        value as TemplateTagValue[]
+                    );
+                    break;
                 case attr.name === 'style' && isObject(value):
                     Object.assign(element.style, value);
                     break;
@@ -131,6 +138,33 @@ const getStandardAttrUpdate =
             element.removeAttribute(attr.name);
         }
     };
+
+const mergeAndSetStyleValues = (
+    $target: HTMLElement | SVGElement,
+    styleRules: TemplateTagValue[]
+) => {
+    const handleStyleArg = (styleArg: TemplateTagValue) => {
+        if (typeof styleArg === 'string') {
+            styleArg.split(';').forEach((ruleValue) => {
+                if (ruleValue) {
+                    const [rule, value] = ruleValue.split(':');
+                    $target.style[rule.trim()] = value.trim();
+                }
+            });
+        } else if (
+            typeof styleArg === 'function' &&
+            ['contextFunction', 'activityContextFunction'].includes(
+                styleArg.name
+            )
+        ) {
+            handleStyleArg((styleArg as TemplateTagValueFunction)());
+        } else if (isObject(styleArg)) {
+            Object.assign($target.style, styleArg);
+        }
+    };
+
+    styleRules.forEach(handleStyleArg);
+};
 
 const overrideEventListener = ({
     attr,
@@ -145,7 +179,6 @@ const overrideEventListener = ({
     nodeName: string;
     override?: TemplateTagValue;
 }) => {
-    console.log({ nodeName, listenerCtx, override });
     const element = dynamicNode as HTMLElement | SVGElement;
 
     if (typeof listenerCtx?.eventListener === 'function') {
@@ -206,6 +239,14 @@ const specialAttrUpdaters: {
                 switch (true) {
                     case key === 'class':
                         element.classList.add(String(resolvedValue));
+                        break;
+                    // Handle style as Array of possible style values,
+                    // ie. ['ruleName: value;', { ruleName: 'value' }, undefined, false].
+                    case key === 'style' && Array.isArray(resolvedValue):
+                        mergeAndSetStyleValues(
+                            element,
+                            resolvedValue as TemplateTagValue[]
+                        );
                         break;
                     // Handle style as `CSSStyleDeclaration` object notation.
                     case key === 'style' && isObject(resolvedValue):
