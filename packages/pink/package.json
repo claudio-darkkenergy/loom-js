@@ -1,0 +1,41 @@
+{
+  "name": "@loom-js/components",
+  "version": "0.0.10",
+  "description": "",
+  "scripts": {
+    "build": "rm -rf ./dist/* && tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "exports": {
+    "./behavior/*": "./src/behavior/*.ts",
+    "./simple": "./src/simple/index.ts",
+    "./types": "./src/types/index.d.ts"
+  },
+  "files": [
+    "src",
+    "types"
+  ],
+  "typesVersions": {
+    "*": {
+      "*": [
+        "src/*",
+        "src/*/index"
+      ]
+    }
+  },
+  "dependencies": {
+    "@loom-js/components": "workspace:*",
+    "@loom-js/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@web/dev-server-esbuild": "^0.4.1",
+    "@web/dev-server-rollup": "^0.5.2",
+    "esbuild": "^0.18.11",
+    "typescript": "^5.1.6"
+  },
+  "sideEffects": false
+}
