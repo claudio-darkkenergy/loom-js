@@ -148,7 +148,7 @@ const mergeAndSetStyleValues = (
             styleArg.split(';').forEach((ruleValue) => {
                 if (ruleValue) {
                     const [rule, value] = ruleValue.split(':');
-                    $target.style[rule.trim()] = value.trim();
+                    $target.style[rule.trim() as any] = value.trim();
                 }
             });
         } else if (
