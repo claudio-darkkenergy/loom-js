@@ -34,6 +34,8 @@ export interface PlainObject<T = unknown> {
 /* Template */
 
 export type AttrsTemplateTagValue = PlainObject<TemplateTagValue> & {
+    id?: string;
+    className?: string;
     style?: TemplateTagValue | PlainObject<TemplateTagValue>;
 };
 

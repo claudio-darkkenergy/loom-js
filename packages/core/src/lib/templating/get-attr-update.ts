@@ -237,7 +237,7 @@ const specialAttrUpdaters: {
                 const resolvedValue = resolveValue(value);
 
                 switch (true) {
-                    case key === 'class':
+                    case key === 'className':
                         element.classList.add(String(resolvedValue));
                         break;
                     // Handle style as Array of possible style values,
