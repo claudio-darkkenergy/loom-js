@@ -135,7 +135,7 @@ const getStandardAttrUpdate =
                     break;
                 case nodeName === 'style' && isObject(value):
                     Object.entries(value).forEach(([propName, val]) => {
-                        element.style.setProperty(propName, val);
+                        val && element.style.setProperty(propName, val);
                     });
                     break;
                 default:
@@ -158,8 +158,10 @@ const mergeAndSetStyleValues = (
                 if (ruleValue) {
                     const [rule, value] = ruleValue.split(':');
                     const trimmedRule = rule.trim() as any;
+                    const trimmedValue = value.trim();
 
-                    $target.style.setProperty(trimmedRule, value.trim());
+                    trimmedValue &&
+                        $target.style.setProperty(trimmedRule, trimmedValue);
                 }
             });
         } else if (
@@ -172,7 +174,7 @@ const mergeAndSetStyleValues = (
         } else if (isObject(styleArg)) {
             Object.entries(styleArg as PlainObject<string | null>).forEach(
                 ([propName, value]) => {
-                    $target.style.setProperty(propName, value);
+                    value && $target.style.setProperty(propName, value);
                 }
             );
         }
@@ -269,7 +271,8 @@ const specialAttrUpdaters: {
                     case key === 'style' && isObject(resolvedValue):
                         Object.entries(resolvedValue).forEach(
                             ([propName, value]) => {
-                                element.style.setProperty(propName, value);
+                                value &&
+                                    element.style.setProperty(propName, value);
                             }
                         );
                         break;
