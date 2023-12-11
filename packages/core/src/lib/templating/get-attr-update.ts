@@ -3,6 +3,7 @@ import type {
     AttrsTemplateTagValue,
     ConfigEvent,
     OnTemplateTagValue,
+    PlainObject,
     TemplateNodeUpdate,
     TemplateTagValue,
     TemplateTagValueFunction
@@ -78,6 +79,7 @@ const getSpecialAttrUpdate = (dynamicNode: DynamicNode, attr: Attr) => {
         default:
             // Safely handle other standard attrs or those which are not known dom-event attrs.
             updater = specialAttrUpdaters.default.bind(null, {
+                attr,
                 dynamicNode,
                 nodeName
             });
@@ -93,21 +95,26 @@ const getSpecialAttrUpdate = (dynamicNode: DynamicNode, attr: Attr) => {
 
 const getStandardAttrUpdate =
     (dynamicNode: DynamicNode, attr: Attr) => (newValue: TemplateTagValue) => {
+        // Special attributes start w/ `$`.
+        let nodeName =
+            attr['nodeName'][0] === '$'
+                ? attr.nodeName.slice(1)
+                : attr.nodeName;
         const value = resolveValue(newValue);
         const element = dynamicNode as HTMLElement | SVGElement;
 
         if (value) {
             switch (true) {
-                case attr.name === 'type' &&
+                case nodeName === 'type' &&
                     value === 'number' &&
                     isNaN((element as any).value):
                     // Fixes "The specified value * cannot be parsed, or is out of range." warning which occurs on inputs
                     // where the type will be set to 'number' while the current value is not a parsable number value.
                     // In this case, the value attribute should be set to a parsable value by calling `setAttribute`.
                     (element as HTMLInputElement).value = '';
-                    element.setAttribute(attr.name, String(value));
+                    element.setAttribute(nodeName, String(value));
                     break;
-                case attr.name === 'value':
+                case nodeName === 'value':
                     // Set the value prop instead of the value attribute, i.e. using `setAttribute`, which only works when no value
                     // has been set for the UI to update at all.
                     (
@@ -120,22 +127,24 @@ const getStandardAttrUpdate =
                             | HTMLTextAreaElement
                     ).value = String(value);
                     break;
-                case attr.name === 'style' && Array.isArray(value):
+                case nodeName === 'style' && Array.isArray(value):
                     mergeAndSetStyleValues(
                         element,
                         value as TemplateTagValue[]
                     );
                     break;
-                case attr.name === 'style' && isObject(value):
-                    Object.assign(element.style, value);
+                case nodeName === 'style' && isObject(value):
+                    Object.entries(value).forEach(([propName, val]) => {
+                        element.style.setProperty(propName, val);
+                    });
                     break;
                 default:
-                    element.setAttribute(attr.name, String(value));
+                    element.setAttribute(nodeName, String(value));
             }
         } else {
             // If `value` is falsy, we'll cleanup the attribute by removing it.
             // Removing the attribute also solves for boolean attributes, i.e. `disabled`.
-            element.removeAttribute(attr.name);
+            element.removeAttribute(nodeName);
         }
     };
 
@@ -148,18 +157,24 @@ const mergeAndSetStyleValues = (
             styleArg.split(';').forEach((ruleValue) => {
                 if (ruleValue) {
                     const [rule, value] = ruleValue.split(':');
-                    $target.style[rule.trim() as any] = value.trim();
+                    const trimmedRule = rule.trim() as any;
+
+                    $target.style.setProperty(trimmedRule, value.trim());
                 }
             });
         } else if (
             typeof styleArg === 'function' &&
-            ['contextFunction', 'activityContextFunction'].includes(
+            !['contextFunction', 'activityContextFunction'].includes(
                 styleArg.name
             )
         ) {
             handleStyleArg((styleArg as TemplateTagValueFunction)());
         } else if (isObject(styleArg)) {
-            Object.assign($target.style, styleArg);
+            Object.entries(styleArg as PlainObject<string | null>).forEach(
+                ([propName, value]) => {
+                    $target.style.setProperty(propName, value);
+                }
+            );
         }
     };
 
@@ -252,7 +267,11 @@ const specialAttrUpdaters: {
                         break;
                     // Handle style as `CSSStyleDeclaration` object notation.
                     case key === 'style' && isObject(resolvedValue):
-                        Object.assign(element.style, resolvedValue);
+                        Object.entries(resolvedValue).forEach(
+                            ([propName, value]) => {
+                                element.style.setProperty(propName, value);
+                            }
+                        );
                         break;
                     // Truthy value exists - add and/or set the attribute & its value.
                     case Boolean(resolvedValue):
@@ -265,17 +284,8 @@ const specialAttrUpdaters: {
             }
         );
     },
-    default: ({ dynamicNode, nodeName }, newValue) => {
-        const value = String(resolveValue(newValue));
-        const element = dynamicNode as HTMLElement | SVGElement;
-
-        if (value) {
-            element.setAttribute(nodeName, value);
-        } else {
-            // If `value` is falsy, we'll cleanup the attribute by removing it.
-            // Removing the attribute also solves for boolean attributes, i.e. `disabled`.
-            element.removeAttribute(nodeName);
-        }
+    default: ({ attr, dynamicNode }, newValue) => {
+        getStandardAttrUpdate(dynamicNode, attr as Attr)(newValue);
     },
     event: (
         { attr, dynamicNode, listenerCtx, nodeName },
