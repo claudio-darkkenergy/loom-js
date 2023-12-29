@@ -19,7 +19,7 @@ importers:
         version: 16.3.0
       '@loom-js/components':
         specifier: workspace:*
-        version: link:../../packages/components
+        version: link:../../packages/pink
       '@loom-js/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -152,7 +152,7 @@ importers:
     dependencies:
       '@loom-js/components':
         specifier: workspace:*
-        version: 'link:'
+        version: link:../pink
       '@loom-js/core':
         specifier: workspace:*
         version: link:../core
@@ -248,11 +248,33 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2
 
+  packages/pink:
+    dependencies:
+      '@loom-js/components':
+        specifier: workspace:*
+        version: 'link:'
+      '@loom-js/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@web/dev-server-esbuild':
+        specifier: ^0.4.1
+        version: 0.4.1
+      '@web/dev-server-rollup':
+        specifier: ^0.5.2
+        version: 0.5.2
+      esbuild:
+        specifier: ^0.18.11
+        version: 0.18.20
+      typescript:
+        specifier: ^5.1.6
+        version: 5.2.2
+
   packages/ui-kit:
     dependencies:
       '@loom-js/components':
         specifier: workspace:*
-        version: link:../components
+        version: link:../pink
       '@loom-js/core':
         specifier: workspace:*
         version: link:../core
