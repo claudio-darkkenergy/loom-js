@@ -154,9 +154,10 @@ export type ContextFunction = (
 export type ContextNodeGetter = () => TemplateRoot | TemplateRootArray;
 
 // A pass-through component
-export type SimpleComponent<Props extends object = {}> = (
-    props: ComponentProps<Props>
-) => TemplateTagValue;
+export type SimpleComponent<
+    Props extends object = {},
+    Return extends TemplateTagValue = TemplateTagValue
+> = (props: ComponentProps<Props>) => Return;
 
 /* Life-cycles */
 export type LifeCycleHandler = (root?: TemplateRoot | TemplateRootArray) => any;

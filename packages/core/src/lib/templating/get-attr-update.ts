@@ -238,8 +238,9 @@ const specialAttrUpdaters: {
 } = {
     attrs: ({ attr, dynamicNode, nodeName }, newValue) => {
         // The new value must be an object literal.
-        if (!isObject(newValue)) {
-            canDebug('warn') &&
+        if (!newValue || !isObject(newValue)) {
+            newValue &&
+                canDebug('warn') &&
                 loomConsole.warn(
                     `${attr?.nodeName} must be an object literal.`
                 );
@@ -255,9 +256,10 @@ const specialAttrUpdaters: {
 
                 switch (true) {
                     case key === 'className':
-                        element.classList.add(
-                            ...String(resolvedValue).split(/(?:\s)+/g)
-                        );
+                        resolvedValue &&
+                            element.classList.add(
+                                ...String(resolvedValue).split(/(?:\s)+/g)
+                            );
                         break;
                     // Handle style as Array of possible style values,
                     // ie. ['ruleName: value;', { ruleName: 'value' }, undefined, false].
@@ -307,8 +309,9 @@ const specialAttrUpdaters: {
         newValue: TemplateTagValue
     ) => {
         // The new value must be an object literal.
-        if (!isObject(newValue)) {
-            canDebug('warn') &&
+        if (!newValue || !isObject(newValue)) {
+            newValue &&
+                canDebug('warn') &&
                 loomConsole.warn(
                     `${attr?.nodeName} must be an object literal.`
                 );
