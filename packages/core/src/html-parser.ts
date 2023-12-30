@@ -27,6 +27,7 @@ export function htmlParser(
     ...interpolations: TemplateTagValue[]
 ) {
     const ctx = this as ComponentContext;
+    const isTemplateFragment = /^<>/.test(chunks[0].trim());
 
     // This only runs once per component "definition" (`TaggedTemplate`.)
     if (!templateCacheStore.has(chunks)) {
@@ -37,8 +38,7 @@ export function htmlParser(
 
         // Check for a "rootless" component template.
         // This will inherit its connected parent element as its root.
-        if (/^<>/.test(chunks[0].trim())) {
-            ctx.fragment = true;
+        if (isTemplateFragment) {
             // Remove the fragment artifact "<>" from the renderable content.
             fragment.childNodes[0].textContent =
                 fragment.childNodes[0].textContent?.replace('<>', '') || null;
@@ -50,7 +50,7 @@ export function htmlParser(
             window.NodeFilter.SHOW_ALL
         );
 
-        // Cache the template using `ctx.fingerPrint`.
+        // Cache the template using the `TemplateStringsArray`.
         templateCacheStore.set(chunks, {
             fragment,
             paths: getPaths(treeWalker)
@@ -111,7 +111,8 @@ export function htmlParser(
         });
 
         // Update the context root with the latest nodes.
-        if (ctx.fragment) {
+        if (isTemplateFragment) {
+            ctx.fragment = true;
             ctx.root = Array.from(liveFragment.childNodes) as TemplateRootArray;
         } else {
             ctx.root = liveFragment.children[0] as TemplateRoot;
