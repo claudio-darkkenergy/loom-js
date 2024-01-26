@@ -1,10 +1,11 @@
+import { USE_MOCKS } from '@app/constants';
 import { request, requestHeaders } from '@app/helpers/http/request';
 
 const mockBaseUrl = '@app/mock';
 const resourceData = <R>(resource: string): Promise<R> =>
     import(`${mockBaseUrl}${resource}`);
 
-if (__USE_MOCKS__) {
+if (USE_MOCKS) {
     console.info('Mocking requests...');
 }
 

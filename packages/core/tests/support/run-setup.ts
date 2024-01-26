@@ -1,16 +1,16 @@
 import { Container, ContainerProps } from './components/container';
-import { init } from '../../src';
+import { AppInitProps, ComponentOptionalProps, init } from '../../src';
 
 export interface SetupOptions {
-    containerProps: ContainerProps;
+    appInitProps?: {} | AppInitProps;
+    containerProps: ContainerProps & ComponentOptionalProps;
 }
 
 export const runSetup = ({
+    appInitProps = {},
     containerProps: { className = 'test-scope', ...containerProps }
-}: SetupOptions): Promise<HTMLElement> =>
-    new Promise((resolve) => {
-        const root = document.body.querySelector('main') || document.body;
-
+}: SetupOptions) =>
+    new Promise<HTMLElement>((resolve) => {
         // Initialize the app
         init({
             app: Container({
@@ -19,18 +19,10 @@ export const runSetup = ({
             }),
             append: false,
             onAppMounted: (app) => {
-                console.log({ app });
-                resolve(
-                    // Find & resolve the test-scope node.
-                    app.find((node) => {
-                        console.log('node', (node as Element).className);
-                        return (
-                            node instanceof HTMLElement &&
-                            Array.from(node.classList).includes('test-scope')
-                        );
-                    }) as HTMLElement
-                );
+                // console.log('contains app?', document.contains(app));
+                // console.log('document.body', document.body);
+                resolve(app as HTMLElement);
             },
-            root
+            ...appInitProps
         });
     });

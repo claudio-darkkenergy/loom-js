@@ -6,6 +6,10 @@ import {
     pageFields,
     siteCollection
 } from '@app/graphql/contentful';
+import {
+    pageContentGraphQlUrl,
+    siteContentGraphQlUrl
+} from '@app/helpers/api/urls';
 import { contentfulRequest } from '@app/helpers/contentful/contentful-request';
 import { createQuery } from '@app/helpers/graphql/query';
 import { Page, Site } from '@app/types';
@@ -28,6 +32,7 @@ export const getPage = async (slug = '') =>
             fragments: [contentFields, pageFields],
             queries: [pageContentBySlug]
         }),
+        url: pageContentGraphQlUrl,
         variables: {
             isPreview: true,
             slug
@@ -47,6 +52,7 @@ export const getSite = async (siteId: string) =>
             args: [previewArg, siteIdArg],
             queries: [siteCollection]
         }),
+        url: siteContentGraphQlUrl,
         variables: {
             isPreview: true,
             siteId

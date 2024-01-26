@@ -25,6 +25,9 @@ export const init = ({
         // `root` cannot be the document HEAD or BODY.
         root = document.createElement('div');
         root.id = 'loom-app';
+
+        // Mount the detatched root to the document body.
+        mount(undefined, root, false);
     }
 
     mount(root, appCtx, append);

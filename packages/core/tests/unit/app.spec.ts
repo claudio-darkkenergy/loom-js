@@ -5,12 +5,13 @@ let $test: HTMLElement;
 const appClassName = 'app-test';
 const testId = Math.round(Math.random() * 1000);
 const testText = 'Testing `app`...';
+const containerClassName = `${appClassName}-${testId}`;
 
 describe('app', () => {
     before(async () => {
         $test = await runSetup({
             containerProps: {
-                className: `${appClassName}-${testId}`,
+                className: containerClassName,
                 componentProps: {
                     value: testText
                 }
@@ -19,7 +20,8 @@ describe('app', () => {
     });
 
     it('attached the container app w/ classname', () => {
-        expect($test.className).to.equal(`${appClassName}-${testId}`);
+        expect($test.children[0].className).to.equal(containerClassName);
+        expect($test.id).to.equal('loom-app');
     });
 
     it('has the right `textContent` value', () => {

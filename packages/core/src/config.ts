@@ -112,7 +112,7 @@ export const appendEvents = (eventsToAppend: string[]) => {
 };
 
 export const canDebug = (type: keyof ConfigDebugAllowable) =>
-    process.env.NODE_ENV !== 'production' && debug && debug[type];
+    globalThis.process?.env.NODE_ENV !== 'production' && debug && debug[type];
 
 /**
  * Contains the framework configuration.

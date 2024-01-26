@@ -25,7 +25,7 @@ import {
     Tr,
     Ul,
     Underline
-} from '@app/component/simple';
+} from '@app/components/simple';
 
 import { RenderMark, RenderNode } from './types';
 
@@ -44,8 +44,8 @@ export const defaultNodeRenderers: RenderNode = {
     [BLOCKS.HEADING_5]: (_node, children) => H5({ children }),
     [BLOCKS.HEADING_6]: (_node, children) => H6({ children }),
     [BLOCKS.EMBEDDED_ENTRY]: (_node, children) => Div({ children }),
-    [BLOCKS.UL_LIST]: (_node, children) => Ul({ listProps: [children] }),
-    [BLOCKS.OL_LIST]: (_node, children) => Ol({ listProps: [children] }),
+    [BLOCKS.UL_LIST]: (_node, children) => Ul({ itemProps: [children] }),
+    [BLOCKS.OL_LIST]: (_node, children) => Ol({ itemProps: [children] }),
     [BLOCKS.LIST_ITEM]: (_node, children) => Li({ children }),
     [BLOCKS.QUOTE]: (_node, children) => Blockquote({ children }),
     [BLOCKS.HR]: () => Hr(),

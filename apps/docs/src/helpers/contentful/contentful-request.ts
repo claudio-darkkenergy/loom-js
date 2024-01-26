@@ -1,3 +1,4 @@
+import { USE_MOCKS } from '@app/constants';
 import { mockRequest } from '@app/helpers/api/mock-request';
 import { contentfulGraphQlUrl } from '@app/helpers/api/urls';
 import {
@@ -11,13 +12,14 @@ import { ContentfulGraphQlResponse } from '@app/types/contentful';
 export const contentfulRequest = <D extends {}, T = D>({
     query,
     variables = {},
+    url = contentfulGraphQlUrl,
     ...requestConfig
 }: RequestInit &
     RequestOptions<ContentfulGraphQlResponse<D>, T> &
-    GraphQlRequestPayload) =>
-    __USE_MOCKS__
-        ? mockRequest<D, T>(contentfulGraphQlUrl)
-        : request<ContentfulGraphQlResponse<D>, T>(contentfulGraphQlUrl, {
+    GraphQlRequestPayload & { url: RequestInfo }) =>
+    USE_MOCKS
+        ? mockRequest<D, T>(url)
+        : request<ContentfulGraphQlResponse<D>, T>(url, {
               ...requestConfig,
               body: JSON.stringify({
                   query,

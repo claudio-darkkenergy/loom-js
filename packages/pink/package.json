@@ -1,41 +1,48 @@
 {
-  "name": "@loom-js/components",
-  "version": "0.0.10",
-  "description": "",
-  "scripts": {
-    "build": "rm -rf ./dist/* && tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "module",
-  "exports": {
-    "./behavior/*": "./src/behavior/*.ts",
-    "./simple": "./src/simple/index.ts",
-    "./types": "./src/types/index.d.ts"
-  },
-  "files": [
-    "src",
-    "types"
-  ],
-  "typesVersions": {
-    "*": {
-      "*": [
-        "src/*",
-        "src/*/index"
-      ]
+    "name": "@loom-js/pink",
+    "version": "0.0.10",
+    "author": "Claudio Nunez Jr",
+    "license": "ISC",
+    "description": "A lightweight, functional JavaScript framework for building component-based reactive applications.",
+    "keywords": [
+        "javascript framework",
+        "reactive",
+        "components",
+        "lightweight",
+        "javascript application",
+        "javascript",
+        "framework",
+        "application",
+        "web app",
+        "website",
+        "website development",
+        "front-end"
+    ],
+    "main": "index.ts",
+    "module": "index.ts",
+    "publishConfig": {
+        "access": "public"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/darkkenergy/loomjs/packages/core"
+    },
+    "scripts": {
+        "build": "rollup -c rollup.config.ts --configPlugin typescript",
+        "format": "prettier",
+        "start": "rollup -w -c rollup.config.ts --configPlugin typescript",
+        "test-ci": "wtr --config \"web-test-runner.config.mjs\"",
+        "test-dev": "wtr --config \"web-test-runner.config.mjs\" --watch",
+        "test-debug": "wtr --config \"web-test-runner.config.mjs\" --watch --debug",
+        "test-pupp": "TS_NODE_PROJECT=\"tsconfig-tests.json\" && ts-node -r tsconfig-paths/register tests/index.ts",
+        "tsc": "tsc --noEmit"
+    },
+    "types": "dist/index.d.ts",
+    "dependencies": {
+        "@appwrite.io/pink": "^0.0.6-rc.15",
+        "@appwrite.io/pink-icons": "^0.0.6-rc.15",
+        "@loom-js/components": "workspace:*",
+        "@loom-js/core": "workspace:*",
+        "classnames": "^2.3.2"
     }
-  },
-  "dependencies": {
-    "@loom-js/components": "workspace:*",
-    "@loom-js/core": "workspace:*"
-  },
-  "devDependencies": {
-    "@web/dev-server-esbuild": "^0.4.1",
-    "@web/dev-server-rollup": "^0.5.2",
-    "esbuild": "^0.18.11",
-    "typescript": "^5.1.6"
-  },
-  "sideEffects": false
 }

@@ -1,24 +1,27 @@
 import { component } from '../../../src';
-import {
+import type {
     ActivityEffect,
+    AttrsTemplateTagValue,
     Component,
+    ComponentOptionalProps,
     ReactiveComponent,
+    SimpleComponent,
     TemplateTagValue
 } from '../../../src/types';
+import { mergeAllowedAttrs } from '../utils';
 
 export interface TestComponentProps {
-    className?: string;
     disabled?: boolean;
-    style?: string;
     value?: TemplateTagValue | any;
 }
 
 export interface ContainerProps {
     asyncEffect?: boolean;
-    className?: string;
-    componentProps?: TestComponentProps;
+    componentProps?: TestComponentProps & ComponentOptionalProps;
     effect?: ActivityEffect<TestComponentProps>;
-    TestComponent?: Component<TestComponentProps>;
+    TestComponent?:
+        | Component<TestComponentProps>
+        | SimpleComponent<TestComponentProps>;
 }
 
 export const Container = component<ContainerProps>(
@@ -26,46 +29,37 @@ export const Container = component<ContainerProps>(
         html,
         {
             asyncEffect = false,
-            className,
+            attrs,
             componentProps = {},
             effect,
+            on,
             TestComponent = ({ value = 'loading...' }: TestComponentProps) =>
-                document.createTextNode(String(value))
+                document.createTextNode(String(value)),
+            ...containerProps
         }
     ) => {
-        const SimpleTestComponent = ({ value }) =>
+        const attrsOverrides = mergeAllowedAttrs(
+            attrs,
+            containerProps as unknown as AttrsTemplateTagValue
+        );
+
+        // `TestComponent` wrappers
+        const SimpleTestComponent: SimpleComponent<{
+            value: { [key: string]: any };
+        }> = ({ value }) =>
             TestComponent({
                 ...componentProps,
                 ...Object.assign({}, value)
             });
         const ReactiveTestComponent: ReactiveComponent = () =>
-            // console.log(`SimpleTestComponent({ value: ${value} })`);
-            (effect as ActivityEffect)(({ value }) => {
-                console.log(
-                    `SimpleTestComponent({ value: ${JSON.stringify(value)} })`
-                );
+            (effect as ActivityEffect<TestComponentProps>)(({ value }) => {
                 return SimpleTestComponent({ value });
-            });
-        const AsyncReactiveTestComponent: ReactiveComponent = () =>
-            (effect as ActivityEffect)(({ value }) => {
-                console.log({ value });
-
-                const lazyComponent = async () => {
-                    console.log(value);
-                    return await Promise.resolve(
-                        SimpleTestComponent({ value })
-                    );
-                };
-
-                return lazyComponent;
             });
 
         return html`
-            <div class=${className}>
+            <div $attrs=${attrsOverrides} $on=${on}>
                 ${effect
-                    ? asyncEffect
-                        ? AsyncReactiveTestComponent()
-                        : ReactiveTestComponent()
+                    ? ReactiveTestComponent()
                     : TestComponent(componentProps)}
             </div>
         `;

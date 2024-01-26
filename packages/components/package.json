@@ -1,14 +1,14 @@
 {
   "name": "@loom-js/components",
   "version": "0.0.10",
+  "author": "Claudio Nunez Jr",
+  "license": "ISC",
   "description": "",
   "scripts": {
     "build": "rm -rf ./dist/* && tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
   "type": "module",
   "exports": {
     "./behavior/*": "./src/behavior/*.ts",
@@ -34,8 +34,7 @@
   "devDependencies": {
     "@web/dev-server-esbuild": "^0.4.1",
     "@web/dev-server-rollup": "^0.5.2",
-    "esbuild": "^0.18.11",
-    "typescript": "^5.1.6"
+    "esbuild": "^0.18.11"
   },
   "sideEffects": false
 }

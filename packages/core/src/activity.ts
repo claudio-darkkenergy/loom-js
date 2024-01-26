@@ -28,7 +28,9 @@ export const activity = <V = unknown, I = V>(
     const { deep = false, force = false } = transformIsSet
         ? options
         : transformOrOptions || {};
+    let forceAtThisMoment = force;
     // Will only shallow clone the passed value if it's a plain object, otherwise returned as is.
+    // @TODO Also create new references for other types, i.e. Array, Map, Set, etc.
     const resolveCurrentValue = (value: V) =>
         isObject(value) && (value as Object).constructor.name === 'Object'
             ? Object.assign({}, value)
@@ -37,10 +39,10 @@ export const activity = <V = unknown, I = V>(
     const shouldUpdate = (oldValue: V, newValue: V) => {
         let valueChanged = false;
 
-        if (force) {
+        if (forceAtThisMoment) {
             valueChanged = true;
         } else if (deep && isObject(oldValue) && isObject(newValue)) {
-            // Handle Object values when they share the same reference.
+            // Compare the Object values at the property level.
             // Allow updates if at least 1 value has changed.
             valueChanged = shallowDiffObject(
                 oldValue as PlainObject,
@@ -98,15 +100,18 @@ export const activity = <V = unknown, I = V>(
                 // Create a temporary node to be replaced w/ once async node resolves.
                 ctx.ctxScopes = ctx.ctxScopes || new Map();
 
+                // Handle when `effect` is 1st called.
                 if (!ctx.root || !scopedActions.has(ctx)) {
                     // Set the current action scope.
                     scopedActions.set(ctx, action);
                     // Set up the reactive effect for the activity.
                     reactiveEffect(renderEffect, valueProp);
-                } else {
+                }
+                // Handle when `effect` is recalled.
+                else {
                     // Update the current action scope.
                     scopedActions.set(ctx, action);
-                    // Or call the effect, directly, so we don't duplicate the effect reactivity.
+                    // & call the effect, directly, so we don't duplicate the effect reactivity.
                     renderEffect();
                 }
 
@@ -115,7 +120,8 @@ export const activity = <V = unknown, I = V>(
         },
         initialValue,
         reset: () => update(initialValue),
-        update(valueInput: I) {
+        update(valueInput: I, forceUpdate = forceAtThisMoment) {
+            forceAtThisMoment = forceUpdate;
             typeof transform === 'function'
                 ? transform({
                       input: valueInput,
@@ -123,13 +129,12 @@ export const activity = <V = unknown, I = V>(
                       value: value()
                   })
                 : update(valueInput as unknown as V);
+            forceAtThisMoment = force;
         },
         // Returns a shallow copy of the current value.
         value,
         watch(action: (valueProp: ValueProp<V>) => any) {
-            reactiveEffect((valueProp) => {
-                action({ value: valueProp.value });
-            }, valueProp);
+            reactiveEffect(() => action({ value: valueProp.value }), valueProp);
         }
     };
 };

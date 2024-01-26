@@ -1,25 +1,28 @@
 {
     "compilerOptions": {
-        "allowSyntheticDefaultImports": true,
-        "baseUrl": "",
-        "esModuleInterop": true,
-        "forceConsistentCasingInFileNames": true,
-        "isolatedModules": true,
-        "module": "esnext",
-        "lib": ["dom", "esnext"],
-        "moduleResolution": "node",
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
+        /* Visit https://aka.ms/tsconfig to read more about this file */
+
+        /* Projects */
         "paths": {
-            "@app/*": ["src/*"]
+            "@app/*": ["./src/*"]
         },
-        "removeComments": true,
-        "resolveJsonModule": true,
-        "sourceMap": true,
-        "strict": true,
-        "target": "esnext",
-        "types": ["node"]
-    },
-    "exclude": ["dist", "node_modules"],
-    "include": ["lib", "src"]
+
+        /* Language and Environment */
+        "target": "esnext" /* Control what method is used to detect module-format JS files. */,
+
+        /* Modules */
+        "module": "commonjs" /* Disallow 'import's, 'require's or '<reference>'s from expanding the number of files TypeScript should add to a project. */,
+
+        /* JavaScript Support */
+
+        /* Emit */
+
+        /* Interop Constraints */
+        "esModuleInterop": true /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */,
+        "forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
+
+        /* Type Checking */
+        "strict": true /* Enable all strict type-checking options. */,
+        "skipLibCheck": true /* Skip type checking all .d.ts files. */
+    }
 }

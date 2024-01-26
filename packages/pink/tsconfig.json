@@ -1,26 +1,28 @@
 {
     "compilerOptions": {
-        "allowSyntheticDefaultImports": true,
-        "baseUrl": ".",
-        "declaration": true,
-        "esModuleInterop": true,
-        "forceConsistentCasingInFileNames": true,
-        "importHelpers": true,
-        "isolatedModules": true,
-        "lib": ["dom", "esnext"],
-        "module": "esnext",
-        "moduleResolution": "node",
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "outDir": "dist",
+        /* Visit https://aka.ms/tsconfig to read more about this file */
+
+        /* Projects */
         "paths": {
-            "@loom-js/components/*": ["src/*"]
+            "@pink/*": ["./src/*"]
         },
-        "removeComments": true,
-        "sourceMap": true,
-        "strict": true,
-        "target": "esnext"
-    },
-    "exclude": ["dist", "node_modules"],
-    "include": ["src/**/*.ts"]
+
+        /* Language and Environment */
+        "target": "esnext" /* Control what method is used to detect module-format JS files. */,
+
+        /* Modules */
+        "module": "commonjs" /* Disallow 'import's, 'require's or '<reference>'s from expanding the number of files TypeScript should add to a project. */,
+
+        /* JavaScript Support */
+
+        /* Emit */
+
+        /* Interop Constraints */
+        "esModuleInterop": true /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */,
+        "forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
+
+        /* Type Checking */
+        "strict": true /* Enable all strict type-checking options. */,
+        "skipLibCheck": true /* Skip type checking all .d.ts files. */
+    }
 }
