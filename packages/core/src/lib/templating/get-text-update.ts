@@ -46,8 +46,8 @@ const handleArrayValue = (
 ) => {
     const liveNodeIsArray = Array.isArray(liveNode);
     const liveNodeParent = liveNodeIsArray
-        ? liveNode[0].parentElement
-        : liveNode.parentElement;
+        ? liveNode[0]?.parentElement
+        : liveNode?.parentElement;
     // let lastResolvedValue: TemplateRoot;
     let nextLiveNode: TemplateRootArray;
 
@@ -130,7 +130,7 @@ const handleArrayValue = (
         liveNode.slice(value.length).forEach((node) => node.remove());
     } else {
         // Cleanup the old live node anchor.
-        liveNode.remove();
+        liveNode?.remove();
     }
 
     return nextLiveNode;
