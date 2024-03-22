@@ -1,28 +1,20 @@
 {
+    "extends": "@loom-js/typescript-config/base.json",
+    "ts-node": {
+        // these options are overrides used only by ts-node
+        // same as the --compilerOptions flag and the TS_NODE_COMPILER_OPTIONS environment variable
+        "compilerOptions": {
+            "module": "ESNext",
+            "moduleResolution": "NodeNext",
+        }
+    },
     "compilerOptions": {
-        /* Visit https://aka.ms/tsconfig to read more about this file */
-
-        /* Projects */
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
         "paths": {
             "@app/*": ["./src/*"]
-        },
-
-        /* Language and Environment */
-        "target": "esnext" /* Control what method is used to detect module-format JS files. */,
-
-        /* Modules */
-        "module": "commonjs" /* Disallow 'import's, 'require's or '<reference>'s from expanding the number of files TypeScript should add to a project. */,
-
-        /* JavaScript Support */
-
-        /* Emit */
-
-        /* Interop Constraints */
-        "esModuleInterop": true /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */,
-        "forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
-
-        /* Type Checking */
-        "strict": true /* Enable all strict type-checking options. */,
-        "skipLibCheck": true /* Skip type checking all .d.ts files. */
-    }
+        }
+    },
+    "include": ["**/*.ts", "project/build/index.mts", "project/build/client/client.mts"],
+    "exclude": ["node_modules", "build"]
 }
