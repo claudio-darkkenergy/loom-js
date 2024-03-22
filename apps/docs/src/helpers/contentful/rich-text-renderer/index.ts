@@ -43,7 +43,7 @@ export const nodeToComponent = (node: RichTextNode, options: Options) => {
                     return value;
                 }
 
-                return renderMark[mark.type](value);
+                return renderMark[mark.type]?.(value);
             },
             renderText ? renderText(node.value) : node.value
         );
@@ -54,6 +54,6 @@ export const nodeToComponent = (node: RichTextNode, options: Options) => {
             return children;
         }
 
-        return renderNode[node.nodeType](node, children);
+        return renderNode[node.nodeType]?.(node, children);
     }
 };

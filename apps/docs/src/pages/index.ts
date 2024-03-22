@@ -11,8 +11,10 @@ import {
     PinkGridBox
 } from '@loom-js/pink';
 import {
-    ContentfulImage,
-    ContentfulRichText,
+ContentfulImage,
+ContentfulRichText,
+} from '@app/components/simple';
+import {
     Figure,
     H1,
     H2,
@@ -20,7 +22,7 @@ import {
     Paragraph,
     Section,
     Span
-} from '@app/components/simple';
+} from '@loom-js/components';
 
 const Home: SimpleComponent = (props = {}) => {
     return AppLayout({

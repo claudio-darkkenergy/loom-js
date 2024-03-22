@@ -4,12 +4,12 @@ import { appContentActivity } from '@app/activities/app-content';
 import { pageContentActivity } from '@app/activities/page-content';
 import {
     PinkAvatar,
+    PinkAvatarGroup,
     PinkColor,
     PinkHeader,
     PinkNav,
     PinkSize
 } from '@loom-js/pink';
-import { PinkAvatarGroup } from '@loom-js/pink/components/pink-avatar-group';
 import { getSite } from '@app/helpers/api/content/contentful';
 import type { Page, Site } from '@app/types';
 import { type ApiProviderResponse } from '@app/types/api';
