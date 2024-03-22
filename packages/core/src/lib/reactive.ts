@@ -57,7 +57,7 @@ export const reactive = <T>(
             return obj[prop];
         },
         set: function (obj, prop, newValue) {
-            const oldValue = obj[prop];
+            const oldValue = obj[prop] as any;
 
             if (shouldUpdate(oldValue, newValue)) {
                 obj[prop] = newValue;

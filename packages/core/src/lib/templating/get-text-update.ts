@@ -75,9 +75,9 @@ const handleArrayValue = (
                 liveNodeParent?.insertBefore(resolvedValue, liveNode);
             }
             // Handle `LiveNode[]` updates when the resolved vs. live nodes are not the same.
-            else if (!resolvedValue.isSameNode(liveNode[i])) {
+            else if (!resolvedValue.isSameNode(liveNode[i] ?? null)) {
                 if (liveNode[i] !== undefined) {
-                    liveNode[i].replaceWith(resolvedValue);
+                    liveNode[i]?.replaceWith(resolvedValue);
                     // }
                     // // Handle `undefined` live node
                     // else if (lastResolvedValue.nextSibling) {
@@ -110,7 +110,7 @@ const handleArrayValue = (
             } else {
                 if (liveNode[i] !== undefined) {
                     // Always replace when the new value is `Text`.
-                    liveNode[i].replaceWith(textOrCommentValue);
+                    liveNode[i]?.replaceWith(textOrCommentValue);
                 } else if (liveNodeParent) {
                     // Handle `undefined` live node
                     liveNodeParent.appendChild(textOrCommentValue);

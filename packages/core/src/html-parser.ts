@@ -27,7 +27,7 @@ export function htmlParser(
     ...interpolations: TemplateTagValue[]
 ) {
     const ctx = this as ComponentContext;
-    const isTemplateFragment = /^<>/.test(chunks[0].trim());
+    const isTemplateFragment = /^<>/.test(chunks[0]?.trim() ?? '');
 
     // This only runs once per component "definition" (`TaggedTemplate`.)
     if (!templateCacheStore.has(chunks)) {
@@ -38,7 +38,7 @@ export function htmlParser(
 
         // Check for a "rootless" component template.
         // This will inherit its connected parent element as its root.
-        if (isTemplateFragment) {
+        if (isTemplateFragment && fragment.childNodes[0]) {
             // Remove the fragment artifact "<>" from the renderable content.
             fragment.childNodes[0].textContent =
                 fragment.childNodes[0].textContent?.replace('<>', '') || null;
@@ -62,7 +62,8 @@ export function htmlParser(
         ctx.chunks !== chunks ||
         !instanceContextStore.has(ctx) ||
         !document.contains(
-            Array.isArray(ctx.root) ? ctx.root[0]?.parentElement : ctx.root
+            (Array.isArray(ctx.root) ? ctx.root[0]?.parentElement : ctx.root) ??
+                null
         )
     ) {
         const {

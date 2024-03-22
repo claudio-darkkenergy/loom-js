@@ -23,7 +23,6 @@
         "@rollup/plugin-terser": "^0.4.4",
         "@rollup/plugin-typescript": "^11.1.6",
         "@testing-library/dom": "^9.3.4",
-        "@trivago/prettier-plugin-sort-imports": "^4.3.0",
         "@types/chai": "^4.3.11",
         "@types/mocha": "^10.0.6",
         "@types/node": "^20.11.8",
@@ -36,16 +35,14 @@
         "rollup": "^4.9.6",
         "rollup-plugin-delete": "^2.0.0",
         "rollup-plugin-dts": "^6.1.0",
-        "sinon": "17.0.1"
+        "sinon": "17.0.1",
+        "tslib": "^2.6.2",
+        "typescript": "^5.3.3"
     },
-    "files": [
-        "dist"
-    ],
-    "main": "dist/index.js",
-    "module": "dist/index.js",
-    "publishConfig": {
-        "access": "public"
-    },
+    "exports": "./src/index.ts",
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
     "repository": {
         "type": "git",
         "url": "https://github.com/darkkenergy/loomjs/packages/core"
@@ -53,12 +50,10 @@
     "scripts": {
         "build": "rollup -c rollup.config.ts --configPlugin typescript",
         "format": "prettier",
-        "start": "rollup -w -c rollup.config.ts --configPlugin typescript",
         "test-ci": "wtr --config \"web-test-runner.config.mjs\"",
         "test-dev": "wtr --config \"web-test-runner.config.mjs\" --watch",
         "test-debug": "wtr --config \"web-test-runner.config.mjs\" --watch --debug",
         "test-pupp": "TS_NODE_PROJECT=\"tsconfig-tests.json\" && ts-node -r tsconfig-paths/register tests/index.ts",
-        "tsc": "tsc --noEmit"
-    },
-    "types": "dist/index.d.ts"
+        "type-check": "tsc --noEmit"
+    }
 }

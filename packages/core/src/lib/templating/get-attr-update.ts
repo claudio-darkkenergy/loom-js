@@ -51,7 +51,9 @@ const getSpecialAttrUpdate = (dynamicNode: DynamicNode, attr: Attr) => {
     switch (true) {
         case nodeName === 'attrs':
             // Handle special attritbute, `$attrs`, to spread them out onto the dynamic node.
-            updater = specialAttrUpdaters.attrs.bind(null, {
+            updater = (
+                specialAttrUpdaters.attrs as BoundSpecialAttrTemplateNodeUpdate
+            ).bind(null, {
                 attr,
                 dynamicNode,
                 nodeName
@@ -59,7 +61,9 @@ const getSpecialAttrUpdate = (dynamicNode: DynamicNode, attr: Attr) => {
             break;
         case nodeName === 'on':
             // Handle special attribute, `$on`, to assign multiple dom-event attributes at once.
-            updater = specialAttrUpdaters.on.bind(null, {
+            updater = (
+                specialAttrUpdaters.on as BoundSpecialAttrTemplateNodeUpdate
+            ).bind(null, {
                 attr,
                 dynamicNode,
                 listenerCtx,
@@ -69,7 +73,9 @@ const getSpecialAttrUpdate = (dynamicNode: DynamicNode, attr: Attr) => {
         case config.events.includes(nodeName as ConfigEvent):
             // Handle special dom-event attributes.
             listenerCtx.eventListener = undefined;
-            updater = specialAttrUpdaters.event.bind(null, {
+            updater = (
+                specialAttrUpdaters.event as BoundSpecialAttrTemplateNodeUpdate
+            ).bind(null, {
                 attr,
                 dynamicNode,
                 listenerCtx,
@@ -78,7 +84,9 @@ const getSpecialAttrUpdate = (dynamicNode: DynamicNode, attr: Attr) => {
             break;
         default:
             // Safely handle other standard attrs or those which are not known dom-event attrs.
-            updater = specialAttrUpdaters.default.bind(null, {
+            updater = (
+                specialAttrUpdaters.default as BoundSpecialAttrTemplateNodeUpdate
+            ).bind(null, {
                 attr,
                 dynamicNode,
                 nodeName
@@ -157,10 +165,11 @@ const mergeAndSetStyleValues = (
             styleArg.split(';').forEach((ruleValue) => {
                 if (ruleValue) {
                     const [rule, value] = ruleValue.split(':');
-                    const trimmedRule = rule.trim() as any;
-                    const trimmedValue = value.trim();
+                    const trimmedRule = rule?.trim();
+                    const trimmedValue = value?.trim();
 
                     trimmedValue &&
+                        trimmedRule &&
                         $target.style.setProperty(trimmedRule, trimmedValue);
                 }
             });

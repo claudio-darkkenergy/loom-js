@@ -5,7 +5,7 @@ export const updateLiveNode = ([liveNode, value]: [
     TemplateRoot | TemplateRootArray,
     TemplateRoot
 ]) => {
-    let replaceableNode: TemplateRoot;
+    let replaceableNode: TemplateRoot | undefined;
 
     if (Array.isArray(liveNode)) {
         replaceableNode = liveNode.splice(0, 1)[0];

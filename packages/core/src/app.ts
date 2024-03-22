@@ -2,7 +2,7 @@ import { appendEvents, setDebug, setToken } from './config';
 import { _lifeCycles } from './lib/context/life-cycles';
 import { loomConsole } from './lib/globals/loom-console';
 import { mount } from './lib/mount';
-import { AppGlobalConfig, AppInitProps } from './types';
+import type { AppGlobalConfig, AppInitProps, LoomGlobal } from './types';
 
 export const init = ({
     app,
@@ -42,7 +42,7 @@ export const init = ({
 };
 
 const bootstrap = () => {
-    globalThis.loom = {
+    ((globalThis as any).loom as LoomGlobal) = {
         console: loomConsole
     };
 };
