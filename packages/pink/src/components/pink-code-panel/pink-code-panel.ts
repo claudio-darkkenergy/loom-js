@@ -1,8 +1,7 @@
-import { SimpleComponent } from '@loom-js/core';
+import type { PinkDynamicProps } from '../../types';
+import { Div } from '@loom-js/components';
+import type { SimpleComponent } from '@loom-js/core';
 import classNames from 'classnames';
-
-import type { PinkDynamicProps } from '@pink/types';
-import { Div } from '@app/components/simple';
 
 export type PinkCodePanelProps = PinkDynamicProps & {
     codePanelContent?: string;

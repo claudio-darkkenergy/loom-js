@@ -1,7 +1,7 @@
 import { ComponentOptionalProps, SimpleComponent } from '@loom-js/core';
 import classNames from 'classnames';
 
-import { Div, Span } from '@app/components/simple';
+import { Div, Span } from '@loom-js/components';
 
 import { PinkDynamicProps } from '../../types';
 

@@ -1,6 +1,6 @@
 import { Component, SimpleComponent } from '@loom-js/core';
 
-import { Button, Link } from '@app/components/simple';
+import { Button, Link } from '@loom-js/components';
 
 import { PinkTag, PinkTagProps } from '../pink-tag';
 

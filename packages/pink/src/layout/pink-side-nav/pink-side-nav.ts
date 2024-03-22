@@ -1,7 +1,7 @@
 import { SimpleComponent } from '@loom-js/core';
 import classNames from 'classnames';
 
-import { Div, Link, LinkProps, Section, Ul } from '@app/components/simple';
+import { Div, Link, LinkProps, Section, Ul } from '@loom-js/components';
 
 export const PinkSideNav: SimpleComponent = ({ className }) =>
     Div({

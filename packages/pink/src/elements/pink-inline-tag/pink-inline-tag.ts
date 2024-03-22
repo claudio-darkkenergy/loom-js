@@ -1,7 +1,7 @@
 import { SimpleComponent } from '@loom-js/core';
 import classNames from 'classnames';
 
-import { Span } from '@app/components/simple';
+import { Span } from '@loom-js/components';
 
 interface PinkInlineTagProps {
     isInfo: boolean;

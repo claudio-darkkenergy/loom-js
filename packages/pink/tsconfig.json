@@ -1,28 +1,21 @@
 {
+    "extends": "@loom-js/typescript-config/base.json",
+    "display": "Package",
     "compilerOptions": {
-        /* Visit https://aka.ms/tsconfig to read more about this file */
-
-        /* Projects */
-        "paths": {
-            "@pink/*": ["./src/*"]
-        },
-
-        /* Language and Environment */
-        "target": "esnext" /* Control what method is used to detect module-format JS files. */,
-
-        /* Modules */
-        "module": "commonjs" /* Disallow 'import's, 'require's or '<reference>'s from expanding the number of files TypeScript should add to a project. */,
-
-        /* JavaScript Support */
-
-        /* Emit */
-
-        /* Interop Constraints */
-        "esModuleInterop": true /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */,
-        "forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
-
-        /* Type Checking */
-        "strict": true /* Enable all strict type-checking options. */,
-        "skipLibCheck": true /* Skip type checking all .d.ts files. */
-    }
+        "allowSyntheticDefaultImports": true,
+        "declarationDir": "./dist/typings",
+        "forceConsistentCasingInFileNames": true,
+        "importHelpers": true,
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "noEmit": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "outDir": "dist",
+        "removeComments": true,
+        "sourceMap": true,
+        "types": ["node"]
+    },
+    "exclude": ["dist", "node_modules"],
+    "include": ["src"]
 }

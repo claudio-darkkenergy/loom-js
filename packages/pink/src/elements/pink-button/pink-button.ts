@@ -1,7 +1,7 @@
 import { SimpleComponent } from '@loom-js/core';
 import classNames from 'classnames';
 
-import { Button, ButtonProps, Span } from '@app/components/simple';
+import { Button, ButtonProps, Span } from '@loom-js/components';
 
 export type PinkButtonProps = ButtonProps & {
     // A custom button size - modifies height.

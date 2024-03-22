@@ -1,7 +1,7 @@
 import { component, ComponentOptionalProps } from '@loom-js/core';
 import classNames from 'classnames';
 
-import { Code } from '@app/components/simple';
+import { Code } from '@loom-js/components';
 
 export interface PinkCodePanelContentProps extends ComponentOptionalProps {
     children: string;

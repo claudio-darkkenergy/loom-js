@@ -18,31 +18,45 @@
         "website development",
         "front-end"
     ],
-    "main": "index.ts",
-    "module": "index.ts",
+    "exports": "./src/index.ts",
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
     "publishConfig": {
         "access": "public"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/darkkenergy/loomjs/packages/core"
+        "url": "https://github.com/darkkenergy/loomjs/packages/pink"
     },
     "scripts": {
         "build": "rollup -c rollup.config.ts --configPlugin typescript",
         "format": "prettier",
-        "start": "rollup -w -c rollup.config.ts --configPlugin typescript",
-        "test-ci": "wtr --config \"web-test-runner.config.mjs\"",
-        "test-dev": "wtr --config \"web-test-runner.config.mjs\" --watch",
-        "test-debug": "wtr --config \"web-test-runner.config.mjs\" --watch --debug",
-        "test-pupp": "TS_NODE_PROJECT=\"tsconfig-tests.json\" && ts-node -r tsconfig-paths/register tests/index.ts",
-        "tsc": "tsc --noEmit"
+        "tsc-build": "tsc --noEmit && ts-node ./project/build",
+        "type-check": "tsc --noEmit"
     },
-    "types": "dist/index.d.ts",
     "dependencies": {
-        "@appwrite.io/pink": "^0.0.6-rc.15",
-        "@appwrite.io/pink-icons": "^0.0.6-rc.15",
+        "@appwrite.io/pink": "^0.3.0",
+        "@appwrite.io/pink-icons": "^0.3.0",
         "@loom-js/components": "workspace:*",
         "@loom-js/core": "workspace:*",
-        "classnames": "^2.3.2"
+        "classnames": "^2.5.1"
+    },
+    "peerDependencies": {
+        "@loom-js/components": "0.0.10",
+        "@loom-js/core": "0.3.24"
+    },
+    "devDependencies": {
+        "@rollup/plugin-terser": "^0.4.4",
+        "@rollup/plugin-typescript": "^11.1.6",
+        "@types/node": "^20.11.8",
+        "esbuild": "^0.20.0",
+        "esbuild-node-externals": "^1.12.0",
+        "rollup": "^4.9.6",
+        "rollup-plugin-delete": "^2.0.0",
+        "rollup-plugin-dts": "^6.1.0",
+        "ts-node": "^10.9.1",
+        "tslib": "^2.6.2",
+        "typescript": "^5.1.6"
     }
 }

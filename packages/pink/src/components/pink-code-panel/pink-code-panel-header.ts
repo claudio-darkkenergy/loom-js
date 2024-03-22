@@ -1,7 +1,7 @@
 import { SimpleComponent } from '@loom-js/core';
 import classNames from 'classnames';
 
-import { Header } from '@app/components/simple';
+import { Header } from '@loom-js/components';
 
 export const PinkCodePanelHeader: SimpleComponent = ({ className, ...props }) =>
     Header({

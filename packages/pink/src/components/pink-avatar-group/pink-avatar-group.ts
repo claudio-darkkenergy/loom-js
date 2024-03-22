@@ -1,7 +1,7 @@
-import { SimpleComponent } from '@loom-js/core';
+import { type SimpleComponent } from '@loom-js/core';
 import classNames from 'classnames';
 
-import { Ul, UlProps } from '@app/components/simple';
+import { Ul, type UlProps } from '@loom-js/components';
 
 import { PinkAvatar, PinkAvatarProps } from '../pink-avatar';
 

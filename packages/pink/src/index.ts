@@ -1,4 +1,5 @@
 export * from './components/pink-avatar';
+export * from './components/pink-avatar-group';
 export * from './components/pink-code-panel';
 export * from './elements/pink-button';
 export * from './hooks';

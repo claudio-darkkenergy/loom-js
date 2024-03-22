@@ -1,7 +1,7 @@
 import { SimpleComponent } from '@loom-js/core';
 import classNames from 'classnames';
 
-import { Div, Img, ImgProps } from '@app/components/simple';
+import { Div, Img, ImgProps } from '@loom-js/components';
 
 import { PinkColor, PinkSize } from '../../types';
 
