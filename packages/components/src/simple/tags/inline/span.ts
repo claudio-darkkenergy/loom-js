@@ -1,6 +1,11 @@
-import { component } from '@loom-js/core';
+import { type AttrsTemplateTagValue, component } from '@loom-js/core';
 
-export const Span = component(
-    (html, { children, className }) =>
-        html`<span class=${className}>${children}</span>`
-);
+import { mergeAllowedAttrs } from '../../../helpers';
+
+export const Span = component((html, { attrs, children, on, ...props }) => {
+    const attrsOverrides = mergeAllowedAttrs(
+        attrs,
+        props as unknown as AttrsTemplateTagValue
+    );
+    return html` <span $attrs=${attrsOverrides} $on=${on}>${children}</span> `;
+});

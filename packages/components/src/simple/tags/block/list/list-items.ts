@@ -1,27 +1,29 @@
 import type {
     Component,
-    MouseEventListener,
+    ComponentProps,
+    ContextFunction,
+    SimpleComponent,
     TemplateTagValue
 } from '@loom-js/core';
 
-import { Li, LiProps } from '@loom-js/components/simple';
+import { Li } from './li';
 
 export interface ListItemsProps {
-    listItem?: Component;
-    listProps: (LiProps | TemplateTagValue)[];
-    onItemClick?: MouseEventListener;
+    item?: Component | ((props: any) => ContextFunction | TemplateTagValue);
+    itemProps?: (ComponentProps | TemplateTagValue)[];
 }
 
-export const ListItems = ({
-    listItem,
-    listProps,
-    onItemClick
-}: ListItemsProps) =>
-    listProps.map((props) =>
+export const ListItems: SimpleComponent<ListItemsProps> = ({
+    item,
+    itemProps = [],
+    ...listItemProps
+}) =>
+    itemProps.map((props) =>
         Li({
-            children: listItem
-                ? listItem(props as LiProps)
-                : (props as TemplateTagValue),
-            onClick: onItemClick
+            ...listItemProps,
+            children:
+                typeof item === 'function'
+                    ? item(props as ComponentProps)
+                    : (props as TemplateTagValue)
         })
     );

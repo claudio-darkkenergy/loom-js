@@ -1,6 +1,13 @@
-import { component } from '@loom-js/core';
+import { type AttrsTemplateTagValue, component } from '@loom-js/core';
 
-export const Header = component(
-    (html, { children, className }) =>
-        html`<header class=${className}>${children}</header>`
-);
+import { mergeAllowedAttrs } from '../../../helpers';
+
+export const Header = component((html, { attrs, children, on, ...props }) => {
+    const attrsOverrides = mergeAllowedAttrs(
+        attrs,
+        props as unknown as AttrsTemplateTagValue
+    );
+    return html`
+        <header $attrs=${attrsOverrides} $on=${on}>${children}</header>
+    `;
+});

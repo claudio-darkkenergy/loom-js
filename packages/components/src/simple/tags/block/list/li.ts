@@ -1,10 +1,12 @@
-import { component, MouseEventListener } from '@loom-js/core';
+import { type AttrsTemplateTagValue, component } from '@loom-js/core';
 
-export interface LiProps {
-    onClick?: MouseEventListener;
-}
+import { mergeAllowedAttrs } from '../../../../helpers';
 
-export const Li = component<LiProps>(
-    (html, { children, className, onClick }) =>
-        html`<li $click=${onClick} class=${className}>${children}</li>`
-);
+export const Li = component((html, { attrs, children, on, ...liProps }) => {
+    const attrsOverrides = mergeAllowedAttrs(
+        attrs,
+        liProps as unknown as AttrsTemplateTagValue
+    );
+
+    return html`<li $attrs=${attrsOverrides} $on=${on}>${children}</li>`;
+});

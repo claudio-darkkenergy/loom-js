@@ -1,5 +1,3 @@
-import { LinkProps } from '@loom-js/components/simple';
-
 // GraphQl
 
 export interface GraphQlRequestPayload {
@@ -24,10 +22,10 @@ export interface NavItem {
 
 // export type Pages = PageProps[];
 
-export interface NavProps {
-    className?: string;
-    navigation: LinkProps[];
-}
+// export interface NavProps {
+//     className?: string;
+//     navigation: LinkProps[];
+// }
 
 // Media
 export type ImageMimeTypes =

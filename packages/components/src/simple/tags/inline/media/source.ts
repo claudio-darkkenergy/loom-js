@@ -1,5 +1,7 @@
-import { component } from '@loom-js/core';
-import { MediaMimeTypes } from '@loom-js/components/types';
+import { type AttrsTemplateTagValue, component } from '@loom-js/core';
+
+import { mergeAllowedAttrs } from '../../../../helpers';
+import { type MediaMimeTypes } from '../../../../types';
 
 export interface SourceProps {
     media?: string;
@@ -9,11 +11,11 @@ export interface SourceProps {
 }
 
 export const Source = component<SourceProps>(
-    (html, { media, src, srcSet, type }) =>
-        html`<source
-            $src=${src}
-            media=${media}
-            srcset=${srcSet}
-            type=${type}
-        />`
+    (html, { attrs, media, on, src, srcSet, type, ...props }) => {
+        const attrsOverrides = mergeAllowedAttrs(
+            Object.assign(attrs || {}, { media, srcset: srcSet, type }),
+            props as unknown as AttrsTemplateTagValue
+        );
+        return html` <source $attrs=${attrsOverrides} $on=${on} $src=${src} />`;
+    }
 );

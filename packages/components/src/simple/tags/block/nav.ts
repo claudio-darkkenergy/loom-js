@@ -1,21 +1,7 @@
-import { component, MouseEventListener } from '@loom-js/core';
+import { component } from '@loom-js/core';
 
-import { Link, LinkProps } from '@loom-js/components/simple';
-
-export interface NavProps {
-    navigation: Omit<LinkProps, 'onClick'>[];
-    onClick?: MouseEventListener;
-}
-
-export const Nav = component<NavProps>(
-    (html, { className, navigation, onClick }) => html`
-        <nav class="${className}">
-            ${navigation?.map((link) =>
-                Link({
-                    ...link,
-                    onClick
-                })
-            )}
-        </nav>
+export const Nav = component(
+    (html, { children, className }) => html`
+        <nav class=${className}>${children}</nav>
     `
 );

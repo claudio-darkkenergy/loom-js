@@ -1,21 +1,23 @@
-import { component } from '@loom-js/core';
+import { type AttrsTemplateTagValue, component } from '@loom-js/core';
 
-export type ImgProps = {
+import { mergeAllowedAttrs } from '../../../../helpers';
+
+export interface ImgProps {
     alt?: string;
     height?: number | string;
     src?: string;
     width?: number | string;
-};
+}
 
 export const Img = component<ImgProps>(
-    (html, { alt, className, height = 'auto', src, width = 'auto' }) =>
-        html`
-            <img
-                $src=${src}
-                alt=${alt}
-                class=${className}
-                height=${height}
-                width=${width}
-            />
-        `
+    (
+        html,
+        { alt, attrs, height = 'auto', on, src, width = 'auto', ...props }
+    ) => {
+        const attrsOverrides = mergeAllowedAttrs(
+            Object.assign(attrs || {}, { alt, height, width }),
+            props as unknown as AttrsTemplateTagValue
+        );
+        return html`<img $attrs=${attrsOverrides} $on=${on} $src=${src} />`;
+    }
 );
