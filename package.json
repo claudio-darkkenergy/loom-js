@@ -8,8 +8,9 @@
   "scripts": {
     "clean": "find ./ -name node_modules -type d -exec rm -rf {} +",
     "build": "turbo build",
+    "build-packages": "turbo build-packages",
     "dev": "turbo dev",
-    "publish-packages": "turbo build && changeset version && changeset publish",
+    "publish-packages": "pnpm build-packages && changeset version && changeset publish",
     "update:all": "pnpm -r update -i -L"
   },
   "devDependencies": {
