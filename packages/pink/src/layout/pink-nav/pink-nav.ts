@@ -1,7 +1,6 @@
 import { SimpleComponent } from '@loom-js/core';
+import { Li, Link, LinkProps, Nav } from '@loom-js/tags';
 import classNames from 'classnames';
-
-import { Li, Link, LinkProps, Nav } from '@loom-js/components';
 
 export interface PinkNavProps {
     items?: Omit<LinkProps, 'onClick'>[];

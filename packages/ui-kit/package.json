@@ -14,7 +14,7 @@
   "license": "ISC",
   "exports": "./src/components/index.ts",
   "dependencies": {
-    "@loom-js/components": "workspace:*",
+    "@loom-js/tags": "workspace:*",
     "@loom-js/core": "workspace:*",
     "classnames": "^2.3.2"
   }

@@ -1,4 +1,4 @@
-import { Img, Picture, type PictureProps } from '../';
+import { Img, Picture, type PictureProps } from '../tags';
 
 export type ResponsiveImageProps = PictureProps;
 

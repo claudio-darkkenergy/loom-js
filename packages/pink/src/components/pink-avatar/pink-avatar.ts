@@ -1,9 +1,7 @@
-import { SimpleComponent } from '@loom-js/core';
-import classNames from 'classnames';
-
-import { Div, Img, ImgProps } from '@loom-js/components';
-
 import { PinkColor, PinkSize } from '../../types';
+import { SimpleComponent } from '@loom-js/core';
+import { Div, Img, ImgProps } from '@loom-js/tags';
+import classNames from 'classnames';
 
 export type PinkAvatarProps = ImgProps & {
     color?: PinkColor;

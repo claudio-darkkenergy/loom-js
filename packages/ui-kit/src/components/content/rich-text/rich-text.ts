@@ -1,9 +1,5 @@
+import { ContentfulRichText, ContentfulRichTextProps } from '@loom-js/tags';
 import classNames from 'classnames';
-
-import {
-    ContentfulRichText,
-    ContentfulRichTextProps
-} from '@loom-js/components/simple';
 
 export type { ContentfulDocument } from '@app/helpers/contentful/rich-text-renderer/types';
 
