@@ -1,12 +1,6 @@
-import classNames from 'classnames';
-
-import {
-    ContentfulImage,
-    Figure,
-    FigureProps
-} from '@loom-js/components/simple';
-
 import styles from './styles.scss';
+import { ContentfulImage, Figure, FigureProps } from '@loom-js/tags';
+import classNames from 'classnames';
 
 export interface SiteLogoProps extends Pick<FigureProps, 'caption'> {
     className?: string;

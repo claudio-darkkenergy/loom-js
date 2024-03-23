@@ -1,9 +1,7 @@
-import { ComponentOptionalProps, SimpleComponent } from '@loom-js/core';
-import classNames from 'classnames';
-
-import { Div, Span } from '@loom-js/components';
-
 import { PinkDynamicProps } from '../../types';
+import { ComponentOptionalProps, SimpleComponent } from '@loom-js/core';
+import { Div, Span } from '@loom-js/tags';
+import classNames from 'classnames';
 
 interface TagProps extends PinkDynamicProps {
     isDanger?: boolean;

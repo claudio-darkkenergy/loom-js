@@ -1,15 +1,10 @@
-import { component, onRouteUpdate } from '@loom-js/core';
-import classNames from 'classnames';
-
-import { siteNavToggleActivity } from '@app/activities/site-nav-toggle';
-import {
-    Transition,
-    TransitionPhase
-} from '@loom-js/components/behavior/transition';
-import { UiSprite, UiSpriteId } from '@loom-js/components/simple';
-import { StyledSiteNavButton } from '@loom-js/components/styled';
-
 import styles from './styles.scss';
+import { siteNavToggleActivity } from '@app/activities/site-nav-toggle';
+import { component, onRouteUpdate } from '@loom-js/core';
+import { UiSprite, UiSpriteId } from '@loom-js/tags';
+import { StyledSiteNavButton } from '@loom-js/tags';
+import { Transition, TransitionPhase } from '@loom-js/tags';
+import classNames from 'classnames';
 
 export const AnimatedSiteNavButton = component((html) => {
     const { update: showNav, value: navIsOpen } = siteNavToggleActivity;

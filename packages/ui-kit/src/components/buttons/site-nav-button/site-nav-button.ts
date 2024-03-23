@@ -1,9 +1,7 @@
-import { ComponentOptionalProps } from '@loom-js/core';
-import classNames from 'classnames';
-
-import { Button, ButtonProps } from '@loom-js/components/simple';
-
 import styles from './styles.scss';
+import { ComponentOptionalProps } from '@loom-js/core';
+import { Button, ButtonProps } from '@loom-js/tags';
+import classNames from 'classnames';
 
 export type StyledSiteNavButtonProps = ButtonProps & ComponentOptionalProps;
 

@@ -1,8 +1,8 @@
-import { MARKS } from '@contentful/rich-text-types';
-import { SimpleComponent } from '@loom-js/core';
-
 import { App } from '@app/bootstrap';
 import { AppLayout } from '@app/components/container/layout/app-layout';
+import { ContentfulImage, ContentfulRichText } from '@app/components/simple';
+import { MARKS } from '@contentful/rich-text-types';
+import { SimpleComponent } from '@loom-js/core';
 import {
     PinkButton,
     PinkCodePanel,
@@ -10,19 +10,7 @@ import {
     PinkCodePanelHeader,
     PinkGridBox
 } from '@loom-js/pink';
-import {
-ContentfulImage,
-ContentfulRichText,
-} from '@app/components/simple';
-import {
-    Figure,
-    H1,
-    H2,
-    Main,
-    Paragraph,
-    Section,
-    Span
-} from '@loom-js/components';
+import { Figure, H1, H2, Main, Paragraph, Section, Span } from '@loom-js/tags';
 
 const Home: SimpleComponent = (props = {}) => {
     return AppLayout({
