@@ -8,7 +8,7 @@
   "scripts": {
     "clean": "find ./ -name node_modules -type d -exec rm -rf {} +",
     "build": "turbo build",
-    "build-package": "turbo build-package",
+    "build-package": "turbo build-package --cache-dir=.turbo",
     "dev": "turbo dev",
     "publish-package": "pnpm build-package && changeset version && changeset publish",
     "update:all": "pnpm -r update -i -L"
@@ -19,7 +19,7 @@
     "prettier-plugin-sort-imports": "^1.8.3",
     "turbo": "latest"
   },
-  "packageManager": "pnpm@8.14.1",
+  "packageManager": "pnpm@8.15.5",
   "engines": {
     "node": ">=20"
   },
