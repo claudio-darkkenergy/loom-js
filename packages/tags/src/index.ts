@@ -1,3 +1,3 @@
 export * from './helpers';
-export * from './simple';
+export * from './components';
 export * from './types';

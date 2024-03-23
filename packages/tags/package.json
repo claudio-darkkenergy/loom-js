@@ -1,9 +1,9 @@
 {
-  "name": "@loom-js/components",
-  "version": "0.0.10",
+  "name": "@loom-js/tags",
+  "version": "0.0.11",
   "author": "Claudio Nunez Jr",
   "license": "ISC",
-  "description": "",
+  "description": "A set of loomjs components which represent HTML tags & text.",
   "exports": "./src/index.ts",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -38,6 +38,6 @@
     "typescript": "^5.3.3"
   },
   "peerDependencies": {
-    "@loom-js/core": "0.3.25"
+    "@loom-js/core": "0.3.26"
   }
 }
