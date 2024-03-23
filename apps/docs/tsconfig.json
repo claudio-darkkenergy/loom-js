@@ -15,6 +15,6 @@
             "@app/*": ["./src/*"]
         }
     },
-    "include": ["**/*.ts", "project/build/index.mts", "project/build/client/client.mts"],
-    "exclude": ["node_modules", "build"]
+    "include": ["src", "project"],
+    "exclude": ["build", "node_modules"]
 }

@@ -1,9 +1,5 @@
-import {
-    ThemeBorderStyle,
-    Themed,
-    ThemePreset
-} from '@loom-js/components/styled/themed';
-import { ThemeProps } from '@loom-js/components/styled/themed/types';
+import { ThemeBorderStyle, Themed, ThemePreset } from '@loom-js/tags';
+import { ThemeProps } from '@loom-js/tags';
 
 export type { ThemeProps };
 

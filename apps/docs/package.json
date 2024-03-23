@@ -16,7 +16,7 @@
     "@appwrite.io/pink": "^0.3.0",
     "@appwrite.io/pink-icons": "^0.3.0",
     "@contentful/rich-text-types": "^16.3.5",
-    "@loom-js/components": "workspace:*",
+    "@loom-js/tags": "workspace:*",
     "@loom-js/core": "workspace:*",
     "@loom-js/pink": "workspace:*",
     "@loom-js/typescript-config": "workspace:*",

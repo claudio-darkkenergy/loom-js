@@ -3,20 +3,10 @@
     "version": "0.0.11",
     "author": "Claudio Nunez Jr",
     "license": "ISC",
-    "description": "A lightweight, functional JavaScript framework for building component-based reactive applications.",
+    "description": "A design system based on Pink Design & made for loomjs.",
     "keywords": [
-        "javascript framework",
-        "reactive",
-        "components",
-        "lightweight",
-        "javascript application",
-        "javascript",
-        "framework",
-        "application",
-        "web app",
-        "website",
-        "website development",
-        "front-end"
+        "loomjs design system",
+        "pink design"
     ],
     "exports": "./src/index.ts",
     "main": "./dist/index.js",
@@ -37,13 +27,9 @@
     "dependencies": {
         "@appwrite.io/pink": "^0.3.0",
         "@appwrite.io/pink-icons": "^0.3.0",
-        "@loom-js/components": "workspace:*",
+        "@loom-js/tags": "workspace:*",
         "@loom-js/core": "workspace:*",
         "classnames": "^2.5.1"
-    },
-    "peerDependencies": {
-        "@loom-js/components": "0.0.11",
-        "@loom-js/core": "0.3.26"
     },
     "devDependencies": {
         "@rollup/plugin-terser": "^0.4.4",
@@ -57,5 +43,9 @@
         "ts-node": "^10.9.1",
         "tslib": "^2.6.2",
         "typescript": "^5.1.6"
+    },
+    "peerDependencies": {
+        "@loom-js/tags": "0.0.11",
+        "@loom-js/core": "0.3.26"
     }
 }

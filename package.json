@@ -8,10 +8,11 @@
   "scripts": {
     "clean": "find ./ -name node_modules -type d -exec rm -rf {} +",
     "build": "turbo build",
-    "build-package": "turbo build-package --cache-dir=.turbo",
+    "build-packages": "turbo build-package --cache-dir=.turbo",
     "dev": "turbo dev",
-    "publish-package": "pnpm build-package && changeset version && changeset publish",
-    "update:all": "pnpm -r update -i -L"
+    "publish-packages": "pnpm build-packages && changeset publish",
+    "update-deps": "pnpm -r update -i -L",
+    "version-packages": "changeset version && prettier --write \"**/*.{md}\""
   },
   "devDependencies": {
     "@loom-js/typescript-config": "workspace:*",

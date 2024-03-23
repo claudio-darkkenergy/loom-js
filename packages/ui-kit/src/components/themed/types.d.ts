@@ -1,3 +1,3 @@
-import { ThemedProps } from '@loom-js/components/styled/themed';
+import { ThemedProps } from '@loom-js/tags';
 
 export type ThemeProps = Pick<ThemedProps, 'color' | 'themable'>;

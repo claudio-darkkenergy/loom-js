@@ -1,2 +1,2 @@
-// declare module '@loom-js/components/*';
-// declare module '@loom-js/components';
+// declare module '@loom-js/tags/*';
+// declare module '@loom-js/tags';
