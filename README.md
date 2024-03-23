@@ -2,8 +2,19 @@
 
 ## Install all workspace dependencies
 
-`yarn`
+`pnpm install`
 
-## Access workspace to run Yarn commands
+## Run apps for development
 
-`yarn workspace {ws-name} {command}`
+`pnpm dev`
+
+## Filter commands to workspace
+
+`pnpm -F {ws-name} {command}`
+
+## CI Process
+
+Once changes are merged into the `main` branch:
+
+-   all apps with changes will deploy to production.
+-   all packages with changes will have their versions bumped & published to npm.
