@@ -11,19 +11,31 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    # To use Turborepo Remote Caching, set the following environment variables for the job.
+    env:
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Install Node.js 20.x
-        uses: actions/setup-node@v3
+      - name: Cache turbo
+        uses: actions/cache@v4
         with:
-          node-version: 20.x
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
 
       - name: Install pnpm
         uses: pnpm/action-setup@v3
+
+      - name: Install Node.js 20.x
+        uses: actions/setup-node@v4
         with:
-          version: 8
+          node-version: 20.x
+          cache: 'pnpm'
 
       - name: Install Dependencies
         run: pnpm install
