@@ -42,8 +42,8 @@
         "classnames": "^2.5.1"
     },
     "peerDependencies": {
-        "@loom-js/components": "latest",
-        "@loom-js/core": "latest"
+        "@loom-js/components": "0.0.10",
+        "@loom-js/core": "0.3.25"
     },
     "devDependencies": {
         "@rollup/plugin-terser": "^0.4.4",
