@@ -48,7 +48,7 @@
         "url": "https://github.com/darkkenergy/loomjs/packages/core"
     },
     "scripts": {
-        "build": "rollup -c rollup.config.ts --configPlugin typescript",
+        "build-package": "rollup -c rollup.config.ts --configPlugin typescript",
         "format": "prettier",
         "test-ci": "wtr --config \"web-test-runner.config.mjs\"",
         "test-dev": "wtr --config \"web-test-runner.config.mjs\" --watch",

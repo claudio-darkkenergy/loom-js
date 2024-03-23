@@ -30,9 +30,8 @@
         "url": "https://github.com/darkkenergy/loomjs/packages/pink"
     },
     "scripts": {
-        "build": "rollup -c rollup.config.ts --configPlugin typescript",
+        "build-package": "rollup -c rollup.config.ts --configPlugin typescript",
         "format": "prettier",
-        "tsc-build": "tsc --noEmit && ts-node ./project/build",
         "type-check": "tsc --noEmit"
     },
     "dependencies": {
