@@ -1,8 +1,8 @@
 {
   "name": "@loom-js/ui-kit",
+  "private": true,
   "version": "0.0.11",
   "description": "",
-  "private": true,
   "publishConfig": {
     "access": "public"
   },
