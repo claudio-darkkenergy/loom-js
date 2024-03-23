@@ -18,8 +18,9 @@ describe('config', () => {
     describe('appendEvents()', () => {
         it('should return the updated events', () => {
             const eventsToAppend = ['monkey', 'bones'];
-            const updatedEvents = appendEvents(eventsToAppend);
-            expect(updatedEvents.length).to.equal(
+
+            appendEvents(eventsToAppend);
+            expect(config.events).to.be.lengthOf(
                 events.length + eventsToAppend.length
             );
         });
@@ -38,7 +39,7 @@ describe('config', () => {
 
         it('should update `TOKEN` w/ a custom token', () => {
             expect(updatedToken).to.equal(customToken);
-            expect(config.TOKEN).to.not.equal(updatedToken);
+            expect(config.TOKEN).to.equal(updatedToken);
         });
 
         it('should maintain compatibility of the token regex w/ `TOKEN`', () => {

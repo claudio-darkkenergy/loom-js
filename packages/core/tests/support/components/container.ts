@@ -1,44 +1,67 @@
 import { component } from '../../../src';
-import {
+import type {
     ActivityEffect,
+    AttrsTemplateTagValue,
     Component,
+    ComponentOptionalProps,
+    ReactiveComponent,
+    SimpleComponent,
     TemplateTagValue
 } from '../../../src/types';
+import { mergeAllowedAttrs } from '../utils';
 
 export interface TestComponentProps {
-    className?: string;
     disabled?: boolean;
-    style?: string;
     value?: TemplateTagValue | any;
 }
 
 export interface ContainerProps {
-    className?: string;
-    componentProps?: TestComponentProps;
+    asyncEffect?: boolean;
+    componentProps?: TestComponentProps & ComponentOptionalProps;
     effect?: ActivityEffect<TestComponentProps>;
-    TestComponent?: Component<TestComponentProps>;
+    TestComponent?:
+        | Component<TestComponentProps>
+        | SimpleComponent<TestComponentProps>;
 }
 
 export const Container = component<ContainerProps>(
     (
         html,
         {
-            className,
+            asyncEffect = false,
+            attrs,
             componentProps = {},
             effect,
+            on,
             TestComponent = ({ value = 'loading...' }: TestComponentProps) =>
-                document.createTextNode(String(value))
+                document.createTextNode(String(value)),
+            ...containerProps
         }
-    ) => html`
-        <div class=${className}>
-            ${effect
-                ? effect(({ value }) =>
-                      TestComponent({
-                          ...componentProps,
-                          ...Object.assign({}, value)
-                      })
-                  )
-                : TestComponent(componentProps)}
-        </div>
-    `
+    ) => {
+        const attrsOverrides = mergeAllowedAttrs(
+            attrs,
+            containerProps as unknown as AttrsTemplateTagValue
+        );
+
+        // `TestComponent` wrappers
+        const SimpleTestComponent: SimpleComponent<{
+            value: { [key: string]: any };
+        }> = ({ value }) =>
+            TestComponent({
+                ...componentProps,
+                ...Object.assign({}, value)
+            });
+        const ReactiveTestComponent: ReactiveComponent = () =>
+            (effect as ActivityEffect<TestComponentProps>)(({ value }) => {
+                return SimpleTestComponent({ value });
+            });
+
+        return html`
+            <div $attrs=${attrsOverrides} $on=${on}>
+                ${effect
+                    ? ReactiveTestComponent()
+                    : TestComponent(componentProps)}
+            </div>
+        `;
+    }
 );

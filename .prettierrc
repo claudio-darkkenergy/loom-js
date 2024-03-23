@@ -1,10 +1,5 @@
 {
     "bracketSpacing": true,
-    "importOrder": [
-        "^@app/(.*)$",
-        "^[./]",
-        ".(css|scss)$"
-    ],
     "importOrderCaseInsensitive": true,
     "importOrderSeparation": true,
     "importOrderSortSpecifiers": true,
@@ -13,6 +8,17 @@
     "singleQuote": true,
     "tabWidth": 4,
     "trailingComma": "none",
+    "htmlWhitespaceSensitivity": "ignore",
+    "plugins": [
+        "prettier-plugin-sort-imports"
+    ],
+    "importTypeOrder": [
+        "NPMPackages",
+        "localImports"
+    ],
+    "newlineBetweenTypes": true,
+    "sortingMethod": "alphabetical",
+    "stripNewlines": true,
     "overrides": [
         {
             "files": "*.mjs",

@@ -1,0 +1,17 @@
+{
+    "extends": "@loom-js/typescript-config/base.json",
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "declarationDir": "./dist/typings",
+        "forceConsistentCasingInFileNames": true,
+        "importHelpers": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "outDir": "dist",
+        "removeComments": true,
+        "sourceMap": true,
+        "types": ["node"]
+    },
+    "exclude": ["dist", "node_modules"],
+    "include": ["src"]
+}

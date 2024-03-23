@@ -1,16 +1,16 @@
 import { Container, ContainerProps } from './components/container';
-import { init } from '../../src';
+import { AppInitProps, ComponentOptionalProps, init } from '../../src';
 
 export interface SetupOptions {
-    containerProps: ContainerProps;
+    appInitProps?: {} | AppInitProps;
+    containerProps: ContainerProps & ComponentOptionalProps;
 }
 
 export const runSetup = ({
+    appInitProps = {},
     containerProps: { className = 'test-scope', ...containerProps }
-}: SetupOptions): Promise<HTMLElement> =>
-    new Promise((resolve) => {
-        const root = document.body;
-
+}: SetupOptions) =>
+    new Promise<HTMLElement>((resolve) => {
         // Initialize the app
         init({
             app: Container({
@@ -18,7 +18,11 @@ export const runSetup = ({
                 className
             }),
             append: false,
-            onAppMounted: (app) => resolve(app as HTMLElement),
-            root
+            onAppMounted: (app) => {
+                // console.log('contains app?', document.contains(app));
+                // console.log('document.body', document.body);
+                resolve(app as HTMLElement);
+            },
+            ...appInitProps
         });
     });

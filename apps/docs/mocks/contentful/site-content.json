@@ -1,0 +1,28 @@
+{
+    "title": "loom",
+    "seoDescription": "Loom is a lightweight, functional JavaScript framework for building component-based reactive applications.",
+    "shortDescription": "A reactive, component-driven, JavaScript framework.",
+    "logo": {
+        "description": "Create your masterpiece.",
+        "height": 64,
+        "title": "loom",
+        "url": "https://images.ctfassets.net/2x238mu87414/trZeHdSq8FrucTuRjP4ub/498671b54fa296977276324ff8c9a5c3/loom-logo.svg",
+        "width": 64
+    },
+    "pagesCollection": {
+        "items": [
+            {
+                "title": "Concepts",
+                "slug": "/learn/concepts"
+            },
+            {
+                "title": "Guides",
+                "slug": "/learn/guides"
+            },
+            {
+                "title": "API",
+                "slug": "/learn/api"
+            }
+        ]
+    }
+}

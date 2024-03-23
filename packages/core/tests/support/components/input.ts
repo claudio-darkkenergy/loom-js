@@ -3,11 +3,12 @@ import { component } from '../../../src';
 import { TestComponentProps } from './container';
 
 export const Input = component<TestComponentProps>(
-    (html, { className, disabled, style, value }) =>
-        html`<input
+    (html, { className, disabled, style, value }) => {
+        return html`<input
+            $style=${style}
             class=${className}
             disabled=${disabled}
-            style=${style}
             value=${value}
-        />`
+        />`;
+    }
 );
