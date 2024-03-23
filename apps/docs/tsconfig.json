@@ -1,25 +1,20 @@
 {
-    "compilerOptions": {
-        "allowSyntheticDefaultImports": true,
-        "baseUrl": "",
-        "esModuleInterop": true,
-        "forceConsistentCasingInFileNames": true,
-        "isolatedModules": true,
-        "module": "esnext",
-        "lib": ["dom", "esnext"],
-        "moduleResolution": "node",
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "paths": {
-            "@app/*": ["src/*"]
-        },
-        "removeComments": true,
-        "resolveJsonModule": true,
-        "sourceMap": true,
-        "strict": true,
-        "target": "esnext",
-        "types": ["node"]
+    "extends": "@loom-js/typescript-config/base.json",
+    "ts-node": {
+        // these options are overrides used only by ts-node
+        // same as the --compilerOptions flag and the TS_NODE_COMPILER_OPTIONS environment variable
+        "compilerOptions": {
+            "module": "ESNext",
+            "moduleResolution": "NodeNext",
+        }
     },
-    "exclude": ["dist", "node_modules"],
-    "include": ["lib", "src"]
+    "compilerOptions": {
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "paths": {
+            "@app/*": ["./src/*"]
+        }
+    },
+    "include": ["**/*.ts", "project/build/index.mts", "project/build/client/client.mts"],
+    "exclude": ["node_modules", "build"]
 }

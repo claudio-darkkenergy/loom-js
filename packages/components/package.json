@@ -1,41 +1,42 @@
 {
   "name": "@loom-js/components",
   "version": "0.0.10",
+  "author": "Claudio Nunez Jr",
+  "license": "ISC",
   "description": "",
+  "exports": "./src/index.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/darkkenergy/loomjs/packages/tags"
+  },
   "scripts": {
-    "build": "rm -rf ./dist/* && tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build-package": "rollup -c rollup.config.ts --configPlugin typescript",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "type-check": "tsc --noEmit"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "module",
-  "exports": {
-    "./behavior/*": "./src/behavior/*.ts",
-    "./simple": "./src/simple/index.ts",
-    "./types": "./src/types/index.d.ts"
-  },
-  "files": [
-    "src",
-    "types"
-  ],
-  "typesVersions": {
-    "*": {
-      "*": [
-        "src/*",
-        "src/*/index"
-      ]
-    }
-  },
   "dependencies": {
-    "@loom-js/components": "workspace:*",
     "@loom-js/core": "workspace:*"
   },
   "devDependencies": {
-    "@web/dev-server-esbuild": "^0.4.1",
-    "@web/dev-server-rollup": "^0.5.2",
-    "esbuild": "^0.18.11",
-    "typescript": "^5.1.6"
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/node": "^20.11.8",
+    "esbuild": "^0.20.0",
+    "esbuild-node-externals": "^1.12.0",
+    "rollup-plugin-delete": "^2.0.0",
+    "rollup-plugin-dts": "^6.1.0",
+    "ts-node": "^10.9.2",
+    "tslib": "^2.6.2",
+    "typescript": "^5.3.3"
   },
-  "sideEffects": false
+  "peerDependencies": {
+    "@loom-js/core": "0.3.24"
+  }
 }

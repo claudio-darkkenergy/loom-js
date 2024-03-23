@@ -2,26 +2,36 @@ export * from './activity';
 export * from './app';
 export * from './component';
 export * from './config';
+export * from './lazy-import';
 export * from './routing';
 export type {
     ActivityEffect,
-    ActivityHandler,
+    ActivityEffectAction,
+    ActivityOptions,
     ActivityTransform,
+    AppGlobalConfig,
     AppInitProps,
     Aria,
+    AttrsTemplateTagValue,
     Component,
-    ComponentNode,
-    ComponentNodeAsync,
+    ComponentArgs,
+    ComponentContext,
     ComponentOptionalProps,
+    ComponentProps,
     ContextFunction,
+    LifeCycleHandler,
+    LoomGlobal,
     MouseEventListener,
     OnRouteOptions,
-    PlainObject,
+    OnTemplateTagValue,
     ReactiveComponent,
     RefContext,
     RenderFunction,
     RenderProps,
-    RouteUpdateHandler,
     SimpleComponent,
-    TemplateTagValue
+    SyntheticMouseEvent,
+    SyntheticMouseEventListener,
+    TemplateFunction,
+    TemplateTagValue,
+    TemplateTagValueFunction
 } from './types';

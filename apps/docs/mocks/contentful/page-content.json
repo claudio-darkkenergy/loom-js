@@ -1,0 +1,47 @@
+{
+    "title": "loom",
+    "slug": "/",
+    "contentCollection": {
+        "items": [
+            {
+                "title": "Tagged Templates",
+                "description": {
+                    "json": {
+                        "nodeType": "document",
+                        "data": {},
+                        "content": [
+                            {
+                                "nodeType": "paragraph",
+                                "data": {},
+                                "content": [
+                                    {
+                                        "nodeType": "text",
+                                        "value": "Components are rendered using advanced template literals called tagged templates.",
+                                        "marks": [],
+                                        "data": {}
+                                    }
+                                ]
+                            },
+                            {
+                                "nodeType": "paragraph",
+                                "data": {},
+                                "content": [
+                                    {
+                                        "nodeType": "text",
+                                        "value": "import {\n  component,\n  init\n} from '@loomjs/core';\n\nconst loomApp = component((html, {\n  children\n}) => html`\n  <div class=\"app\">\n    ${ children }\n  </div>\n`);\n\ninit({\n  app: loomApp({\n    children: 'Hello loom.'\n  })\n});",
+                                        "marks": [
+                                            {
+                                                "type": "code"
+                                            }
+                                        ],
+                                        "data": {}
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        ]
+    }
+}

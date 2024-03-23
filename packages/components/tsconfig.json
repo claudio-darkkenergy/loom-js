@@ -1,26 +1,17 @@
 {
+    "extends": "@loom-js/typescript-config/base.json",
     "compilerOptions": {
         "allowSyntheticDefaultImports": true,
-        "baseUrl": ".",
-        "declaration": true,
-        "esModuleInterop": true,
+        "declarationDir": "./dist/typings",
         "forceConsistentCasingInFileNames": true,
         "importHelpers": true,
-        "isolatedModules": true,
-        "lib": ["dom", "esnext"],
-        "module": "esnext",
-        "moduleResolution": "node",
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "outDir": "dist",
-        "paths": {
-            "@loom-js/components/*": ["src/*"]
-        },
         "removeComments": true,
         "sourceMap": true,
-        "strict": true,
-        "target": "es2022"
+        "types": ["node"]
     },
     "exclude": ["dist", "node_modules"],
-    "include": ["src/**/*.ts"]
+    "include": ["src"]
 }

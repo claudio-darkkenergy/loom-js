@@ -1,9 +1,14 @@
-import { Aria, component, MouseEventListener } from '@loom-js/core';
+import {
+    type Aria,
+    type AttrsTemplateTagValue,
+    component
+} from '@loom-js/core';
+
+import { mergeAllowedAttrs } from '../../../helpers';
 
 export interface ButtonProps {
     aria?: Aria;
     disabled?: boolean;
-    onClick?: MouseEventListener;
     title?: string;
     type?: ButtonType;
 }
@@ -18,23 +23,31 @@ export const Button = component<ButtonProps>(
         html,
         {
             aria = {},
+            attrs,
             children,
-            className,
             disabled,
-            onClick = () => {},
+            on,
             title,
-            type = ButtonType.Button
+            type = ButtonType.Button,
+            ...buttonProps
         }
-    ) => html`
-        <button
-            $click=${onClick}
-            aria-label=${aria.label}
-            class=${className}
-            disabled=${disabled}
-            title=${title}
-            type=${type}
-        >
-            ${children}
-        </button>
-    `
+    ) => {
+        const attrsOverrides = mergeAllowedAttrs(
+            attrs,
+            buttonProps as unknown as AttrsTemplateTagValue
+        );
+
+        return html`
+            <button
+                $attrs=${attrsOverrides}
+                $on=${on}
+                aria-label=${aria.label}
+                disabled=${disabled}
+                title=${title}
+                type=${type}
+            >
+                ${children}
+            </button>
+        `;
+    }
 );

@@ -1,6 +1,11 @@
-import { component } from '@loom-js/core';
+import { type AttrsTemplateTagValue, component } from '@loom-js/core';
 
-export const Code = component(
-    (html, { children, className }) =>
-        html`<code class=${className}>${children}</code>`
-);
+import { mergeAllowedAttrs } from '../../../../helpers';
+
+export const Code = component((html, { attrs, children, on, ...props }) => {
+    const attrsOverrides = mergeAllowedAttrs(
+        attrs,
+        props as unknown as AttrsTemplateTagValue
+    );
+    return html`<code $attrs=${attrsOverrides} $on=${on}>${children}</code>`;
+});

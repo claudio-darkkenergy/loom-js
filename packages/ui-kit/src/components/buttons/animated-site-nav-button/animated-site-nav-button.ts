@@ -11,16 +11,12 @@ import { StyledSiteNavButton } from '@loom-js/components/styled';
 
 import styles from './styles.scss';
 
-export const AnimatedSiteNavButton = component((html, { onUnmounted }) => {
+export const AnimatedSiteNavButton = component((html) => {
     const { update: showNav, value: navIsOpen } = siteNavToggleActivity;
     let leaveTransition: () => void | Promise<void>;
-    // Call the leave transition on route updates.
-    const unsubRouteUpdate = onRouteUpdate(
-        () => leaveTransition && leaveTransition()
-    );
 
-    // Do cleanup.
-    onUnmounted(() => unsubRouteUpdate());
+    // Call the leave transition on route updates.
+    onRouteUpdate(() => leaveTransition && leaveTransition());
 
     return html`
         <template>

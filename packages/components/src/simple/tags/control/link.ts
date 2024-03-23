@@ -1,8 +1,9 @@
-import { component, MouseEventListener } from '@loom-js/core';
+import { type AttrsTemplateTagValue, component } from '@loom-js/core';
+
+import { mergeAllowedAttrs } from '../../../helpers';
 
 export interface LinkProps {
     href: string;
-    onClick?: MouseEventListener;
     target?: '_blank' | '_self';
     title?: string;
 }
@@ -10,16 +11,23 @@ export interface LinkProps {
 export const Link = component<LinkProps>(
     (
         html,
-        { children, className, href, onClick, target = '_self', title }
-    ) => html`
-        <a
-            $click=${onClick}
-            class=${className}
-            href=${href}
-            target=${target}
-            title=${title}
-        >
-            ${children}
-        </a>
-    `
+        { attrs, children, href, on, target = '_self', title, ...linkProps }
+    ) => {
+        const attrsOverrides = mergeAllowedAttrs(
+            attrs,
+            linkProps as unknown as AttrsTemplateTagValue
+        );
+
+        return html`
+            <a
+                $attrs=${attrsOverrides}
+                $on=${on}
+                href=${href}
+                target=${target}
+                title=${title}
+            >
+                ${children}
+            </a>
+        `;
+    }
 );

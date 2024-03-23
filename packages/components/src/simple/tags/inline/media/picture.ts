@@ -1,14 +1,24 @@
-import { component } from '@loom-js/core';
-import { Img, ImgProps, Source, SourceProps } from '@loom-js/components/simple';
+import { type AttrsTemplateTagValue, component } from '@loom-js/core';
+
+import { Img, type ImgProps } from './img';
+import { Source, type SourceProps } from './source';
+import { mergeAllowedAttrs } from '../../../../helpers';
 
 export type PictureProps = ImgProps & {
     sources?: SourceProps[];
 };
 
 export const Picture = component<PictureProps>(
-    (html, { className, sources, ...imgProps }) => html`
-        <picture class=${className}>
-            ${sources?.map((srcProps) => Source(srcProps))} ${Img(imgProps)}
-        </picture>
-    `
+    (html, { attrs, on, sources, ...imgProps }) => {
+        const attrsOverrides = mergeAllowedAttrs(
+            attrs,
+            imgProps as unknown as AttrsTemplateTagValue
+        );
+        return html`
+            <picture $attrs=${attrsOverrides} $on=${on}>
+                ${sources?.map((srcProps: any) => Source(srcProps))}
+                ${Img(imgProps)}
+            </picture>
+        `;
+    }
 );

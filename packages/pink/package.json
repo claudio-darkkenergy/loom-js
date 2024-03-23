@@ -1,0 +1,61 @@
+{
+    "name": "@loom-js/pink",
+    "version": "0.0.10",
+    "author": "Claudio Nunez Jr",
+    "license": "ISC",
+    "description": "A lightweight, functional JavaScript framework for building component-based reactive applications.",
+    "keywords": [
+        "javascript framework",
+        "reactive",
+        "components",
+        "lightweight",
+        "javascript application",
+        "javascript",
+        "framework",
+        "application",
+        "web app",
+        "website",
+        "website development",
+        "front-end"
+    ],
+    "exports": "./src/index.ts",
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
+    "publishConfig": {
+        "access": "public"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/darkkenergy/loomjs/packages/pink"
+    },
+    "scripts": {
+        "build-package": "rollup -c rollup.config.ts --configPlugin typescript",
+        "format": "prettier",
+        "type-check": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@appwrite.io/pink": "^0.3.0",
+        "@appwrite.io/pink-icons": "^0.3.0",
+        "@loom-js/components": "workspace:*",
+        "@loom-js/core": "workspace:*",
+        "classnames": "^2.5.1"
+    },
+    "peerDependencies": {
+        "@loom-js/components": "0.0.10",
+        "@loom-js/core": "0.3.24"
+    },
+    "devDependencies": {
+        "@rollup/plugin-terser": "^0.4.4",
+        "@rollup/plugin-typescript": "^11.1.6",
+        "@types/node": "^20.11.8",
+        "esbuild": "^0.20.0",
+        "esbuild-node-externals": "^1.12.0",
+        "rollup": "^4.9.6",
+        "rollup-plugin-delete": "^2.0.0",
+        "rollup-plugin-dts": "^6.1.0",
+        "ts-node": "^10.9.1",
+        "tslib": "^2.6.2",
+        "typescript": "^5.1.6"
+    }
+}

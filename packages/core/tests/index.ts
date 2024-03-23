@@ -1,7 +1,7 @@
 import Chai from 'chai';
 // import fs from 'fs';
 // import Koa from 'koa';
-import puppeteer from 'puppeteer';
+import { Page, launch } from 'puppeteer';
 
 import { config } from '../src/config';
 // import { directJSHandle } from './support/puppeteer-direct';
@@ -24,10 +24,13 @@ type TestCase = (
 type TestCaseScenario = () => void | Promise<void>;
 interface TestContext {
     before: BoundTestSetup;
-    page: puppeteer.Page;
+    page: Page;
     test: BoundTestCase;
 }
-type TestSetup = (queue: Set<TestSetup>, setup: () => void | Promise<void>) => void;
+type TestSetup = (
+    queue: Set<TestSetup>,
+    setup: () => void | Promise<void>
+) => void;
 
 // Port setup
 const defaultTestPort = 4001;
@@ -38,7 +41,7 @@ const { expect } = Chai;
 
 const runTests = async () => {
     // Puppeteer setup
-    const browser = await puppeteer.launch({
+    const browser = await launch({
         // devtools: true,
         headless: false
     });
@@ -53,15 +56,15 @@ const runTests = async () => {
         // await page.goto(`http://localhost:${port}`, {
         //     waitUntil: 'domcontentloaded'
         // });
-        
+
         if (suiteQueue.has(label)) {
             throw new Error(
                 `A suite with the label, ${label}, already exists.`
             );
         }
 
-        const setupQueue = new Set<() => void | Promise<void>>;
-        const testQueue = new Map<string, TestCaseScenario>;
+        const setupQueue = new Set<() => void | Promise<void>>();
+        const testQueue = new Map<string, TestCaseScenario>();
 
         suiteQueue.set(label, async () => {
             console.log('test');
@@ -70,11 +73,15 @@ const runTests = async () => {
                 page,
                 test: test.bind(null, testQueue)
             });
-            await Promise.all(Array.from(setupQueue.values()).map((setup) => setup()));
-            await Promise.all(Array.from(testQueue.entries()).map(([label, testScenario]) => {
-                console.info('>>>', label);
-                testScenario();
-            }));
+            await Promise.all(
+                Array.from(setupQueue.values()).map((setup) => setup())
+            );
+            await Promise.all(
+                Array.from(testQueue.entries()).map(([label, testScenario]) => {
+                    console.info('>>>', label);
+                    testScenario();
+                })
+            );
         });
     };
     const test: TestCase = async (queue, label, scenario) => {
@@ -99,7 +106,7 @@ const runTests = async () => {
             });
             await page.evaluate(() => {
                 window['config']();
-            })
+            });
             await page.evaluateOnNewDocument(setup);
             // await page.evaluateOnNewDocument(winCheck<ContainerProps>, Container);
             await page.goto(`http://localhost:${port}`, {
@@ -111,10 +118,10 @@ const runTests = async () => {
                 win = window.document.body.textContent || 'no-content';
                 console.log('* win', win);
                 // winCheck();
-            // init({
+                // init({
                 //     app: Container({ className: 'app-test' }),
-                    // app: window.document.createElement('div'),
-                    // onAppMounted: (appNode) => (node = appNode as HTMLElement)
+                // app: window.document.createElement('div'),
+                // onAppMounted: (appNode) => (node = appNode as HTMLElement)
                 // });
                 // return el instanceof HTMLElement;
             });

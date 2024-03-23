@@ -1,10 +1,19 @@
-import { component } from '@loom-js/core';
+import { type AttrsTemplateTagValue, component } from '@loom-js/core';
+
+import { mergeAllowedAttrs } from '../../../helpers';
 
 export interface SectionProps {
     role?: string;
 }
 
 export const Section = component<SectionProps>(
-    (html, { children, className, role }) =>
-        html`<section class=${className} role=${role}>${children}</section>`
+    (html, { attrs, children, on, role, ...props }) => {
+        const attrsOverrides = mergeAllowedAttrs(
+            { ...attrs, ...(role ? { role } : {}) },
+            props as unknown as AttrsTemplateTagValue
+        );
+        return html`<section $attrs=${attrsOverrides} $on=${on}>
+            ${children}
+        </section>`;
+    }
 );
