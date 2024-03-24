@@ -4,7 +4,10 @@
   "author": "Claudio Nunez Jr",
   "license": "ISC",
   "description": "A set of loomjs components which represent HTML tags & text.",
-  "exports": "./src/index.ts",
+  "exports": {
+    "import": "./src/index.ts",
+    "require": "./src/index.js"
+  },
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",

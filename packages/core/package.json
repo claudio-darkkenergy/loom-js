@@ -12,7 +12,10 @@
         "web development",
         "front-end framework"
     ],
-    "exports": "./src/index.ts",
+    "exports": {
+        "import": "./src/index.ts",
+        "require": "./src/index.js"
+    },
     "main": "./dist/index.js",
     "module": "./dist/index.mjs",
     "types": "./dist/index.d.ts",
