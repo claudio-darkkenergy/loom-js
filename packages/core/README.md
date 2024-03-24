@@ -8,7 +8,7 @@
 ## Feature Highlights
 
 -   **Micro-updates** on rerenders - updates are made at the attribute & node-levels.
--   **Self-cleanup** leveraging native JS garbage collection & Weakmap to release dead nodes from memory.
+-   **Self-cleanup** leveraging native JS garbage collection & `Weakmap` to release dead nodes from memory.
 -   **Reactivity** to rerender any number of components used within a component template.
 -   **Tagged Templates** for performant processing of component templates.
 -   **Client-side Routing** for dynamic rendering of components based on `Location` data.
