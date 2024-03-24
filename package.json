@@ -12,7 +12,7 @@
     "dev": "turbo dev",
     "publish-packages": "pnpm build-packages && changeset publish",
     "update-deps": "pnpm -r update -i -L",
-    "version-packages": "changeset version && prettier --write \"**/*.{md}\""
+    "version-packages": "changeset version"
   },
   "devDependencies": {
     "@loom-js/typescript-config": "workspace:*",
