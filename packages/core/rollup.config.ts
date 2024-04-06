@@ -17,7 +17,7 @@ unlink('dist/index.d.ts', (err) => {
     console.info('dist/index.d.ts was deleted');
 });
 
-export default [
+const rollupConfig = [
     // CommonJS (for Node) and ES module (for bundlers) build.
     // (We could have three entries in the configuration array
     // instead of two, but it's quicker to generate multiple
@@ -37,8 +37,8 @@ export default [
             })
         ],
         output: [
-            { file: pkg.module, format: 'es', sourcemap: true },
-            { file: pkg.main, format: 'cjs', sourcemap: true }
+            { file: pkg.exports.module, format: 'es', sourcemap: true },
+            { file: pkg.exports.default, format: 'cjs', sourcemap: true }
         ]
     },
     // Consolidates all the type defintion files into 1,
@@ -49,3 +49,5 @@ export default [
         plugins: [dts(), del({ hook: 'buildEnd', targets: 'dist/typings' })]
     }
 ];
+
+export default rollupConfig;
