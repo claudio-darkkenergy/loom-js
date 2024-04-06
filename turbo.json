@@ -3,7 +3,8 @@
     "pipeline": {
         "build": {
             "dependsOn": [
-                "^build"
+                "^build",
+                "^build-package"
             ],
             "outputs": [
                 "build/**"
@@ -18,6 +19,9 @@
             ]
         },
         "dev": {
+            "dependsOn": [
+                "^build-package"
+            ],
             "cache": false,
             "persistent": true
         },
