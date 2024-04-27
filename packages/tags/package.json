@@ -1,6 +1,6 @@
 {
   "name": "@loom-js/tags",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "author": "Claudio Nunez Jr",
   "license": "ISC",
   "description": "A set of loomjs components which represent HTML tags & text.",
@@ -40,6 +40,6 @@
     "typescript": "^5.3.3"
   },
   "peerDependencies": {
-    "@loom-js/core": "0.3.27"
+    "@loom-js/core": "0.3.28"
   }
 }

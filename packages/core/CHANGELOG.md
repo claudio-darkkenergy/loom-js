@@ -1,5 +1,11 @@
 # @loom-js/core
 
+## 0.3.28
+
+### Patch Changes
+
+- 6937dc7: Resolve distribution files for inclusion
+
 ## 0.3.27
 
 ### Patch Changes
