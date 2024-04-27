@@ -10,7 +10,7 @@
     "build": "turbo build",
     "build-packages": "turbo build-package --cache-dir=.turbo",
     "dev": "turbo dev",
-    "publish-packages": "pnpm build-packages && changeset publish",
+    "publish-packages": "pnpm build-packages && pnpm version-packages && changeset publish",
     "update-deps": "pnpm -r update -i -L",
     "version-packages": "changeset version"
   },
