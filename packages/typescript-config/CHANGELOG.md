@@ -1,5 +1,11 @@
 # @loom-js/typescript-config
 
+## 0.0.2
+
+### Patch Changes
+
+- 6937dc7: Resolve distribution files for inclusion
+
 ## 0.0.1
 
 ### Patch Changes
