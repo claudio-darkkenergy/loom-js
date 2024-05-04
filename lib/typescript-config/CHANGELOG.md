@@ -1,5 +1,11 @@
 # @loom-js/typescript-config
 
+## 0.1.0
+
+### Minor Changes
+
+- d4c1db8: Storybook added for @loom-js/pink & other minor updates
+
 ## 0.0.2
 
 ### Patch Changes
