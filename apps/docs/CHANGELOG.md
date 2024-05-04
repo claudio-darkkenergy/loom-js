@@ -1,5 +1,16 @@
 # @loom-js/docs
 
+## 1.0.3
+
+### Patch Changes
+
+- 6937dc7: Resolve distribution files for inclusion
+- Updated dependencies [6937dc7]
+  - @loom-js/core@0.3.28
+  - @loom-js/pink@0.0.13
+  - @loom-js/tags@0.0.13
+  - @loom-js/typescript-config@0.0.2
+
 ## 1.0.2
 
 ### Patch Changes

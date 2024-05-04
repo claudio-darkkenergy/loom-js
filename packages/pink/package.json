@@ -1,6 +1,6 @@
 {
     "name": "@loom-js/pink",
-    "version": "0.0.12",
+    "version": "0.0.13",
     "author": "Claudio Nunez Jr",
     "license": "ISC",
     "description": "A design system based on Pink Design & made for loomjs.",
@@ -61,7 +61,7 @@
         "typescript": "^5.1.6"
     },
     "peerDependencies": {
-        "@loom-js/core": "0.3.27",
-        "@loom-js/tags": "0.0.12"
+        "@loom-js/core": "0.3.28",
+        "@loom-js/tags": "0.0.13"
     }
 }
