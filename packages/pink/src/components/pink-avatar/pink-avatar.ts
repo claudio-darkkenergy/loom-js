@@ -6,33 +6,29 @@ import classNames from 'classnames';
 export type PinkAvatarProps = ImgProps & {
     color?: PinkColor;
     size?: PinkSize;
-    withBorder?: boolean;
 };
 
 export const PinkAvatar: SimpleComponent<PinkAvatarProps> = ({
     children,
     className,
-    color,
-    size,
+    color = PinkColor.Default,
+    size = PinkSize.Medium,
     src,
     style,
-    withBorder = true,
     ...avatarProps
 }) => {
     const avatarClassName = classNames(className, 'avatar', {
         [`is-color-${color}`]: Boolean(color),
-        [`is-size-${size}`]: Boolean(size)
+        [`is-size-${size}`]: size !== PinkSize.Medium
     });
 
-    return children
-        ? Div({ ...avatarProps, children, className: avatarClassName })
-        : Img({
+    // All images must set the `alt` attribute to a string.
+    return typeof avatarProps.alt === 'string'
+        ? Img({
               ...avatarProps,
               className: avatarClassName,
               src,
-              style: [
-                  //   withBorder ? {} : { 'border-color': 'transparent' },
-                  style
-              ]
-          });
+              style
+          })
+        : Div({ ...avatarProps, children, className: avatarClassName });
 };

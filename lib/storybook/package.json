@@ -1,0 +1,18 @@
+{
+  "name": "@loom-js/storybook",
+  "private": true,
+  "version": "0.0.1",
+  "license": "MIT",
+  "exports": "./src/index.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@loom-js/core": "workspace:*",
+    "@storybook/types": "^8.0.9"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.28",
+    "typescript": "^5.4.5"
+  }
+}
