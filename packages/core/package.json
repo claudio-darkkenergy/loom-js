@@ -25,7 +25,8 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/darkkenergy/loomjs/packages/core"
+        "url": "https://github.com/darkkenergy/loomjs",
+        "directory": "packages/core"
     },
     "scripts": {
         "build-package": "rollup -c rollup.config.ts --configPlugin typescript",
