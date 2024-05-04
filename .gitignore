@@ -8,6 +8,7 @@ build
 dist
 coverage
 node_modules
+storybook-static
 *.log
 # MacOS
 .DS_Store
@@ -25,3 +26,5 @@ designs
 vercel.json
 
 #temp ignores
+
+*storybook.log

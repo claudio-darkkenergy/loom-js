@@ -6,6 +6,7 @@ export enum PinkColor {
     Orange = 'orange',
     Pink = 'pink',
     Red = 'red',
+    Default = 'default',
     Empty = 'empty'
 }
 
@@ -15,8 +16,9 @@ export interface PinkDynamicProps {
 }
 
 export enum PinkSize {
-    Large = 'large',
+    XSmall = 'x-small',
     Small = 'small',
-    XLarge = 'x-large',
-    XSmall = 'x-small'
+    Medium = 'medium',
+    Large = 'large',
+    XLarge = 'x-large'
 }
