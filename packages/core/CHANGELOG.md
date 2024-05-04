@@ -1,5 +1,11 @@
 # @loom-js/core
 
+## 0.4.0
+
+### Minor Changes
+
+- d4c1db8: Storybook added for @loom-js/pink & other minor updates
+
 ## 0.3.28
 
 ### Patch Changes

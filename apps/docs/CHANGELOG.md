@@ -1,5 +1,16 @@
 # @loom-js/docs
 
+## 1.0.4
+
+### Patch Changes
+
+- d4c1db8: Storybook added for @loom-js/pink & other minor updates
+- Updated dependencies [d4c1db8]
+  - @loom-js/typescript-config@0.1.0
+  - @loom-js/core@0.4.0
+  - @loom-js/pink@1.0.0
+  - @loom-js/tags@1.0.0
+
 ## 1.0.3
 
 ### Patch Changes
