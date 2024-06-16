@@ -1,3 +1,45 @@
-<link rel="stylesheet" href="https://unpkg.com/@appwrite.io/pink" />
-<!-- optionally, add icons -->
-<link rel="stylesheet" href="https://unpkg.com/@appwrite.io/pink-icons" />
+<script type="text/javascript">
+    const decoratorBlockCenter = () => ({
+        className: 'box u-main-center u-overflow-x-auto',
+        style: { '--box-border-radius': 'var(--border-radius-medium)' }
+    });
+    const decoratorBlockLeft = () => ({
+        className: 'box u-overflow-x-auto',
+        style: { '--box-border-radius': 'var(--border-radius-medium)' }
+    });
+    const decoratorBlockRight = () => ({
+        className: 'box u-main-right u-overflow-x-auto',
+        style: { '--box-border-radius': 'var(--border-radius-medium)' }
+    });
+    const decoratorFlexCenter = () => ({
+        className: 'box u-flex u-main-center u-overflow-x-auto',
+        style: { '--box-border-radius': 'var(--border-radius-medium)' }
+    });
+    const decoratorFlexLeft = () => ({
+        className: 'box u-flex u-overflow-x-auto',
+        style: { '--box-border-radius': 'var(--border-radius-medium)' }
+    });
+    const decoratorFlexRight = () => ({
+        className: 'box u-flex u-main-right u-overflow-x-auto',
+        style: { '--box-border-radius': 'var(--border-radius-medium)' }
+    });
+    const decorator = {
+        block: {
+            center: decoratorBlockCenter,
+            left: decoratorBlockLeft,
+            right: decoratorBlockRight,
+        },
+        flex: {
+            center: decoratorFlexCenter,
+            left: decoratorFlexLeft,
+            right: decoratorFlexRight,
+        }
+    };
+    const parameters = {
+        decorator
+    };
+
+    window.storybook = {
+        parameters
+    }
+</script>
