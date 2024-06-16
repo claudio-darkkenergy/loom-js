@@ -7,4 +7,5 @@ export * from './layout/pink-grid-box';
 export * from './layout/pink-header';
 export * from './layout/pink-nav';
 export * from './layout/pink-side-nav';
+export * from './modifiers';
 export * from './types';
