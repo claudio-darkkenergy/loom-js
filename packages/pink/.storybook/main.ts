@@ -1,7 +1,7 @@
 import { join, dirname } from 'path';
 
 import type { StorybookConfig } from '@storybook/html-vite';
-
+import { mergeConfig } from 'vite';
 /**
  * This function is used to resolve the absolute path of a package.
  * It is needed in projects that use Yarn PnP or are set up within a monorepo.
@@ -23,6 +23,22 @@ const config: StorybookConfig = {
     },
     docs: {
         autodocs: 'tag'
+    },
+    viteFinal(config, { configType }) {
+        if (configType === 'DEVELOPMENT') {
+            // Your development configuration goes here
+        }
+
+        if (configType === 'PRODUCTION') {
+            // Your production configuration goes here.
+        }
+
+        return mergeConfig(config, {
+            // Your environment configuration here
+            esbuild: {
+                keepNames: true
+            }
+        });
     }
 };
 export default config;

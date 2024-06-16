@@ -6,9 +6,9 @@ import {
     init
 } from '@loom-js/core';
 
-const StoryAppRoot = component<{ story: Component }>(
+const StoryApp = component<{ story: Component }>(
     (html, { attrs, story }) => html`
-        <div $attrs=${attrs}>${story()}</div>
+        <div id="story-app" $attrs=${attrs}>${story()}</div>
     `
 );
 
@@ -18,10 +18,10 @@ export const LoomJsStorybookDecorator: Decorator = (
 ) => {
     const $storyContainer = document.createElement('div');
 
-    $storyContainer.classList.add('story-container');
+    $storyContainer.id = 'story-container';
 
     init({
-        app: StoryAppRoot({
+        app: StoryApp({
             attrs: {
                 className: decorator?.className,
                 style: decorator?.style
