@@ -1,11 +1,16 @@
 import { PinkColor, PinkSize } from '../../types';
-import { PinkAvatar, type PinkAvatarProps } from './pink-avatar';
-import type { Meta, StoryObj } from '@loom-js/storybook';
+import { PinkAvatar } from './pink-avatar';
+import {
+    RenderVariants,
+    type RenderVariantsStoryArgs,
+    type Meta,
+    type StoryObj
+} from '@loom-js/storybook';
 import { Span } from '@loom-js/tags';
 
-const meta: Meta = {
+const meta: Meta<typeof PinkAvatar> = {
     title: 'Components/PinkAvatar',
-    render: PinkAvatar,
+    component: PinkAvatar,
     argTypes: {
         children: {
             table: {
@@ -29,7 +34,33 @@ const meta: Meta = {
 
 export default meta;
 
-type Story = StoryObj<PinkAvatarProps>;
+type Story = StoryObj<RenderVariantsStoryArgs>;
+
+export const Types: Story = {
+    render: RenderVariants(PinkAvatar),
+    args: {
+        itemProps: [
+            {
+                color: PinkColor.Empty
+            },
+            {
+                children: 'Pink',
+                color: PinkColor.Pink
+            },
+            {
+                children: Span({ className: 'icon-code' })
+            },
+            {
+                alt: 'Randomly chosen image related to technics',
+                src: 'https://loremflickr.com/100/100/technics'
+            }
+        ]
+    }
+};
+
+// export const Sizes: Story = {
+//     args:
+// }
 
 export const Empty: Story = {
     argTypes: {
