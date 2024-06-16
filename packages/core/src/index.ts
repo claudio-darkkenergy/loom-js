@@ -24,6 +24,7 @@ export type {
     MouseEventListener,
     OnRouteOptions,
     OnTemplateTagValue,
+    PlainObject,
     ReactiveComponent,
     RefContext,
     RenderFunction,
