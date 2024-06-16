@@ -1,18 +1,17 @@
-import { component, onRouteUpdate, type TemplateTagValue } from '@loom-js/core';
-
 import { appContentActivity } from '@app/activities/app-content';
 import { pageContentActivity } from '@app/activities/page-content';
+import { getSite } from '@app/helpers/api/content/contentful';
+import type { Page, Site } from '@app/types';
+import { type ApiProviderResponse } from '@app/types/api';
+import { component, onRouteUpdate, type TemplateTagValue } from '@loom-js/core';
 import {
     PinkAvatar,
     PinkAvatarGroup,
     PinkColor,
     PinkHeader,
-    PinkNav,
+    PinkTopNav,
     PinkSize
 } from '@loom-js/pink';
-import { getSite } from '@app/helpers/api/content/contentful';
-import type { Page, Site } from '@app/types';
-import { type ApiProviderResponse } from '@app/types/api';
 
 export interface AppLayoutProps {
     mainContent(contentProps: {
@@ -68,8 +67,7 @@ export const AppLayout = component<AppLayoutProps>(
                                     size: PinkSize.XLarge,
                                     src: '/static/img/loom-logo-64.svg',
                                     style: 'padding: 1.25rem 0',
-                                    width: 64,
-                                    withBorder: false
+                                    width: 64
                                 }),
                                 PinkAvatarGroup({
                                     itemProps: [
@@ -79,8 +77,7 @@ export const AppLayout = component<AppLayoutProps>(
                                             height: 64,
                                             size: PinkSize.Large,
                                             src: '/static/img/loom-logo-64.svg',
-                                            width: 64,
-                                            withBorder: false
+                                            width: 64
                                         },
                                         {
                                             alt: 'loomjs logo',
@@ -96,8 +93,7 @@ export const AppLayout = component<AppLayoutProps>(
                                             height: 64,
                                             size: PinkSize.Large,
                                             src: '/static/img/loom-logo-64.svg',
-                                            width: 64,
-                                            withBorder: false
+                                            width: 64
                                         },
                                         {
                                             children: '+2',
@@ -106,10 +102,9 @@ export const AppLayout = component<AppLayoutProps>(
                                             size: PinkSize.Large,
                                             width: 64
                                         }
-                                    ],
-                                    withBorder: false
+                                    ]
                                 }),
-                                PinkNav({
+                                PinkTopNav({
                                     items: getNavigation(pagesCollection?.items)
                                 })
                             ]
