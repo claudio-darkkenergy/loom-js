@@ -17,6 +17,15 @@ export const PinkAvatar: SimpleComponent<PinkAvatarProps> = ({
     style,
     ...avatarProps
 }) => {
+    console.log({
+        children,
+        className,
+        color,
+        size,
+        src,
+        style,
+        ...avatarProps
+    });
     const avatarClassName = classNames(className, 'avatar', {
         [`is-color-${color}`]: Boolean(color),
         [`is-size-${size}`]: size !== PinkSize.Medium

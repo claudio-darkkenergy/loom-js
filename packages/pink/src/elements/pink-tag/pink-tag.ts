@@ -1,51 +1,59 @@
+import { withIcon } from '../../modifiers/with-icon';
 import { PinkDynamicProps } from '../../types';
 import { ComponentOptionalProps, SimpleComponent } from '@loom-js/core';
-import { Div, Span } from '@loom-js/tags';
+import { Div } from '@loom-js/tags';
 import classNames from 'classnames';
 
+type Enumerate<
+    N extends number,
+    Acc extends number[] = []
+> = Acc['length'] extends N
+    ? Acc[number]
+    : Enumerate<N, [...Acc, Acc['length']]>;
+type NumberRange<F extends number, T extends number> =
+    | Exclude<Enumerate<T>, Enumerate<F>>
+    | T;
+
 interface TagProps extends PinkDynamicProps {
+    // Appends the icon when provided vs. prepend placement.
+    appendIcon?: boolean;
     isDanger?: boolean;
     // The classname for the icon - renders only when provided.
     icon?: string;
-    isEyebrowHeading?: boolean;
+    isEyebrowHeading?: boolean | NumberRange<1, 3>;
     isInfo?: boolean;
+    isSelected?: boolean;
     isSuccess?: boolean;
     isWarning?: boolean;
 }
 
 const Tag: SimpleComponent<TagProps> = ({
-    children,
     className,
-    icon,
     is = Div,
     isDanger,
     isEyebrowHeading,
     isInfo,
+    isSelected,
     isSuccess,
     isWarning,
     ...props
-}) =>
-    is({
-        ...props,
-        children: icon
-            ? [
-                  Span({
-                      attrs: {
-                          'aria-hidden': true
-                      },
-                      className: icon
-                  }),
-                  children
-              ]
-            : children,
-        className: classNames(className, 'tag', {
-            'eyebrow-heading': isEyebrowHeading,
-            'is-danger': isDanger,
-            'is-info': isInfo,
-            'is-success': isSuccess,
-            'is-warning': isWarning
+}) => {
+    const eyebrowHeadingClassName = `eyebrow-heading${isEyebrowHeading ? `-${Number(isEyebrowHeading)}` : ''}`;
+
+    return is(
+        withIcon({
+            ...props,
+            className: classNames(className, 'tag', {
+                [eyebrowHeadingClassName]: Boolean(isEyebrowHeading),
+                'is-danger': isDanger,
+                'is-info': isInfo,
+                'is-selected': isSelected,
+                'is-success': isSuccess,
+                'is-warning': isWarning
+            })
         })
-    });
+    );
+};
 
 export type PinkTagProps = ComponentOptionalProps & Omit<TagProps, 'is'>;
 

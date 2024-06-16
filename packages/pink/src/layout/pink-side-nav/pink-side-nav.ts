@@ -1,40 +1,63 @@
-import { SimpleComponent } from '@loom-js/core';
-import { Div, Link, LinkProps, Section, Ul } from '@loom-js/tags';
+import {
+    type DropListItemProps,
+    PinkDropList,
+    type PinkDropListProps
+} from '../../components/pink-drop-list';
+import type { SimpleComponent, TemplateTagValue } from '@loom-js/core';
+import { Div, Section } from '@loom-js/tags';
 import classNames from 'classnames';
 
-export const PinkSideNav: SimpleComponent = ({ className }) =>
+const SideNavBottom: SimpleComponent = ({ children }) =>
     Div({
-        children: [
-            Div({
-                children: Section({
-                    children: Ul({
-                        className: 'drop-list',
-                        item: (props: LinkProps) =>
-                            Link({ ...props, className: 'drop-button' }),
-                        itemProps: [
-                            {
-                                className: 'isSelected',
-                                children: 'Item 1'
-                            },
-                            { children: 'Item 2' }
-                        ],
-                        listItemProps: { className: 'drop-list-item' }
-                    }),
-                    className: 'drop-section'
-                }),
-                className: 'side-nav-main'
-            }),
-            Div({
-                children: Section({
-                    children: Link({
-                        className: 'drop-button',
-                        children: 'Menu Item',
-                        href: ''
-                    }),
-                    className: 'drop-section'
-                }),
-                className: 'side-nav-bottom'
-            })
-        ],
+        children: Section({
+            children,
+            className: 'drop-section'
+        }),
+        className: 'side-nav-bottom'
+    });
+
+interface SideNavTopProps {
+    listProps: PinkDropListProps;
+}
+
+const SideNavTop: SimpleComponent<SideNavTopProps> = ({ listProps }) =>
+    Div({
+        children: Section({
+            children: PinkDropList(listProps)
+        }),
+        className: 'side-nav-main'
+    });
+
+export interface PinkSideNavProps {
+    mainButtonProps: any[];
+    bottom: TemplateTagValue | TemplateTagValue[];
+    topLinkProps: DropListItemProps[];
+}
+
+export const PinkSideNav: SimpleComponent<PinkSideNavProps> = ({
+    bottom,
+    className,
+    topLinkProps
+}) => {
+    const sideNavTop = SideNavTop({
+        listProps: {
+            itemProps: topLinkProps
+        }
+    });
+    const children = bottom
+        ? [
+              sideNavTop,
+              SideNavBottom({
+                  children: bottom
+              })
+          ]
+        : sideNavTop;
+
+    return Div({
+        children: Div({
+            children,
+            className: 'side-nav-level-1'
+        }),
         className: classNames(className, 'side-nav')
     });
+};

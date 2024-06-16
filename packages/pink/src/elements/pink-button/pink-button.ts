@@ -1,8 +1,9 @@
-import { SimpleComponent } from '@loom-js/core';
-import { Button, ButtonProps, Span } from '@loom-js/tags';
+import { type WithIconProps, withIcon } from '../../modifiers';
+import { type SimpleComponent } from '@loom-js/core';
+import { Button, type ButtonProps } from '@loom-js/tags';
 import classNames from 'classnames';
 
-export type PinkButtonProps = ButtonProps & {
+export interface PinkButtonProps extends ButtonProps, WithIconProps {
     // A custom button size - modifies height.
     buttonSize?: string;
     // A custom font-size
@@ -19,13 +20,12 @@ export type PinkButtonProps = ButtonProps & {
     isText?: boolean;
     // A custom horizontal padding
     padding?: string;
-};
+}
 
 export const PinkButton: SimpleComponent<PinkButtonProps> = ({
     buttonSize,
-    children,
+    className,
     fontSize,
-    icon,
     isBig,
     isOnlyIcon,
     isSecondary,
@@ -34,31 +34,22 @@ export const PinkButton: SimpleComponent<PinkButtonProps> = ({
     style,
     ...buttonProps
 }) =>
-    Button({
-        ...buttonProps,
-        children: icon
-            ? [
-                  Span({
-                      attrs: {
-                          'aria-hidden': true
-                      },
-                      className: icon
-                  }),
-                  children
-              ]
-            : children,
-        className: classNames('button', {
-            'is-big': isBig,
-            'is-only-icon': isOnlyIcon,
-            'is-secondary': isSecondary,
-            'is-text': isText
-        }),
-        style: [
-            {
-                '--p-button-size': buttonSize,
-                '--p-font-size': fontSize,
-                '--padding-horizontal': padding
-            },
-            style
-        ]
-    });
+    Button(
+        withIcon({
+            ...buttonProps,
+            className: classNames(className, 'button', {
+                'is-big': isBig,
+                'is-only-icon': isOnlyIcon,
+                'is-secondary': isSecondary,
+                'is-text': isText
+            }),
+            style: [
+                {
+                    '--p-button-size': buttonSize,
+                    '--p-font-size': fontSize,
+                    '--padding-horizontal': padding
+                },
+                style
+            ]
+        })
+    );

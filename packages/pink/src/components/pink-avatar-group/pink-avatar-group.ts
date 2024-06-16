@@ -5,7 +5,6 @@ import classNames from 'classnames';
 
 export type PinkAvatarGroupProps = Omit<UlProps, 'item'> & {
     with3Char?: boolean;
-    withBorder?: boolean;
 };
 
 export const PinkAvatarGroup: SimpleComponent<PinkAvatarGroupProps> = ({
@@ -13,14 +12,19 @@ export const PinkAvatarGroup: SimpleComponent<PinkAvatarGroupProps> = ({
     itemProps,
     listItemProps,
     with3Char,
-    withBorder,
     ...ulProps
-}) =>
-    Ul({
+}) => {
+    console.log({
+        className,
+        itemProps,
+        listItemProps,
+        with3Char,
+        ...ulProps
+    });
+    return Ul({
         ...ulProps,
         className: classNames(className, 'avatars-group', {
-            'is-with-3-char': with3Char,
-            'is-with-border': withBorder
+            'is-with-3-char': with3Char
         }),
         item: (avatarProps: PinkAvatarProps) => PinkAvatar({ ...avatarProps }),
         itemProps,
@@ -32,3 +36,4 @@ export const PinkAvatarGroup: SimpleComponent<PinkAvatarGroupProps> = ({
             )
         }
     });
+};
