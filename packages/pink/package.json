@@ -23,6 +23,7 @@
         "url": "https://github.com/darkkenergy/loomjs/packages/pink"
     },
     "scripts": {
+        "build": "pnpm build-storybook",
         "build-package": "rollup -c rollup.config.ts --configPlugin typescript",
         "build-storybook": "storybook build",
         "build-storybook-docs": "storybook build --docs",
