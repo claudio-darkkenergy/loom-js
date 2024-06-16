@@ -1,12 +1,10 @@
+import { mergeAllowedAttrs } from '../../../../helpers';
+import { ListItems, type ListItemsProps } from './list-items';
 import {
     type AttrsTemplateTagValue,
     type ComponentProps,
     component
 } from '@loom-js/core';
-
-import { mergeAllowedAttrs } from '../../../../helpers';
-
-import { ListItems, type ListItemsProps } from './list-items';
 
 export type UlProps = ListItemsProps & {
     listItemProps?: ComponentProps;
