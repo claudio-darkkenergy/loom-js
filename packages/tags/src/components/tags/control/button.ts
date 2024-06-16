@@ -1,10 +1,9 @@
+import { mergeAllowedAttrs } from '../../../helpers';
 import {
     type Aria,
     type AttrsTemplateTagValue,
     component
 } from '@loom-js/core';
-
-import { mergeAllowedAttrs } from '../../../helpers';
 
 export interface ButtonProps {
     aria?: Aria;
