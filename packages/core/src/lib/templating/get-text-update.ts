@@ -41,23 +41,25 @@ const getNewTextValue = (value: Text | unknown) =>
     value instanceof Text ? value : document.createTextNode(String(value));
 
 const handleArrayValue = (
-    [liveNode, value]: [TemplateRoot | TemplateRootArray, TemplateTagValue[]],
+    [liveNode, valueArray]: [
+        TemplateRoot | TemplateRootArray,
+        TemplateTagValue[]
+    ],
     parentCtx?: ComponentContextPartial
 ) => {
     const liveNodeIsArray = Array.isArray(liveNode);
     const liveNodeParent = liveNodeIsArray
         ? liveNode[0]?.parentElement
         : liveNode?.parentElement;
-    // let lastResolvedValue: TemplateRoot;
     let nextLiveNode: TemplateRootArray;
 
-    if (!value.length) {
+    if (!valueArray.length) {
         // Ensure a value array has at least one defined value.
-        value.push(document.createTextNode(''));
+        valueArray.push(document.createTextNode(''));
     }
 
     // Update the DOM  w/ the pending (new) nodes.
-    nextLiveNode = value.map((newVal, i) => {
+    nextLiveNode = valueArray.map((newVal, i) => {
         let currentLiveNode: TemplateRoot;
         // The resolved `TemplateTagValue`
         const childCtx = appendChildContext(parentCtx, newVal, i);
@@ -78,21 +80,12 @@ const handleArrayValue = (
             else if (!resolvedValue.isSameNode(liveNode[i] ?? null)) {
                 if (liveNode[i] !== undefined) {
                     liveNode[i]?.replaceWith(resolvedValue);
-                    // }
-                    // // Handle `undefined` live node
-                    // else if (lastResolvedValue.nextSibling) {
-                    //     // Insert before the last updated node.
-                    //     liveNodeParent?.insertBefore(
-                    //         resolvedValue,
-                    //         lastResolvedValue.nextSibling
-                    //     );
                 } else {
-                    // Or append to the live node parent if there are no "next" siblings.
+                    // Handle `undefined` live node.
                     liveNodeParent?.appendChild(resolvedValue);
                 }
             }
 
-            // lastResolvedValue = currentLiveNode = resolvedValue;
             currentLiveNode = resolvedValue;
         } else {
             // Handle `Text` or `Comment` nodes.
@@ -109,15 +102,14 @@ const handleArrayValue = (
                 liveNodeParent?.insertBefore(textOrCommentValue, liveNode);
             } else {
                 if (liveNode[i] !== undefined) {
-                    // Always replace when the new value is `Text`.
+                    // Always replace when the new value is `Text` or `Comment`.
                     liveNode[i]?.replaceWith(textOrCommentValue);
                 } else if (liveNodeParent) {
-                    // Handle `undefined` live node
+                    // Handle `undefined` live node.
                     liveNodeParent.appendChild(textOrCommentValue);
                 }
             }
 
-            // lastResolvedValue = currentLiveNode = textOrCommentValue;
             currentLiveNode = textOrCommentValue;
         }
 
@@ -127,7 +119,7 @@ const handleArrayValue = (
     // Do cleanup.
     if (liveNodeIsArray) {
         // Cleanup the excess old live nodes.
-        liveNode.slice(value.length).forEach((node) => node.remove());
+        liveNode.slice(valueArray.length).forEach((node) => node.remove());
     } else {
         // Cleanup the old live node anchor.
         liveNode?.remove();

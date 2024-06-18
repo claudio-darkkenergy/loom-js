@@ -15,7 +15,7 @@ export const setUpdatesForPaths = (
     const getDynamicElementMemo = memo<
         [number[], DocumentFragment],
         DynamicNode
-    >((_cacheClean, ...args) => {
+    >((_cleanCache, ...args) => {
         return getDynamicElement(...args);
     });
 
@@ -23,7 +23,7 @@ export const setUpdatesForPaths = (
         [DynamicNode, DocumentFragment],
         IterableIterator<Text>
     >(
-        (_cacheClean, ...args) => {
+        (_cleanCache, ...args) => {
             return getLiveTextNodes(...args);
         },
         (...[dynamicNode]) => dynamicNode
