@@ -26,6 +26,13 @@
                 "editorconfig": false,
                 "parser": "typescript"
             }
+        },
+        {
+            "files": "*.mts",
+            "options": {
+                "editorconfig": false,
+                "parser": "typescript"
+            }
         }
     ]
 }

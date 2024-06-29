@@ -5,8 +5,8 @@
 # Generated directories & files
 .turbo
 build
-dist
 coverage
+dist
 node_modules
 storybook-static
 *.log

@@ -1,5 +1,4 @@
 {
-  "extends": "@loom-js/typescript-config/base.json",
-  "exclude": ["./docs", "./apps/docs-old"],
-  "include": ["**/*.ts", "apps/docs/project/build/index.mts", "apps/docs/project/build/client.mts"]
+    "extends": "@loom-js/typescript-config/base.json",
+    "include": ["**/*.ts"]
 }
