@@ -1,0 +1,18 @@
+{
+    "extends": "@loom-js/typescript-config/app.json",
+    "compilerOptions": {
+        "paths": {
+            "@app/*": [
+                "./src/*"
+            ]
+        }
+    },
+    "include": [
+        "src",
+        "project"
+    ],
+    "exclude": [
+        "build",
+        "node_modules"
+    ]
+}

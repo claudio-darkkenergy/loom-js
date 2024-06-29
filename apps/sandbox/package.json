@@ -1,0 +1,31 @@
+{
+  "name": "@loom-js/sandbox",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "pnpm ts-node/esm -- ./project/client/build.mts",
+    "build-manual": "pnpm type-check && pnpm build",
+    "ts-node/esm": "node --no-warnings=ExperimentalWarning --loader ts-node/esm",
+    "dev": "pnpm ts-node/esm -- ./project/client/dev.mts",
+    "serve-build": "pnpm build && pnpx simple-server ./build",
+    "type-check": "tsc --noEmit"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@loom-js/core": "workspace:*",
+    "@loom-js/tags": "workspace:*",
+    "@loom-js/typescript-config": "workspace:*",
+    "@loom-js/storybook": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.5",
+    "esbuild": "^0.20.0",
+    "esbuild-plugin-clean": "^1.0.1",
+    "esbuild-plugin-copy": "^2.1.1",
+    "esbuild-plugin-html-split": "workspace:*",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
