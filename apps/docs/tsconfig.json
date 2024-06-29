@@ -1,20 +1,18 @@
 {
-    "extends": "@loom-js/typescript-config/base.json",
-    "ts-node": {
-        // these options are overrides used only by ts-node
-        // same as the --compilerOptions flag and the TS_NODE_COMPILER_OPTIONS environment variable
-        "compilerOptions": {
-            "module": "ESNext",
-            "moduleResolution": "NodeNext",
-        }
-    },
+    "extends": "@loom-js/typescript-config/app.json",
     "compilerOptions": {
-        "module": "ESNext",
-        "moduleResolution": "Bundler",
         "paths": {
-            "@app/*": ["./src/*"]
+            "@app/*": [
+                "./src/*"
+            ]
         }
     },
-    "include": ["src", "project"],
-    "exclude": ["build", "node_modules"]
+    "include": [
+        "src",
+        "project"
+    ],
+    "exclude": [
+        "build",
+        "node_modules"
+    ]
 }

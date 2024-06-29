@@ -11,6 +11,7 @@
     "build-manual": "pnpm type-check && pnpm build",
     "ts-node/esm": "node --no-warnings=ExperimentalWarning --loader ts-node/esm",
     "dev": "pnpm ts-node/esm -- ./project/client/dev.mts",
+    "serve-build": "pnpx simple-server ./build",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
@@ -29,6 +30,7 @@
     "esbuild": "^0.20.0",
     "esbuild-plugin-clean": "^1.0.1",
     "esbuild-plugin-copy": "^2.1.1",
+    "esbuild-plugin-html-split": "workspace:*",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }
