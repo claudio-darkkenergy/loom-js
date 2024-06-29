@@ -1,0 +1,19 @@
+{
+    "extends": "./base.json",
+    "display": "App",
+    "ts-node": {
+        "compilerOptions": {
+            "module": "ESNext",
+            "moduleResolution": "NodeNext"
+        }
+    },
+    "compilerOptions": {
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "paths": {
+            "@app/*": [
+                "./src/*"
+            ]
+        }
+    }
+}
