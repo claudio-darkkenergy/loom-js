@@ -236,9 +236,9 @@ export type ActivityTransform<V = unknown, I = V> = (
     }
 ) => void | Promise<void>;
 
-export interface ValueProp<V = unknown> {
+export type ValueProp<V = unknown> = {
     value: V;
-}
+};
 
 /* Routing */
 export interface OnRouteOptions {
