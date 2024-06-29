@@ -14,5 +14,6 @@ export const lazyMock = async <R>(resource: string) =>
 
 export const mockRequest = <D, T>(resource: RequestInfo) =>
     request<D, T>(resource, {
-        headers: requestHeaders
+        headers: requestHeaders,
+        timeout: null
     });
