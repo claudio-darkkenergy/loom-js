@@ -5,7 +5,6 @@
   "author": "Claudio Nunez Jr.",
   "license": "ISC",
   "description": "Loomjs Documentation Site",
-  "main": "index.js",
   "scripts": {
     "build": "pnpm ts-node/esm -- ./project/client/build.mts",
     "build-manual": "pnpm type-check && pnpm build",

@@ -1,6 +1,9 @@
 {
   "name": "@loom-js/sandbox",
+  "private": true,
   "version": "1.0.1",
+  "author": "Claudio Nunez Jr.",
+  "license": "ISC",
   "description": "",
   "scripts": {
     "build": "pnpm ts-node/esm -- ./project/client/build.mts",
@@ -10,8 +13,6 @@
     "serve-build": "pnpm build && pnpx serve ./build -p 1002",
     "type-check": "tsc --noEmit"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "@loom-js/core": "workspace:*",
     "@loom-js/storybook": "workspace:*",
