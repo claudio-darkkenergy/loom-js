@@ -20,13 +20,13 @@
     "@loom-js/typescript-config": "workspace:*",
     "prettier": "^3.3.2",
     "prettier-plugin-sort-imports": "^1.8.5",
-    "turbo": "^2.0.4"
+    "turbo": "^2.0.6"
   },
   "packageManager": "pnpm@9.4.0",
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
-    "@changesets/cli": "^2.27.5"
+    "@changesets/cli": "^2.27.7"
   }
 }
