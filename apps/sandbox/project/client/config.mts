@@ -17,7 +17,6 @@ export const clientConfig = (options: ClientConfigOptions = {}) => {
             'static/js/spa': './src/routes/*',
             'static/styles/base': './public/styles/base.css'
         },
-        external: ['@loom-js/core'],
         format: 'esm',
         loader: {
             '.eot': 'file',
