@@ -1,9 +1,18 @@
 # @loom-js/storybook
 
+## 0.0.3
+
+### Patch Changes
+
+-   1203343: Cleanup.
+-   Updated dependencies [1203343]
+    -   @loom-js/core@0.4.1
+    -   @loom-js/tags@0.0.15
+
 ## 0.0.2
 
 ### Patch Changes
 
-- d4c1db8: Storybook added for @loom-js/pink & other minor updates
-- Updated dependencies [d4c1db8]
-  - @loom-js/core@0.4.0
+-   d4c1db8: Storybook added for @loom-js/pink & other minor updates
+-   Updated dependencies [d4c1db8]
+    -   @loom-js/core@0.4.0
