@@ -21,9 +21,7 @@ const config: StorybookConfig = {
         name: getAbsolutePath('@storybook/html-vite'),
         options: {}
     },
-    docs: {
-        autodocs: 'tag'
-    },
+    docs: {},
     viteFinal(config, { configType }) {
         if (configType === 'DEVELOPMENT') {
             // Your development configuration goes here
