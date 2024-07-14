@@ -4,7 +4,7 @@ import type {
     TemplateRootArray,
     TemplateTagValue
 } from '../../types';
-import { appendChildContext } from '../context';
+import { appendChildContext, getContextForValue } from '../context';
 import { resolveValue } from './resolve-value';
 import { updateLiveNode } from './update-live-node';
 
@@ -60,57 +60,46 @@ const handleArrayValue = (
 
     // Update the DOM  w/ the pending (new) nodes.
     nextLiveNode = valueArray.map((newVal, i) => {
-        let currentLiveNode: TemplateRoot;
+        const ctxSnapshot = getContextForValue(newVal);
+        const childCtx = appendChildContext(
+            parentCtx,
+            newVal,
+            ctxSnapshot.key || i
+        );
         // The resolved `TemplateTagValue`
-        const childCtx = appendChildContext(parentCtx, newVal, i);
         const resolvedValue = resolveValue(newVal, childCtx);
-
-        if (
+        const isHtmlOrSvgElement =
             resolvedValue instanceof HTMLElement ||
-            resolvedValue instanceof SVGElement
+            resolvedValue instanceof SVGElement;
+        const currentLiveNode =
+            isHtmlOrSvgElement || resolvedValue instanceof Comment
+                ? resolvedValue
+                : // Coerce to a valid `LiveNode` as if not already.
+                  getNewTextValue(resolvedValue);
+
+        if (!liveNodeIsArray) {
+            // Handle single `LiveNode` updates.
+            if (!liveNode?.isSameNode(currentLiveNode)) {
+                // Insert before the live node.
+                // The live node will be removed from the DOM after all insertions.
+                liveNodeParent?.insertBefore(currentLiveNode, liveNode);
+            }
+        } else if (
+            (isHtmlOrSvgElement && !liveNode[i]?.isSameNode(currentLiveNode)) ||
+            !isHtmlOrSvgElement
         ) {
-            // Handle `Element` nodes.
-            // Handle single `LiveNode` updates.
-            if (!liveNodeIsArray) {
-                // Insert before the live node.
-                // The live node will be removed from the DOM after all insertions.
-                liveNodeParent?.insertBefore(resolvedValue, liveNode);
-            }
-            // Handle `LiveNode[]` updates when the resolved vs. live nodes are not the same.
-            else if (!resolvedValue.isSameNode(liveNode[i] ?? null)) {
-                if (liveNode[i] !== undefined) {
-                    liveNode[i]?.replaceWith(resolvedValue);
-                } else {
-                    // Handle `undefined` live node.
-                    liveNodeParent?.appendChild(resolvedValue);
-                }
-            }
+            // Handle array `LiveNode` updates.
+            const cursorNode = liveNode[i];
 
-            currentLiveNode = resolvedValue;
-        } else {
-            // Handle `Text` or `Comment` nodes.
-            const textOrCommentValue =
-                resolvedValue instanceof Comment
-                    ? resolvedValue
-                    : // Coerce to a valid `LiveNode` as if not already.
-                      getNewTextValue(resolvedValue);
+            // `liveNode` must reflect the new order to keep the next cursor position in sync with
+            // the right cursor target on the next update.
+            liveNode.includes(currentLiveNode) &&
+                liveNode.splice(liveNode.indexOf(currentLiveNode), 1);
+            liveNode.splice(i, 0, currentLiveNode);
 
-            // Handle single `LiveNode` updates.
-            if (!liveNodeIsArray) {
-                // Insert before the live node.
-                // The live node will be removed from the DOM after all insertions.
-                liveNodeParent?.insertBefore(textOrCommentValue, liveNode);
-            } else {
-                if (liveNode[i] !== undefined) {
-                    // Always replace when the new value is `Text` or `Comment`.
-                    liveNode[i]?.replaceWith(textOrCommentValue);
-                } else if (liveNodeParent) {
-                    // Handle `undefined` live node.
-                    liveNodeParent.appendChild(textOrCommentValue);
-                }
-            }
-
-            currentLiveNode = textOrCommentValue;
+            cursorNode
+                ? liveNodeParent?.insertBefore(currentLiveNode, cursorNode)
+                : liveNodeParent?.appendChild(currentLiveNode);
         }
 
         return currentLiveNode;
@@ -127,3 +116,4 @@ const handleArrayValue = (
 
     return nextLiveNode;
 };
+console.log('v7');

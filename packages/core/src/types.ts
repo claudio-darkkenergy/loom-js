@@ -103,7 +103,7 @@ export type ComponentProps<Props extends object = {}> = {
 // which essentially provides caching capabilities w/ associated meta-data.
 export interface ComponentContext<Props extends object = {}>
     extends LifeCycleHandlerProps {
-    children: ComponentContextPartial[];
+    children: Map<number | string, ComponentContextPartial>;
     chunks: TemplateStringsArray;
     ctxScopes: Map<TemplateFunction<Props>, ComponentContextPartial>;
     fingerPrint: TemplateFunction<Props>;
@@ -148,7 +148,8 @@ export type ComponentOptionalProps = Partial<{
 
 // `ComponentContext` related types
 export type ContextFunction = (
-    ctx?: ComponentContextPartial
+    ctx?: ComponentContextPartial,
+    dryRun?: boolean
 ) => ComponentContextPartial;
 // Returns the parent of `TemplateRoot` or `TemplateRootArray`.
 export type ContextNodeGetter = () => TemplateRoot | TemplateRootArray;

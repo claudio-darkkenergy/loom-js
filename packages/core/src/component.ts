@@ -19,8 +19,20 @@ export const component: ComponentFactory = <Props extends object = {}>(
     templateFunction: TemplateFunction<Props>
 ) => {
     const componentFunction: Component = (props = {}) => {
-        // This is where we can add to the context to configure each component.
-        function contextFunction(liveCtx: ComponentContextPartial = {}) {
+        /**
+         * The component context function is responsible for configuring each component & its
+         * context.
+         * @param liveCtx - The live context that gets passed down to the component context.
+         * @param dryRun - Indicates whether the component context should be returned as a snapshot
+         * without invoking the component template. This is useful for previewing the component
+         * context before rendering it, which also means that the returned context will get thrown
+         * away, as it's only a snapshot.
+         * @returns The component context (or snapshot) for each component.
+         */
+        function contextFunction(
+            liveCtx: ComponentContextPartial = {},
+            dryRun = false
+        ) {
             const scopedCtx = liveCtx.ctxScopes
                 ? liveCtx.ctxScopes.get(templateFunction as TemplateFunction)
                 : null;
@@ -33,7 +45,7 @@ export const component: ComponentFactory = <Props extends object = {}>(
             if (!liveCtx.root || scopedCtx === undefined) {
                 const ref = props.ref;
 
-                ctx.children = [];
+                ctx.children = new Map();
                 ctx.fragment = false;
                 ctx.fingerPrint = templateFunction as TemplateFunction;
                 ctx.lifeCycles = lifeCycles(ctx);
@@ -52,7 +64,7 @@ export const component: ComponentFactory = <Props extends object = {}>(
                     ctx.mounted = ctx.ref.mounted;
                     ctx.rendered = ctx.ref.rendered;
                     ctx.unmounted = ctx.ref.unmounted;
-                    delete props.ref;
+                    !dryRun && delete props.ref;
                 }
 
                 if (liveCtx.ctxScopes) {
@@ -66,12 +78,17 @@ export const component: ComponentFactory = <Props extends object = {}>(
 
             ctx.key = props.key;
             ctx.props = props;
+
+            if (dryRun) {
+                return ctx;
+            }
+
             refIterator = (ctx.refs as Set<RefContext>).values();
 
             /*
              * ```
              * component(
-             *    // This is the render function that gets called now.
+             *    // This is the render (template) function that gets called now.
              *    (html, {}) => html`<h1>Hello World!</h1>`
              * );
              * ```

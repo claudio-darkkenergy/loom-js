@@ -1,5 +1,6 @@
 import type {
     ComponentContextPartial,
+    ContextFunction,
     TemplateRoot,
     TemplateTagValue
 } from '../../types';
@@ -7,28 +8,32 @@ import type {
 export const appendChildContext = (
     parentCtx: ComponentContextPartial = {},
     value: TemplateTagValue,
-    i: number
+    key: number | string
 ) => {
-    parentCtx.children = parentCtx.children || [];
+    parentCtx.children = parentCtx.children || new Map();
 
-    if (Array.isArray(parentCtx.children)) {
-        let childCtx = parentCtx.children[i];
+    if (
+        typeof value === 'function' &&
+        ['contextFunction', 'activityContextFunction'].includes(value.name)
+    ) {
+        let childCtx = parentCtx.children.get(key);
 
-        if (
-            typeof value === 'function' &&
-            ['contextFunction', 'activityContextFunction'].includes(value.name)
-        ) {
-            if (!childCtx) {
-                childCtx = {} as ComponentContextPartial;
-                parentCtx.children[i] = childCtx;
-            }
-
-            childCtx.parent = parentCtx;
+        if (!childCtx) {
+            childCtx = {} as ComponentContextPartial;
+            parentCtx.children.set(key, childCtx);
         }
 
+        childCtx.parent = parentCtx;
         return childCtx;
+    } else {
+        parentCtx.children.delete(key);
     }
 };
+
+export const getContextForValue = (value: TemplateTagValue) =>
+    typeof value === 'function' && value.name === 'contextFunction'
+        ? (value as ContextFunction)({}, true)
+        : {};
 
 export const getContextRootAnchor = (ctx: ComponentContextPartial) =>
     Array.isArray(ctx.root) ? ctx.root[0] : (ctx.root as TemplateRoot);
