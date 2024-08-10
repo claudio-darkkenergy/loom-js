@@ -2,4 +2,5 @@ packages:
     - 'apps/*'
     - 'lib/*'
     - 'packages/*'
-    - 'packages/**/*'
+    - 'packages/esbuild/*'
+    - '!packages/ui-kit'
