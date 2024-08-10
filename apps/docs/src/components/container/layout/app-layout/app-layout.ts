@@ -3,7 +3,12 @@ import { pageContentActivity } from '@app/activities/page-content';
 import { getSite } from '@app/helpers/api/content/contentful';
 import type { Page, Site } from '@app/types';
 import { type ApiProviderResponse } from '@app/types/api';
-import { component, onRouteUpdate, type TemplateTagValue } from '@loom-js/core';
+import {
+    component,
+    onRoute,
+    onRouteUpdate,
+    type TemplateTagValue
+} from '@loom-js/core';
 import {
     PinkAvatar,
     PinkAvatarGroup,
@@ -105,7 +110,10 @@ export const AppLayout = component<AppLayoutProps>(
                                     ]
                                 }),
                                 PinkTopNav({
-                                    items: getNavigation(pagesCollection?.items)
+                                    items: getNavigation(
+                                        pagesCollection?.items
+                                    ),
+                                    onClick: onRoute
                                 })
                             ]
                         }),
