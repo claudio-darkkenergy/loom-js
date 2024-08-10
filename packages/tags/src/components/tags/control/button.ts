@@ -26,6 +26,7 @@ export const Button = component<ButtonProps>(
             children,
             disabled,
             on,
+            onClick,
             title,
             type = ButtonType.Button,
             ...buttonProps
@@ -40,6 +41,7 @@ export const Button = component<ButtonProps>(
             <button
                 $attrs=${attrsOverrides}
                 $on=${on}
+                $click=${onClick}
                 aria-label=${aria.label}
                 disabled=${disabled}
                 title=${title}

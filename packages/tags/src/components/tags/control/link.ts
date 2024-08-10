@@ -1,6 +1,5 @@
-import { type AttrsTemplateTagValue, component } from '@loom-js/core';
-
 import { mergeAllowedAttrs } from '../../../helpers';
+import { type AttrsTemplateTagValue, component } from '@loom-js/core';
 
 export interface LinkProps {
     href: string;
@@ -11,7 +10,16 @@ export interface LinkProps {
 export const Link = component<LinkProps>(
     (
         html,
-        { attrs, children, href, on, target = '_self', title, ...linkProps }
+        {
+            attrs,
+            children,
+            href,
+            on,
+            onClick,
+            target = '_self',
+            title,
+            ...linkProps
+        }
     ) => {
         const attrsOverrides = mergeAllowedAttrs(
             attrs,
@@ -22,6 +30,7 @@ export const Link = component<LinkProps>(
             <a
                 $attrs=${attrsOverrides}
                 $on=${on}
+                $click=${onClick}
                 href=${href}
                 target=${target}
                 title=${title}
