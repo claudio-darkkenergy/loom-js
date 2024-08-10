@@ -9,6 +9,7 @@ export interface PinkTopNavProps {
 export const PinkTopNav: SimpleComponent<PinkTopNavProps> = ({
     className,
     items,
+    on,
     onClick,
     style,
     ...navProps
@@ -18,8 +19,9 @@ export const PinkTopNav: SimpleComponent<PinkTopNavProps> = ({
         children: items?.map((link) =>
             Li({
                 children: Link({
-                    ...link,
-                    onClick
+                    on,
+                    onClick,
+                    ...link
                 })
             })
         ),
