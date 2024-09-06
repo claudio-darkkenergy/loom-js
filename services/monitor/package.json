@@ -4,7 +4,8 @@
   "description": "An application monitoring micro-service.",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "exit 0"
   },
   "keywords": [],
   "author": "Claudio Nunez Jr",
