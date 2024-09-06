@@ -1,0 +1,16 @@
+{
+  "name": "monitor",
+  "version": "1.0.0",
+  "description": "An application monitoring micro-service.",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Claudio Nunez Jr",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.645.0",
+    "@loom-js/typescript-config": "workspace:*"
+  }
+}
