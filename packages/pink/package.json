@@ -37,7 +37,6 @@
     "@appwrite.io/pink": "0.26.0",
     "@appwrite.io/pink-icons": "0.26.0",
     "@loom-js/core": "workspace:*",
-    "@loom-js/open-ai": "workspace:*",
     "@loom-js/tags": "workspace:*",
     "classnames": "^2.5.1"
   },
