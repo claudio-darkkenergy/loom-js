@@ -13,10 +13,10 @@ import type {
     ValueProp
 } from './types';
 
-export const activity = <V = unknown, I = V>(
+export const activity = <V, I = V>(
     initialValue: V,
-    transformOrOptions?: ActivityTransform<V, I> | ActivityOptions,
-    options: ActivityOptions = {}
+    transformOrOptions?: ActivityTransform<V, I> | ActivityOptions<V, I>,
+    options: ActivityOptions<V, I> = {}
 ) => {
     // Holds the latest scoped action per `ctx` so that any update will be called in the correct scope.
     const scopedActions = new Map<
@@ -24,7 +24,11 @@ export const activity = <V = unknown, I = V>(
         ActivityEffectAction<V>
     >();
     const transformIsSet = typeof transformOrOptions === 'function';
-    const transform = transformIsSet ? transformOrOptions : undefined;
+    const transform = transformIsSet
+        ? transformOrOptions
+        : isObject(transformOrOptions)
+          ? transformOrOptions?.transform
+          : undefined;
     const { deep = false, force = false } = transformIsSet
         ? options
         : transformOrOptions || {};

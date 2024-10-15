@@ -91,13 +91,13 @@ const handleArrayValue = (
             // Handle array `LiveNode` updates.
             const cursorNode = liveNode[i];
 
-            // `liveNode` must reflect the new order to keep the next cursor position in sync with
+            // `liveNode` must reflect the new order to keep the next cursor position in sync w/
             // the right cursor target on the next update.
             liveNode.includes(currentLiveNode) &&
                 liveNode.splice(liveNode.indexOf(currentLiveNode), 1);
             liveNode.splice(i, 0, currentLiveNode);
 
-            cursorNode
+            cursorNode && !currentLiveNode.contains(cursorNode)
                 ? liveNodeParent?.insertBefore(currentLiveNode, cursorNode)
                 : liveNodeParent?.appendChild(currentLiveNode);
         }
@@ -116,4 +116,3 @@ const handleArrayValue = (
 
     return nextLiveNode;
 };
-console.log('v7');

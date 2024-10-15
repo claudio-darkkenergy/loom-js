@@ -62,9 +62,11 @@ export type TemplateRootArray = TemplateRoot[];
 
 export type TemplateTagValue =
     | boolean
+    | Component
     | ContextFunction
     | EventListenerOrEventListenerObject
     | MouseEventListener
+    | SyntheticRouteEventListener
     | Node
     | null
     | number
@@ -78,7 +80,7 @@ export type TemplateTagValue =
     | undefined
     | void;
 
-export type TemplateTagValueFunction = () => TemplateTagValue;
+export type TemplateTagValueFunction = <T>(props?: T) => TemplateTagValue;
 
 export type TemplateNodeUpdate = (
     value: TemplateTagValue,
@@ -86,6 +88,9 @@ export type TemplateNodeUpdate = (
 ) => void;
 
 /* Component */
+export type AnyComponent<Props extends object = {}> =
+    | Component<Props>
+    | SimpleComponent<Props>;
 // The component callable (external values to internal props)
 export type Component<Props extends object = {}> = (
     props?: ComponentProps<Props>
@@ -141,8 +146,9 @@ export type ComponentOptionalProps = Partial<{
     id: string;
     key: string;
     on: OnTemplateTagValue;
-    onClick: MouseEventListener;
+    onClick: SyntheticRouteEventListener | EventListenerOrEventListenerObject;
     ref: RefContext;
+    routeProps: RouteValue;
     style: TemplateTagValue | PlainObject<TemplateTagValue>;
 }>;
 
@@ -212,9 +218,24 @@ export type SyntheticMouseEventListener = (
     ev: MouseEvent
 ) => any;
 export type SyntheticMouseEvent<T = EventTarget> = Event & {
+    ctrlKey: boolean;
     currentTarget: T;
     target: T;
 };
+export type SyntheticRouteEvent<T extends EventTarget = Element> = Event & {
+    altKey: boolean;
+    ctrlKey: boolean;
+    currentTarget: T;
+    metaKey: boolean;
+    shiftKey: boolean;
+    target: T;
+};
+export type SyntheticRouteEventListener = <
+    T extends EventTarget = HTMLAnchorElement
+>(
+    event: SyntheticRouteEvent<T> | null,
+    options?: OnRouteOptions
+) => any;
 
 /* Activity */
 export type ActivityEffect<V> = (
@@ -225,17 +246,26 @@ export type ActivityEffectAction<V> = (
     valueProp: ValueProp<V>
 ) => TemplateTagValue;
 
-export interface ActivityOptions {
+export interface ActivityOptions<V = unknown, I = V> {
     deep?: boolean;
     force?: boolean;
+    transform?: ActivityTransform<V, I>;
 }
 
-export type ActivityTransform<V = unknown, I = V> = (
-    ctx: { value: V } & {
-        input: I;
-        update: (valueInput: V) => void;
-    }
-) => void | Promise<void>;
+export type ActivityTransform<V = unknown, I = V> = (ctx: {
+    input: I;
+    update: (valueInput: V) => void;
+    value: V;
+}) => void | Promise<void>;
+
+export type RouteValue = {
+    raw: Location;
+    matchedRoute?: string;
+    params: {
+        [key: string]: string;
+    };
+    pathname?: string | undefined;
+};
 
 export type ValueProp<V = unknown> = {
     value: V;
@@ -349,3 +379,10 @@ export interface NodeFilter {
 export interface GlobalConfig {
     config: Config;
 }
+
+/* Utilities */
+export type GetProps<T extends (props: any) => any> = T extends (
+    props: infer P
+) => any
+    ? P
+    : any;

@@ -3,7 +3,9 @@ export * from './app';
 export * from './component';
 export * from './config';
 export * from './lazy-import';
+export * from './router';
 export * from './routing';
+export * from './simple';
 export type {
     ActivityEffect,
     ActivityEffectAction,
@@ -13,12 +15,14 @@ export type {
     AppInitProps,
     Aria,
     AttrsTemplateTagValue,
+    AnyComponent,
     Component,
     ComponentArgs,
     ComponentContext,
     ComponentOptionalProps,
     ComponentProps,
     ContextFunction,
+    GetProps,
     LifeCycleHandler,
     LoomGlobal,
     MouseEventListener,
@@ -29,9 +33,12 @@ export type {
     RefContext,
     RenderFunction,
     RenderProps,
+    RouteValue,
     SimpleComponent,
     SyntheticMouseEvent,
     SyntheticMouseEventListener,
+    SyntheticRouteEvent,
+    SyntheticRouteEventListener,
     TemplateFunction,
     TemplateTagValue,
     TemplateTagValueFunction

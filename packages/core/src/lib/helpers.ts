@@ -25,3 +25,27 @@ export const shallowDiffObject = (
     Object.entries(oldValue).some(([key, value]) => {
         return value !== newValue[key];
     });
+
+export const toCamelCase = (str: string) => {
+    return str
+        .split('-')
+        .map((word, index) =>
+            index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)
+        )
+        .join('');
+};
+
+export const toKebabCase = (str: string) => {
+    return str
+        .split('')
+        .map((char: string, index: number) => {
+            if (index === 0) {
+                return char.toLowerCase();
+            }
+            if (char === char.toUpperCase()) {
+                return `-${char.toLowerCase()}`;
+            }
+            return char;
+        })
+        .join('');
+};

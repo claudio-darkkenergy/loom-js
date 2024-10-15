@@ -39,6 +39,7 @@
     },
     "devDependencies": {
         "@esm-bundle/chai": "4.3.4-fix.0",
+        "@loom-js/typescript-config": "workspace:*",
         "@rollup/plugin-terser": "^0.4.4",
         "@rollup/plugin-typescript": "^11.1.6",
         "@testing-library/dom": "^10.3.1",

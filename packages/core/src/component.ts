@@ -77,7 +77,12 @@ export const component: ComponentFactory = <Props extends object = {}>(
             }
 
             ctx.key = props.key;
-            ctx.props = props;
+            ctx.props = {
+                ...props,
+                children: Array.isArray(props.children)
+                    ? props.children.flat()
+                    : props.children
+            };
 
             if (dryRun) {
                 return ctx;

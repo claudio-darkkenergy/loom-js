@@ -189,7 +189,8 @@ const mergeAndSetStyleValues = (
         }
     };
 
-    styleRules.forEach(handleStyleArg);
+    // Flatten the array of style rules in the case of nested arrays.
+    styleRules.flat().forEach(handleStyleArg);
 };
 
 const overrideEventListener = ({

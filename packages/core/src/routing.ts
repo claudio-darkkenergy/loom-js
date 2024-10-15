@@ -1,16 +1,42 @@
 import { activity } from './activity';
+import { sanitizeLocation } from './router';
 import type {
     ActivityEffectAction,
     OnRouteOptions,
     SyntheticMouseEvent
 } from './types';
 
+export type RouterRoute = {
+    pathname: string;
+};
+
+export const getRouterRoute = (location: Location) => {
+    const { pathname } = sanitizeLocation(location);
+    return { pathname };
+};
+
+// @DEPRECATED Location as a union type will be removed in future versions.
+// Maintaining for backwards compatibility.
+export type RouterActivityValue = Location & {
+    raw: Location;
+    route: RouterRoute;
+};
+
 // Setup the activity for the History API
-const historyApiActivity = activity<Location>(window.location, { force: true });
+const getRouterValue = (location: Location) => ({
+    ...location,
+    raw: location,
+    route: getRouterRoute(location)
+});
+const historyApiActivity = activity<RouterActivityValue>(
+    getRouterValue(window.location)
+);
 const { update, watch } = historyApiActivity;
 
 // Hook into the History API onpopstate event when the browser history updates via back/forward controls.
-window.addEventListener('popstate', () => update(window.location));
+window.addEventListener('popstate', () =>
+    update(getRouterValue(window.location))
+);
 
 /**
  * Accepts a handler which is called any time the route is updated
@@ -25,7 +51,9 @@ export const onRouteUpdate = watch;
  * @param routeConfigCallback An `ActivityHandler`.
  * @returns A new `Node`.
  */
-export const router = (routeConfigCallback: ActivityEffectAction<Location>) => {
+export const router = (
+    routeConfigCallback: ActivityEffectAction<RouterActivityValue>
+) => {
     const { effect } = historyApiActivity;
     // Return the resolved route.
     return effect(routeConfigCallback);
@@ -52,7 +80,7 @@ export const onRoute = <T = HTMLAnchorElement>(
 
     // Update the browser url.
     window.history[action]({}, 'onRoute', href);
-    didRouteChange(locationSnapshot) && update(window.location);
+    didRouteChange(locationSnapshot) && update(getRouterValue(window.location));
 };
 
 /**
@@ -64,17 +92,3 @@ const didRouteChange = ({ origin, pathname, search }: Location) =>
     origin !== window.location.origin ||
     pathname !== window.location.pathname ||
     search !== window.location.search;
-
-/**
- * Sanitizes the `Window.Location` object as follows:
- *      `pathname` returns "/" or `/${path}` where the trailing slash is trimmed.
- * @param location The current state of `Window.Location`.
- * @returns A sanitized `Location` object shallow copy.
- */
-export const sanitizeLocation = ({ pathname, ...loc }: Location) => ({
-    ...loc,
-    pathname:
-        pathname.length > 1 && pathname[pathname.length - 1] === '/'
-            ? pathname.slice(0, pathname.length - 1)
-            : pathname
-});
