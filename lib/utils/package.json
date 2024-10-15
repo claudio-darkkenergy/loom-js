@@ -1,0 +1,18 @@
+{
+  "name": "@loom-js/utils",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Common library utilities",
+  "exports": "./src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Claudio Nunez Jr",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "tslib": "^2.6.3",
+    "typescript": "^5.5.3"
+  }
+}
