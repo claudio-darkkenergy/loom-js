@@ -4,7 +4,7 @@ import type { Meta, StoryObj } from '@loom-js/storybook';
 
 const meta: Meta = {
     title: 'Elements/PinkBox',
-    render: PinkBox
+    component: PinkBox
 };
 
 export default meta;

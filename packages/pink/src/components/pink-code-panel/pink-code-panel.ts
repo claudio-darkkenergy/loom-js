@@ -1,6 +1,8 @@
 import type { PinkDynamicProps } from '../../types';
-import type { SimpleComponent } from '@loom-js/core';
-import { Div } from '@loom-js/tags';
+import { PinkCodePanelContent } from './pink-code-panel-content';
+import { PinkCodePanelHeader } from './pink-code-panel-header';
+import type { ComponentOptionalProps } from '@loom-js/core';
+import { Span } from '@loom-js/tags';
 import classNames from 'classnames';
 
 export type PinkCodePanelProps = PinkDynamicProps & {
@@ -11,14 +13,14 @@ export type PinkCodePanelProps = PinkDynamicProps & {
 /**
  * Code panels are used to create a focused view of a block of code, for example to display logs.
  */
-export const PinkCodePanel: SimpleComponent<PinkCodePanelProps> = ({
+export const PinkCodePanel = ({
     className,
     codePanelContent,
     codePanelTextColor,
-    is = Div,
+    is = Span,
     style,
     ...props
-}) =>
+}: ComponentOptionalProps & PinkCodePanelProps) =>
     is({
         ...props,
         className: classNames(className, 'code-panel'),
@@ -30,3 +32,6 @@ export const PinkCodePanel: SimpleComponent<PinkCodePanelProps> = ({
             }
         ]
     });
+
+PinkCodePanel.Header = PinkCodePanelHeader;
+PinkCodePanel.Content = PinkCodePanelContent;

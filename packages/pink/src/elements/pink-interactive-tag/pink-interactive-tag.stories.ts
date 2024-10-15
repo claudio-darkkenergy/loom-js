@@ -1,4 +1,7 @@
-import { PinkInteractiveTag } from './pink-interactive-tag';
+import {
+    PinkInteractiveTag,
+    type PinkInteractiveTagProps
+} from './pink-interactive-tag';
 import {
     type Meta,
     RenderVariants,
@@ -6,7 +9,7 @@ import {
     type RenderVariantsStoryArgs
 } from '@loom-js/storybook';
 
-const meta: Meta = {
+const meta: Meta<PinkInteractiveTagProps> = {
     title: 'Elements/PinkInteractiveTag',
     component: RenderVariants(PinkInteractiveTag, ({ itemProps }) => ({
         itemProps: itemProps?.map((props: object) => ({

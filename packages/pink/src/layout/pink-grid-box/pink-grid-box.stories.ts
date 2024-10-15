@@ -1,40 +1,44 @@
+import { PinkCard } from '../../elements/pink-card';
 import { PinkGridBox, type PinkGridBoxProps } from './pink-grid-box';
-import type { Meta, StoryObj } from '@loom-js/storybook';
-import { Div, Ul, type UlProps } from '@loom-js/tags';
+import { ArgType, type Meta, type StoryObj } from '@loom-js/storybook';
+import { Ul } from '@loom-js/tags';
 
 const { parameters } = (window as any).storybook;
 
-const meta: Meta<PinkGridBoxProps & UlProps> = {
+const meta: Meta<PinkGridBoxProps> = {
+    title: 'Layout/PinkGridBox',
     parameters: {
         decorator: parameters.decorator.block.center()
     },
-    render: (({ itemProps, ...gridBoxProps }: PinkGridBoxProps & UlProps) =>
-        PinkGridBox({
-            ...gridBoxProps,
-            is: Ul,
-            item: Div,
-            itemProps: itemProps?.map((props: any) => ({
-                ...props,
-                children: 'card',
-                className: 'card'
-            }))
-        })) as (props: PinkGridBoxProps) => HTMLDivElement
+    component: PinkGridBox,
+    argTypes: {
+        is: ArgType.disable,
+        item: ArgType.disable,
+        itemProps: ArgType.disable
+    }
 };
 
 export default meta;
 
 type Story = StoryObj<PinkGridBoxProps>;
 
-export const Parameters: Story = {
-    argTypes: {
-        itemProps: {
-            table: {
-                disable: true
-            }
-        }
-    },
+const storyBaseArgs = {
+    is: Ul,
+    item: PinkCard,
+    itemProps: Array(6).fill({
+        children: 'Card'
+    })
+};
+
+export const AutoColumns: Story = {
     args: {
-        cols: 3,
-        itemProps: Array(6).fill({})
+        ...storyBaseArgs
+    }
+};
+
+export const ExactColumns: Story = {
+    args: {
+        ...storyBaseArgs,
+        cols: 3
     }
 };

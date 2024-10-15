@@ -4,9 +4,9 @@ import {
 } from './pink-buttons-list';
 import type { Meta, StoryObj } from '@loom-js/storybook';
 
-const meta: Meta = {
+const meta: Meta<PinkButtonsListProps> = {
     title: 'Elements/PinkButtonsList',
-    render: PinkButtonsList
+    component: PinkButtonsList
 };
 
 export default meta;

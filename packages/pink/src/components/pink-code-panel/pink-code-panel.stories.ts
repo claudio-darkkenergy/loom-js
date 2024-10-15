@@ -1,15 +1,16 @@
 import { PinkCodePanel, PinkCodePanelProps } from './pink-code-panel';
-import { PinkCodePanelContent } from './pink-code-panel-content';
-import { PinkCodePanelHeader } from './pink-code-panel-header';
-import type { Meta, StoryObj } from '@loom-js/storybook';
+import { ArgType, type Meta, type StoryObj } from '@loom-js/storybook';
+
+const { parameters } = (globalThis as any).storybook;
 
 const meta: Meta = {
     title: 'Components/PinkCodePanel',
-    render: PinkCodePanel as () => HTMLDivElement,
+    component: PinkCodePanel,
+    parameters: {
+        decorator: parameters.decorator.block.left()
+    },
     argTypes: {
-        children: {
-            table: { disable: true }
-        }
+        children: ArgType.disable
     }
 };
 
@@ -17,12 +18,12 @@ export default meta;
 
 type Story = StoryObj<PinkCodePanelProps>;
 
-const codePanelContent = PinkCodePanelContent({
+const codePanelContent = PinkCodePanel.Content({
     children: [
         'PinkCodePanel({',
         '   children: [',
-        '       PinkCodePanelHeader({}),',
-        '       PinkCodePanelContent({',
+        '       PinkCodePanel.Header({}),',
+        '       PinkCodePanel.Content({',
         '           children: preformattedCode',
         '       })',
         '   ]',
@@ -33,7 +34,7 @@ const codePanelContent = PinkCodePanelContent({
 export const WithHeader: Story = {
     args: {
         children: [
-            PinkCodePanelHeader({ children: 'Code Panel' }),
+            PinkCodePanel.Header({ children: 'Code Panel' }),
             codePanelContent
         ]
     }

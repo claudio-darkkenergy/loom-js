@@ -11,7 +11,7 @@ export enum PinkColor {
 }
 
 export interface PinkDynamicProps {
-    is?: Component;
+    is?: Component | any;
     [key: string | symbol]: unknown;
 }
 

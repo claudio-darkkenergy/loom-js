@@ -5,12 +5,14 @@ import classNames from 'classnames';
 
 export type PinkAvatarProps = ImgProps & {
     color?: PinkColor;
+    isWith3Char?: boolean;
     size?: PinkSize;
 };
 
 export const PinkAvatar: SimpleComponent<PinkAvatarProps> = ({
     children,
     className,
+    isWith3Char,
     color = PinkColor.Default,
     size = PinkSize.Medium,
     src,
@@ -28,7 +30,8 @@ export const PinkAvatar: SimpleComponent<PinkAvatarProps> = ({
     });
     const avatarClassName = classNames(className, 'avatar', {
         [`is-color-${color}`]: Boolean(color),
-        [`is-size-${size}`]: size !== PinkSize.Medium
+        [`is-size-${size}`]: size !== PinkSize.Medium,
+        'is-with-3-char': isWith3Char
     });
 
     // All images must set the `alt` attribute to a string.

@@ -26,5 +26,5 @@ export const PinkTopNav: SimpleComponent<PinkTopNavProps> = ({
             })
         ),
         className: classNames('u-cross-center u-flex u-gap-32', className),
-        style: ['list-style: none', style]
+        style: ['list-style: none', style].flat()
     });

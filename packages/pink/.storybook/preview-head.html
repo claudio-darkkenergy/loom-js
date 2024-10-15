@@ -1,27 +1,22 @@
 <script type="text/javascript">
+    const storyDecoratorClassName = 'story-decorator box u-overflow-x-auto';
     const decoratorBlockCenter = () => ({
-        className: 'box u-main-center u-overflow-x-auto',
-        style: { '--box-border-radius': 'var(--border-radius-medium)' }
+        className: `${storyDecoratorClassName} u-main-center`,
     });
     const decoratorBlockLeft = () => ({
-        className: 'box u-overflow-x-auto',
-        style: { '--box-border-radius': 'var(--border-radius-medium)' }
+        className: storyDecoratorClassName,
     });
     const decoratorBlockRight = () => ({
-        className: 'box u-main-right u-overflow-x-auto',
-        style: { '--box-border-radius': 'var(--border-radius-medium)' }
+        className: `${storyDecoratorClassName} u-main-right`,
     });
     const decoratorFlexCenter = () => ({
-        className: 'box u-flex u-main-center u-overflow-x-auto',
-        style: { '--box-border-radius': 'var(--border-radius-medium)' }
+        className: `${storyDecoratorClassName} u-flex u-main-center`,
     });
     const decoratorFlexLeft = () => ({
-        className: 'box u-flex u-overflow-x-auto',
-        style: { '--box-border-radius': 'var(--border-radius-medium)' }
+        className: `${storyDecoratorClassName} u-flex`,
     });
     const decoratorFlexRight = () => ({
-        className: 'box u-flex u-main-right u-overflow-x-auto',
-        style: { '--box-border-radius': 'var(--border-radius-medium)' }
+        className: `${storyDecoratorClassName} u-flex u-main-right`,
     });
     const decorator = {
         block: {
@@ -39,7 +34,17 @@
         decorator
     };
 
-    window.storybook = {
+    globalThis.storybook = {
         parameters
     }
 </script>
+
+<style type="text/css">
+    body.theme-dark .box {
+        --p-box-background-color: var(--color-neutral-100) !important;
+    }
+
+    .story-decorator {
+        --box-border-radius: var(--border-radius-medium)
+    }
+</style>

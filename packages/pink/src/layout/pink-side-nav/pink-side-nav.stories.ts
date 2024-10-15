@@ -1,21 +1,18 @@
 import { withIcon } from '../../modifiers';
 import { PinkSideNav, type PinkSideNavProps } from './pink-side-nav';
-import type { Meta, StoryObj } from '@loom-js/storybook';
+import { ArgType, type Meta, type StoryObj } from '@loom-js/storybook';
 import { Link } from '@loom-js/tags';
 
-const { parameters } = (window as any).storybook;
+const { parameters } = (globalThis as any).storybook;
 
-const meta: Meta = {
+const meta: Meta<PinkSideNavProps> = {
+    title: 'Layout/PinkSideNav',
     parameters: {
         decorator: parameters.decorator.flex.left()
     },
     component: PinkSideNav,
     argTypes: {
-        bottom: {
-            table: {
-                disable: true
-            }
-        }
+        bottom: ArgType.disable
     }
 };
 

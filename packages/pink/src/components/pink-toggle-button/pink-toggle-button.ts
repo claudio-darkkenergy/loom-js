@@ -8,7 +8,7 @@ type ButtonPropsProp = ComponentProps<ButtonProps & WithIconProps> & {
 };
 
 export interface PinkToggleButtonProps {
-    buttonProps: ButtonPropsProp[];
+    buttonProps?: ButtonPropsProp[];
 }
 
 export const PinkToggleButton: SimpleComponent<PinkToggleButtonProps> = ({
@@ -21,7 +21,7 @@ export const PinkToggleButton: SimpleComponent<PinkToggleButtonProps> = ({
         children: Ul({
             className: 'toggle-button-list',
             item: Button,
-            itemProps: buttonProps.map(({ className, isSelected, ...props }) =>
+            itemProps: buttonProps?.map(({ className, isSelected, ...props }) =>
                 withIcon({
                     ...props,
                     className: classNames(className, 'toggle-button-element', {

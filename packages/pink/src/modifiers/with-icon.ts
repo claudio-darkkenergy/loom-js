@@ -1,5 +1,15 @@
-import type { TemplateTagValue, ComponentProps } from '@loom-js/core';
-import { Span } from '@loom-js/tags';
+import type { ComponentProps, SimpleComponent } from '@loom-js/core';
+import { Span, SpanProps } from '@loom-js/tags';
+import classNames from 'classnames';
+
+const Icon: SimpleComponent<SpanProps> = ({ attrs, ...iconProps }) =>
+    Span({
+        ...iconProps,
+        attrs: {
+            ...attrs,
+            'aria-hidden': true
+        }
+    });
 
 export interface WithIconProps {
     [key: string]: unknown;
@@ -7,32 +17,32 @@ export interface WithIconProps {
     appendIcon?: boolean;
     // The classname for the icon - renders only when provided.
     icon?: string;
-    iconClassName?: string;
+    // The classname for the icon element.
+    iconProps?: SpanProps;
 }
 
-export const withIcon = ({
+export const withIcon = <T>({
     appendIcon,
     children,
     icon,
-    iconClassName = '',
+    iconProps = {},
     ...props
-}: ComponentProps<WithIconProps>) => {
-    const childrenWithIcon: TemplateTagValue[] = [
-        Span({
-            attrs: {
-                'aria-hidden': true
-            },
-            className: [icon, iconClassName].join(' ').trim()
-        })
-    ].concat(children);
+}: ComponentProps<T & WithIconProps>) => {
+    const { className, ...iconPropsRest } = iconProps;
+    const resolvedIconProps = {
+        ...iconPropsRest,
+        className: classNames(className, icon)
+    };
+    const childrenWithIcon = icon
+        ? appendIcon && children
+            ? [Icon(resolvedIconProps), children].reverse().flat()
+            : children
+              ? [Icon(resolvedIconProps), children].flat()
+              : Icon(resolvedIconProps)
+        : children;
 
     return {
         ...props,
-        children:
-            children && icon
-                ? appendIcon
-                    ? childrenWithIcon.reverse()
-                    : childrenWithIcon
-                : children
-    };
+        children: childrenWithIcon
+    } as T;
 };

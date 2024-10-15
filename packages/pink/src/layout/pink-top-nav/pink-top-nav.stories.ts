@@ -3,7 +3,8 @@ import type { Meta, StoryObj } from '@loom-js/storybook';
 
 const { parameters } = (window as any).storybook;
 
-const meta: Meta = {
+const meta: Meta<PinkTopNavProps> = {
+    title: 'Layout/PinkTopNav',
     parameters: {
         decorator: parameters.decorator.flex.right()
     },

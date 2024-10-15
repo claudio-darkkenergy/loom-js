@@ -1,36 +1,37 @@
 import type { PinkDynamicProps } from '../../types';
-import type { SimpleComponent } from '@loom-js/core';
-import { Div } from '@loom-js/tags';
+import { simple } from '@loom-js/core';
+import { Ul, type UlProps } from '@loom-js/tags';
 import classNames from 'classnames';
 
-export type PinkGridBoxProps = PinkDynamicProps & {
-    cols?: string | number;
-    gridAutoRows?:
-        | 'auto'
-        | 'max-content'
-        | 'min-content'
-        | 'inherit'
-        | 'initial'
-        | 'revert'
-        | 'revert-layer'
-        | 'unset'
-        | string;
-    gridGap?: string;
-    gridItemSize?: string;
-    gridItemSizeSmallScreens?: string;
-};
+export type PinkGridBoxProps = PinkDynamicProps &
+    UlProps & {
+        cols?: 'auto' | string | number;
+        gridAutoRows?:
+            | 'auto'
+            | 'max-content'
+            | 'min-content'
+            | 'inherit'
+            | 'initial'
+            | 'revert'
+            | 'revert-layer'
+            | 'unset'
+            | string;
+        gridGap?: string;
+        gridItemSize?: string;
+        gridItemSizeSmallScreens?: string;
+    };
 
-export const PinkGridBox: SimpleComponent<PinkGridBoxProps> = ({
+export const PinkGridBox = simple<PinkGridBoxProps>(function pinkGridBox({
     className,
-    cols,
+    cols = 'auto',
     gridAutoRows,
     gridGap,
     gridItemSize,
     gridItemSizeSmallScreens,
-    is = Div,
+    is = Ul,
     style,
     ...props
-}) => {
+}) {
     let gridTemplateColumns = !Number.isNaN(Number(cols))
         ? `repeat(${cols}, 1fr)`
         : undefined;
@@ -46,7 +47,7 @@ export const PinkGridBox: SimpleComponent<PinkGridBoxProps> = ({
                 'grid-auto-rows': gridAutoRows,
                 'grid-template-columns': gridTemplateColumns
             }
-        ].flat(),
+        ],
         className: classNames(className, 'grid-box')
     });
-};
+});

@@ -1,19 +1,14 @@
-import { PinkTag } from './pink-tag';
-import {
-    type Meta,
-    RenderVariants,
-    type RenderVariantsStoryArgs,
-    type StoryObj
-} from '@loom-js/storybook';
+import { PinkTag, type PinkTagProps } from './pink-tag';
+import { type Meta, RenderVariants, type StoryObj } from '@loom-js/storybook';
 
-const meta: Meta<typeof RenderVariants> = {
+const meta: Meta<PinkTagProps> = {
     title: 'Elements/PinkTag',
     component: RenderVariants(PinkTag)
 };
 
 export default meta;
 
-type Story = StoryObj<RenderVariantsStoryArgs>;
+type Story = StoryObj<PinkTagProps>;
 
 export const Variants: Story = {
     args: {

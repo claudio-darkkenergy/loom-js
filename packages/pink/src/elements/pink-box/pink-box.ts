@@ -1,8 +1,8 @@
-import type { SimpleComponent } from '@loom-js/core';
-import { Div, type DivProps } from '@loom-js/tags';
+import type { ComponentProps, SimpleComponent } from '@loom-js/core';
+import { Div } from '@loom-js/tags';
 import classNames from 'classnames';
 
-export type PinkBoxProps = DivProps;
+export type PinkBoxProps = ComponentProps;
 
 export const PinkBox: SimpleComponent<PinkBoxProps> = ({
     className,

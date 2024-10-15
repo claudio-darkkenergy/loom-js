@@ -29,9 +29,9 @@ const SideNavTop: SimpleComponent<SideNavTopProps> = ({ listProps }) =>
     });
 
 export interface PinkSideNavProps {
-    mainButtonProps: any[];
-    bottom: TemplateTagValue | TemplateTagValue[];
-    topLinkProps: DropListItemProps[];
+    // mainButtonProps: any[];
+    bottom?: TemplateTagValue | TemplateTagValue[];
+    topLinkProps?: DropListItemProps[];
 }
 
 export const PinkSideNav: SimpleComponent<PinkSideNavProps> = ({

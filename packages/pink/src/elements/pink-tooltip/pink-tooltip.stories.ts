@@ -1,13 +1,8 @@
-import { PinkTooltip } from './pink-tooltip';
-import {
-    type Meta,
-    type StoryObj,
-    RenderVariants,
-    type RenderVariantsStoryArgs
-} from '@loom-js/storybook';
+import { PinkTooltip, type PinkTooltipProps } from './pink-tooltip';
+import { type Meta, type StoryObj, RenderVariants } from '@loom-js/storybook';
 import { Paragraph } from '@loom-js/tags';
 
-const meta: Meta = {
+const meta: Meta<PinkTooltipProps> = {
     title: 'Elements/PinkTooltip',
     component: RenderVariants(PinkTooltip)
 };
@@ -16,7 +11,7 @@ export default meta;
 
 const popupMessage = 'Set variables or secret keys.';
 
-type Story = StoryObj<RenderVariantsStoryArgs>;
+type Story = StoryObj<PinkTooltipProps>;
 
 export const Variants: Story = {
     args: {

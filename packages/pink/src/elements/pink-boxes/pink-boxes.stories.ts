@@ -1,9 +1,9 @@
 import { PinkBoxes, type PinkBoxesProps } from './pink-boxes';
 import type { Meta, StoryObj } from '@loom-js/storybook';
 
-const meta: Meta<typeof PinkBoxes> = {
+const meta: Meta<PinkBoxesProps> = {
     title: 'Elements/PinkBoxes',
-    render: ({ boxProps, ...boxesProps }: PinkBoxesProps) =>
+    render: ({ boxProps, ...boxesProps }) =>
         PinkBoxes({
             ...boxesProps,
             boxProps: boxProps.map((props) => ({

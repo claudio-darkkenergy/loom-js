@@ -4,7 +4,8 @@ import {
     RenderVariants,
     type RenderVariantsStoryArgs,
     type Meta,
-    type StoryObj
+    type StoryObj,
+    ArgType
 } from '@loom-js/storybook';
 import { Span } from '@loom-js/tags';
 
@@ -12,11 +13,7 @@ const meta: Meta<typeof PinkAvatar> = {
     title: 'Components/PinkAvatar',
     component: PinkAvatar,
     argTypes: {
-        children: {
-            table: {
-                disable: true
-            }
-        },
+        children: ArgType.disable,
         color: {
             type: 'select',
             options: [...Object.values(PinkColor)]
@@ -37,7 +34,11 @@ export default meta;
 type Story = StoryObj<RenderVariantsStoryArgs>;
 
 export const Types: Story = {
-    render: RenderVariants(PinkAvatar),
+    render: (props: any) => RenderVariants(PinkAvatar)(props),
+    argTypes: {
+        color: { control: false },
+        size: { control: false }
+    },
     args: {
         itemProps: [
             {
@@ -58,10 +59,6 @@ export const Types: Story = {
     }
 };
 
-// export const Sizes: Story = {
-//     args:
-// }
-
 export const Empty: Story = {
     argTypes: {
         color: { control: false }
@@ -71,9 +68,9 @@ export const Empty: Story = {
     }
 };
 
-export const Text: Story = {
+export const ColorAndSize: Story = {
     args: {
-        children: 'Pink',
+        children: 'AA',
         color: PinkColor.Pink
     }
 };
@@ -86,7 +83,7 @@ export const Icon: Story = {
 
 export const Image: Story = {
     argTypes: {
-        alt: { table: { disable: true } }
+        alt: ArgType.disable
     },
     args: {
         alt: 'Randomly chosen image related to technics',

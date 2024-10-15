@@ -1,6 +1,6 @@
 import { type WithIconProps, withIcon } from '../../modifiers';
 import { type SimpleComponent } from '@loom-js/core';
-import { Button, type ButtonProps } from '@loom-js/tags';
+import { Button, Link, type ButtonProps } from '@loom-js/tags';
 import classNames from 'classnames';
 
 export interface PinkButtonProps extends ButtonProps, WithIconProps {
@@ -34,7 +34,7 @@ export const PinkButton: SimpleComponent<PinkButtonProps> = ({
     style,
     ...buttonProps
 }) =>
-    Button(
+    (buttonProps.href ? Link : Button)(
         withIcon({
             ...buttonProps,
             className: classNames(className, 'button', {

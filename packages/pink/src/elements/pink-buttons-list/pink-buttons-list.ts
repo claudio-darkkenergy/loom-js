@@ -4,7 +4,7 @@ import { Ul, type UlProps } from '@loom-js/tags';
 import classNames from 'classnames';
 
 export type PinkButtonsListProps = Omit<UlProps, 'item'> & {
-    itemProps: ComponentProps<PinkButtonProps>[];
+    itemProps?: ComponentProps<PinkButtonProps>[];
 };
 
 export const PinkButtonsList: SimpleComponent<PinkButtonsListProps> = ({

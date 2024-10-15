@@ -30,7 +30,7 @@ interface DropListProps extends UlProps {
     arrow?: DropListArrow;
     isBlockEnd?: boolean;
     isInlineEnd?: boolean;
-    itemProps: DropListItemProps[];
+    itemProps?: DropListItemProps[];
 }
 
 const DropList: SimpleComponent<DropListProps> = ({
