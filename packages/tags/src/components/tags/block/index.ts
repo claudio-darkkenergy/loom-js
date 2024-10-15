@@ -3,6 +3,7 @@ export * from './aside';
 export * from './blockquote';
 export * from './div';
 export * from './figure';
+export * from './footer';
 export * from './heading/h1';
 export * from './heading/h2';
 export * from './heading/h3';
