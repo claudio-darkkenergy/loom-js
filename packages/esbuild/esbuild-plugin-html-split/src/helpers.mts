@@ -57,26 +57,27 @@ export const checkIsEntryPoint = ({
     entryPoints,
     meta,
     resourcePath,
-    spa
+    spa = ''
 }: Pick<HtmlSplitPluginOptions, 'entryPoints' | 'spa'> & {
     meta: MetafileOutputMeta;
     resourcePath: string;
 }) => {
     if (typeof meta === 'string') {
+        console.log('early fail', { meta, resourcePath });
         return false;
     }
 
     switch (true) {
-        // Dynamically pull from output metafile.
+        // Handle implicit entry-points - dynamically pull from output metafile.
         case /\.css$/.test(resourcePath) || !entryPoints?.length:
             return Boolean(meta.entryPoint);
         // Handle SPA (single entry-point.)
-        case Boolean(spa && entryPoints?.length):
-            return resourcePath.match(/^\/(.+)\.js$/i)?.[1] === entryPoints[0];
-        // Handle explicit entry-points.
+        case Boolean(spa):
+            return new RegExp(`${spa}.js`).test(resourcePath);
+        // Handle explicit entry-points (defined in plugin options.)
         case Boolean(entryPoints?.length):
             return entryPoints.includes(
-                resourcePath.match(/\/([a-z0-9_-]+)\.js$/i)?.[1] || ''
+                resourcePath.match(/^\/(.+)\.js$/i)?.[1] || ''
             );
         default:
             return false;

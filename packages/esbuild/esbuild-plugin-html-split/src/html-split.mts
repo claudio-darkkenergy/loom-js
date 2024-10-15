@@ -11,11 +11,12 @@ import path from 'node:path';
 
 export const htmlSplit: (pluginOptions: HtmlSplitPluginOptions) => Plugin = ({
     define = {},
+    entryPoints, // Possibly not needed, or just for some edge cases.
     isProd = false,
-    entryPoints,
+    main = '',
     prerender = false,
     routes = [],
-    spa = true,
+    spa = '',
     template = getDefaultTemplate,
     verbose = false
 } = {}) => ({
@@ -26,92 +27,108 @@ export const htmlSplit: (pluginOptions: HtmlSplitPluginOptions) => Plugin = ({
         const outdir = options.outdir || '/';
 
         options.metafile = true;
-        console.info('HtmlSplit Plugin - Scoped Build Options:\n\n', {
-            ...options
-        });
+        verbose &&
+            console.info('HtmlSplit Plugin - Scoped Build Options:\n\n', {
+                ...options
+            });
 
         build.onEnd(async ({ metafile = {} }) => {
             const { outputs } = metafile as Partial<Metafile>;
-            const isInitial = !cache.has(JSON.stringify(outputs));
 
-            if (outputs) {
-                const templateArgs =
-                    cache.get(JSON.stringify(outputs)) ||
-                    Object.entries(outputs).reduce<
-                        Omit<HtmlTemplateArgs, 'define'>
-                    >((acc, [outputPath, meta]) => {
-                        const resourcePath = getResourcePath({
-                            outdir,
-                            path: outputPath
-                        });
-                        const isEntryPoint = checkIsEntryPoint({
-                            entryPoints,
-                            meta,
-                            resourcePath,
-                            spa
-                        });
-                        const isCss = /\.css$/.test(outputPath);
-                        const isJs = /\.js$/.test(outputPath);
-
-                        if (isEntryPoint && isJs) {
-                            acc.js.push(resourcePath);
-                        } else if (isEntryPoint && isCss) {
-                            acc.css.push(resourcePath);
-                        } else if (isJs) {
-                            acc.common.js.push(resourcePath);
-                        } else if (isCss) {
-                            acc.common.css.push(resourcePath);
-                        }
-
-                        return acc;
-                    }, getDefaultTemplateArgs());
-
-                cache.set(JSON.stringify(outputs), templateArgs);
-
-                // Promises to create one HTML file per js bundle (`entryPoint`.)
-                const htmlPromises =
-                    spa && routes.length
-                        ? routes.map((route) => {
-                              const html = template({
-                                  ...templateArgs,
-                                  define,
-                                  scope: route === '/' ? '/pages' : route
-                              });
-                              const out = path.join(
-                                  outdir,
-                                  `${route === '/' ? '' : route}/index.html`
-                              );
-
-                              return getHtmlPromise({
-                                  html,
-                                  isInitial,
-                                  out
-                              });
-                          })
-                        : templateArgs.js.map((js) => {
-                              const basename =
-                                  js.match(/\/([a-z0-9_-]+)\.js$/i)?.[1] || '';
-                              const html = template({
-                                  ...templateArgs,
-                                  define,
-                                  js: [js],
-                                  scope: basename
-                              });
-                              const out = path.join(
-                                  outdir,
-                                  `${basename === 'pages' ? 'index' : `${basename}/index`}.html`
-                              );
-
-                              return getHtmlPromise({
-                                  html,
-                                  isInitial,
-                                  out
-                              });
-                          });
-
-                isInitial && console.info('Writing files...');
-                await Promise.all(htmlPromises);
+            if (!outputs) {
+                return;
             }
+
+            const cacheKey = JSON.stringify(outputs);
+            const isInitial = !cache.has(cacheKey);
+
+            // Fetched from cache if possible.
+            const templateArgs =
+                cache.get(cacheKey) ||
+                Object.entries(outputs).reduce<
+                    Omit<HtmlTemplateArgs, 'define'>
+                >((acc, [outputPath, meta]) => {
+                    const resourcePath = getResourcePath({
+                        outdir,
+                        path: outputPath
+                    });
+                    const isEntryPoint = checkIsEntryPoint({
+                        entryPoints,
+                        meta,
+                        resourcePath,
+                        spa
+                    });
+                    const isCss = /\.css$/.test(outputPath);
+                    const isJs = /\.js$/.test(outputPath);
+
+                    if (isEntryPoint && isJs) {
+                        acc.js.push(resourcePath);
+                    } else if (isEntryPoint && isCss) {
+                        acc.css.push(resourcePath);
+                    } else if (isJs) {
+                        acc.common.js.push(resourcePath);
+                    } else if (isCss) {
+                        acc.common.css.push(resourcePath);
+                    }
+
+                    return acc;
+                }, getDefaultTemplateArgs());
+
+            cache.set(cacheKey, templateArgs);
+            console.log({ templateArgs });
+
+            // Promises to create one HTML file per js bundle (`entryPoint`.)
+            const htmlPromises =
+                spa && routes.length
+                    ? routes.map((route) => {
+                          console.log({ route });
+                          const html = template({
+                              ...templateArgs,
+                              define,
+                              scope: route === '/' ? '/pages' : route
+                          });
+                          const out = path.join(
+                              outdir,
+                              route === '/' ? '' : route,
+                              '/index.html'
+                          );
+
+                          return getHtmlPromise({
+                              html,
+                              isInitial,
+                              out
+                          });
+                      })
+                    : templateArgs.js.map((js) => {
+                          const basename = js.match(/^(.+)\.js$/)?.[1] || '';
+                          console.log({ js });
+                          const html = template({
+                              ...templateArgs,
+                              define,
+                              js: [js],
+                              scope: basename
+                          });
+                          const out = path.join(
+                              outdir,
+                              (
+                                  main
+                                      ? new RegExp(`\/${main}.js$`).test(js)
+                                      : /\/index.js$/.test(js)
+                              )
+                                  ? ''
+                                  : basename,
+                              '/index.html'
+                          );
+
+                          return getHtmlPromise({
+                              html,
+                              isInitial,
+                              out
+                          });
+                      });
+
+            isInitial && console.info('Writing files...');
+            await Promise.all(htmlPromises);
         });
     }
 });

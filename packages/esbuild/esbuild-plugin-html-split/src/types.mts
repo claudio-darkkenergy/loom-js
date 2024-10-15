@@ -14,9 +14,10 @@ export interface HtmlSplitPluginOptions {
     define?: DefineArgs;
     entryPoints?: string[];
     isProd?: boolean;
+    main?: string;
     prerender?: boolean;
     routes?: string[];
-    spa?: boolean;
+    spa?: string;
     template?: (args: HtmlTemplateArgs) => string;
     verbose?: boolean;
 }
