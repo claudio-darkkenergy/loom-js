@@ -34,7 +34,7 @@ export const LoomJsStorybookDecorator: Decorator = (
         root: $storyContainer
     });
 
-    return $storyContainer as unknown as ContextFunction;
+    return $storyContainer;
 };
 
 enum LoomTheme {

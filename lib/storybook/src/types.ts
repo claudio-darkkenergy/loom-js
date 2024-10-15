@@ -1,4 +1,4 @@
-import type { Component, ContextFunction } from '@loom-js/core';
+import type { Component } from '@loom-js/core';
 import type {
     AnnotatedStoryFn,
     Args,
@@ -12,7 +12,7 @@ import type {
 } from '@storybook/types';
 
 export interface LoomJsRenderer extends WebRenderer {
-    storyResult: ContextFunction | ContextFunction[];
+    storyResult: HTMLDivElement;
 }
 
 type DecoratorFunction<TRenderer extends Renderer = Renderer, TArgs = Args> = (
