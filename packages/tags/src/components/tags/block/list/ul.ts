@@ -2,22 +2,24 @@ import { mergeAllowedAttrs } from '../../../../helpers';
 import { ListItems, type ListItemsProps } from './list-items';
 import {
     type AttrsTemplateTagValue,
-    type ComponentProps,
-    component
+    component,
+    type ComponentProps
 } from '@loom-js/core';
 
-export type UlProps = ListItemsProps & {
-    listItemProps?: ComponentProps;
+type RawUlProps = Pick<ListItemsProps, 'item' | 'itemProps'> & {
+    listItemProps?: Omit<ListItemsProps, 'item' | 'itemProps'>;
 };
 
-export const Ul = component<UlProps>(
+export type UlProps = ComponentProps<RawUlProps>;
+
+export const Ul = component<RawUlProps>(
     (
         html,
         {
             attrs,
             children,
             item,
-            itemProps = [],
+            itemProps,
             listItemProps = {},
             on,
             ...listProps
@@ -30,12 +32,7 @@ export const Ul = component<UlProps>(
 
         return html`
             <ul $attrs=${attrsOverrides} $on=${on}>
-                ${children ||
-                ListItems({
-                    ...listItemProps,
-                    item,
-                    itemProps
-                })}
+                ${children || ListItems({ ...listItemProps, item, itemProps })}
             </ul>
         `;
     }

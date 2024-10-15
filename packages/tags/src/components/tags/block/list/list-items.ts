@@ -1,29 +1,27 @@
+import { Span } from '../../inline';
+import { Li, type LiProps } from './li';
 import type {
     Component,
     ComponentProps,
-    ContextFunction,
-    SimpleComponent,
-    TemplateTagValue
+    GetProps,
+    SimpleComponent
 } from '@loom-js/core';
 
-import { Li } from './li';
+type RawListItemsProps = LiProps & {
+    item?: Component | SimpleComponent;
+    itemProps?: ComponentProps[];
+};
 
-export interface ListItemsProps {
-    item?: Component | ((props: any) => ContextFunction | TemplateTagValue);
-    itemProps?: (ComponentProps | TemplateTagValue)[];
-}
+export type ListItemsProps = GetProps<typeof ListItems>;
 
-export const ListItems: SimpleComponent<ListItemsProps> = ({
-    item,
+export const ListItems: SimpleComponent<RawListItemsProps> = ({
+    item = Span,
     itemProps = [],
     ...listItemProps
 }) =>
     itemProps.map((props) =>
         Li({
             ...listItemProps,
-            children:
-                typeof item === 'function'
-                    ? item(props as ComponentProps)
-                    : (props as TemplateTagValue)
+            children: item(props)
         })
     );
