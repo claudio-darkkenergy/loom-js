@@ -1,0 +1,15 @@
+{
+    "extends": "./base.json",
+    "display": "Lib",
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "importHelpers": true,
+        "noEmit": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "types": [
+            "node"
+        ]
+    }
+}
