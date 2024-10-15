@@ -8,6 +8,9 @@
             ],
             "outputs": [
                 "build/**"
+            ],
+            "env": [
+                "API_URL"
             ]
         },
         "build-package": {
@@ -23,7 +26,10 @@
                 "^build-package"
             ],
             "cache": false,
-            "persistent": true
+            "persistent": true,
+            "env": [
+                "API_URL"
+            ]
         },
         "topo": {
             "dependsOn": [

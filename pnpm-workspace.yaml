@@ -1,6 +1,8 @@
 packages:
     - 'apps/*'
+    - '!apps/docs'
     - 'lib/*'
     - 'packages/*'
     - 'packages/esbuild/*'
+    - 'services'
     - '!packages/ui-kit'
