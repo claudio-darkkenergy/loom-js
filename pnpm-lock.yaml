@@ -54,9 +54,6 @@ importers:
       '@loom-js/tags':
         specifier: workspace:*
         version: link:../../packages/tags
-      '@loom-js/typescript-config':
-        specifier: workspace:*
-        version: link:../../lib/typescript-config
       '@loom-js/utils':
         specifier: workspace:*
         version: link:../../lib/utils
@@ -67,6 +64,9 @@ importers:
         specifier: ^10.12.8
         version: 10.12.8
     devDependencies:
+      '@loom-js/typescript-config':
+        specifier: workspace:*
+        version: link:../../lib/typescript-config
       '@types/node':
         specifier: ^20.14.10
         version: 20.14.10
@@ -94,19 +94,16 @@ importers:
       '@loom-js/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@loom-js/monitor':
-        specifier: workspace:*
-        version: link:../../lib/monitor
       '@loom-js/storybook':
         specifier: workspace:*
         version: link:../../lib/storybook
       '@loom-js/tags':
         specifier: workspace:*
         version: link:../../packages/tags
-    devDependencies:
       '@loom-js/typescript-config':
         specifier: workspace:*
         version: link:../../lib/typescript-config
+    devDependencies:
       '@types/node':
         specifier: ^20.14.10
         version: 20.14.10
@@ -122,22 +119,6 @@ importers:
       esbuild-plugin-html-split:
         specifier: workspace:*
         version: link:../../packages/esbuild/esbuild-plugin-html-split
-      ts-node:
-        specifier: ^10.9.2
-        version: 10.9.2(@types/node@20.14.10)(typescript@5.5.3)
-      typescript:
-        specifier: ^5.5.3
-        version: 5.5.3
-
-  lib/codegen:
-    dependencies:
-      '@loom-js/open-ai':
-        specifier: workspace:*
-        version: link:../open-ai
-    devDependencies:
-      '@types/node':
-        specifier: ^20.14.10
-        version: 20.14.10
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@20.14.10)(typescript@5.5.3)
@@ -166,31 +147,6 @@ importers:
       tslib:
         specifier: ^2.6.2
         version: 2.6.3
-      typescript:
-        specifier: ^5.5.3
-        version: 5.5.3
-
-  lib/monitor:
-    devDependencies:
-      '@types/node':
-        specifier: ^20.14.10
-        version: 20.14.10
-      typescript:
-        specifier: ^5.5.3
-        version: 5.5.3
-
-  lib/open-ai:
-    dependencies:
-      openai:
-        specifier: ^4.57.0
-        version: 4.57.0(zod@3.23.8)
-    devDependencies:
-      '@loom-js/typescript-config':
-        specifier: workspace:*
-        version: link:../typescript-config
-      '@types/node':
-        specifier: ^20.14.10
-        version: 20.14.10
       typescript:
         specifier: ^5.5.3
         version: 5.5.3
@@ -327,9 +283,6 @@ importers:
       '@loom-js/core':
         specifier: workspace:*
         version: link:../core
-      '@loom-js/open-ai':
-        specifier: workspace:*
-        version: link:../../lib/open-ai
       '@loom-js/tags':
         specifier: workspace:*
         version: link:../tags
