@@ -1,0 +1,7 @@
+.header:not(:has([class^="-col-3"], [class^="-col-4"])) {
+    grid-template-areas: "col-1 col-2";
+}
+
+.homeHeroGraphic {
+    mask-image: radial-gradient(circle at center, black 35%, transparent 70%);
+}

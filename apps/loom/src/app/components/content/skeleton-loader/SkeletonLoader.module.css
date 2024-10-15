@@ -1,0 +1,115 @@
+.skeletonLoader {
+    --m-block-start-heading: 2.5rem;
+    --m-block-start-block: 1.25rem;
+    --m-block-start-next: 1rem;
+
+    > * {
+        + * {
+            margin-block-start: var(--m-block-start-block);
+        }
+
+        + .heading {
+            margin-block-start: var(--m-block-start-heading);
+        }
+    }
+
+    .box {
+        --skeleton-box-height: 69px;
+        height: var(--skeleton-box-height);
+        width: 100%;
+
+        &._auto {
+            height: auto;
+        }
+        
+        &._tall {
+            height: calc(var(--skeleton-box-height) * 3);
+        }
+
+        &._xTall {
+            height: calc(var(--skeleton-box-height) * 6)
+        }
+    }
+
+    .heading {
+        --skeleton-header-width: 25%;
+        height: 36px;
+        width: var(--skeleton-header-width);
+        
+        &._main {
+            --skeleton-header-width: 30%;
+            height: 42px;
+            margin-block-start: var(--m-block-start-next)
+        }
+
+        &._long {
+            width: calc(var(--skeleton-header-width) + 3%);
+        }
+
+        + * {
+            margin-block-start: var(--m-block-start-next)
+        }
+    }
+
+    .details {
+        --skeleton-details-width: 97%;
+        
+        > div {
+            height: 24px;
+            width: var(--skeleton-details-width);
+    
+            &:nth-child(2n) {
+                --skeleton-details-width: 98%;
+            }
+    
+            &:nth-child(3n) {
+                --skeleton-details-width: 70%;
+            }
+
+            &:first-child:where(:last-child) {
+                --skeleton-details-width: 80%;
+            }
+    
+            + div {
+                margin-block-start: 8px;
+            }
+        }
+    } 
+
+    &.animate {
+        .box,
+        .heading,
+        .details > div {
+            background: rgb(28, 28, 33, 0.25);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+    
+            &::after {
+                -webkit-animation: loading 2s infinite;
+                animation: loading 2s infinite;
+                background: linear-gradient(90deg, transparent, rgb(28, 28, 33, 0.25), transparent);
+                content: "";
+                height: 100%;
+                left: 0;
+                position: absolute;
+                right: 0;
+                top: 0;
+                transform: translateX(-100%);
+                z-index: 1;
+            }
+        }
+    }
+}
+
+@-webkit-keyframes loading {
+    to {
+        transform: translateX(100%)
+    }
+}
+
+@keyframes loading {
+    to {
+        transform: translateX(100%)
+    }
+}

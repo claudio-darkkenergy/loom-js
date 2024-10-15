@@ -1,0 +1,52 @@
+.richText {
+    --m-block-start-heading: 2.5rem;
+    --m-block-start-block: 1.25rem;
+    --m-block-start-next: 1rem;
+    
+    display: flex;
+    flex-direction: column;
+
+    h1 {
+        color: hsl(var(--brand-color-1));
+    }
+
+    * {
+        + h2,
+        + h3,
+        + h4,
+        + h5,
+        + h6 {
+            margin-block-start: var(--m-block-start-heading);
+        }
+    }
+
+    ul {
+        list-style-type: disc;
+        padding-left: revert;
+    }
+
+    * {
+        + p, + ol, + ul {
+            margin-block-start: var(--m-block-start-block);
+        }
+    }
+
+    li + li {
+        margin-block-start: var(--m-block-start-next);
+    }
+
+    h2, h3, h4, h5, h6 {
+        + * {
+            margin-block-start: var(--m-block-start-next);
+        }
+    }
+
+    code {
+        background-color: #1c1c21;
+        /* border-left: 2px solid purple; */
+    }
+}
+
+* + .richText {
+    margin-block-start: var(--m-block-start-next);
+}

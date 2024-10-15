@@ -1,0 +1,38 @@
+{
+  "name": "@loom-js/loom",
+  "private": true,
+  "version": "1.0.5",
+  "author": "Claudio Nunez Jr.",
+  "license": "ISC",
+  "description": "Loomjs Documentation Site",
+  "scripts": {
+    "build": "pnpm ts-node/esm -- ./project/client/build.mts",
+    "build-manual": "pnpm type-check && pnpm build",
+    "ts-node/esm": "node --no-warnings=ExperimentalWarning --loader ts-node/esm",
+    "dev": "pnpm ts-node/esm -- ./project/client/dev.mts",
+    "serve-build": "pnpx simple-server ./build",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@appwrite.io/pink": "^0.25.0",
+    "@appwrite.io/pink-icons": "^0.25.0",
+    "@contentful/rich-text-types": "^16.6.1",
+    "@loom-js/contentful": "workspace:*",
+    "@loom-js/core": "workspace:*",
+    "@loom-js/pink": "workspace:*",
+    "@loom-js/tags": "workspace:*",
+    "@loom-js/utils": "workspace:*",
+    "classnames": "^2.5.1",
+    "contentful": "^10.12.8"
+  },
+  "devDependencies": {
+    "@loom-js/typescript-config": "workspace:*",
+    "@types/node": "^20.14.10",
+    "esbuild": "^0.23.0",
+    "esbuild-plugin-clean": "^1.0.1",
+    "esbuild-plugin-copy": "^2.1.1",
+    "esbuild-plugin-html-split": "workspace:*",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.3"
+  }
+}

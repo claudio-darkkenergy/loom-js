@@ -1,0 +1,70 @@
+@import url('./pelinka.css');
+
+/*
+Dark theme color combos
+-- bg / fg --
+$color-1 / $color-0 AAA
+$color-1 / $color-2 AAA
+$color-1 / $color-3 AA
+$color-1 / $color-4 AA
+$color-1 / $color-8
+$color-5 / $color-0
+$color-6 / $color-0 AAA
+$color-6 / $color-2 AA
+$color-6 / $color-3 AA
+$color-6 / $color-8 AA
+$color-7 / $color-0
+
+Light theme color combos
+-- bg / fg --
+$color-0 / $color-1
+$color-0 / $color-5
+$color-0 / $color-7
+$color-8 / $color-1 AAA
+$color-8 / $color-6 AA
+*/
+
+:root{
+    --break-small: 767px;
+    /* bright orange */
+    --brand-color-1: 32, 92%, 54%;
+    /* bright purple */
+    --brand-color-2: 325, 100%, 50%;
+    /* dark orange */
+    --brand-color-3: 15, 87%, 55%;
+    /* dark purple */
+    --brand-color-4: 301, 58%, 36%;
+}
+
+body {
+    font-family: 'Pelinka-Regular', Arial, Helvetica, sans-serif;
+    height: 100vh;
+    margin: 0;
+}
+
+button {
+    /* border: 1px solid gray; */
+    /* border-radius: 4px; */
+    cursor: pointer;
+    padding: 8px 16px;
+}
+
+#app {
+    padding: 0 24px 24px;
+}
+
+/* @layer resets.typography {
+    .theme-dark {
+        [class*=heading-] {
+            --heading-text-color: var(--brand-color-2);
+        }
+} */
+
+@layer elements {
+    .theme-dark {
+        .button {
+            /* --p-border-color-default: var(--brand-color-4); */
+            /* --p-button-color-default: var(--brand-color-4); */
+        }
+    }
+}

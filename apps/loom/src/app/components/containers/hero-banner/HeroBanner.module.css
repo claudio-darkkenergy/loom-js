@@ -1,0 +1,39 @@
+.heroBanner {
+    --areas: "content"
+        "hero-graphic";
+    grid-template-areas: var(--areas);
+
+    img {
+        aspect-ratio: 1/1;
+        grid-area: hero-graphic;
+        height: 320px;
+        max-width: 320px;
+        width: 320px;
+    }
+
+    h1 {
+        grid-area: title;
+    }
+
+    p {
+        grid-area: desc;
+    }
+
+    ul {
+        grid-area: ctas;
+    }
+
+    .content {
+        grid-area: content;
+    }
+
+    @media (width >= 768px) {
+        --areas: ". hero-graphic"
+        "content hero-graphic"
+        ". hero-graphic";
+
+        img {
+            max-width: auto;
+        }
+    }
+}

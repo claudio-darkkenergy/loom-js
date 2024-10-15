@@ -1,0 +1,19 @@
+.breadcrumbs {
+    text-transform: capitalize;
+    
+    .breadcrumb {
+        &:first-child span {
+            padding-inline-end: 8px;
+        }
+        
+        + .breadcrumb {
+            &::before {
+                content: '>';
+            }
+
+            span {
+                padding-inline: 8px;
+            }
+        }
+    }
+}

@@ -1,0 +1,12 @@
+.focalContainer {
+    background-color: hsl(var(--brand-color-1));
+    background-image: linear-gradient(hsl(var(--brand-color-1)), hsl(var(--brand-color-2)));
+
+    h2 {
+        --heading-text-color: 240 8% 12%;
+    }
+    
+    @media (width >= 1260px) {
+        border-radius: var(--border-radius-medium) !important;
+    }
+}
