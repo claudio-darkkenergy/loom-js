@@ -1,9 +1,17 @@
-import { component, type TemplateTagValue } from '@loom-js/core';
+import { mergeAllowedAttrs } from '../../../helpers';
+import { type AttrsTemplateTagValue, component } from '@loom-js/core';
 
-export interface AsideProps {
-    content: TemplateTagValue;
-}
+export type AsideProps = {};
 
 export const Aside = component<AsideProps>(
-    (html, { content }) => html`<aside>${content}</aside>`
+    (html, { attrs, children, on, ...props }) => {
+        const attrsOverrides = mergeAllowedAttrs(
+            attrs,
+            props as unknown as AttrsTemplateTagValue
+        );
+
+        return html`
+            <aside $attrs=${attrsOverrides} $on=${on}>${children}</aside>
+        `;
+    }
 );

@@ -1,6 +1,5 @@
-import { type AttrsTemplateTagValue, component } from '@loom-js/core';
-
 import { mergeAllowedAttrs } from '../../../../helpers';
+import { type AttrsTemplateTagValue, component } from '@loom-js/core';
 
 export interface ImgProps {
     alt?: string;
@@ -18,6 +17,8 @@ export const Img = component<ImgProps>(
             Object.assign(attrs || {}, { alt, height, width }),
             props as unknown as AttrsTemplateTagValue
         );
-        return html`<img $attrs=${attrsOverrides} $on=${on} $src=${src} />`;
+        return html`
+            <img $attrs=${attrsOverrides} $on=${on} src=${src} />
+        `;
     }
 );
