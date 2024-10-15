@@ -1,0 +1,17 @@
+{
+    "display": "Services",
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "importHelpers": true,
+        "moduleResolution": "Node",
+        "noEmit": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "outDir": "dist",
+        "target": "ES2022",
+        "types": ["node"]
+    },
+    "exclude": ["node_modules"],
+    "include": ["api", "utils"]
+}

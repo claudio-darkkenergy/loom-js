@@ -1,0 +1,26 @@
+{
+  "name": "@loom-js/services",
+  "version": "1.0.0",
+  "description": "An application monitoring micro-service.",
+  "type": "module",
+  "scripts": {
+    "build": "exit 0",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Claudio Nunez Jr",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.645.0",
+    "@smithy/util-stream": "^3.1.6",
+    "@vercel/functions": "^1.4.1",
+    "openai": "^4.57.0"
+  },
+  "packageManager": "pnpm@9.9.0",
+  "devDependencies": {
+    "@loom-js/typescript-config": "workspace:*",
+    "@types/node": "^20.14.10",
+    "@vercel/node": "^3.2.15",
+    "typescript": "^5.5.3"
+  }
+}
