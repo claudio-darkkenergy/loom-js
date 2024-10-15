@@ -18,7 +18,10 @@ Thumbs.db
 
 # Environment variables
 .env
+.env.local
+*.local
 
+architecture
 designs
 ui-kit
 
@@ -28,3 +31,4 @@ ui-kit
 #temp ignores
 
 *storybook.log
+.env*.local
