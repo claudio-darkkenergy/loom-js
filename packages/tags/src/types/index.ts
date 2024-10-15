@@ -1,10 +1,3 @@
-// GraphQl
-
-export interface GraphQlRequestPayload {
-    query: string;
-    variables?: object;
-}
-
 // Content Structure Types
 
 export interface AssetProps {
