@@ -12,7 +12,7 @@ import type {
 } from '@storybook/types';
 
 export interface LoomJsRenderer extends WebRenderer {
-    storyResult: ContextFunction;
+    storyResult: ContextFunction | ContextFunction[];
 }
 
 type DecoratorFunction<TRenderer extends Renderer = Renderer, TArgs = Args> = (

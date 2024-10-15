@@ -1,8 +1,4 @@
-import type {
-    ContextFunction,
-    ComponentProps,
-    TemplateTagValue
-} from '@loom-js/core';
+import type { ComponentProps, Component, SimpleComponent } from '@loom-js/core';
 import { Ul, type UlProps } from '@loom-js/tags';
 
 export type RenderVariantsStoryArgs = ReturnType<
@@ -16,7 +12,7 @@ export type RenderVariantsStoryProps<T extends object = {}> = ComponentProps<
 >;
 
 export const RenderVariants =
-    <T extends (props: any) => ContextFunction | TemplateTagValue>(
+    <T extends Component | SimpleComponent>(
         item: T,
         overrideProps?: (
             variantProps: RenderVariantsStoryProps
