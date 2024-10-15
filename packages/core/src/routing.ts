@@ -1,42 +1,18 @@
+// @deprecated - use Route instead.
+
 import { activity } from './activity';
-import { sanitizeLocation } from './router';
 import type {
     ActivityEffectAction,
     OnRouteOptions,
     SyntheticMouseEvent
 } from './types';
 
-export type RouterRoute = {
-    pathname: string;
-};
-
-export const getRouterRoute = (location: Location) => {
-    const { pathname } = sanitizeLocation(location);
-    return { pathname };
-};
-
-// @DEPRECATED Location as a union type will be removed in future versions.
-// Maintaining for backwards compatibility.
-export type RouterActivityValue = Location & {
-    raw: Location;
-    route: RouterRoute;
-};
-
 // Setup the activity for the History API
-const getRouterValue = (location: Location) => ({
-    ...location,
-    raw: location,
-    route: getRouterRoute(location)
-});
-const historyApiActivity = activity<RouterActivityValue>(
-    getRouterValue(window.location)
-);
+const historyApiActivity = activity<Location>(window.location, { force: true });
 const { update, watch } = historyApiActivity;
 
 // Hook into the History API onpopstate event when the browser history updates via back/forward controls.
-window.addEventListener('popstate', () =>
-    update(getRouterValue(window.location))
-);
+window.addEventListener('popstate', () => update(window.location));
 
 /**
  * Accepts a handler which is called any time the route is updated
@@ -51,9 +27,7 @@ export const onRouteUpdate = watch;
  * @param routeConfigCallback An `ActivityHandler`.
  * @returns A new `Node`.
  */
-export const router = (
-    routeConfigCallback: ActivityEffectAction<RouterActivityValue>
-) => {
+export const router = (routeConfigCallback: ActivityEffectAction<Location>) => {
     const { effect } = historyApiActivity;
     // Return the resolved route.
     return effect(routeConfigCallback);
@@ -80,7 +54,7 @@ export const onRoute = <T = HTMLAnchorElement>(
 
     // Update the browser url.
     window.history[action]({}, 'onRoute', href);
-    didRouteChange(locationSnapshot) && update(getRouterValue(window.location));
+    didRouteChange(locationSnapshot) && update(window.location);
 };
 
 /**
