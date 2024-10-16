@@ -1,6 +1,7 @@
 packages:
     - 'apps/*'
     - '!apps/docs'
+    - '!apps/sandbox'
     - 'lib/*'
     - 'packages/*'
     - 'packages/esbuild/*'
