@@ -5,7 +5,6 @@ export * from './config';
 export * from './lazy-import';
 export * from './router';
 export * from './routing';
-export * from './simple';
 export type {
     ActivityEffect,
     ActivityEffectAction,
