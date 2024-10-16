@@ -1,5 +1,5 @@
 import type { PinkDynamicProps } from '../../types';
-import { simple } from '@loom-js/core';
+import { SimpleComponent } from '@loom-js/core';
 import { Div } from '@loom-js/tags';
 import classNames from 'classnames';
 
@@ -8,18 +8,17 @@ export type PinkCardProps = PinkDynamicProps & {
     isAllowFocus?: boolean;
 };
 
-export const PinkCard = simple<PinkCardProps>(function pinkCard({
+export const PinkCard: SimpleComponent<PinkCardProps> = ({
     is = Div,
     className,
     isAllowFocus,
     isBorderDashed,
     ...props
-}) {
-    return is({
+}) =>
+    is({
         ...props,
         className: classNames(className, 'card', {
             'is-border-dashed': isBorderDashed,
             'is-allow-focus': isAllowFocus
         })
     });
-});

@@ -1,17 +1,16 @@
 import { PinkDynamicProps } from '../../types';
-import { simple } from '@loom-js/core';
+import { SimpleComponent } from '@loom-js/core';
 import { Div } from '@loom-js/tags';
 import classNames from 'classnames';
 
 export type PinkContainerProps = PinkDynamicProps;
 
-export const PinkContainer = simple<PinkContainerProps>(function pinkContainer({
+export const PinkContainer: SimpleComponent<PinkContainerProps> = ({
     className,
     is = Div,
     ...containerProps
-}) {
-    return is({
+}) =>
+    is({
         ...containerProps,
         className: classNames(className, 'container')
     });
-});
