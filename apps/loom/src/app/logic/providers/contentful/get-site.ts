@@ -13,7 +13,6 @@ export const getSite = async (siteId: string) =>
         { siteCollection: ContentfulCollection<Site> }
     >({
         adapter: ({ data }) => {
-            console.log('contentful site data', data);
             return data?.siteCollection.items[0];
         },
         query: createQuery({

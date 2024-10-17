@@ -19,7 +19,6 @@ export const getPageBySlug = async (slug = '') =>
         { pageCollection: ContentfulCollection<PageSummary> }
     >({
         adapter: ({ data }) => {
-            console.log('contentful page data', data);
             return data?.pageCollection.items[0];
         },
         query: createQuery({

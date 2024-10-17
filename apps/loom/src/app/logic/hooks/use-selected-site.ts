@@ -7,7 +7,6 @@ export const useSelectedSite = () => {
 
     watchRoute(async ({ value: routeValue }) => {
         if (!routeValue.params.topic) {
-            console.log('redirect');
             redirect('/docs/get-started');
             return;
         }
@@ -16,10 +15,10 @@ export const useSelectedSite = () => {
             return;
         }
 
-        const { data, error, status } = await getSite('/docs');
+        const { data, error, status } = await getSite('loom');
         console.log(routeValue.pathname, { data, error, status });
 
-        update('');
+        update(data);
     });
 
     return { selectedDocEffect: effect };

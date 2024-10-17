@@ -24,7 +24,7 @@ export const ContentfulRichText = component<ContentfulRichTextProps>(
             attrs,
             props as unknown as AttrsTemplateTagValue
         );
-        console.log({ attrsOverrides, json });
+
         return html`
             <div $attrs=${attrsOverrides} $on=${on}>
                 ${title} ${json && documentToComponents(json, options)}

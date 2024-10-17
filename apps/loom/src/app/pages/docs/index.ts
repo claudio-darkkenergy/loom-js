@@ -13,7 +13,6 @@ const Docs: SimpleComponent = (props) => {
     return DocsLayout({
         ...props,
         children: topicEffect(({ value: topicData }) => {
-            console.log({ topicData });
             if (!topicData) {
                 return SkeletonLoader({
                     className: 'u-margin-block-start-40',
