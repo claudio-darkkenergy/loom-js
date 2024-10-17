@@ -11,6 +11,7 @@ export interface ClientConfigOptions {
 }
 
 export const clientConfig = (options: ClientConfigOptions = {}) => {
+    console.log({ API_URL: options.apiUrl });
     const { apiUrl = '', isProd = false } = options;
 
     return {
