@@ -1,4 +1,4 @@
-import type { Component } from '@loom-js/core';
+import type { Component, TemplateTagValue } from '@loom-js/core';
 import type {
     AnnotatedStoryFn,
     Args,
@@ -12,13 +12,13 @@ import type {
 } from '@storybook/types';
 
 export interface LoomJsRenderer extends WebRenderer {
-    storyResult: HTMLDivElement;
+    storyResult: TemplateTagValue;
 }
 
 type DecoratorFunction<TRenderer extends Renderer = Renderer, TArgs = Args> = (
     fn: Component,
     c: StoryContext<TRenderer, TArgs>
-) => TRenderer['storyResult'];
+) => HTMLDivElement;
 
 export type Decorator<TArgs = StrictArgs> = DecoratorFunction<
     LoomJsRenderer,

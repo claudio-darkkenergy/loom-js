@@ -1,10 +1,5 @@
 import { Decorator } from './types';
-import {
-    type Component,
-    type ContextFunction,
-    component,
-    init
-} from '@loom-js/core';
+import { type Component, component, init } from '@loom-js/core';
 
 const StoryApp = component<{ story: Component }>((html, { attrs, story }) => {
     return html`

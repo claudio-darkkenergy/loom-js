@@ -10,14 +10,8 @@ export const PinkAvatarGroup: SimpleComponent<PinkAvatarGroupProps> = ({
     itemProps,
     listItemProps,
     ...ulProps
-}) => {
-    console.log({
-        className,
-        itemProps,
-        listItemProps,
-        ...ulProps
-    });
-    return Ul({
+}) =>
+    Ul({
         ...ulProps,
         className: classNames(className, 'avatars-group'),
         item: PinkAvatar,
@@ -30,4 +24,3 @@ export const PinkAvatarGroup: SimpleComponent<PinkAvatarGroupProps> = ({
             )
         }
     });
-};
