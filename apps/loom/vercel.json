@@ -7,12 +7,12 @@
     ],
     "rewrites": [
         {
-            "source": "/(.*)",
-            "destination": "/index.html"
-        },
-        {
             "source": "/docs/(.*)",
             "destination": "/docs/index.html"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
         }
     ],
     "trailingSlash": false
