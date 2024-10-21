@@ -28,7 +28,6 @@ export const getContentBySlug = async (slug = '') =>
         { contentCollection: ContentfulCollection<ContentProps> }
     >({
         adapter: ({ data }) => {
-            console.log('contentful content data', data);
             return data?.contentCollection.items[0];
         },
         query: createQuery({
