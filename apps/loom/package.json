@@ -1,7 +1,7 @@
 {
   "name": "@loom-js/loom",
   "private": true,
-  "version": "1.0.5",
+  "version": "0.0.6",
   "author": "Claudio Nunez Jr.",
   "license": "ISC",
   "description": "Loomjs Documentation Site",
