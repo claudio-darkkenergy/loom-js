@@ -1,5 +1,21 @@
 # @loom-js/pink
 
+## 0.1.0
+
+### Minor Changes
+
+-   41f2d14: Significant updates to core routing including refactoring exports into a class-based singleton & adding `createRoutes` which sets up app routing for pages using lazy loading, supporting code splitting.
+
+    Pink Storybook stories completed for existing & newly added pink components while fixing a bunch of type errors and successful deployed builds.
+
+    Added a new block component, footer, to tags' blocks.
+
+### Patch Changes
+
+-   Updated dependencies [41f2d14]
+    -   @loom-js/core@0.5.0
+    -   @loom-js/tags@0.0.16
+
 ## 0.0.15
 
 ### Patch Changes
@@ -9,7 +25,7 @@
     -   @loom-js/core@0.4.1
     -   @loom-js/tags@0.0.15
 
-## 1.0.0
+## 0.0.14
 
 ### Minor Changes
 
@@ -19,7 +35,7 @@
 
 -   Updated dependencies [d4c1db8]
     -   @loom-js/core@0.4.0
-    -   @loom-js/tags@1.0.0
+    -   @loom-js/tags@0.0.14
 
 ## 0.0.13
 
