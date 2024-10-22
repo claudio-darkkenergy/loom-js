@@ -10,7 +10,7 @@ export default meta;
 
 export const Main: StoryObj<PinkLoaderProps> = {
     args: {
-        isLoading: true,
+        isLoading: false,
         isSmall: false,
         isTransparent: false,
         percent: 50

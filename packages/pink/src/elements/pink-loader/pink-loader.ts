@@ -4,6 +4,7 @@ import classNames from 'classnames';
 
 export type PinkLoaderProps = Omit<DivProps, 'className'> & {
     // Works with `percent` to show a progress vs. rotating loader.
+    // `false` or `undefined` results in a rotating loader.
     isLoading?: boolean;
     isSmall?: boolean;
     // Removes the circle color. The base color of the loader will change to transparent.
@@ -35,5 +36,5 @@ export const PinkLoader: SimpleComponent<PinkLoaderProps> = ({
                 '--loader-bg-color-light': 'var(--color-neutral-5)',
                 '--loader-bg-color-dark': 'var(--color-neutral-100)'
             }
-        ].flat()
+        ]
     });
