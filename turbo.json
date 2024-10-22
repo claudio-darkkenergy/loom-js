@@ -7,7 +7,8 @@
                 "^build-package"
             ],
             "outputs": [
-                "build/**"
+                "build/**",
+                "storybook-static/**"
             ],
             "env": [
                 "API_URL"
