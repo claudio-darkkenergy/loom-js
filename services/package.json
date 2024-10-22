@@ -1,6 +1,7 @@
 {
   "name": "@loom-js/services",
-  "version": "1.0.0",
+  "version": "0.0.1",
+  "private": true,
   "description": "An application monitoring micro-service.",
   "type": "module",
   "scripts": {
