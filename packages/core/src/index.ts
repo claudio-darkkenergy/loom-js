@@ -40,5 +40,6 @@ export type {
     SyntheticRouteEventListener,
     TemplateFunction,
     TemplateTagValue,
-    TemplateTagValueFunction
+    TemplateTagValueFunction,
+    ValueProp
 } from './types';
