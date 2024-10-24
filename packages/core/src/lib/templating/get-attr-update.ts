@@ -264,6 +264,12 @@ const specialAttrUpdaters: {
             ([key, value]) => {
                 const resolvedValue = resolveValue(value);
 
+                // Falsy value - remove the attribute from the element.
+                if (!Boolean(resolvedValue)) {
+                    element.removeAttribute(nodeName);
+                    return;
+                }
+
                 switch (true) {
                     case key === 'className':
                         resolvedValue &&
@@ -289,12 +295,9 @@ const specialAttrUpdaters: {
                         );
                         break;
                     // Truthy value exists - add and/or set the attribute & its value.
-                    case Boolean(resolvedValue):
+                    default:
                         element.setAttribute(key, String(resolvedValue));
                         break;
-                    // Falsy value - remove the attribute from the element.
-                    default:
-                        element.removeAttribute(nodeName);
                 }
             }
         );
