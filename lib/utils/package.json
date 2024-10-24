@@ -10,6 +10,9 @@
   "keywords": [],
   "author": "Claudio Nunez Jr",
   "license": "ISC",
+  "dependencies": {
+    "@loom-js/core": "workspace:*"
+  },
   "devDependencies": {
     "@types/node": "^20.14.10",
     "tslib": "^2.6.3",

@@ -139,6 +139,10 @@ importers:
   lib/typescript-config: {}
 
   lib/utils:
+    dependencies:
+      '@loom-js/core':
+        specifier: workspace:*
+        version: link:../../packages/core
     devDependencies:
       '@types/node':
         specifier: ^20.14.10
