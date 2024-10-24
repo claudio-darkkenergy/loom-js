@@ -1,5 +1,15 @@
-.header:not(:has([class^="-col-3"], [class^="-col-4"])) {
-    grid-template-areas: "col-1 col-2";
+.header {
+    .topNav a {
+        color: hsl(var(--brand-color-1));
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    &:not(:has([class^='-col-3'], [class^='-col-4'])) {
+        grid-template-areas: 'col-1 col-2';
+    }
 }
 
 .homeHeroGraphic {
