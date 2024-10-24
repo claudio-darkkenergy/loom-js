@@ -271,11 +271,11 @@ const specialAttrUpdaters: {
                 }
 
                 switch (true) {
-                    case key === 'className':
+                    case key === 'className' &&
+                        typeof resolvedValue === 'string':
                         resolvedValue &&
-                            element.classList.add(
-                                ...String(resolvedValue).split(/(?:\s)+/g)
-                            );
+                            element.setAttribute('class', resolvedValue);
+
                         break;
                     // Handle style as Array of possible style values,
                     // ie. ['ruleName: value;', { ruleName: 'value' }, undefined, false].
