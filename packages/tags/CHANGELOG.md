@@ -1,5 +1,12 @@
 # @loom-js/tags
 
+## 0.0.17
+
+### Patch Changes
+
+-   Updated dependencies [97df6b7]
+    -   @loom-js/core@0.5.1
+
 ## 0.0.16
 
 ### Patch Changes
