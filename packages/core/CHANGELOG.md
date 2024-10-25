@@ -1,5 +1,11 @@
 # @loom-js/core
 
+## 0.5.1
+
+### Patch Changes
+
+-   97df6b7: New utils, app enhancements, core fixes, and pink improvements.
+
 ## 0.5.0
 
 ### Minor Changes
