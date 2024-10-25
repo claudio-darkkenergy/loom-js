@@ -1,3 +1,5 @@
+import { layoutState } from '../logic/activity/layout-state';
+import { sideNavToggle } from '../logic/activity/side-nav-toggle';
 import styles from './styles.module.css';
 import { BrandLogoLink } from '@/app/components/branding/brand-logo-link';
 import { component, route } from '@loom-js/core';
@@ -8,9 +10,13 @@ import {
     PinkTopNav
 } from '@loom-js/pink';
 import { Div, Footer } from '@loom-js/tags';
+import { useMediaQuery } from '@loom-js/utils';
 import classNames from 'classnames';
 
 const PageLayout = component((html, { children, className, style: theme }) => {
+    const { effect: layoutStateEffect } = layoutState;
+    const { update: toggleSideNav } = sideNavToggle;
+
     return html`
         <div
             id="layout"
@@ -25,20 +31,32 @@ const PageLayout = component((html, { children, className, style: theme }) => {
                 gridCol1: {
                     is: () =>
                         Div({
-                            className: 'u-flex u-gap-8',
-                            children: [
-                                PinkButton({
-                                    className: 'is-only-mobile',
-                                    icon: 'icon-menu',
-                                    isOnlyIcon: true,
-                                    isText: true
-                                }),
-                                BrandLogoLink({})
-                            ]
+                            className: classNames(
+                                'u-flex u-gap-8',
+                                styles.headerCol1
+                            ),
+                            children: layoutStateEffect(
+                                ({ value: { sideNav } }) => [
+                                    PinkButton({
+                                        className: classNames(
+                                            'is-only-mobile',
+                                            {
+                                                'u-hide': !sideNav
+                                            }
+                                        ),
+                                        icon: 'icon-menu',
+                                        isOnlyIcon: true,
+                                        isText: true,
+                                        onClick: () => toggleSideNav(null)
+                                    }),
+                                    BrandLogoLink({})
+                                ]
+                            )
                         })
                 },
                 gridCol2: {
                     is: PinkTopNav,
+                    className: styles.topNav,
                     items: [{ children: 'Docs', href: '/docs', onClick: route }]
                 },
                 style: 'background-color: #1c1c21; grid-auto-rows: min-content'

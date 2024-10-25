@@ -1,0 +1,24 @@
+.docsSideNav {
+    --side-nav-width: 12.5rem;
+
+    inline-size: 0;
+    max-inline-size: var(--side-nav-width);
+    min-inline-size: 0;
+    transition: min-inline-size 0.15s;
+    will-change: min-inline-size;
+
+    .sideNav {
+        inline-size: var(--side-nav-width);
+        opacity: 0;
+        transition: opacity 0.15s;
+        will-change: opacity;
+    }
+
+    &._open {
+        min-inline-size: var(--side-nav-width);
+
+        .sideNav {
+            opacity: 1;
+        }
+    }
+}

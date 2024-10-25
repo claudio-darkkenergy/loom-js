@@ -1,28 +1,29 @@
+import { ScreenWidthPx } from '../constants';
 import { DocContainer } from './components/DocContainer';
-import styles from './styles.module.css';
-import {
-    Bones,
-    SkeletonLoader
-} from '@/app/components/content/skeleton-loader';
+import { DocsLayoutSkeleton } from './components/DocsLayoutSkeleton';
+import { DocsSideNav } from './components/DocsSideNav';
 import { page } from '@/app/logic/activity/selected-content';
+import { sideNavToggle } from '@/app/logic/activity/side-nav-toggle';
 import {
     useDefaultTopicRedirect,
     useSelectedPage,
     useSelectedTopic
 } from '@/app/logic/hooks';
+import { useSideNav } from '@/app/logic/hooks/use-side-nav';
 import {
     route,
     routeEffect,
     watchRoute,
     type SimpleComponent
 } from '@loom-js/core';
-import { PinkSideNav } from '@loom-js/pink';
 import { Div } from '@loom-js/tags';
 import classNames from 'classnames';
 
 const DocsLayout: SimpleComponent = ({ children, className, ...props }) => {
     const { effect: pageEffect } = page;
+    const { effect: sideNavToggleEffect } = sideNavToggle;
 
+    useSideNav(`(width >= ${ScreenWidthPx.TabletStart}px)`);
     useDefaultTopicRedirect('/docs/get-started');
     // Page data
     useSelectedPage('/docs');
@@ -37,40 +38,26 @@ const DocsLayout: SimpleComponent = ({ children, className, ...props }) => {
         children: [
             pageEffect(({ value: pageData }) => {
                 if (!pageData) {
-                    return SkeletonLoader({
-                        className: classNames(
-                            'is-not-mobile u-flex u-padding-block-start-16 u-width-200',
-                            styles.docSideNavSkeleton
-                        ),
-                        style: 'border-inline-end: 0.0625rem solid rgb(44, 44, 48)',
-                        bones: [Bones.boxAuto]
-                    });
+                    return DocsLayoutSkeleton();
                 }
 
-                return routeEffect(({ value: routeValue }) =>
-                    PinkSideNav({
-                        className: classNames(
-                            'is-not-mobile u-width-200',
-                            styles.docSideNav
-                        ),
-                        topLinkProps: [
-                            {
-                                children: 'Home',
-                                href: '/',
-                                onClick: route
-                            },
-                            ...(pageData?.contentCollection?.items.map(
-                                ({ title, slug }) => ({
-                                    children: title,
-                                    href: slug,
-                                    isSelected:
-                                        slug === routeValue.params.topic,
-                                    onClick: route
-                                })
-                            ) || [])
-                        ]
-                    })
-                );
+                return routeEffect(({ value: routeValue }) => {
+                    const sideNavItems = pageData.contentCollection?.items.map(
+                        ({ title, slug }) => ({
+                            children: title,
+                            href: slug,
+                            isSelected: slug === routeValue.params.topic,
+                            onClick: route
+                        })
+                    );
+
+                    return sideNavToggleEffect(({ value: isToggledOpen }) =>
+                        DocsSideNav({
+                            isOpen: isToggledOpen,
+                            sideNavItems
+                        })
+                    );
+                });
             }),
             DocContainer({ children })
         ]
