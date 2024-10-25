@@ -6,6 +6,9 @@ export type MediaOptions = {
     fit?: 'crop' | 'fill' | 'pad' | 'scale' | 'thumb';
     format: 'avif' | 'gif' | 'jpg' | 'png' | 'webp';
     height?: number;
+    // Default is 100
+    quality?: number;
+    spaceId: string;
     uid: string;
     width?: number;
 };
@@ -23,12 +26,14 @@ export const getImageUrl = ({
     fit,
     format,
     height,
+    quality,
+    spaceId,
     uid,
     width
 }: Partial<MediaOptions>) =>
     `${imageUrlBase}/${
-        process.env.CTF_SPACE_ID
+        spaceId
     }/${assetId}/${uid}/${filename}?fm=${format}${param('fit', fit)}${param(
         'h',
         height
-    )}${param('w', width)}`;
+    )}${param('w', width)}${param('q', quality)}`;
