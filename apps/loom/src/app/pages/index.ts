@@ -2,12 +2,12 @@ import styles from './styles.module.css';
 import { HeroBanner } from '@/app/components/containers/hero-banner';
 import { Features } from '@/app/topics/home/components/features';
 import { SyntaxCards } from '@/app/topics/home/components/syntax-container.ts/SyntaxContainer';
+import { getImageUrl } from '@loom-js/contentful';
 import {
     type ContextFunction,
     route,
     type SimpleComponent
 } from '@loom-js/core';
-import { Main } from '@loom-js/tags';
 import classNames from 'classnames';
 
 const Home: SimpleComponent = (props) => {
@@ -25,9 +25,14 @@ const Home: SimpleComponent = (props) => {
             className: 'u-flex-vertical u-gap-16 u-padding-32 u-text-center',
             imgProps: {
                 className: classNames('u-margin-auto', styles.homeHeroGraphic),
-                // height: '455',
-                src: '/static/img/home-hero-graphic.png'
-                // width: '455'
+                src: getImageUrl({
+                    assetId: '2mcJf1ltOD5A4UNR97kqrs',
+                    filename: 'home-hero-graphic.png',
+                    format: 'webp',
+                    spaceId: '2x238mu87414',
+                    uid: '05d126eff598d16e9020a6fc7d22d403',
+                    width: 320
+                })
             } as any,
             title: 'Lightweight. Component-Driven. Reactive.',
             description:
