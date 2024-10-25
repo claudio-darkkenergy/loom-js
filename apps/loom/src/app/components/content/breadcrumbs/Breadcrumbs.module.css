@@ -1,11 +1,12 @@
 .breadcrumbs {
+    font-weight: bold;
     text-transform: capitalize;
-    
+
     .breadcrumb {
         &:first-child span {
             padding-inline-end: 8px;
         }
-        
+
         + .breadcrumb {
             &::before {
                 content: '>';
