@@ -1,5 +1,13 @@
 # @loom-js/loom
 
+## 0.0.8
+
+### Patch Changes
+
+-   6d793fb: Point to Contentful asset URL in app.
+-   Updated dependencies [6d793fb]
+    -   @loom-js/contentful@0.0.3
+
 ## 0.0.7
 
 ### Patch Changes

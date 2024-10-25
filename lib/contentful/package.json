@@ -1,6 +1,6 @@
 {
   "name": "@loom-js/contentful",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": true,
   "description": "A Contentful common library",
   "exports": "./src/index.ts",
