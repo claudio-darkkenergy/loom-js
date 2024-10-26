@@ -9,7 +9,7 @@ import {
     PinkGridHeader,
     PinkTopNav
 } from '@loom-js/pink';
-import { Div, Footer } from '@loom-js/tags';
+import { Div, Footer, Svg } from '@loom-js/tags';
 import { useMediaQuery } from '@loom-js/utils';
 import classNames from 'classnames';
 
@@ -57,7 +57,24 @@ const PageLayout = component((html, { children, className, style: theme }) => {
                 gridCol2: {
                     is: PinkTopNav,
                     className: styles.topNav,
-                    items: [{ children: 'Docs', href: '/docs', onClick: route }]
+                    items: [
+                        { children: 'Docs', href: '/docs' },
+                        {
+                            className: classNames(
+                                styles.socialLink,
+                                'u-color-text-gray'
+                            ),
+                            children: Svg({
+                                path: '/static/svg/social-sprite.svg',
+                                size: '20',
+                                svgId: 'logo-github'
+                            }),
+                            href: 'https://github.com/claudio-darkkenergy/loom-js/tree/main/packages/core',
+                            onClick: () => {},
+                            target: '_blank'
+                        }
+                    ],
+                    onClick: route
                 },
                 style: 'background-color: #1c1c21; grid-auto-rows: min-content'
             })}

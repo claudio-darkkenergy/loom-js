@@ -9,6 +9,10 @@
         &:hover {
             text-decoration: underline;
         }
+
+        &.socialLink {
+            height: 20px;
+        }
     }
 
     &:not(:has([class^='-col-3'], [class^='-col-4'])) {
