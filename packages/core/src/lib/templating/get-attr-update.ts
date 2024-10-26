@@ -111,48 +111,48 @@ const getStandardAttrUpdate =
         const value = resolveValue(newValue);
         const element = dynamicNode as HTMLElement | SVGElement;
 
-        if (value) {
-            switch (true) {
-                case nodeName === 'type' &&
-                    value === 'number' &&
-                    isNaN((element as any).value):
-                    // Fixes "The specified value * cannot be parsed, or is out of range." warning which occurs on inputs
-                    // where the type will be set to 'number' while the current value is not a parsable number value.
-                    // In this case, the value attribute should be set to a parsable value by calling `setAttribute`.
-                    (element as HTMLInputElement).value = '';
-                    element.setAttribute(nodeName, String(value));
-                    break;
-                case nodeName === 'value':
-                    // Set the value prop instead of the value attribute, i.e. using `setAttribute`, which only works when no value
-                    // has been set for the UI to update at all.
-                    (
-                        element as
-                            | HTMLButtonElement
-                            | HTMLFormElement
-                            | HTMLInputElement
-                            | HTMLOptionElement
-                            | HTMLSelectElement
-                            | HTMLTextAreaElement
-                    ).value = String(value);
-                    break;
-                case nodeName === 'style' && Array.isArray(value):
-                    mergeAndSetStyleValues(
-                        element,
-                        value as TemplateTagValue[]
-                    );
-                    break;
-                case nodeName === 'style' && isObject(value):
-                    Object.entries(value).forEach(([propName, val]) => {
-                        val && element.style.setProperty(propName, val);
-                    });
-                    break;
-                default:
-                    element.setAttribute(nodeName, String(value));
-            }
-        } else {
-            // If `value` is falsy, we'll cleanup the attribute by removing it.
-            // Removing the attribute also solves for boolean attributes, i.e. `disabled`.
+        // Falsy value - remove the attribute from the element.
+        // Removing the attribute also solves for boolean attributes, i.e. `disabled`.
+        // @TODO Handle number zero - 0?
+        if (!Boolean(value)) {
             element.removeAttribute(nodeName);
+            return;
+        }
+
+        switch (true) {
+            case nodeName === 'type' &&
+                value === 'number' &&
+                isNaN((element as any).value):
+                // Fixes "The specified value * cannot be parsed, or is out of range." warning which occurs on inputs
+                // where the type will be set to 'number' while the current value is not a parsable number value.
+                // In this case, the value attribute should be set to a parsable value by calling `setAttribute`.
+                (element as HTMLInputElement).value = '';
+                element.setAttribute(nodeName, String(value));
+                break;
+            case nodeName === 'value':
+                // Set the value prop instead of the value attribute, i.e. using `setAttribute`, which only works when no value
+                // has been set for the UI to update at all.
+                (
+                    element as
+                        | HTMLButtonElement
+                        | HTMLFormElement
+                        | HTMLInputElement
+                        | HTMLOptionElement
+                        | HTMLSelectElement
+                        | HTMLTextAreaElement
+                ).value = String(value);
+                break;
+            case nodeName === 'style' && Array.isArray(value):
+                mergeAndSetStyleValues(element, value as TemplateTagValue[]);
+                break;
+            case nodeName === 'style' && isObject(value):
+                Object.entries(value).forEach(([propName, val]) => {
+                    (val || val === 0) &&
+                        element.style.setProperty(propName, String(val));
+                });
+                break;
+            default:
+                element.setAttribute(nodeName, String(value));
         }
     };
 
@@ -181,11 +181,12 @@ const mergeAndSetStyleValues = (
         ) {
             handleStyleArg((styleArg as TemplateTagValueFunction)());
         } else if (isObject(styleArg)) {
-            Object.entries(styleArg as PlainObject<string | null>).forEach(
-                ([propName, value]) => {
-                    value && $target.style.setProperty(propName, value);
-                }
-            );
+            Object.entries(
+                styleArg as PlainObject<number | string | null>
+            ).forEach(([propName, value]) => {
+                (value || value === 0) &&
+                    $target.style.setProperty(propName, String(value));
+            });
         }
     };
 
@@ -265,6 +266,8 @@ const specialAttrUpdaters: {
                 const resolvedValue = resolveValue(value);
 
                 // Falsy value - remove the attribute from the element.
+                // Removing the attribute also solves for boolean attributes, i.e. `disabled`.
+                // @TODO Handle number zero - 0?
                 if (!Boolean(resolvedValue)) {
                     element.removeAttribute(nodeName);
                     return;
@@ -289,8 +292,11 @@ const specialAttrUpdaters: {
                     case key === 'style' && isObject(resolvedValue):
                         Object.entries(resolvedValue).forEach(
                             ([propName, value]) => {
-                                value &&
-                                    element.style.setProperty(propName, value);
+                                (value || value === 0) &&
+                                    element.style.setProperty(
+                                        propName,
+                                        String(value)
+                                    );
                             }
                         );
                         break;
