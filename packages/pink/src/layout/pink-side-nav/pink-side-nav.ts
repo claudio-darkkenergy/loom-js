@@ -5,7 +5,7 @@ import {
 } from '../../components/pink-drop-list';
 import { PinkDynamicProps } from '../../types';
 import type { SimpleComponent, TemplateTagValue } from '@loom-js/core';
-import { Div, Section } from '@loom-js/tags';
+import { Div, Nav, Section } from '@loom-js/tags';
 import classNames from 'classnames';
 
 const SideNavBottom: SimpleComponent = ({ children }) =>
@@ -38,8 +38,9 @@ export type PinkSideNavProps = PinkDynamicProps & {
 export const PinkSideNav: SimpleComponent<PinkSideNavProps> = ({
     bottom,
     className,
-    is = Div,
-    topLinkProps
+    is = Nav,
+    topLinkProps,
+    ...props
 }) => {
     const sideNavTop = SideNavTop({
         listProps: {
@@ -56,6 +57,7 @@ export const PinkSideNav: SimpleComponent<PinkSideNavProps> = ({
         : sideNavTop;
 
     return is({
+        ...props,
         children: Div({
             children,
             className: 'side-nav-level-1'
