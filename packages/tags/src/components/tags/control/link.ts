@@ -8,7 +8,6 @@ import {
 export type RawLinkProps = {
     href?: string;
     target?: '_blank' | '_self';
-    title?: string;
 };
 
 export type LinkProps = ComponentProps<RawLinkProps>;
@@ -23,7 +22,6 @@ export const Link = component<RawLinkProps>(
             on,
             onClick,
             target = '_self',
-            title,
             ...linkProps
         }
     ) => {
@@ -39,7 +37,6 @@ export const Link = component<RawLinkProps>(
                 $click=${onClick}
                 href=${href}
                 target=${target}
-                title=${title}
             >
                 ${children}
             </a>
