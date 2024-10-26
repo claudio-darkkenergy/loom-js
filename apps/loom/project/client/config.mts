@@ -6,17 +6,19 @@ import { htmlSplit } from 'esbuild-plugin-html-split';
 
 export interface ClientConfigOptions {
     apiUrl?: string;
+    ctfIsPreview?: boolean;
     isProd?: boolean;
     vercelEnv?: NodeJS.ProcessEnv;
 }
 
 export const clientConfig = (options: ClientConfigOptions = {}) => {
-    const { apiUrl = '', isProd = false } = options;
+    const { apiUrl = '', ctfIsPreview = false, isProd = false } = options;
 
     return {
         bundle: true,
         define: {
-            __API_URL__: `'${apiUrl}'`
+            __API_URL__: `'${apiUrl}'`,
+            __CTF_IS_PREVIEW__: `${ctfIsPreview}`
         },
         format: 'esm',
         entryPoints: {

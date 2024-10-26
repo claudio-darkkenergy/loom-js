@@ -20,7 +20,7 @@ export const getSite = async (siteId: string) =>
             queries: [siteCollection]
         }),
         variables: {
-            isPreview: true,
+            isPreview: __CTF_IS_PREVIEW__ ?? true,
             siteId
         }
     });

@@ -28,7 +28,7 @@ export const getPageBySlug = async (slug = '') =>
             queryLabel: 'PageBySlug'
         }),
         variables: {
-            isPreview: true,
+            isPreview: __CTF_IS_PREVIEW__ ?? true,
             slug
         }
     });

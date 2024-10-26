@@ -17,7 +17,7 @@ export const getContentById = async (id = '') =>
             queries: [contentById]
         }),
         variables: {
-            isPreview: true,
+            isPreview: __CTF_IS_PREVIEW__ ?? true,
             id
         }
     });
@@ -36,7 +36,7 @@ export const getContentBySlug = async (slug = '') =>
             queries: [contentBySlug]
         }),
         variables: {
-            isPreview: true,
+            isPreview: __CTF_IS_PREVIEW__ ?? true,
             slug
         }
     });

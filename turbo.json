@@ -11,7 +11,8 @@
                 "storybook-static/**"
             ],
             "env": [
-                "API_URL"
+                "API_URL",
+                "CTF_IS_PREVIEW"
             ]
         },
         "build-package": {
@@ -29,7 +30,8 @@
             "cache": false,
             "persistent": true,
             "env": [
-                "API_URL"
+                "API_URL",
+                "CTF_IS_PREVIEW"
             ]
         },
         "topo": {

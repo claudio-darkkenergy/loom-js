@@ -2,7 +2,12 @@ import { clientConfig } from './config.mjs';
 import { context } from 'esbuild';
 
 const runDev = async () => {
-    const ctx = await context(clientConfig({ apiUrl: process.env.API_URL }));
+    const ctx = await context(
+        clientConfig({
+            apiUrl: process.env.API_URL,
+            ctfIsPreview: process.env.CTF_IS_PREVIEW !== 'false'
+        })
+    );
 
     await ctx.watch();
 
