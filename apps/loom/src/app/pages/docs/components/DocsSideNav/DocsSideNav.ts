@@ -18,12 +18,16 @@ export const DocsSideNav = component<DocsSideNavProps>(
 
         return html`
             <aside
-                class=${classNames(styles.docsSideNav, 'u-overflow-hidden', {
+                class=${classNames(styles.docsSideNav, {
                     [styles._open]: isOpen
                 })}
             >
                 ${PinkSideNav({
-                    className: styles.sideNav,
+                    className: classNames(
+                        styles.sideNav,
+                        'u-border-width-0 u-overflow-y-auto u-position-sticky'
+                    ),
+                    style: { '--inset-block-start': 0 },
                     topLinkProps: [
                         {
                             children: 'Home',

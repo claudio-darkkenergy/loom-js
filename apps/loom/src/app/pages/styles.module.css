@@ -1,3 +1,7 @@
+:root {
+    --header-height: 72px;
+}
+
 .header {
     .headerCol1 {
         block-size: 2.5rem;
