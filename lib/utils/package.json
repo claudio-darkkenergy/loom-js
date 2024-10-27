@@ -1,6 +1,6 @@
 {
   "name": "@loom-js/utils",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "description": "Common library utilities",
   "exports": "./src/index.ts",
