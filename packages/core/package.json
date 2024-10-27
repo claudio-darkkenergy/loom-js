@@ -1,6 +1,6 @@
 {
     "name": "@loom-js/core",
-    "version": "0.5.1",
+    "version": "0.5.2",
     "author": "Claudio Nunez Jr",
     "license": "ISC",
     "description": "A reactive, component-driven, JavaScript framework.",

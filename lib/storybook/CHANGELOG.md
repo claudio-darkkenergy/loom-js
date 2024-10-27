@@ -1,5 +1,13 @@
 # @loom-js/storybook
 
+## 0.0.6
+
+### Patch Changes
+
+-   Updated dependencies [8d36e85]
+    -   @loom-js/core@0.5.2
+    -   @loom-js/tags@0.0.18
+
 ## 0.0.5
 
 ### Patch Changes
