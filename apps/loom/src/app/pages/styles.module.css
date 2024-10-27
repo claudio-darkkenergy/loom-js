@@ -1,5 +1,6 @@
 :root {
     --header-height: 72px;
+    --side-nav-width: 12.5rem;
 }
 
 .header {

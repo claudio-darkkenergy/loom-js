@@ -1,6 +1,4 @@
 .docsSideNav {
-    --side-nav-width: 12.5rem;
-
     border-inline-end: 0.0625rem solid hsl(var(--color-border));
     inline-size: 0;
     max-inline-size: var(--side-nav-width);
