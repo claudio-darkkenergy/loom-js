@@ -1,5 +1,14 @@
 # @loom-js/contentful
 
+## 0.0.4
+
+### Patch Changes
+
+-   Updated dependencies [8d36e85]
+    -   @loom-js/core@0.5.2
+    -   @loom-js/tags@0.0.18
+    -   @loom-js/utils@0.0.2
+
 ## 0.0.3
 
 ### Patch Changes
