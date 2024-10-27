@@ -2,6 +2,7 @@
     --m-block-start-heading: 2.5rem;
     --m-block-start-block: 1.25rem;
     --m-block-start-next: 1rem;
+    --code-background-color: hsl(var(--color-neutral-90));
 
     display: flex;
     flex-direction: column;
@@ -56,8 +57,14 @@
     }
 
     code {
-        background-color: #1c1c21;
-        /* border-left: 2px solid purple; */
+        background-color: var(--code-background-color);
+    }
+
+    i {
+        background-color: var(--code-background-color);
+        border-radius: 0.25em;
+        font-family: var(--code-font);
+        padding: 0.1em 0.2em;
     }
 }
 

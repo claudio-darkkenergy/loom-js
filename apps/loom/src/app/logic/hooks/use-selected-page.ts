@@ -9,6 +9,5 @@ export const useSelectedPage = async (selectedPage = '') => {
     const { update } = page;
     const { data, error, status } = await getPageBySlug(selectedPage);
 
-    console.log({ selectedPage, data, error, status });
     data && update(data);
 };

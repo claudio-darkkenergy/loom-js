@@ -24,7 +24,7 @@ $color-8 / $color-1 AAA
 $color-8 / $color-6 AA
 */
 
-:root{
+:root {
     --break-small: 767px;
     /* bright orange */
     --brand-color-1: 32, 92%, 54%;
