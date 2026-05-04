@@ -1,6 +1,8 @@
 import { unlink } from 'fs';
+import { createRequire } from 'module';
 
-import pkg from './package.json' assert { type: 'json' };
+const require = createRequire(import.meta.url);
+const pkg = require('./package.json');
 import terser from '@rollup/plugin-terser';
 import typescriptRollupPlugin from '@rollup/plugin-typescript';
 import del from 'rollup-plugin-delete';
