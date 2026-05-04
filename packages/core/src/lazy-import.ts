@@ -1,4 +1,5 @@
 import { activity } from './activity';
+import type { ContextFunction } from './types';
 
 const lazyImportCache = new Map();
 
@@ -33,4 +34,14 @@ export const lazyImport = <ImportType>(
     importActivity.update(importer);
 
     return importActivity;
+};
+
+// @TODO Determine why I created this & if its still needed.
+// It seems to be a typed helper of the original lazyImport function.
+export const importLazy = (
+    path: string,
+    fallback: () => Promise<ContextFunction | undefined> = () =>
+        Promise.resolve(undefined)
+) => {
+    return lazyImport<ContextFunction | undefined>(path, fallback);
 };

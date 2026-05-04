@@ -52,6 +52,10 @@ export interface TaggedTemplate {
     ): ComponentContext;
 }
 
+export interface SimpleTemplateFunction<Props extends ComponentProps = {}> {
+    (props: Props): ContextFunction;
+}
+
 export interface TemplateFunction<Props extends object = {}> {
     (html: TaggedTemplate, props: ComponentArgs<Props>): ComponentContext;
 }
@@ -102,7 +106,6 @@ export type ComponentArgs<Props extends object = {}> = ComponentBaseArgs &
 export type ComponentProps<Props extends object = {}> = {
     [P in keyof Props]: Props[P];
 } & ComponentOptionalProps;
-// Partial<ComponentOptionalProps> & T & Partial<ComponentBaseArgs>;
 
 // This is internal context for a component & its template,
 // which essentially provides caching capabilities w/ associated meta-data.
@@ -161,10 +164,13 @@ export type ContextFunction = (
 export type ContextNodeGetter = () => TemplateRoot | TemplateRootArray;
 
 // A pass-through component
-export type SimpleComponent<
-    Props extends object = {},
-    Return extends TemplateTagValue = TemplateTagValue
-> = (props: ComponentProps<Props>) => Return;
+export type Simple = <Props extends ComponentProps = {}>(
+    simpleTemplateFn: SimpleTemplateFunction<Props>
+) => (props?: Props) => ContextFunction;
+
+export type SimpleComponent<Props extends object = {}> = (
+    props: ComponentProps<Props>
+) => ContextFunction | ContextFunction[];
 
 /* Life-cycles */
 export type LifeCycleHandler = (root?: TemplateRoot | TemplateRootArray) => any;

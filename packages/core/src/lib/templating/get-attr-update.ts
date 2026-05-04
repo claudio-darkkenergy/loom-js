@@ -9,7 +9,7 @@ import type {
     TemplateTagValueFunction
 } from '../../types';
 import { loomConsole } from '../globals/loom-console';
-import { isObject } from '../helpers';
+import { isObject, toCamelCase } from '../helpers';
 import { resolveValue } from './resolve-value';
 import type { DynamicNode } from './types';
 
@@ -67,6 +67,17 @@ const getSpecialAttrUpdate = (dynamicNode: DynamicNode, attr: Attr) => {
                 attr,
                 dynamicNode,
                 listenerCtx,
+                nodeName
+            });
+            break;
+        case nodeName === 'props':
+            // Handle special attribute, `$props`, to provide them to the dynamic node,
+            // used for custom elements, otherwise ignored.
+            updater = (
+                specialAttrUpdaters.props as BoundSpecialAttrTemplateNodeUpdate
+            ).bind(null, {
+                attr,
+                dynamicNode,
                 nodeName
             });
             break;
@@ -244,6 +255,36 @@ const overrideEventListener = ({
     }
 };
 
+const setCustomElementProps = ({
+    appendProps = true,
+    attr,
+    dynamicNode,
+    newProps
+}: {
+    appendProps?: boolean;
+    attr: Attr;
+    dynamicNode: DynamicNode;
+    newProps: object;
+}) => {
+    const customElement = dynamicNode as unknown as {
+        isWebComponent: boolean;
+        props: object;
+    };
+
+    if (!customElement.isWebComponent || !newProps || !isObject(newProps)) {
+        newProps &&
+            canDebug('warn') &&
+            loomConsole.warn(`${attr?.nodeName} must be an object literal.`);
+        return;
+    }
+
+    if (appendProps) {
+        Object.assign(customElement.props, newProps);
+    } else {
+        Object.assign(newProps, customElement.props);
+    }
+};
+
 const specialAttrUpdaters: {
     [key: string]: BoundSpecialAttrTemplateNodeUpdate;
 } = {
@@ -308,8 +349,29 @@ const specialAttrUpdaters: {
             }
         );
     },
-    default: ({ attr, dynamicNode }, newValue) => {
-        getStandardAttrUpdate(dynamicNode, attr as Attr)(newValue);
+    default: ({ attr, dynamicNode, nodeName }, newValue) => {
+        const isCustomElement = (
+            dynamicNode as unknown as {
+                isWebComponent: boolean;
+            }
+        ).isWebComponent;
+
+        if (isCustomElement) {
+            setCustomElementProps({
+                attr: attr as Attr,
+                dynamicNode,
+                newProps: { [toCamelCase(nodeName)]: newValue }
+            });
+        } else {
+            const element = dynamicNode as HTMLElement | SVGElement;
+            const resolvedValue = resolveValue(newValue);
+
+            if (!Boolean(resolvedValue)) {
+                element.removeAttribute(nodeName);
+            } else {
+                element.setAttribute(nodeName, String(resolvedValue));
+            }
+        }
     },
     event: (
         { attr, dynamicNode, listenerCtx, nodeName },
@@ -359,5 +421,13 @@ const specialAttrUpdaters: {
                 }
             }
         );
+    },
+    props: ({ attr, dynamicNode }, newValue) => {
+        setCustomElementProps({
+            appendProps: false,
+            attr: attr as Attr,
+            dynamicNode,
+            newProps: newValue as object
+        });
     }
 };

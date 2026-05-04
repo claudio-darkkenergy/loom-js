@@ -1,5 +1,6 @@
 import { htmlParser } from './html-parser';
 import { lifeCycles, memoizedRefContext } from './lib/context';
+import { registerCustomElement } from './lib/templating';
 import type {
     Component,
     ComponentArgs,
@@ -51,6 +52,7 @@ export const component: ComponentFactory = <Props extends object = {}>(
                 ctx.lifeCycles = lifeCycles(ctx);
                 ctx.node = () => ctx.root as TemplateRoot | TemplateRootArray;
                 ctx.refs = new Set<RefContext>();
+                // ctx.render = htmlParser.bind(ctx);
                 ctx.render = htmlParser.bind(ctx);
 
                 if (ref) {
@@ -113,5 +115,6 @@ export const component: ComponentFactory = <Props extends object = {}>(
         return contextFunction;
     };
 
+    registerCustomElement({ name: templateFunction.name, componentFunction });
     return componentFunction;
 };
