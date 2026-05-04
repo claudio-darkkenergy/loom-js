@@ -15,17 +15,18 @@
   },
   "dependencies": {
     "@loom-js/core": "workspace:*",
+    "@loom-js/monitor": "workspace:*",
     "@loom-js/storybook": "workspace:*",
-    "@loom-js/tags": "workspace:*",
-    "@loom-js/typescript-config": "workspace:*"
+    "@loom-js/tags": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^20.14.10",
-    "esbuild": "^0.23.0",
+    "@loom-js/typescript-config": "workspace:*",
+    "@types/node": "^25.6.0",
+    "esbuild": "^0.28.0",
     "esbuild-plugin-clean": "^1.0.1",
     "esbuild-plugin-copy": "^2.1.1",
     "esbuild-plugin-html-split": "workspace:*",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.3"
+    "typescript": "^6.0.2"
   }
 }
