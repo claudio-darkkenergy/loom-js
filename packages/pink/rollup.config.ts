@@ -1,8 +1,11 @@
 import { unlink } from 'fs';
+import { createRequire } from 'module';
 
-import pkg from './package.json' assert { type: 'json' };
+const require = createRequire(import.meta.url);
+const pkg = require('./package.json');
 import terser from '@rollup/plugin-terser';
 import typescriptRollupPlugin from '@rollup/plugin-typescript';
+import type { RollupOptions } from 'rollup';
 import del from 'rollup-plugin-delete';
 import dts from 'rollup-plugin-dts';
 import typescript from 'typescript';
@@ -25,6 +28,7 @@ export default [
     // an array for the `output` option, where we can specify
     // `file` and `format` for each target)
     {
+        external: ['@loom-js/core', '@loom-js/tags', 'classnames'],
         input: './src/index.ts',
         plugins: [
             // so Rollup can convert TypeScript to JavaScript
@@ -48,4 +52,4 @@ export default [
         output: [{ file: pkg.types, format: 'es' }],
         plugins: [dts(), del({ hook: 'buildEnd', targets: 'dist/typings' })]
     }
-];
+] satisfies RollupOptions[];
