@@ -37,12 +37,7 @@ export const clientConfig = (options: ClientConfigOptions = {}) => {
                 define: {
                     getTitle: () => 'Home | Loomjs'
                 },
-                entryPoints: [
-                    'static/js/index',
-                    'static/js/learn/api',
-                    'static/js/learn/concepts',
-                    'static/js/learn/examples'
-                ],
+                main: 'static/js/index',
                 isProd,
                 // routes: [
                 //     '/',
@@ -50,9 +45,8 @@ export const clientConfig = (options: ClientConfigOptions = {}) => {
                 //     '/learn/concepts',
                 //     '/learn/examples'
                 // ],
-                // spa: true,
                 template: htmlTemplate,
-                verbose: true
+                verbose: false
             }),
             copy({
                 assets: [

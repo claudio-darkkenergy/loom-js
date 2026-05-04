@@ -1,30 +1,17 @@
+import { ListItems } from './list-items';
+import { mergeAllowedAttrs } from '@app/helpers/loom-js';
 import {
-    AttrsTemplateTagValue,
+    type AttrsTemplateTagValue,
     component,
-    ComponentProps
+    type GetProps
 } from '@loom-js/core';
 
-import { mergeAllowedAttrs } from '@app/helpers/loom-js';
-
-import { ListItems, ListItemsProps } from './list-items';
-
-export type OlProps = ListItemsProps & {
-    listItemProps?: ComponentProps;
+export type OlProps = {
+    listItemProps?: GetProps<typeof ListItems>;
 };
 
 export const Ol = component<OlProps>(
-    (
-        html,
-        {
-            attrs,
-            children,
-            item,
-            itemProps = [],
-            listItemProps = {},
-            on,
-            ...listProps
-        }
-    ) => {
+    (html, { attrs, children, listItemProps = {}, on, ...listProps }) => {
         const attrsOverrides = mergeAllowedAttrs(
             attrs,
             listProps as unknown as AttrsTemplateTagValue
@@ -32,12 +19,7 @@ export const Ol = component<OlProps>(
 
         return html`
             <ol $attrs=${attrsOverrides} $on=${on}>
-                ${children ||
-                ListItems({
-                    ...listItemProps,
-                    item,
-                    itemProps
-                })}
+                ${children || ListItems(listItemProps)}
             </ol>
         `;
     }

@@ -8,7 +8,6 @@ import {
     init,
     SimpleComponent
 } from '@loom-js/core';
-
 import { usePinkTheming } from '@loom-js/pink';
 
 new EventSource('/esbuild').addEventListener('change', () => location.reload());
@@ -20,8 +19,8 @@ const $app = document.createElement('div');
 $app.style.padding = '0 1.25rem';
 $app.innerText = 'loading...';
 
-document.body.classList.add('theme-custom');
-document.body.style.setProperty('--p-body-bg-color', bodyBgColor);
+document.body.classList.add('theme-dark');
+// document.body.style.setProperty('--p-body-bg-color', bodyBgColor);
 document.body.prepend($app);
 
 export const App = (
@@ -35,11 +34,11 @@ export const App = (
             ...pageProps,
             style: [
                 usePinkTheming({
-                    avatarBgColor: bodyBgColor,
+                    // avatarBgColor: bodyBgColor,
                     // colorBorder: `${themeColorHue}, 58%, 36%`,
-                    colorPrimary1: `${themeColorHue}, 58%, 46%`,
-                    colorPrimary2: `${themeColorHue}, 58%, 36%`,
-                    colorPrimary3: `${themeColorHue}, 58%, 26%`
+                    // colorPrimary1: `${themeColorHue}, 58%, 46%`,
+                    // colorPrimary2: `${themeColorHue}, 58%, 36%`,
+                    // colorPrimary3: `${themeColorHue}, 58%, 26%`
                 }).style,
                 style
             ]

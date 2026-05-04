@@ -1,28 +1,24 @@
 import { appContentActivity } from '@app/activities/app-content';
 import { pageContentActivity } from '@app/activities/page-content';
 import { getSite } from '@app/helpers/api/content/contentful';
+import { MainContentProps } from '@app/pages/types';
 import type { Page, Site } from '@app/types';
 import { type ApiProviderResponse } from '@app/types/api';
 import {
+    type AnyComponent,
     component,
     onRoute,
-    onRouteUpdate,
-    type TemplateTagValue
+    onRouteUpdate
 } from '@loom-js/core';
 import {
     PinkAvatar,
-    PinkAvatarGroup,
-    PinkColor,
-    PinkHeader,
+    PinkGridHeader,
     PinkTopNav,
     PinkSize
 } from '@loom-js/pink';
 
 export interface AppLayoutProps {
-    mainContent(contentProps: {
-        page: Page;
-        site: Partial<Site>;
-    }): TemplateTagValue;
+    mainContent: AnyComponent<MainContentProps>;
 }
 
 export const AppLayout = component<AppLayoutProps>(
@@ -63,59 +59,21 @@ export const AppLayout = component<AppLayoutProps>(
                     const { pagesCollection } = site;
 
                     return [
-                        PinkHeader({
-                            children: [
-                                PinkAvatar({
-                                    alt: 'loomjs logo',
-                                    color: PinkColor.Empty,
-                                    height: 64,
-                                    size: PinkSize.XLarge,
-                                    src: '/static/img/loom-logo-64.svg',
-                                    style: 'padding: 1.25rem 0',
-                                    width: 64
-                                }),
-                                PinkAvatarGroup({
-                                    itemProps: [
-                                        {
-                                            alt: 'loomjs logo',
-                                            color: PinkColor.Orange,
-                                            height: 64,
-                                            size: PinkSize.Large,
-                                            src: '/static/img/loom-logo-64.svg',
-                                            width: 64
-                                        },
-                                        {
-                                            alt: 'loomjs logo',
-                                            color: PinkColor.Pink,
-                                            height: 64,
-                                            size: PinkSize.Large,
-                                            src: '/static/img/loom-logo-64.svg',
-                                            width: 64
-                                        },
-                                        {
-                                            alt: 'loomjs logo',
-                                            color: PinkColor.Blue,
-                                            height: 64,
-                                            size: PinkSize.Large,
-                                            src: '/static/img/loom-logo-64.svg',
-                                            width: 64
-                                        },
-                                        {
-                                            children: '+2',
-                                            color: PinkColor.Empty,
-                                            height: 64,
-                                            size: PinkSize.Large,
-                                            width: 64
-                                        }
-                                    ]
-                                }),
-                                PinkTopNav({
-                                    items: getNavigation(
-                                        pagesCollection?.items
-                                    ),
-                                    onClick: onRoute
-                                })
-                            ]
+                        PinkGridHeader({
+                            gridCol1: {
+                                is: PinkAvatar,
+                                alt: 'loomjs logo',
+                                height: 64,
+                                size: PinkSize.XLarge,
+                                src: '/static/img/loom-logo-64.svg',
+                                style: 'margin: 1.25rem 0',
+                                width: 64
+                            },
+                            gridCol2: {
+                                is: PinkTopNav,
+                                items: getNavigation(pagesCollection?.items),
+                                onClick: onRoute
+                            }
                         }),
                         pageContentEffect(
                             ({ value: { page, pageLoaded } }) =>
