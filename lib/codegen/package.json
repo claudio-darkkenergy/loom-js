@@ -1,0 +1,21 @@
+{
+  "name": "@loom-js/codegen",
+  "private": true,
+  "version": "0.0.0",
+  "license": "MIT",
+  "exports": "./index.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "start": "ts-node src/index.ts"
+  },
+  "dependencies": {
+    "@loom-js/open-ai": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.2"
+  }
+}

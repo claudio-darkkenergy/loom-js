@@ -1,0 +1,17 @@
+*/export default function middleware(request: Request) {
+    const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+    const bypassHeader = request.headers.get('x-vercel-protection-bypass');
+
+    if (bypassHeader === bypassSecret) {
+        // Allow the request to proceed
+        return new Response(null, { status: 200 });
+    }
+
+    // If the bypass header is not present or incorrect, proceed with normal request handling
+    // You can add additional logic here if needed
+    return new Response(null, { status: 200 });
+}
+
+export const config = {
+    matcher: '/api/:path*'
+};/*
