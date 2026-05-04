@@ -1,9 +1,13 @@
 packages:
-    - 'apps/*'
-    - '!apps/docs'
-    - '!apps/sandbox'
-    - 'lib/*'
-    - 'packages/*'
-    - 'packages/esbuild/*'
-    - 'services'
-    - '!packages/ui-kit'
+  - 'apps/*'
+  - '!apps/docs'
+  - '!apps/sandbox'
+  - 'lib/*'
+  - 'packages/*'
+  - 'packages/esbuild/*'
+  - 'services'
+  - '!packages/ui-kit'
+allowBuilds:
+  core-js-pure: true
+  esbuild: true
+  puppeteer: true
