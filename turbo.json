@@ -1,14 +1,18 @@
 {
-    "$schema": "https://turbo.build/schema.json",
+    "$schema": "./node_modules/turbo/schema.json",
+    "ui": "tui",
     "tasks": {
         "build": {
             "dependsOn": [
                 "^build",
                 "^build-package"
             ],
+            "inputs": [
+                "$TURBO_DEFAULT$",
+                "!**/*.stories.{tsx,ts,jsx,js,mdx}"
+            ],
             "outputs": [
-                "build/**",
-                "storybook-static/**"
+                "build/**"
             ],
             "env": [
                 "API_URL",
@@ -23,6 +27,14 @@
                 "dist/**"
             ]
         },
+        "build-storybook": {
+            "dependsOn": [
+                "^build-package"
+            ],
+            "outputs": [
+                "storybook-static/**"
+            ]
+        },
         "dev": {
             "dependsOn": [
                 "^build-package"
@@ -33,6 +45,13 @@
                 "API_URL",
                 "CTF_IS_PREVIEW"
             ]
+        },
+        "storybook": {
+            "dependsOn": [
+                "^build-package"
+            ],
+            "cache": false,
+            "persistent": true
         },
         "topo": {
             "dependsOn": [
