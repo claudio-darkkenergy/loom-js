@@ -1,7 +1,7 @@
 import { activity, component, onRoute } from '@loom-js/core';
 import { Button, Img } from '@loom-js/tags';
 
-export const Core = component((html, { onCreated }) => {
+export const Lazyload = component((html, { onCreated }) => {
     const colors = ['red', 'blue', 'green', 'yellow', 'orange'];
     const colorActivity = activity(colors);
     const postsActivity = activity<any[] | undefined>(
@@ -49,9 +49,6 @@ export const Core = component((html, { onCreated }) => {
         <div>
             <h1>
                 <a $click=${onRoute} href="/">Index</a>
-                <a $click=${onRoute} href="/event-monitoring">
-                    Event Monitoring
-                </a>
                 > Core
             </h1>
 
@@ -66,7 +63,7 @@ export const Core = component((html, { onCreated }) => {
             </ul>
 
             <ul>
-                <!-- List of colors to test Array efficiency when using keys w/ reactivity. -->
+                <!-- # Write me a list of colors -->
                 ${colorActivity.effect(({ value }) => [
                     ...value.map((color) =>
                         yesOrNo()

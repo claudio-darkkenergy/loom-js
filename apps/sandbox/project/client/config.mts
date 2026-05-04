@@ -13,11 +13,14 @@ export const clientConfig = (options: ClientConfigOptions = {}) => {
 
     return {
         bundle: true,
+        define: {
+            __API_URL__: `'${process.env.API_URL}'`
+        },
+        format: 'esm',
         entryPoints: {
             'static/js/spa': './src/routes/*',
             'static/styles/base': './public/styles/base.css'
         },
-        format: 'esm',
         loader: {
             '.eot': 'file',
             '.ttf': 'file',
@@ -30,10 +33,9 @@ export const clientConfig = (options: ClientConfigOptions = {}) => {
         plugins: [
             clean({ patterns: './build/*' }),
             htmlSplit({
-                entryPoints: ['static/js/spa'],
                 isProd,
-                routes: ['/', '/core'],
-                spa: true,
+                routes: ['/', '/core', '/event-monitoring', '/lazyload'],
+                spa: 'static/js/spa',
                 template: htmlTemplate
             }),
             copy({

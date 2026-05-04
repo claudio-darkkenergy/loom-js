@@ -49,9 +49,6 @@ export const Core = component((html, { onCreated }) => {
         <div>
             <h1>
                 <a $click=${onRoute} href="/">Index</a>
-                <a $click=${onRoute} href="/event-monitoring">
-                    Event Monitoring
-                </a>
                 > Core
             </h1>
 
