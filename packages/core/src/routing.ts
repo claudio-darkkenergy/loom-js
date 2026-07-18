@@ -1,11 +1,7 @@
 // @deprecated - use Route instead.
 
 import { activity } from './activity';
-import type {
-    ActivityEffectAction,
-    OnRouteOptions,
-    SyntheticMouseEvent
-} from './types';
+import type { ActivityEffectAction, OnRouteOptions } from './types';
 
 // Setup the activity for the History API
 const historyApiActivity = activity<Location>(window.location, { force: true });
@@ -41,10 +37,7 @@ export const router = (routeConfigCallback: ActivityEffectAction<Location>) => {
  *          `href` - The href url to use - this overrides the href attribute of an `HTMLAnchorElement`.
  *          `replace` - If set to `true`, "replaceState" will be used instead of "pushState" as the `History` action.
  */
-export const onRoute = <T = HTMLAnchorElement>(
-    event: SyntheticMouseEvent<T>,
-    options?: OnRouteOptions
-) => {
+export const onRoute = (event: Event, options?: OnRouteOptions) => {
     const action = (options?.replace && 'replaceState') || 'pushState';
     const href =
         options?.href || (event?.currentTarget as HTMLAnchorElement).href;

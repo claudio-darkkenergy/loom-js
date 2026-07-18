@@ -1,8 +1,8 @@
 import { PinkColor, PinkSize } from '../../types';
-import { PinkAvatar } from './pink-avatar';
+import { PinkAvatar, PinkAvatarProps } from './pink-avatar';
 import {
     RenderVariants,
-    type RenderVariantsStoryArgs,
+    type RenderVariantsStoryProps,
     type Meta,
     type StoryObj,
     ArgType
@@ -31,10 +31,12 @@ const meta: Meta<typeof PinkAvatar> = {
 
 export default meta;
 
-type Story = StoryObj<RenderVariantsStoryArgs>;
+type Story = StoryObj<PinkAvatarProps>;
 
-export const Types: Story = {
-    render: (props: any) => RenderVariants(PinkAvatar)(props),
+export const Types: StoryObj<
+    PinkAvatarProps & RenderVariantsStoryProps<PinkAvatarProps>
+> = {
+    render: (props) => RenderVariants(PinkAvatar)(props),
     argTypes: {
         color: { control: false },
         size: { control: false }

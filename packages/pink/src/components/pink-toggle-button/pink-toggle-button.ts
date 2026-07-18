@@ -1,9 +1,9 @@
 import { type WithIconProps, withIcon } from '../../modifiers';
-import type { ComponentProps, SimpleComponent } from '@loom-js/core';
+import type { ComponentInputProps, SimpleComponent } from '@loom-js/core';
 import { Button, type ButtonProps, Div, Ul } from '@loom-js/tags';
 import classNames from 'classnames';
 
-type ButtonPropsProp = ComponentProps<ButtonProps & WithIconProps> & {
+type ButtonPropsProp = ComponentInputProps<ButtonProps & WithIconProps> & {
     isSelected?: boolean;
 };
 

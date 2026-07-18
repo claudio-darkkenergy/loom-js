@@ -17,13 +17,13 @@ const lifeCycleNodes = new Map<Node, ComponentContextPartial>();
  * Life-cycle hooks occur in the following order:
  *      1. Created - once per component creation.
  *      2. Before Render - called before the component renders.
- *      2. Rendered - 1st time a component is rendered,
+ *      3. Rendered - 1st time a component is rendered,
  *                  - again for every `effect` update after the 1st one.
  *      -- Note: `onAppMounted` is called here before the next life-cycle hooks are called.
- *      3. Mounted - nodes are connected to the DOM,
+ *      4. Mounted - nodes are connected to the DOM,
  *                 - processed for each component from the queue, 1st-in/out, during the 1st mounted cycle,
  *                 - & again when new nodes are mounted, observed by the `MutationObserver`.
- *      4. Unmounted - nodes are disconnected from the DOM,
+ *      5. Unmounted - nodes are disconnected from the DOM,
  *                   - processed for each component, observed by the `MutationObserver`.
  */
 export const _lifeCycles = {

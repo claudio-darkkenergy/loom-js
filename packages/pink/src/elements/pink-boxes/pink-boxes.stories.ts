@@ -15,7 +15,7 @@ const meta: Meta<PinkBoxesProps> = {
 
 export default meta;
 
-type Story = StoryObj<typeof PinkBoxes>;
+type Story = StoryObj<PinkBoxesProps>;
 
 export const Boxes: Story = {
     args: {

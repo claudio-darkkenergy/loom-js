@@ -2,10 +2,10 @@ import { mergeAllowedAttrs } from '../../../../helpers';
 import {
     type AttrsTemplateTagValue,
     component,
-    type GetProps
+    type ComponentInputProps
 } from '@loom-js/core';
 
-export type LiProps = GetProps<typeof Li>;
+export type LiProps = ComponentInputProps;
 
 export const Li = component((html, { attrs, children, on, ...liProps }) => {
     const attrsOverrides = mergeAllowedAttrs(

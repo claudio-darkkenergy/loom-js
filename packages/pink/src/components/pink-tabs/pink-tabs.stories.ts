@@ -1,4 +1,4 @@
-import { type LinkItemProps, PinkTabs, type PinkTabsProps } from './pink-tabs';
+import { PinkTabs, type PinkTabsProps } from './pink-tabs';
 import type { Meta, StoryObj } from '@loom-js/storybook';
 
 const meta: Meta<typeof PinkTabs> = {
@@ -23,7 +23,7 @@ const tabsListProps = {
             href: '#',
             children: 'Item 3'
         }
-    ] as LinkItemProps[]
+    ]
 };
 
 export const WithControls: StoryObj<PinkTabsProps> = {

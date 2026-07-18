@@ -15,6 +15,7 @@ export const clientConfig = (options: ClientConfigOptions = {}) => {
     const { apiUrl = '', ctfIsPreview = false, isProd = false } = options;
 
     return {
+        logLevel: isProd ? 'silent' : 'debug',
         bundle: true,
         define: {
             __API_URL__: `'${apiUrl}'`,
@@ -25,6 +26,7 @@ export const clientConfig = (options: ClientConfigOptions = {}) => {
             'static/js/spa': './src/app/pages/routes',
             'static/styles/base': './public/styles/base.css'
         },
+        keepNames: true,
         loader: {
             '.eot': 'file',
             '.ttf': 'file',
@@ -60,7 +62,7 @@ export const clientConfig = (options: ClientConfigOptions = {}) => {
                 ]
             })
         ],
-        sourcemap: true,
+        sourcemap: !isProd,
         splitting: true
     } as BuildOptions;
 };

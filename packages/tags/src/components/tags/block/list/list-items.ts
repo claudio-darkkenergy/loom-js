@@ -2,19 +2,16 @@ import { Span } from '../../inline';
 import { Li, type LiProps } from './li';
 import type {
     Component,
-    ComponentProps,
-    GetProps,
+    ComponentInputProps,
     SimpleComponent
 } from '@loom-js/core';
 
-type RawListItemsProps = LiProps & {
+export type ListItemsProps = LiProps & {
     item?: Component | SimpleComponent;
-    itemProps?: ComponentProps[];
+    itemProps?: ComponentInputProps[];
 };
 
-export type ListItemsProps = GetProps<typeof ListItems>;
-
-export const ListItems: SimpleComponent<RawListItemsProps> = ({
+export const ListItems: SimpleComponent<ListItemsProps> = ({
     item = Span,
     itemProps = [],
     ...listItemProps

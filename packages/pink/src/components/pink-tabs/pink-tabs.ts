@@ -1,5 +1,5 @@
 import { withIcon } from '../../modifiers';
-import type { SimpleComponent } from '@loom-js/core';
+import type { ComponentInputProps, SimpleComponent } from '@loom-js/core';
 import {
     Button,
     type ButtonProps,
@@ -22,11 +22,11 @@ type TabsButtonScrollProps = ButtonProps & {
     placement: TabsButtonScrollPlacement;
 };
 
-const TabsButtonScroll = ({
+const TabsButtonScroll: SimpleComponent<TabsButtonScrollProps> = ({
     placement,
     style,
     ...buttonProps
-}: TabsButtonScrollProps) =>
+}) =>
     Button(
         withIcon({
             ...buttonProps,
@@ -63,7 +63,7 @@ export const PinkTabs: SimpleComponent<PinkTabsProps> = ({
             className: linkClassName,
             isSelected,
             ...linkProps
-        }: LinkItemProps) =>
+        }: ComponentInputProps<LinkItemProps>) =>
             Link({
                 ...linkProps,
                 children: Span({

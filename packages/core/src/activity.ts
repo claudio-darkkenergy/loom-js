@@ -91,6 +91,13 @@ export const activity = <V, I = V>(
                         scopedAction &&
                         scopedAction({ value: valueProp.value });
 
+                    // @Remove this.
+                    if (Array.isArray(templateTagValue)) {
+                        console.log({
+                            templateTagValue
+                        });
+                    }
+
                     ctx.root = textUpdater(
                         ctx.root as TemplateRoot | TemplateRootArray,
                         templateTagValue,
@@ -101,7 +108,7 @@ export const activity = <V, I = V>(
                     );
                 };
 
-                // Create a temporary node to be replaced w/ once async node resolves.
+                // Ensure the `ctx` has a `ctxScopes` map.
                 ctx.ctxScopes = ctx.ctxScopes || new Map();
 
                 // Handle when `effect` is 1st called.

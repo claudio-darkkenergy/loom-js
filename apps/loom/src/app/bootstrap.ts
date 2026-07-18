@@ -2,11 +2,11 @@ import '@appwrite.io/pink';
 import '@appwrite.io/pink-icons';
 import {
     type Component,
-    type ComponentOptionalProps,
-    type ComponentProps,
+    type ComponentInputProps,
     type ContextFunction,
     init,
-    type SimpleComponent
+    type SimpleComponent,
+    ReservedProps
 } from '@loom-js/core';
 import { usePinkTheming } from '@loom-js/pink';
 
@@ -24,11 +24,8 @@ document.body.classList.add('theme-dark');
 document.body.prepend($app);
 
 export const Bootstrap = (
-    page:
-        | Component
-        | SimpleComponent
-        | ((props: ComponentOptionalProps) => ContextFunction | undefined),
-    { style, ...pageProps }: ComponentProps = {}
+    page: Component | SimpleComponent,
+    { style, ...pageProps }: ComponentInputProps = {}
 ) => {
     const themeColorHue = 301;
 
@@ -57,7 +54,7 @@ export const Bootstrap = (
                 creation: false,
                 error: true,
                 mutations: false,
-                updates: false,
+                updates: true,
                 warn: true
             }
         },

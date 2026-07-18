@@ -37,6 +37,8 @@ export const init = ({
     // Execute the app-fully-mounted callback.
     if (typeof onAppMounted === 'function') {
         // The app has fully mounted, including all component descendants.
+        // @TODO `root` should not be passed as an argument every time. It may be the `appCtx.root`
+        // depending on how the app is configured.
         onAppMounted(root);
     }
 };

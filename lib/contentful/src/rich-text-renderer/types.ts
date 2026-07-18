@@ -7,6 +7,8 @@ import type { TemplateTagValue } from '@loom-js/core';
 
 export type { Document as ContentfulDocument } from '@contentful/rich-text-types';
 
+export type { RichText };
+
 export type RichTextNode = Block | Inline | RichText;
 
 export interface MarkRenderer {

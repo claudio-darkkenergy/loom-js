@@ -4,7 +4,11 @@ import {
     type PinkDropListProps
 } from '../../components/pink-drop-list';
 import { PinkDynamicProps } from '../../types';
-import type { SimpleComponent, TemplateTagValue } from '@loom-js/core';
+import type {
+    ComponentInputProps,
+    SimpleComponent,
+    TemplateTagValue
+} from '@loom-js/core';
 import { Div, Nav, Section } from '@loom-js/tags';
 import classNames from 'classnames';
 
@@ -31,8 +35,8 @@ const SideNavTop: SimpleComponent<SideNavTopProps> = ({ listProps }) =>
 
 export type PinkSideNavProps = PinkDynamicProps & {
     // mainButtonProps: any[];
-    bottom?: TemplateTagValue | TemplateTagValue[];
-    topLinkProps?: DropListItemProps[];
+    bottom?: TemplateTagValue;
+    topLinkProps?: ComponentInputProps<DropListItemProps>[];
 };
 
 export const PinkSideNav: SimpleComponent<PinkSideNavProps> = ({
@@ -54,7 +58,7 @@ export const PinkSideNav: SimpleComponent<PinkSideNavProps> = ({
                   children: bottom
               })
           ]
-        : sideNavTop;
+        : (sideNavTop as TemplateTagValue);
 
     return is({
         ...props,

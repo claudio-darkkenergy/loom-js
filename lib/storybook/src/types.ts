@@ -1,4 +1,8 @@
-import type { Component, TemplateTagValue } from '@loom-js/core';
+import type {
+    Component,
+    ComponentInputProps,
+    TemplateTagValue
+} from '@loom-js/core';
 import type {
     AnnotatedStoryFn,
     Args,
@@ -34,7 +38,10 @@ export type Meta<TArgs = Args> = ComponentAnnotations<LoomJsRenderer, TArgs>;
 
 export type Preview = ProjectAnnotations<LoomJsRenderer>;
 
-export type StoryObj<TArgs = Args> = StoryAnnotations<LoomJsRenderer, TArgs>;
+export type StoryObj<TArgs extends object = Args> = StoryAnnotations<
+    LoomJsRenderer,
+    ComponentInputProps<TArgs>
+>;
 
 /**
  * Story function that represents a CSFv2 component example.

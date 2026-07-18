@@ -1,24 +1,34 @@
-import type { ComponentProps, Component, SimpleComponent } from '@loom-js/core';
+import type {
+    ComponentInputProps,
+    Component,
+    SimpleComponent,
+    GetProps
+} from '@loom-js/core';
 import { Ul, type UlProps } from '@loom-js/tags';
 
-export type RenderVariantsStoryArgs = ReturnType<
-    ReturnType<typeof RenderVariants>
->;
-
-export type RenderVariantsStoryProps<T extends object = {}> = ComponentProps<
-    Omit<UlProps, 'item'> & {
-        itemProps: ComponentProps<T>[];
-    }
->;
+export type RenderVariantsStoryProps<Props extends object = {}> =
+    ComponentInputProps<
+        Omit<UlProps, 'item'> & {
+            itemProps: ComponentInputProps<Props>[];
+        }
+    >;
 
 export const RenderVariants =
-    <T extends Component | SimpleComponent>(
-        item: T,
+    (
+        item: Component | SimpleComponent,
         overrideProps?: (
-            variantProps: RenderVariantsStoryProps
-        ) => Partial<RenderVariantsStoryProps>
+            variantProps: RenderVariantsStoryProps<
+                NonNullable<GetProps<typeof item>>
+            >
+        ) => Partial<
+            RenderVariantsStoryProps<NonNullable<GetProps<typeof item>>>
+        >
     ) =>
-    (unorderedListProps: RenderVariantsStoryProps<Parameters<T>>) => {
+    (
+        unorderedListProps: RenderVariantsStoryProps<
+            NonNullable<GetProps<typeof item>>
+        >
+    ) => {
         const overrides = {
             ...unorderedListProps,
             ...(overrideProps?.(unorderedListProps) || {})
@@ -27,9 +37,9 @@ export const RenderVariants =
         return Ul({
             ...overrides,
             item,
-            style: [
+            style: Object.assign(
                 { display: 'flex', gap: '30px', 'flex-wrap': 'wrap' },
                 overrides.style
-            ]
+            )
         });
     };

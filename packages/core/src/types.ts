@@ -33,14 +33,23 @@ export interface PlainObject<T = unknown> {
 
 /* Template */
 
-export type AttrsTemplateTagValue = PlainObject<TemplateTagValue> & {
-    id?: string;
-    className?: string;
-    style?: TemplateTagValue | PlainObject<TemplateTagValue>;
+type ValidAttrValue = string | boolean | number | undefined | null;
+type StyleProp = ValidAttrValue | Record<string, ValidAttrValue> | StyleProp[];
+
+type PossibleAttrs = {
+    [key: string]: ValidAttrValue | Record<string, ValidAttrValue>;
 };
 
-export type OnTemplateTagValue =
-    PlainObject<EventListenerOrEventListenerObject>;
+export type AttrsTemplateTagValue = PossibleAttrs & {
+    id?: string;
+    className?: string;
+    style?: StyleProp;
+};
+
+export type OnTemplateTagValue = Record<
+    string,
+    EventListenerOrEventListenerObject
+>;
 
 type SpecialTemplateTagValue = AttrsTemplateTagValue | OnTemplateTagValue;
 
@@ -52,37 +61,36 @@ export interface TaggedTemplate {
     ): ComponentContext;
 }
 
-export interface SimpleTemplateFunction<Props extends ComponentProps = {}> {
-    (props: Props): ContextFunction;
-}
-
-export interface TemplateFunction<Props extends object = {}> {
-    (html: TaggedTemplate, props: ComponentArgs<Props>): ComponentContext;
-}
+export type TemplateFunction<Props extends object = {}> = (
+    html: TaggedTemplate,
+    props: ComponentOutputProps<Props>
+) => ComponentContext;
 
 export type TemplateRoot = Comment | Element | Text;
 
 export type TemplateRootArray = TemplateRoot[];
 
-export type TemplateTagValue =
+export type TemplateTagValueBase =
     | boolean
     | Component
     | ContextFunction
     | EventListenerOrEventListenerObject
-    | MouseEventListener
+    | EventListener
     | SyntheticRouteEventListener
     | Node
     | null
     | number
-    | PlainObject<TemplateTagValue>
     | SpecialTemplateTagValue
     | string
     | TemplateRoot
     | TemplateRootArray
-    | TemplateTagValue[]
-    | TemplateTagValueFunction
     | undefined
     | void;
+
+export type TemplateTagValue =
+    | TemplateTagValueBase
+    | Record<string, TemplateTagValueBase>
+    | TemplateTagValue[];
 
 export type TemplateTagValueFunction = <T>(props?: T) => TemplateTagValue;
 
@@ -97,33 +105,41 @@ export type AnyComponent<Props extends object = {}> =
     | SimpleComponent<Props>;
 // The component callable (external values to internal props)
 export type Component<Props extends object = {}> = (
-    props?: ComponentProps<Props>
+    props?: ComponentInputProps<Props>
 ) => ContextFunction;
 
-export type ComponentArgs<Props extends object = {}> = ComponentBaseArgs &
-    ComponentProps<Props>;
+// @deprecated
+export type ComponentArgs<Props extends object = {}> = ComponentBaseProps &
+    ComponentInputProps<Props>;
 
-export type ComponentProps<Props extends object = {}> = {
+// @deprecated
+export type ComponentProps<Props extends object = {}> =
+    ComponentOutputProps<Props>;
+
+export type ComponentInputProps<Props extends object = {}> = {
     [P in keyof Props]: Props[P];
-} & ComponentOptionalProps;
+} & ReservedProps;
+
+export type ComponentBaseProps = LifeCycleHookProps & UtilityProps;
+
+export type ComponentOutputProps<Props extends object = {}> =
+    ComponentBaseProps & Omit<ComponentInputProps<Props>, 'ref'>;
 
 // This is internal context for a component & its template,
 // which essentially provides caching capabilities w/ associated meta-data.
 export interface ComponentContext<Props extends object = {}>
-    extends LifeCycleHandlerProps {
+    extends LifeCycleHandlerProps, Pick<ReservedProps, 'key' | 'ref'> {
     children: Map<number | string, ComponentContextPartial>;
     chunks: TemplateStringsArray;
     ctxScopes: Map<TemplateFunction<Props>, ComponentContextPartial>;
     fingerPrint: TemplateFunction<Props>;
     fragment: boolean;
-    key: string;
     lifeCycleState: LifeCycleState;
     lifeCycles: LifeCycleHookProps;
     node: ContextNodeGetter;
     parent: ComponentContextPartial;
-    props: ComponentProps<Props>;
+    props: ComponentInputProps<Props>;
     render: TaggedTemplate;
-    ref: RefContext;
     refs: Set<RefContext>;
     root: TemplateRoot | TemplateRootArray;
     values: Es6Object<TemplateTagValue>;
@@ -131,29 +147,33 @@ export interface ComponentContext<Props extends object = {}>
 
 export type ComponentContextPartial = Partial<ComponentContext>;
 // Every component will get these.
-export type ComponentBaseArgs = LifeCycleHookProps & {
+export type UtilityProps = {
     createRef(): RefContext;
     ctxRefs(): IterableIterator<RefContext>;
     node: ContextNodeGetter;
 };
+export type ComponentBaseArgs = LifeCycleHookProps & UtilityProps;
 // The component definition (internal props from external values)
 // It takes a `TemplateFunction`.
 export type ComponentFactory = <Props extends object = {}>(
     templateFunction: TemplateFunction<Props>
 ) => Component<Props>;
 
-export type ComponentOptionalProps = Partial<{
-    attrs: AttrsTemplateTagValue;
-    children: TemplateTagValue;
-    className: string;
-    id: string;
-    key: string;
-    on: OnTemplateTagValue;
-    onClick: SyntheticRouteEventListener | EventListenerOrEventListenerObject;
-    ref: RefContext;
-    routeProps: RouteValue;
-    style: TemplateTagValue | PlainObject<TemplateTagValue>;
-}>;
+// @deprecated
+export type ComponentOptionalProps = ReservedProps;
+
+export type ReservedProps = {
+    attrs?: AttrsTemplateTagValue;
+    children?: TemplateTagValue | TemplateTagValue[];
+    className?: string;
+    id?: string;
+    key?: string;
+    on?: OnTemplateTagValue;
+    onClick?: SyntheticRouteEventListener | EventListenerOrEventListenerObject;
+    ref?: RefContext;
+    routeProps?: RouteValue;
+    style?: StyleProp;
+};
 
 // `ComponentContext` related types
 export type ContextFunction = (
@@ -164,12 +184,8 @@ export type ContextFunction = (
 export type ContextNodeGetter = () => TemplateRoot | TemplateRootArray;
 
 // A pass-through component
-export type Simple = <Props extends ComponentProps = {}>(
-    simpleTemplateFn: SimpleTemplateFunction<Props>
-) => (props?: Props) => ContextFunction;
-
 export type SimpleComponent<Props extends object = {}> = (
-    props: ComponentProps<Props>
+    props: ComponentInputProps<Props>
 ) => ContextFunction | ContextFunction[];
 
 /* Life-cycles */
@@ -205,8 +221,7 @@ export interface ReactiveComponent<T = any, P = any> {
 }
 
 export interface RefContext
-    extends Partial<LifeCycleHandlerProps>,
-        LifeCycleHookProps {
+    extends Partial<LifeCycleHandlerProps>, LifeCycleHookProps {
     node?: ContextNodeGetter;
 }
 
@@ -214,20 +229,9 @@ export interface RefContext
 export type RenderFunction = TemplateFunction;
 
 // @Deprecated
-export type RenderProps = ComponentProps;
+export type RenderProps = ComponentOutputProps;
 
 /* Event */
-export type MouseEventListener = <T>(ev: SyntheticMouseEvent<T>) => void;
-
-export type SyntheticMouseEventListener = (
-    this: HTMLElement,
-    ev: MouseEvent
-) => any;
-export type SyntheticMouseEvent<T = EventTarget> = Event & {
-    ctrlKey: boolean;
-    currentTarget: T;
-    target: T;
-};
 export type SyntheticRouteEvent<T extends EventTarget = Element> = Event & {
     altKey: boolean;
     ctrlKey: boolean;

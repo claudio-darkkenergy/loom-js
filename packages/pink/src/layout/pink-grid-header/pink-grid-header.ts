@@ -1,6 +1,6 @@
 import { PinkDynamicProps } from '../../types';
 import type {
-    ComponentProps,
+    ComponentInputProps,
     ContextFunction,
     SimpleComponent
 } from '@loom-js/core';
@@ -54,11 +54,12 @@ const GridCols = ({
         .reverse();
 
 export type PinkGridHeaderProps = Omit<HeaderProps, 'children'> & {
-    gridCol1?: ComponentProps<PinkDynamicProps>;
-    gridCol2?: ComponentProps<PinkDynamicProps>;
-    gridCol3?: ComponentProps<PinkDynamicProps>;
-    gridCol4?: ComponentProps<PinkDynamicProps>;
+    gridCol1?: ComponentInputProps<PinkDynamicProps>;
+    gridCol2?: ComponentInputProps<PinkDynamicProps>;
+    gridCol3?: ComponentInputProps<PinkDynamicProps>;
+    gridCol4?: ComponentInputProps<PinkDynamicProps>;
 };
+
 export const PinkGridHeader: SimpleComponent<PinkGridHeaderProps> = ({
     className,
     gridCol1,

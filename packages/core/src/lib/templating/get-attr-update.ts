@@ -186,9 +186,7 @@ const mergeAndSetStyleValues = (
             });
         } else if (
             typeof styleArg === 'function' &&
-            !['contextFunction', 'activityContextFunction'].includes(
-                styleArg.name
-            )
+            !styleArg.name.toLowerCase().endsWith('contextfunction')
         ) {
             handleStyleArg((styleArg as TemplateTagValueFunction)());
         } else if (isObject(styleArg)) {

@@ -21,11 +21,13 @@ export const textUpdater = (
 ) => {
     // Update for each `LiveNode`.
     const value = resolveValue(newValue, valueCtx);
+    console.log({ currentLiveNode, value, newValue });
 
     if (value instanceof Element) {
         // Handle `Element` nodes.
         currentLiveNode = updateLiveNode([currentLiveNode, value]);
     } else if (Array.isArray(value)) {
+        // console.log('Array value', { value });
         currentLiveNode = handleArrayValue([currentLiveNode, value], valueCtx);
     } else {
         // Handle `Text` nodes.

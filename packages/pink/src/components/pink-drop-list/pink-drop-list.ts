@@ -1,7 +1,7 @@
 import { WithIconProps, withIcon } from '../../modifiers';
 import type {
+    ComponentInputProps,
     ComponentOptionalProps,
-    ComponentProps,
     SimpleComponent
 } from '@loom-js/core';
 import {
@@ -22,15 +22,14 @@ export enum DropListArrow {
     NoArrow = 'no-arrow'
 }
 
-export type DropListItemProps = ComponentProps<
-    LinkProps & WithIconProps & { isSelected?: boolean }
->;
+export type DropListItemProps = LinkProps &
+    WithIconProps & { isSelected?: boolean };
 
 interface DropListProps extends UlProps {
     arrow?: DropListArrow;
     isBlockEnd?: boolean;
     isInlineEnd?: boolean;
-    itemProps?: DropListItemProps[];
+    itemProps?: ComponentInputProps<DropListItemProps>[];
 }
 
 const DropList: SimpleComponent<DropListProps> = ({
@@ -42,7 +41,11 @@ const DropList: SimpleComponent<DropListProps> = ({
     Ul({
         ...ulProps,
         className: classNames(className, 'drop-list'),
-        item: ({ className, isSelected, ...props }: DropListItemProps) =>
+        item: ({
+            className,
+            isSelected,
+            ...props
+        }: ComponentInputProps<DropListItemProps>) =>
             Link(
                 withIcon({
                     ...props,

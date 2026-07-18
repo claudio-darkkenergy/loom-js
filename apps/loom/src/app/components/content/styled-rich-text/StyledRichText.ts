@@ -7,6 +7,7 @@ import { BLOCKS, MARKS } from '@contentful/rich-text-types';
 import { type SimpleComponent } from '@loom-js/core';
 import { PinkCodePanel } from '@loom-js/pink';
 import { H1, H2, H3, H4 } from '@loom-js/tags';
+import { toKebabCase } from '@loom-js/utils';
 import classNames from 'classnames';
 
 export type StyledRichTextProps = ContentfulRichTextProps;
@@ -24,10 +25,6 @@ export const StyledRichText: SimpleComponent<StyledRichTextProps> = ({
                     typeof children === 'string' &&
                     PinkCodePanel({
                         children: [
-                            // PinkCodePanel.Header({
-                            //     children:
-                            //         site.shortDescription
-                            // }),
                             PinkCodePanel.Content({
                                 children: String(children),
                                 useLineNumbers: false
@@ -39,7 +36,14 @@ export const StyledRichText: SimpleComponent<StyledRichTextProps> = ({
                 [BLOCKS.HEADING_1]: (_, children) =>
                     H1({ children, className: 'heading-level-3 u-capitalize' }),
                 [BLOCKS.HEADING_2]: (_, children) =>
-                    H2({ children, className: 'heading-level-4 u-capitalize' }),
+                    H2({
+                        children,
+                        className: 'heading-level-4 u-capitalize',
+                        id:
+                            typeof String(children) === 'string'
+                                ? toKebabCase(String(children))
+                                : undefined
+                    }),
                 [BLOCKS.HEADING_3]: (_, children) =>
                     H3({ children, className: 'heading-level-5' }),
                 [BLOCKS.HEADING_4]: (_, children) =>

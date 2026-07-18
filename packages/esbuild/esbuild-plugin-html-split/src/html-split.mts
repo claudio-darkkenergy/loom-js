@@ -75,7 +75,7 @@ export const htmlSplit: (pluginOptions: HtmlSplitPluginOptions) => Plugin = ({
                 }, getDefaultTemplateArgs());
 
             cache.set(cacheKey, templateArgs);
-            console.log({ templateArgs });
+            console.log({ templateArgs: JSON.stringify(templateArgs) });
 
             // Promises to create one HTML file per js bundle (`entryPoint`.)
             const htmlPromises =

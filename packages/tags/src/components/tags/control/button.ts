@@ -2,16 +2,8 @@ import { mergeAllowedAttrs } from '../../../helpers';
 import {
     type Aria,
     type AttrsTemplateTagValue,
-    type ComponentProps,
     component
 } from '@loom-js/core';
-
-type RawButtonProps = {
-    aria?: Aria;
-    disabled?: boolean;
-    title?: string;
-    type?: ButtonType;
-};
 
 export enum ButtonType {
     Button = 'button',
@@ -19,9 +11,14 @@ export enum ButtonType {
     Submit = 'submit'
 }
 
-export type ButtonProps = ComponentProps<RawButtonProps>;
+export type ButtonProps = {
+    aria?: Aria;
+    disabled?: boolean;
+    title?: string;
+    type?: ButtonType;
+};
 
-export const Button = component<RawButtonProps>(
+export const Button = component<ButtonProps>(
     (
         html,
         {

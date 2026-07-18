@@ -1,4 +1,4 @@
-import { TemplateTagValue, type ComponentProps } from '@loom-js/core';
+import { TemplateTagValue, type ComponentInputProps } from '@loom-js/core';
 import { Span } from '@loom-js/tags';
 import classNames from 'classnames';
 
@@ -19,7 +19,7 @@ export const withTooltip = ({
     popupClassName = '',
     popupMessage,
     ...props
-}: ComponentProps<WithTooltipProps>) => {
+}: ComponentInputProps<WithTooltipProps>) => {
     const childrenWithTooltip = [].concat(
         children as any,
         Span({

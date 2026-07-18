@@ -2,9 +2,9 @@ import { PinkTag, type PinkTagProps } from '../pink-tag';
 import type { SimpleComponent } from '@loom-js/core';
 import { Button, Link } from '@loom-js/tags';
 
-export interface PinkInteractiveTagProps extends PinkTagProps {
+export type PinkInteractiveTagProps = PinkTagProps & {
     href?: string;
-}
+};
 
 export const PinkInteractiveTag: SimpleComponent<PinkInteractiveTagProps> = ({
     href,

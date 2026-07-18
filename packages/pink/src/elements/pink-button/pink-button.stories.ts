@@ -1,7 +1,7 @@
-import { PinkButton } from './pink-button';
+import { PinkButton, PinkButtonProps } from './pink-button';
 import {
     RenderVariants,
-    type RenderVariantsStoryArgs,
+    type RenderVariantsStoryProps,
     type Meta,
     type StoryObj
 } from '@loom-js/storybook';
@@ -16,7 +16,7 @@ const meta: Meta = {
 
 export default meta;
 
-type Story = StoryObj<RenderVariantsStoryArgs>;
+type Story = StoryObj<RenderVariantsStoryProps<PinkButtonProps>>;
 
 export const Types: Story = {
     args: {

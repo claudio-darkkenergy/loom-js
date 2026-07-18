@@ -1,18 +1,12 @@
 import { mergeAllowedAttrs } from '../../../helpers';
-import {
-    type AttrsTemplateTagValue,
-    component,
-    type ComponentProps
-} from '@loom-js/core';
+import { type AttrsTemplateTagValue, component } from '@loom-js/core';
 
-export type RawLinkProps = {
+export type LinkProps = {
     href?: string;
     target?: '_blank' | '_self';
 };
 
-export type LinkProps = ComponentProps<RawLinkProps>;
-
-export const Link = component<RawLinkProps>(
+export const Link = component<LinkProps>(
     (
         html,
         {

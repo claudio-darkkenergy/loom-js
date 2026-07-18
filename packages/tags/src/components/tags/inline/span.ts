@@ -2,10 +2,10 @@ import { mergeAllowedAttrs } from '../../../helpers';
 import {
     type AttrsTemplateTagValue,
     component,
-    type ComponentProps
+    type ComponentInputProps
 } from '@loom-js/core';
 
-export type SpanProps = ComponentProps;
+export type SpanProps = ComponentInputProps;
 
 export const Span = component((html, { attrs, children, on, ...props }) => {
     const attrsOverrides = mergeAllowedAttrs(

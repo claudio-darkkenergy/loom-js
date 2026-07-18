@@ -1,18 +1,9 @@
-import type { AttrsTemplateTagValue, TemplateTagValue } from '@loom-js/core';
+import type { AttrsTemplateTagValue } from '@loom-js/core';
 
 type MergeAllowedAttrsHelper = (
     attrs: AttrsTemplateTagValue | undefined,
     { className, id, style }: AttrsTemplateTagValue
-) => {
-    [x: string]: TemplateTagValue;
-    id?: string;
-    className?: string;
-    style?:
-        | TemplateTagValue
-        | {
-              [key: string]: TemplateTagValue;
-          };
-};
+) => AttrsTemplateTagValue;
 
 /**
  * A utility which merges allowed attributes into an `attrs` attribute collection.

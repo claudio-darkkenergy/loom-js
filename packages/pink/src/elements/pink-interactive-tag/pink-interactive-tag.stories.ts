@@ -6,33 +6,34 @@ import {
     type Meta,
     RenderVariants,
     type StoryObj,
-    type RenderVariantsStoryArgs
+    type RenderVariantsStoryProps
 } from '@loom-js/storybook';
 
 const meta: Meta<PinkInteractiveTagProps> = {
     title: 'Elements/PinkInteractiveTag',
-    component: RenderVariants(PinkInteractiveTag, ({ itemProps }) => ({
-        itemProps: itemProps?.map((props: object) => ({
-            children: 'interactive',
-            icon: 'icon-duplicate',
-            ...props
-        }))
-    }))
+    component: RenderVariants(PinkInteractiveTag)
 };
 
 export default meta;
 
-type Story = StoryObj<RenderVariantsStoryArgs>;
+type Story = StoryObj<RenderVariantsStoryProps<PinkInteractiveTagProps>>;
+
+const staticItemProps = {
+    children: 'interactive',
+    icon: 'icon-duplicate'
+};
 
 export const InteractiveTag: Story = {
     args: {
         itemProps: [
-            {},
+            staticItemProps,
             {
+                ...staticItemProps,
                 href: '#',
                 isSelected: true
             },
             {
+                ...staticItemProps,
                 disabled: true
             }
         ]

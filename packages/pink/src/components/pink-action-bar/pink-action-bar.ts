@@ -8,10 +8,13 @@ export type PinkActionBarProps = {
 };
 
 export const PinkActionBar: SimpleComponent<PinkActionBarProps> = ({
+    className,
+    endContent,
     startContent,
-    endContent
+    ...sectionProps
 }) =>
     Section({
+        ...sectionProps,
         children: [
             Div({
                 ...startContent,
@@ -28,5 +31,5 @@ export const PinkActionBar: SimpleComponent<PinkActionBarProps> = ({
                 )
             })
         ],
-        className: 'action-bar'
+        className: classNames(className, 'action-bar')
     });

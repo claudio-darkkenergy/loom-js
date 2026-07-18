@@ -1,5 +1,5 @@
 import { layoutState } from '../logic/activity/layout-state';
-import { sideNavToggle } from '../logic/activity/side-nav-toggle';
+import { sideNavToggle } from '../logic/activity/toggles';
 import styles from './styles.module.css';
 import { BrandLogoLink } from '@/app/components/branding/brand-logo-link';
 import { component, route } from '@loom-js/core';
@@ -10,7 +10,6 @@ import {
     PinkTopNav
 } from '@loom-js/pink';
 import { Div, Footer, Svg } from '@loom-js/tags';
-import { useMediaQuery } from '@loom-js/utils';
 import classNames from 'classnames';
 
 const PageLayout = component((html, { children, className, style: theme }) => {

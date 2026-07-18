@@ -2,14 +2,16 @@ import { ScreenWidthPx } from '../constants';
 import { DocContainer } from './components/DocContainer';
 import { DocsLayoutSkeleton } from './components/DocsLayoutSkeleton';
 import { DocsSideNav } from './components/DocsSideNav';
+import styles from './styles.module.css';
 import { page } from '@/app/logic/activity/selected-content';
-import { sideNavToggle } from '@/app/logic/activity/side-nav-toggle';
+import { sideNavToggle, topicTocToggle } from '@/app/logic/activity/toggles';
 import {
     useDefaultTopicRedirect,
     useSelectedPage,
-    useSelectedTopic
+    useSelectedTopic,
+    useTopicTocToggle
 } from '@/app/logic/hooks';
-import { useSideNav } from '@/app/logic/hooks/use-side-nav';
+import { useSideNavToggle } from '@/app/logic/hooks/use-side-nav-toggle';
 import {
     route,
     routeEffect,
@@ -22,8 +24,10 @@ import classNames from 'classnames';
 const DocsLayout: SimpleComponent = ({ children, className, ...props }) => {
     const { effect: pageEffect } = page;
     const { effect: sideNavToggleEffect } = sideNavToggle;
+    const { effect: topicTocToggleEffect } = topicTocToggle;
 
-    useSideNav(`(width >= ${ScreenWidthPx.TabletStart}px)`);
+    useSideNavToggle(`(width >= ${ScreenWidthPx.TabletStart}px)`);
+    useTopicTocToggle(`(width >= ${ScreenWidthPx.DesktopStart}px)`);
     useDefaultTopicRedirect('/docs/get-started');
     // Page data
     useSelectedPage('/docs');
@@ -36,6 +40,7 @@ const DocsLayout: SimpleComponent = ({ children, className, ...props }) => {
         ...props,
         className: classNames(className, 'u-flex'),
         children: [
+            // Sidebar
             pageEffect(({ value: pageData }) => {
                 if (!pageData) {
                     return DocsLayoutSkeleton();
@@ -59,7 +64,20 @@ const DocsLayout: SimpleComponent = ({ children, className, ...props }) => {
                     );
                 });
             }),
-            DocContainer({ children })
+            topicTocToggleEffect(({ value: isToggledOpen }) =>
+                // 1. Updates
+                {
+                    // 1. Updates
+                    const ctxFn = DocContainer({
+                        children,
+                        className: classNames(styles.docContainer, {
+                            [styles._open]: isToggledOpen
+                        })
+                    });
+
+                    return ctxFn;
+                }
+            )
         ]
     });
 };

@@ -1,10 +1,10 @@
 import { PinkButton, type PinkButtonProps } from '../pink-button';
-import type { ComponentProps, SimpleComponent } from '@loom-js/core';
+import type { ComponentInputProps, SimpleComponent } from '@loom-js/core';
 import { Ul, type UlProps } from '@loom-js/tags';
 import classNames from 'classnames';
 
 export type PinkButtonsListProps = Omit<UlProps, 'item'> & {
-    itemProps?: ComponentProps<PinkButtonProps>[];
+    itemProps?: ComponentInputProps<PinkButtonProps>[];
 };
 
 export const PinkButtonsList: SimpleComponent<PinkButtonsListProps> = ({

@@ -87,10 +87,7 @@ export function htmlParser(
         ctx.values = reactive(valueObj, (oldValue, newValue) => {
             const isContextFunction = (value: TemplateTagValue) =>
                 typeof value === 'function' &&
-                // @TODO Move `'activityContextFunction'` to activity logic via configuration.
-                ['contextFunction', 'activityContextFunction'].includes(
-                    value.name
-                );
+                value.name.toLowerCase().endsWith('contextfunction');
 
             switch (true) {
                 // Handle DOM Nodes.

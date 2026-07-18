@@ -14,7 +14,7 @@ export const appendChildContext = (
 
     if (
         typeof value === 'function' &&
-        ['contextFunction', 'activityContextFunction'].includes(value.name)
+        value.name.toLowerCase().endsWith('contextfunction')
     ) {
         let childCtx = parentCtx.children.get(key);
 

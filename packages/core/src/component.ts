@@ -6,7 +6,7 @@ import type {
     ComponentArgs,
     ComponentContextPartial,
     ComponentFactory,
-    ComponentProps,
+    ComponentOutputProps,
     ContextNodeGetter,
     LifeCycleHookProps,
     RefContext,
@@ -37,6 +37,7 @@ export const component: ComponentFactory = <Props extends object = {}>(
             const scopedCtx = liveCtx.ctxScopes
                 ? liveCtx.ctxScopes.get(templateFunction as TemplateFunction)
                 : null;
+            scopedCtx && console.log({ scopedCtx });
             const ctx = scopedCtx || (!liveCtx.ctxScopes ? liveCtx : {});
             // Holds any possible child `RefContext`s.
             let refIterator: IterableIterator<RefContext>;
@@ -56,7 +57,7 @@ export const component: ComponentFactory = <Props extends object = {}>(
                 ctx.render = htmlParser.bind(ctx);
 
                 if (ref) {
-                    // Set component's received `RefContext` prop onto the the current component `ComponentContext`.
+                    // Set component's received `RefContext` prop onto the the current component's `ComponentContext`.
                     // This creates a connection between part of this context & a component ascendant that needs
                     // a reference to it.
                     ctx.ref = ref;
@@ -103,7 +104,7 @@ export const component: ComponentFactory = <Props extends object = {}>(
             return templateFunction(
                 ctx.render as TaggedTemplate,
                 {
-                    ...(ctx.props as ComponentProps<Props>),
+                    ...(ctx.props as ComponentOutputProps<Props>),
                     ...(ctx.lifeCycles as LifeCycleHookProps),
                     createRef: memoizedRefContext(ctx, refIterator),
                     ctxRefs: () => (ctx.refs as Set<RefContext>).values(),

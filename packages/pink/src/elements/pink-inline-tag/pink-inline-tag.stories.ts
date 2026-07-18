@@ -1,11 +1,11 @@
 import { PinkButton } from '../pink-button';
 import { PinkInlineTag, type PinkInlineTagProps } from './pink-inline-tag';
-import type { SimpleComponent, ComponentProps } from '@loom-js/core';
+import type { SimpleComponent } from '@loom-js/core';
 import {
     type Meta,
     type StoryObj,
     RenderVariants,
-    type RenderVariantsStoryArgs,
+    type RenderVariantsStoryProps,
     ArgType
 } from '@loom-js/storybook';
 import { Span } from '@loom-js/tags';
@@ -17,7 +17,7 @@ const meta: Meta<PinkInlineTagProps> = {
 
 export default meta;
 
-type Story = StoryObj<ComponentProps<PinkInlineTagProps>>;
+type Story = StoryObj<PinkInlineTagProps>;
 
 export const InlineTag: Story = {
     args: {
@@ -55,10 +55,12 @@ const PinkButtonWithInlineTag: SimpleComponent<PinkInlineTagProps> = (props) =>
         ]
     });
 
-type UsageWithButtonsStory = StoryObj<RenderVariantsStoryArgs>;
+type UsageWithButtonsStory = StoryObj<
+    RenderVariantsStoryProps<PinkInlineTagProps>
+>;
 
 export const UsageWithButtons: UsageWithButtonsStory = {
-    render: (props: any) => RenderVariants(PinkButtonWithInlineTag)(props),
+    render: (props) => RenderVariants(PinkButtonWithInlineTag)(props),
     args: {
         itemProps: [
             {

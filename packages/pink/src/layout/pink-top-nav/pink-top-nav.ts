@@ -1,9 +1,9 @@
-import type { ComponentProps, SimpleComponent } from '@loom-js/core';
+import type { ComponentInputProps, SimpleComponent } from '@loom-js/core';
 import { Li, Link, type LinkProps, Nav } from '@loom-js/tags';
 import classNames from 'classnames';
 
 export interface PinkTopNavProps {
-    items?: ComponentProps<LinkProps>[];
+    items?: ComponentInputProps<LinkProps>[];
 }
 
 export const PinkTopNav: SimpleComponent<PinkTopNavProps> = ({
