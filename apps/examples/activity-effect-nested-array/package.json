@@ -1,0 +1,17 @@
+{
+  "name": "activity-effect-nested-array",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm dlx vite --port 3001 --cors",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@loom-js/core": "workspace:*",
+    "@loom-js/tags": "workspace:*"
+  }
+}
