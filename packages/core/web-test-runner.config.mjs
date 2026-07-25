@@ -8,6 +8,6 @@ export default {
     },
     files: ['tests/**/*.spec.ts'],
     nodeResolve: true,
-    plugins: [esbuildPlugin({ ts: true, tsconfig: './tsconfig.spec.json' })],
+    plugins: [esbuildPlugin({ ts: true, tsconfig: './tests/tsconfig.json' })],
     puppeteer: true
 };

@@ -49,7 +49,9 @@ Tests live in `packages/core` only (the framework). They use `@web/test-runner` 
 - `pnpm -F @loom-js/core test-ci` — single run.
 - `pnpm -F @loom-js/core test-dev` — watch mode.
 - `pnpm -F @loom-js/core test-debug` — watch + browser debug.
+- `pnpm -F @loom-js/core type-check-tests` — `tsc -p tests/tsconfig.json`. wtr's esbuild only *transpiles*, so this script is the only thing that type-checks `tests/**`; run it alongside `type-check`.
 - Specs are under `packages/core/tests/**/*.spec.ts`. Run a single spec by passing `--group` or a file glob to `wtr` (edit `web-test-runner.config.mjs` `files` or pass via CLI).
+- `packages/core/tests/tsconfig.json` is the single test config — it feeds both `tsserver` (so `describe`/`it` resolve in the editor) and wtr's esbuild transform. Note `tsserver` only auto-loads files literally named `tsconfig.json`, which is why it lives at that path.
 
 ### App build patterns
 

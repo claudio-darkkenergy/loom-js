@@ -1,11 +1,11 @@
-import { expect } from '@esm-bundle/chai';
-import { runSetup } from '../../support/run-setup';
 import { component } from '../../../src';
 import type {
     LifeCycleHookProps,
     TemplateRoot,
     TemplateRootArray
 } from '../../../src/types';
+import { runSetup } from '../../support/run-setup';
+import { expect } from '@esm-bundle/chai';
 
 export const lifeCyclesSpec = () => {
     let $test: HTMLElement;
@@ -31,7 +31,9 @@ export const lifeCyclesSpec = () => {
                             singleRoot = root as TemplateRoot;
                         });
 
-                        return html`<div class=${className}></div>`;
+                        return html`
+                            <div class=${className}></div>
+                        `;
                     }
                 );
 
@@ -83,7 +85,8 @@ export const lifeCyclesSpec = () => {
                     $container.innerHTML = '';
                     setTimeout(() => {
                         expect(
-                            (fragmentRoot as TemplateRootArray)[0].parentElement
+                            (fragmentRoot as TemplateRootArray)[0]
+                                ?.parentElement
                         ).to.be.null;
                         expect(fragmentRoot).to.have.lengthOf(7);
                         expect(Array.isArray(fragmentRoot)).to.be.true;
@@ -93,7 +96,7 @@ export const lifeCyclesSpec = () => {
                 }
 
                 expect(
-                    (fragmentRoot as TemplateRootArray)[0].parentElement
+                    (fragmentRoot as TemplateRootArray)[0]?.parentElement
                         ?.children
                 ).to.have.lengthOf(3);
                 expect(Array.isArray(fragmentRoot)).to.be.true;

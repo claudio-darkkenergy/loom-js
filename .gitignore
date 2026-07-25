@@ -28,6 +28,10 @@ ui-kit
 # Vercel
 .vercel
 
+# Claude Code — per-developer settings & state (shared config lives in .claude/settings.json)
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
 #temp ignores
 
 *storybook.log

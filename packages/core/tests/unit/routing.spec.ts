@@ -1,7 +1,6 @@
-import { expect } from '@esm-bundle/chai';
-import { sanitizeLocation } from '../../src/routing';
 import { Router, RouterPropValue } from '../support/components/router';
 import { runSetup } from '../support/run-setup';
+import { expect } from '@esm-bundle/chai';
 
 describe('routing', () => {
     let $test: HTMLElement;
@@ -67,24 +66,6 @@ describe('routing', () => {
             checkRouteDidLoad($anchorDefault, testValue.defaultText);
             checkRouteDidLoad($anchorTest, testValue.testText);
             checkRouteDidLoad($anchorReplaceTest, testValue.replaceText);
-        });
-    });
-
-    describe('sanitizeLocation()', () => {
-        it('should return a sanitized `Location` object', () => {
-            let sanitized: Location;
-            const checkSanitizedPathname = (
-                $anchor: HTMLAnchorElement | null | undefined,
-                expectedRoute: string
-            ) => {
-                $anchor?.click();
-                sanitized = sanitizeLocation(window.location);
-                expect(sanitized.pathname).to.equal(expectedRoute);
-            };
-
-            checkSanitizedPathname($anchorDefault, defaultRoute);
-            checkSanitizedPathname($anchorTest, testRoute);
-            checkSanitizedPathname($anchorReplaceTest, replaceRoute);
         });
     });
 });

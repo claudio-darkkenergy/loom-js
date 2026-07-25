@@ -1,9 +1,8 @@
 import type {
     Component,
     ComponentContextPartial,
-    ComponentProps
+    ComponentInputProps
 } from '../../types';
-import { getContextRootAnchor } from '../context';
 import { toCamelCase, toKebabCase } from '../helpers';
 import { mount } from '../mount';
 
@@ -54,14 +53,9 @@ export const registerCustomElement = <Props extends object>({
                     this.props,
                     $props
                 );
-                console.log({
-                    _children: Array.from(this.children),
-                    _scope: this,
-                    _props: this.props,
-                    $props,
-                    props
-                });
-                const ctxFn = componentFunction(props as ComponentProps<Props>);
+                const ctxFn = componentFunction(
+                    props as ComponentInputProps<Props>
+                );
                 const ctx = ctxFn(this.ctx);
 
                 if (shadowInit) {
@@ -70,13 +64,6 @@ export const registerCustomElement = <Props extends object>({
                 } else {
                     mount(this as any, ctx, null);
                 }
-
-                console.log('customElement', {
-                    ctx,
-                    root: ctx.root,
-                    rootParent: getContextRootAnchor(ctx)?.parentElement,
-                    rootChildNodes: getContextRootAnchor(ctx)?.childNodes
-                });
             }
         }
     );

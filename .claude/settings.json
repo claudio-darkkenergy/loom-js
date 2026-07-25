@@ -1,0 +1,16 @@
+{
+    "permissions": {
+        "allow": [
+            "Bash(openspec instructions:*)",
+            "Bash(openspec list:*)",
+            "Bash(openspec show:*)",
+            "Bash(openspec status:*)",
+            "Bash(openspec validate:*)",
+            "Bash(pnpm -F @loom-js/core test-ci)",
+            "Bash(pnpm -F @loom-js/core type-check)",
+            "Bash(pnpm -F @loom-js/core type-check-tests)",
+            "Bash(pnpm build-packages)",
+            "Bash(pnpm status-packages)"
+        ]
+    }
+}

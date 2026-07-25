@@ -43,10 +43,14 @@ export const Container = component<ContainerProps>(
             containerProps as unknown as AttrsTemplateTagValue
         );
 
-        // `TestComponent` wrappers
-        const SimpleTestComponent: SimpleComponent<{
+        // `TestComponent` wrappers.
+        // Not annotated as `SimpleComponent` — the default `TestComponent`
+        // returns a raw `Text` node, which is outside that type's return union.
+        const SimpleTestComponent = ({
+            value
+        }: {
             value: { [key: string]: any };
-        }> = ({ value }) =>
+        }) =>
             TestComponent({
                 ...componentProps,
                 ...Object.assign({}, value)

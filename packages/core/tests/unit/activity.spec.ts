@@ -1,18 +1,20 @@
-import { expect } from '@esm-bundle/chai';
-import sinon from 'sinon';
-
+import { ComponentOptionalProps, component } from '../../src';
 import { activity } from '../../src/activity';
-import { TestComponentProps } from '../support/components/container';
+import {
+    ContainerProps,
+    TestComponentProps
+} from '../support/components/container';
 import { Input } from '../support/components/input';
 import { runSetup } from '../support/run-setup';
-import { ComponentOptionalProps, component } from '../../src';
+import { expect } from '@esm-bundle/chai';
+import sinon from 'sinon';
 
 describe('activity', () => {
     let $test: HTMLElement;
     let $unit: HTMLInputElement | null;
     const componentClassName = 'activity-test';
     const testText = 'Testing `activity`...';
-    const testRunSetup = ({ effect }) =>
+    const testRunSetup = ({ effect }: Pick<ContainerProps, 'effect'>) =>
         runSetup({
             containerProps: {
                 componentProps: {
@@ -59,11 +61,12 @@ describe('activity', () => {
                 `
             );
             const ChildComponent = component<TestComponentProps>(
-                (html, { value }) =>
-                    html`<div>
+                (html, { value }) => html`
+                    <div>
                         <span>${value}</span>
                         <p>${childEffect(({ value: num }) => num)}</p>
-                    </div>`
+                    </div>
+                `
             );
 
             $test = await runSetup({ containerProps: { TestComponent } });
@@ -121,10 +124,9 @@ describe('activity', () => {
             // @TODO Fix & finalize `shouldUpdate` logic (setup examples in experimental project)
             it('should update current change when `force` is `true`', async () => {
                 const initValue = new Set([0]);
-                const { update, value } = activity(initValue, { deep: false });
+                const { value } = activity(initValue, { deep: false });
 
                 const newValue = value().add(1);
-                console.log({ newValue }, value() === initValue);
 
                 // update(newValue);
                 expect(value()).to.equal(newValue);

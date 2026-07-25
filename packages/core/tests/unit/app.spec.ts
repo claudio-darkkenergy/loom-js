@@ -1,5 +1,5 @@
-import { expect } from '@esm-bundle/chai';
 import { runSetup } from '../support/run-setup';
+import { expect } from '@esm-bundle/chai';
 
 let $test: HTMLElement;
 const appClassName = 'app-test';
@@ -20,7 +20,7 @@ describe('app', () => {
     });
 
     it('attached the container app w/ classname', () => {
-        expect($test.children[0].className).to.equal(containerClassName);
+        expect($test.children[0]?.className).to.equal(containerClassName);
         expect($test.id).to.equal('loom-app');
     });
 
