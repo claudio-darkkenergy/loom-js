@@ -21,7 +21,6 @@ export const textUpdater = (
 ) => {
     // Update for each `LiveNode`.
     const value = resolveValue(newValue, valueCtx);
-    console.log({ currentLiveNode, value, newValue });
 
     if (value instanceof Element) {
         // Handle `Element` nodes.
@@ -66,7 +65,7 @@ const handleArrayValue = (
         const childCtx = appendChildContext(
             parentCtx,
             newVal,
-            ctxSnapshot.key || i
+            ctxSnapshot.key ?? i
         );
         // The resolved `TemplateTagValue`
         const resolvedValue = resolveValue(newVal, childCtx);

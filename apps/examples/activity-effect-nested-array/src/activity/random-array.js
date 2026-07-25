@@ -1,8 +1,20 @@
-import { activity } from "@loom-js/core";
+import { activity } from '@loom-js/core';
 
-const colorsInit = ['blue', 'red', 'yellow', 'orange', 'purple', 'black', 'green'];
+const colorsInit = [
+    'blue',
+    'red',
+    'yellow',
+    'orange',
+    'purple',
+    'black',
+    'green'
+];
 
-export const randomArray = activity(colorsInit, ({ update, value: colors }) => update(randomizeArray(colors)));
+export const randomArray = activity(
+    colorsInit,
+    ({ update, value: colors }) => update(randomizeArray(colors)),
+    { deep: true }
+);
 
 function randomizeArray(array) {
     // Create a copy of the input array to avoid modifying the original

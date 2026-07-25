@@ -18,6 +18,10 @@ export const deepDiffObject = (
 export const isObject = (value: any) =>
     value !== null && typeof value === 'object' && !Array.isArray(value);
 
+export const shallowDiffArray = (oldValue: unknown[], newValue: unknown[]) =>
+    oldValue.length !== newValue.length ||
+    oldValue.some((value, index) => value !== newValue[index]);
+
 export const shallowDiffObject = (
     oldValue: PlainObject,
     newValue: PlainObject

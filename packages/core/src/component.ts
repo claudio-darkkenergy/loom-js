@@ -37,7 +37,6 @@ export const component: ComponentFactory = <Props extends object = {}>(
             const scopedCtx = liveCtx.ctxScopes
                 ? liveCtx.ctxScopes.get(templateFunction as TemplateFunction)
                 : null;
-            scopedCtx && console.log({ scopedCtx });
             const ctx = scopedCtx || (!liveCtx.ctxScopes ? liveCtx : {});
             // Holds any possible child `RefContext`s.
             let refIterator: IterableIterator<RefContext>;

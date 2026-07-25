@@ -1,5 +1,5 @@
 import { appendChildContext } from './lib/context';
-import { isObject, shallowDiffObject } from './lib/helpers';
+import { isObject, shallowDiffArray, shallowDiffObject } from './lib/helpers';
 import { reactive, reactiveEffect } from './lib/reactive';
 import { textUpdater } from './lib/templating/get-text-update';
 import type {
@@ -33,18 +33,25 @@ export const activity = <V, I = V>(
         ? options
         : transformOrOptions || {};
     let forceAtThisMoment = force;
-    // Will only shallow clone the passed value if it's a plain object, otherwise returned as is.
-    // @TODO Also create new references for other types, i.e. Array, Map, Set, etc.
+    // Shallow-clones the passed value so consumers can't mutate the stored current value and defeat
+    // change detection. Plain objects and arrays get a fresh reference; other types pass through.
+    // @TODO Also create new references for other types, i.e. Map, Set, etc.
     const resolveCurrentValue = (value: V) =>
-        isObject(value) && (value as Object).constructor.name === 'Object'
-            ? Object.assign({}, value)
-            : value;
+        Array.isArray(value)
+            ? (value.slice() as V)
+            : isObject(value) && (value as Object).constructor.name === 'Object'
+              ? Object.assign({}, value)
+              : value;
     let currentValue = resolveCurrentValue(initialValue);
     const shouldUpdate = (oldValue: V, newValue: V) => {
         let valueChanged = false;
 
         if (forceAtThisMoment) {
             valueChanged = true;
+        } else if (deep && Array.isArray(oldValue) && Array.isArray(newValue)) {
+            // Compare arrays element-by-element (positional) so a same-content
+            // update doesn't cascade to subscribed effects.
+            valueChanged = shallowDiffArray(oldValue, newValue);
         } else if (deep && isObject(oldValue) && isObject(newValue)) {
             // Compare the Object values at the property level.
             // Allow updates if at least 1 value has changed.
@@ -90,13 +97,6 @@ export const activity = <V, I = V>(
                     const templateTagValue =
                         scopedAction &&
                         scopedAction({ value: valueProp.value });
-
-                    // @Remove this.
-                    if (Array.isArray(templateTagValue)) {
-                        console.log({
-                            templateTagValue
-                        });
-                    }
 
                     ctx.root = textUpdater(
                         ctx.root as TemplateRoot | TemplateRootArray,
