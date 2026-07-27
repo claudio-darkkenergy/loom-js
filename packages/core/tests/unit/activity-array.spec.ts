@@ -129,37 +129,89 @@ describe('activity (array values)', () => {
             expect(after['c'], 'c reused').to.equal(before['c']);
         });
 
-        // KNOWN LIMITATION (follow-up): numeric keys collide with the index-based
-        // fallback keyspace. The outer `${...}` interpolation re-reconciles the
-        // effect's resolved elements (no keys → index fallback) into the same
-        // `children` map, and `appendChildContext` deletes the childCtx stored
-        // under a numeric user key that equals an index. String/stable keys are
-        // unaffected. Fixing this requires resolving the double-reconciliation
-        // (findings #3/#4) — tracked as a separate change.
-        it.skip('reuses numeric-keyed nodes across a reorder (follow-up)', async () => {
+        it('reuses numeric-keyed nodes across a reorder', async () => {
             const nums = activity([1, 2, 3], { deep: true });
             const TestComponent = component(
                 (html) => html`
                     <main>
                         ${nums.effect(({ value: ns }) =>
-                            ns.map((n) =>
-                                // Numeric keys are intentionally out-of-contract:
-                                // the public `key` prop is typed `string` today, so
-                                // this is a type error until the follow-up
-                                // (fix-array-double-reconciliation) widens the key type.
-                                // @ts-expect-error numeric key not yet in the public `key` type
-                                Box({ key: n, color: String(n) })
-                            )
+                            ns.map((n) => Box({ key: n, color: String(n) }))
                         )}
                     </main>
                 `
             );
             const $test = await runSetup({ containerProps: { TestComponent } });
             const oneBefore = boxByColor($test, '1');
+            const threeBefore = boxByColor($test, '3');
 
             nums.update([3, 2, 1]);
 
-            expect(boxByColor($test, '1')).to.equal(oneBefore);
+            expect(boxByColor($test, '1'), '1 reused').to.equal(oneBefore);
+            expect(boxByColor($test, '3'), '3 reused').to.equal(threeBefore);
+        });
+
+        it('keeps a numeric key equal to an index from being collapsed', async () => {
+            const nums = activity([1, 2, 3], { deep: true });
+            const TestComponent = component(
+                (html) => html`
+                    <main>
+                        ${nums.effect(({ value: ns }) =>
+                            ns.map((n) => Box({ key: n, color: String(n) }))
+                        )}
+                    </main>
+                `
+            );
+            const $test = await runSetup({ containerProps: { TestComponent } });
+
+            // Two reorders — the 2nd proves the childCtx survived the 1st pass.
+            nums.update([3, 2, 1]);
+            const afterFirst = Object.fromEntries(
+                boxes($test).map((el) => [el.getAttribute('data-color'), el])
+            );
+            nums.update([1, 2, 3]);
+            const afterSecond = Object.fromEntries(
+                boxes($test).map((el) => [el.getAttribute('data-color'), el])
+            );
+
+            expect(afterSecond['1'], '1 still reused').to.equal(
+                afterFirst['1']
+            );
+            expect(afterSecond['2'], '2 still reused').to.equal(
+                afterFirst['2']
+            );
+            expect(afterSecond['3'], '3 still reused').to.equal(
+                afterFirst['3']
+            );
+        });
+    });
+
+    describe('single reconciliation per update', () => {
+        it('resolves each array item exactly once per update', async () => {
+            const itemSpy = sinon.spy();
+            const SpyBox = component<{ color?: string }>((html, { color }) => {
+                itemSpy(color);
+                return html`
+                    <div data-color=${color}></div>
+                `;
+            });
+            const colors = activity(['red', 'green', 'blue'], { deep: true });
+            const TestComponent = component(
+                (html) => html`
+                    <main>
+                        ${colors.effect(({ value: cs }) =>
+                            cs.map((color) => SpyBox({ key: color, color }))
+                        )}
+                    </main>
+                `
+            );
+
+            await runSetup({ containerProps: { TestComponent } });
+            expect(itemSpy.callCount, 'initial render').to.equal(3);
+
+            itemSpy.resetHistory();
+            colors.update(['blue', 'red', 'green']);
+
+            expect(itemSpy.callCount, 'one resolve per item').to.equal(3);
         });
     });
 

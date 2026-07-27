@@ -9,4 +9,4 @@ Fix array-valued `activity()` reconciliation so effects no longer re-render (and
 - Array reconciliation now honors a falsy context `key` (`0`/`''`) instead of collapsing it to the index (`?? i`), enabling value-keyed reuse for consumers that pass a stable `key` (e.g. `.map((item) => Component({ key: item }))`). Reordering such a list reuses each item's existing DOM node instead of repainting by position.
 - Removed leftover debug `console.log`s from `activity`, `component`, and the array text updater.
 
-Known limitation (follow-up): numeric keys still collide with the index-based fallback keyspace during the outer interpolation's re-reconciliation; use string/stable keys for keyed reuse until that is addressed.
+Note: the numeric-key limitation originally noted here (numeric keys colliding with the index-based fallback keyspace during the outer interpolation's re-reconciliation) is resolved in the same release — see the accompanying `array-double-reconciliation` changeset. Both string and numeric keys now reuse their DOM node across a reorder.

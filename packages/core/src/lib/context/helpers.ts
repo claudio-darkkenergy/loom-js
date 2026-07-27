@@ -25,7 +25,16 @@ export const appendChildContext = (
 
         childCtx.parent = parentCtx;
         return childCtx;
-    } else {
+    } else if (!(value instanceof Node)) {
+        // A non-`ContextFunction` value replaced a component in this slot, so its
+        // child context is stale — drop it.
+        //
+        // Resolved DOM `Node`s are exempt: an `activity.effect(...)` subtree is
+        // reconciled first by the effect itself (with its context functions) &
+        // then re-visited by the outer `${...}` interpolation with the *already
+        // resolved* nodes. That 2nd pass carries no keys, so it falls back to the
+        // index keyspace & would otherwise delete the child context of a keyed
+        // item whose key happens to equal an index (e.g. numeric keys).
         parentCtx.children.delete(key);
     }
 };

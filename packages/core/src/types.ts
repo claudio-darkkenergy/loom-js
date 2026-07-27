@@ -167,7 +167,7 @@ export type ReservedProps = {
     children?: TemplateTagValue | TemplateTagValue[];
     className?: string;
     id?: string;
-    key?: string;
+    key?: number | string;
     on?: OnTemplateTagValue;
     onClick?: SyntheticRouteEventListener | EventListenerOrEventListenerObject;
     ref?: RefContext;
