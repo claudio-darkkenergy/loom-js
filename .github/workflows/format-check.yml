@@ -1,0 +1,39 @@
+name: Format Check
+
+on:
+    push:
+    pull_request:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    format-check:
+        name: Format Check
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Repo
+              # https://github.com/actions/checkout
+              uses: actions/checkout@v4
+
+            - name: Install pnpm
+              # https://github.com/pnpm/action-setup
+              uses: pnpm/action-setup@v3
+
+            - name: Install Node.js 20.x
+              # https://github.com/actions/setup-node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20.x
+                  cache: 'pnpm'
+
+            - name: Install Dependencies
+              run: pnpm install
+
+            # Fails on any unformatted file, and also on a broken formatter
+            # (e.g. the import-sorting plugin resolving a TypeScript major it
+            # cannot use — see openspec/changes/fix-prettier-import-sorting/).
+            - name: Check Formatting
+              run: pnpm format:check

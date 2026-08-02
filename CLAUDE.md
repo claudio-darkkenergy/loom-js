@@ -100,7 +100,10 @@ Concepts you will see across consumers:
 
 ## Tooling notes
 
-- **Prettier config** (`.prettierrc`): 4-space tabs, single quotes, semicolons, no trailing commas, plus `prettier-plugin-sort-imports` with NPM-imports-then-local-imports ordering and a blank line between groups. Formatting matters for imports — let prettier handle them.
+- **Prettier config** (`.prettierrc`): 4-space tabs, single quotes, semicolons, no trailing commas, plus `prettier-plugin-sort-imports` (Sander Ronde's — **not** `@trivago/prettier-plugin-sort-imports`; the two share a short name but have different options) giving NPM-imports-then-local-imports ordering, a blank line between groups, alphabetical within each. Run `pnpm format` / `pnpm format:check`; the check also runs in CI (`format-check.yml`). Formatting matters for imports — let prettier handle them.
+    - The plugin classifies "NPM package" by membership in the manifests listed in `.prettierrc`'s `packageJSONFiles` — **when adding a workspace, add its `package.json` to that list** or its deps will sort into the local group.
+    - The plugin's `typescript` peer is pinned to `^6.0.2` via a scoped override in `pnpm-workspace.yaml` (the plugin parses with the legacy compiler API that `typescript@7` removed). The repo's own TypeScript is unaffected. Drop the pin when the plugin supports TS 7 — see `openspec/changes/fix-prettier-import-sorting/`.
+    - Tree-wide reformat commits are listed in `.git-blame-ignore-revs`; run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once locally so `git blame` skips them.
 - **TypeScript** is `strict` with `noUncheckedIndexedAccess` and `module: NodeNext` from the shared base. `target: ES2022`.
 - **Turbo cache**: outputs are `build/**` (apps) or `dist/**` (packages). Don't add files into those directories by hand expecting them to persist — they get cleaned each build.
 - **`.env.local`** at the repo root is loaded by dotenvx for `pnpm dev`. App-level env vars (`API_URL`, `CTF_IS_PREVIEW`) are listed in `turbo.json` so changing them invalidates the cache.

@@ -1,0 +1,7 @@
+# Mechanical, behavior-free commits that should not show up in git blame.
+# Activate locally with:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+# (GitHub's blame view picks this file up automatically.)
+
+# style: reformat the tree with prettier 3.9.6 + working import sorter
+23074c73a7371fba5db504a0ec6f079134e01669

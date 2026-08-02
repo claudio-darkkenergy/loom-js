@@ -13,6 +13,8 @@
         "clean": "find ./ -name node_modules -type d -exec rm -rf {} +",
         "codegen-pink": "pnpm -F @loom-js/pink codegen",
         "dev": "pnpm api & dotenvx run -f .env.local -- turbo dev",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
         "remote-cache": "turbo link",
         "remote-cache-unlink": "turbo unlink",
         "outdated-deps": "pnpm -r outdated",

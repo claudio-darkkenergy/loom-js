@@ -1,0 +1,62 @@
+## 0. Prerequisites & decisions
+
+**Settled by the maintainer — do not re-litigate:**
+
+- Keep `prettier-plugin-sort-imports`. **Not** `@trivago/prettier-plugin-sort-imports`.
+- Do **not** pin the repo to TypeScript 6. The repo uses latest (`^7`). Only the plugin's parser edge is pinned.
+
+- [x] 0.1 Decide **how far TypeScript `^7` adoption goes** — root only, repo-wide (~12 workspaces), or split into its own change. See proposal, Open Decisions #1. Does not block starting: the task 1.x override behaves identically under all three. **DECIDED 2026-08-02: split** — this change only unblocks prettier; repo TypeScript versions untouched; TS7 migration is its own future proposal (tracked in 6.1).
+- [x] 0.2 Decide whether to evaluate a replacement plugin now or keep the incumbent (D6). `@ianvs/prettier-plugin-sort-imports` is the strongest candidate — Babel-based, so tasks 1.x disappear entirely — but it is a `@trivago` fork; confirm that lineage is acceptable. Note `prettier-plugin-organize-imports` is a trap: it uses the TS language service and hits the same TypeScript 7 wall. If a replacement is chosen, sections 1 and 2 change shape and the sort convention must be re-verified. **DECIDED 2026-08-02: keep the incumbent** `prettier-plugin-sort-imports` with the scoped parser pin; drop the pin when upstream ships TS7 support (6.3).
+- [x] 0.3 Confirm the **D4 decision — reformat the whole tree in one isolated commit** vs. enforcing only on changed files. This is the only part of the change touching many files. **CONFIRMED 2026-08-02: full-tree reformat in one isolated commit**, SHA recorded in `.git-blame-ignore-revs`.
+- [x] 0.4 Confirm the format-check scope: source files only, or Markdown and JSON as well. **CONFIRMED 2026-08-02: everything prettier handles** (TS/JS, Markdown, JSON, …) via `prettier --check .` with a `.prettierignore` for build outputs.
+- [x] 0.5 Record the baseline: `npx prettier --check packages/core/src/activity.ts` fails with the `ScriptTarget`/`Latest` TypeError, and `npx tsc --version` reports 7.0.2. **RECORDED 2026-08-02:** reproduced exactly — TypeError from `prettier-plugin-sort-imports@1.8.11_typescript@7.0.2`, four `Ignored unknown option` warnings, root `tsc` = 7.0.2.
+
+## 1. Decouple the plugin's parser from the repo's compiler (D1)
+
+Skip this whole section if 0.2 selects a Babel-based replacement — the coupling disappears with the plugin.
+
+- [x] 1.1 Add the scoped override to the root `package.json`, with a comment explaining that two TypeScript majors coexist deliberately and that the plugin uses TypeScript only as a parser:
+
+    ```jsonc
+    "pnpm": { "overrides": { "prettier-plugin-sort-imports>typescript": "^6.0.2" } }
+    ```
+
+    **DONE 2026-08-02, amended:** pnpm 10.33 warns that the `pnpm` field in `package.json` is no longer read — the override lives in `pnpm-workspace.yaml`'s existing `overrides:` block instead, with the explanation as YAML comments (see design D7).
+
+- [x] 1.2 Reinstall and confirm `pnpm-lock.yaml` shows the plugin resolving against TypeScript 6 (`prettier-plugin-sort-imports@1.8.11(typescript@6.x)`), while every workspace's own `typescript` is untouched. **DONE:** lockfile shows `prettier-plugin-sort-imports@1.8.11(typescript@6.0.3)` and records the override. Note: a plain `pnpm install` (and even `--force`) reused the stale `typescript@7.0.2` peer resolution; a `pnpm remove`/`pnpm add` of the plugin forced the fresh resolution.
+- [x] 1.3 Confirm prettier now runs: `npx prettier --check packages/core/src/activity.ts` completes with a formatting verdict rather than a TypeError. **DONE:** exits 0 with "All matched files use Prettier code style!".
+- [x] 1.4 Confirm import sorting actually applies — format a file with mixed NPM and local imports and verify NPM group first, blank line, local group second. (Verified working in isolation against typescript 6.0.3; this confirms it in the real tree.) **DONE, with a discovery:** the plugin classifies "NPM package" by membership in `packageJSONFiles` (default: root `package.json` only), so workspace-level deps like `@esm-bundle/chai` were misclassified as local. Fixed by listing all 17 workspace manifests in `.prettierrc`'s `packageJSONFiles` (design D7). Verified NPM group first, blank line, local group second, alphabetical within groups.
+- [x] 1.5 Confirm the repo's own TypeScript is unaffected and still free to move to `^7`: `pnpm -F @loom-js/core type-check` and `type-check-tests` green, and root `npx tsc --version` still reports 7.x. **DONE:** both type-checks green; root `npx tsc --version` reports 7.0.2.
+- [x] 1.6 Before doing any of the above, check whether `prettier-plugin-sort-imports` has shipped TypeScript 7 support upstream since 2026-02-17. If it has, this entire section collapses to a version bump and the override is never added (D6 expiry condition). **CHECKED 2026-08-02:** `npm view` shows 1.8.11 (2026-02-17) is still the latest publish — no TS7 support upstream; the override proceeds.
+
+## 2. Clean the configuration (D2)
+
+- [x] 2.1 Remove the four dead keys from `.prettierrc`: `importOrderCaseInsensitive`, `importOrderSeparation`, `importOrderSortSpecifiers`, `noMultipleEmptyLines`. They are `@trivago` options; the installed plugin is a different package and ignores them. **DONE 2026-08-02.** Also ADDED `packageJSONFiles` listing all 17 workspace manifests — required for correct NPM-vs-local classification in the monorepo (see 1.4 / design D7).
+- [x] 2.2 Confirm the remaining plugin options (`importTypeOrder`, `sortingMethod`, `newlineBetweenTypes`, `stripNewlines`) still produce the documented ordering — re-run the 1.4 check and diff the result. **DONE:** NPM group, blank line, local group; alphabetical within groups.
+- [x] 2.3 Confirm prettier emits no `Ignored unknown option` warnings on any run. **DONE:** no prettier warnings. (The remaining `npm warn Unknown project config "auto-install-peers"` is npm reading `.npmrc` when invoked via `npx` — unrelated to prettier; tracked with 6.2.)
+
+## 3. Reconcile the tree (D4)
+
+- [x] 3.1 Run `prettier --write` across the agreed scope and land it as a **single commit containing no behavior change**. Expect pre-existing drift unrelated to anyone's current work (observed: the leading-pipe `AnyComponent` union in `packages/core/src/types.ts`, which prettier 3.9.6 collapses). **DONE 2026-08-02:** commit `23074c7` (266 files). Files with uncommitted in-flight work (`fix-custom-element-registration`) were formatted in the working tree but deliberately excluded from the commit — their formatting lands with that change's own commit. Two files needed a second prettier pass to stabilize (template-literal indentation converges in two passes; both now stable). `lib/codegen/src/components/` added to `.prettierignore` — its tracked `UserProfile.js` is LLM prose, not parseable JS.
+- [x] 3.2 Verify the reformat is inert: `pnpm -F @loom-js/core test-ci`, `type-check`, `type-check-tests` all green, and `pnpm build-packages` succeeds. **DONE:** test-ci 69/69 passed, both type-checks clean, build-packages 3/3 successful on the exact reformatted tree.
+- [x] 3.3 Create or update `.git-blame-ignore-revs` with that commit's SHA so `git blame` stays readable, and confirm `git config blame.ignoreRevsFile .git-blame-ignore-revs` is documented for contributors. **DONE:** file created with `23074c7…`, local git config set, one-time setup documented in `CLAUDE.md` Tooling notes and in the file's own header.
+
+## 4. Prevent recurrence (D3, D5)
+
+- [x] 4.1 Add root `format` (`prettier --write`) and `format:check` (`prettier --check`) scripts so the invocation is one obvious command instead of a remembered `npx` line. **DONE 2026-08-02.** Also removed the dead `editorconfig: false` keys from `.prettierrc`'s `*.mjs`/`*.mts` overrides — prettier warned `Ignored unknown option` on those file types, violating this change's own no-warnings requirement.
+- [x] 4.2 Add a CI job running `format:check` on push and pull request. Add it **after** task 3 so it does not immediately block on pre-existing drift. **DONE:** `.github/workflows/format-check.yml`, mirroring `publish-packages.yml`'s pnpm/node setup. (Will first actually run when pushed.)
+- [x] 4.3 Verify the guard holds: remove `node_modules`, reinstall from clean, and confirm the plugin still resolves TypeScript 6 while the repo's own TypeScript stays on `^7`. The scoped override could silently stop matching if the plugin's package name or peer edge changes — a failing `format:check` in CI is the backstop. **DONE:** `pnpm clean` + fresh `pnpm install` → plugin resolves `typescript@6.0.3`, prettier check passes, workspace type-check green. Note: `typescript@7.0.2` now has zero dependents and is gone from the lockfile entirely — it only ever existed as the plugin's auto-installed peer, so root `npx tsc` no longer resolves a compiler (consistent with the 0.1 "split" decision: workspaces keep their own pins; a root/repo TS7 adoption is its own change, 6.1).
+
+## 5. Documentation & conventions
+
+- [x] 5.1 Update `CLAUDE.md`'s Tooling notes: correct the `.prettierrc` option description, name the actual plugin (Sander Ronde's `prettier-plugin-sort-imports`, not `@trivago`), and mention the new `format` / `format:check` scripts. **DONE 2026-08-02** — also documents `packageJSONFiles` maintenance (add new workspaces), the pin's location and expiry, and the `.git-blame-ignore-revs` setup.
+- [x] 5.2 Record why the scoped override exists, next to the override itself — the plugin uses TypeScript only as a parser, the repo's compiler is deliberately a different major, and the pin is deleted the moment the plugin supports TypeScript 7 or is replaced by a Babel-based sorter (D6). **DONE:** YAML comment block directly above the override in `pnpm-workspace.yaml`.
+- [x] 5.3 Update `.claude/skills/skill-config.md` if the formatting workflow or commands change, per the repo's Skill Config Rule. **DONE:** `.prettierrc` row updated with the real plugin, `packageJSONFiles` rule, `pnpm format`/`format:check`, and the pin.
+- [x] 5.4 Amend `fix-custom-element-registration`'s task 5.1 note to point at this change as the resolution of the caveat it records. **DONE.**
+- [x] 5.5 No changeset — tooling only, no published package behavior changes. Confirm `pnpm status-packages` shows nothing pending as a result of this work. **DONE with a caveat:** `.changeset/` contains only the pre-existing `explicit-custom-element-registration.md` (from the other in-flight change) — nothing from this work. However `pnpm status-packages` itself errors: the pre-existing security override `'js-yaml@<4.3.0': ^4.3.1` (landed before this change; verified present at HEAD~2) force-upgrades `read-yaml-file`'s js-yaml to 4.x, and changesets' `read-yaml-file@1.1.0` calls the removed `yaml.safeLoad`. **This breaks the changesets CLI and will break `publish-packages.yml` on `main`** — needs its own fix (e.g. scope the override to the vulnerable parent: `@vercel/python-analysis>js-yaml`). Out of scope here; flagged to the maintainer.
+
+## 6. Tracked, not done
+
+- [ ] 6.1 Repo-wide TypeScript 7 migration, if 0.1 selects the "split" option — its own proposal, its own regression budget. **Unverified:** no workspace has been type-checked under TypeScript 7; it is the Go-native port, not an incremental release.
+- [ ] 6.2 Revisit `auto-install-peers=true` in `.npmrc`, the general mechanism that allowed this. Out of scope here because changing it affects every package in the monorepo.
+- [ ] 6.3 Drop the scoped override once `prettier-plugin-sort-imports` supports TypeScript 7 upstream, or once a Babel-based replacement lands (D6).
