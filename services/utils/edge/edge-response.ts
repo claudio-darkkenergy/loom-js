@@ -3,7 +3,9 @@ import { EdgeResponsePayload } from './edge-request';
 export const edgeResponse = async (
     req: Request,
     makeRequest: () => EdgeResponsePayload,
-    resHeaders: HeadersInit
+    // A plain header map — the body below indexes and spreads it, which the
+    // wider HeadersInit union (Headers | string[][]) does not support.
+    resHeaders: Record<string, string>
 ) => {
     const allowedHeaders = resHeaders['Access-Control-Allow-Headers'];
     const allowedMethods = resHeaders['Access-Control-Allow-Methods'];
@@ -21,7 +23,9 @@ export const edgeResponse = async (
         return new Response(null, {
             status: 204,
             headers: {
-                'Access-Control-Allow-Origin': allowedOrigin || null,
+                // 'null' is the CORS deny value; the previous `|| null` was
+                // string-coerced to it by the Headers constructor anyway.
+                'Access-Control-Allow-Origin': allowedOrigin || 'null',
                 'Access-Control-Allow-Methods': allowedMethods || '*',
                 'Access-Control-Allow-Headers': allowedHeaders || '*'
             }

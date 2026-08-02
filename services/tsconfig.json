@@ -4,6 +4,7 @@
         "allowSyntheticDefaultImports": true,
         "forceConsistentCasingInFileNames": true,
         "importHelpers": true,
+        "ignoreDeprecations": "6.0",
         "moduleResolution": "Node",
         "noEmit": true,
         "noUnusedLocals": true,
