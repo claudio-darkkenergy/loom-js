@@ -1,7 +1,10 @@
+import { createRequire } from 'node:module';
 import { join, dirname } from 'path';
 
 import type { StorybookConfig } from '@storybook/html-vite';
 import { mergeConfig } from 'vite';
+
+const require = createRequire(import.meta.url);
 /**
  * This function is used to resolve the absolute path of a package.
  * It is needed in projects that use Yarn PnP or are set up within a monorepo.

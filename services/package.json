@@ -12,16 +12,16 @@
   "author": "Claudio Nunez Jr",
   "license": "ISC",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1030.0",
-    "@smithy/util-stream": "^4.5.22",
-    "@vercel/functions": "^3.4.3",
-    "openai": "^6.34.0"
+    "@aws-sdk/client-s3": "^3.1101.0",
+    "@smithy/util-stream": "^4.7.16",
+    "@vercel/functions": "^3.7.6",
+    "openai": "^7.3.0"
   },
   "packageManager": "pnpm@9.15.0",
   "devDependencies": {
     "@loom-js/typescript-config": "workspace:*",
-    "@types/node": "^25.6.0",
-    "@vercel/node": "^5.7.5",
+    "@types/node": "^26.1.2",
+    "@vercel/node": "^5.9.3",
     "tslib": "^2.8.1",
     "typescript": "^6.0.2"
   }
