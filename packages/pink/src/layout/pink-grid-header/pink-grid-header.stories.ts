@@ -1,3 +1,6 @@
+import type { Meta, StoryObj } from '@loom-js/storybook';
+import { Span } from '@loom-js/tags';
+
 import { PinkToggleButton } from '../../components/pink-toggle-button/index.js';
 import { PinkButton } from '../../elements/pink-button/index.js';
 import { PinkInlineTag } from '../../elements/pink-inline-tag/index.js';
@@ -5,8 +8,6 @@ import {
     PinkGridHeader,
     type PinkGridHeaderProps
 } from './pink-grid-header.js';
-import type { Meta, StoryObj } from '@loom-js/storybook';
-import { Span } from '@loom-js/tags';
 
 const { parameters } = (window as any).storybook;
 

@@ -1,4 +1,3 @@
-import { withIcon } from '../../modifiers';
 import type { ComponentInputProps, SimpleComponent } from '@loom-js/core';
 import {
     Button,
@@ -12,6 +11,8 @@ import {
     type UlProps
 } from '@loom-js/tags';
 import classNames from 'classnames';
+
+import { withIcon } from '../../modifiers';
 
 enum TabsButtonScrollPlacement {
     Start = 'start',

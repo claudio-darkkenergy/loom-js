@@ -1,8 +1,9 @@
+import type { Meta, StoryObj } from '@loom-js/storybook';
+
 import {
     PinkButtonsList,
     type PinkButtonsListProps
 } from './pink-buttons-list';
-import type { Meta, StoryObj } from '@loom-js/storybook';
 
 const meta: Meta<PinkButtonsListProps> = {
     title: 'Elements/PinkButtonsList',

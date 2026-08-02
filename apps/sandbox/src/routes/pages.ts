@@ -1,8 +1,3 @@
-import { Bootstrap } from '@app/bootstrap';
-import { Core } from '@app/pages/core';
-import { EventMonitoring } from '@app/pages/event-monitoring';
-import { Index } from '@app/pages/index';
-import { Lazyload } from '@app/pages/lazyload';
 import {
     type ContextFunction,
     lazyImport,
@@ -10,6 +5,12 @@ import {
     sanitizeLocation,
     router
 } from '@loom-js/core';
+
+import { Bootstrap } from '@app/bootstrap';
+import { Core } from '@app/pages/core';
+import { EventMonitoring } from '@app/pages/event-monitoring';
+import { Index } from '@app/pages/index';
+import { Lazyload } from '@app/pages/lazyload';
 
 // const LazyCore = () => import('@app/pages/core');
 // const LazyHome = () => import('@app/pages/index');

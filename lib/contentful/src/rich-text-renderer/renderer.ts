@@ -1,9 +1,10 @@
+import { Mark, helpers } from '@contentful/rich-text-types';
+
 import {
     defaultMarkRenderers,
     defaultNodeRenderers
 } from './default-renderers';
 import { ContentfulDocument, RichTextNode, Options } from './types';
-import { Mark, helpers } from '@contentful/rich-text-types';
 
 export const documentToComponents = (
     richTextDocument: ContentfulDocument,

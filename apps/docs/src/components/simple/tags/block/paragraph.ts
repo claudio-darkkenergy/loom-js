@@ -8,6 +8,8 @@ export const Paragraph = component(
             attrs,
             props as unknown as AttrsTemplateTagValue
         );
-        return html` <p $attrs=${attrsOverrides} $on=${on}>${children}</p> `;
+        return html`
+            <p $attrs=${attrsOverrides} $on=${on}>${children}</p>
+        `;
     }
 );

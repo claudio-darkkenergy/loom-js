@@ -1,5 +1,6 @@
-import { mergeAllowedAttrs } from '../../../helpers';
 import { type AttrsTemplateTagValue, component } from '@loom-js/core';
+
+import { mergeAllowedAttrs } from '../../../helpers';
 
 export type AsideProps = {};
 

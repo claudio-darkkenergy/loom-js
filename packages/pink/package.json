@@ -1,67 +1,67 @@
 {
-  "name": "@loom-js/pink",
-  "version": "0.1.2",
-  "author": "Claudio Nunez Jr",
-  "license": "ISC",
-  "description": "A design system based on Pink Design & made for loomjs.",
-  "keywords": [
-    "loomjs design system",
-    "pink design"
-  ],
-  "exports": {
-    "import": "./src/index.ts",
-    "require": "./src/index.js"
-  },
-  "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
-  "publishConfig": {
-    "access": "public"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/darkkenergy/loomjs/packages/pink"
-  },
-  "scripts": {
-    "build": "pnpm build-storybook",
-    "build-package": "rollup -c rollup.config.ts --configPlugin esbuild",
-    "build-storybook": "storybook build",
-    "build-storybook-docs": "storybook build --docs",
-    "format": "prettier",
-    "storybook": "storybook dev --no-open -p 6006",
-    "type-check": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@appwrite.io/pink": "1.0.0",
-    "@appwrite.io/pink-icons": "1.0.0",
-    "@loom-js/core": "workspace:*",
-    "@loom-js/tags": "workspace:*",
-    "classnames": "^2.5.1"
-  },
-  "devDependencies": {
-    "@chromatic-com/storybook": "^5.2.1",
-    "@loom-js/storybook": "workspace:*",
-    "@loom-js/typescript-config": "workspace:*",
-    "@rollup/plugin-terser": "^1.0.0",
-    "@rollup/plugin-typescript": "^12.3.0",
-    "@storybook/addon-links": "^10.5.5",
-    "@storybook/html": "^10.5.5",
-    "@storybook/html-vite": "^10.5.5",
-    "@types/node": "^26.1.2",
-    "esbuild": "^0.28.1",
-    "esbuild-node-externals": "^1.23.1",
-    "rollup": "^4.62.4",
-    "rollup-plugin-delete": "^3.0.2",
-    "rollup-plugin-dts": "^6.4.1",
-    "rollup-plugin-esbuild": "^6.2.1",
-    "storybook": "^10.5.5",
-    "tslib": "^2.8.1",
-    "typescript": "^6.0.2",
-    "vite": "^8.2.0"
-  },
-  "peerDependencies": {
-    "@loom-js/core": "0.5.2",
-    "@loom-js/tags": "0.0.18"
-  }
+    "name": "@loom-js/pink",
+    "version": "0.1.2",
+    "author": "Claudio Nunez Jr",
+    "license": "ISC",
+    "description": "A design system based on Pink Design & made for loomjs.",
+    "keywords": [
+        "loomjs design system",
+        "pink design"
+    ],
+    "exports": {
+        "import": "./src/index.ts",
+        "require": "./src/index.js"
+    },
+    "type": "module",
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
+    "publishConfig": {
+        "access": "public"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/darkkenergy/loomjs/packages/pink"
+    },
+    "scripts": {
+        "build": "pnpm build-storybook",
+        "build-package": "rollup -c rollup.config.ts --configPlugin esbuild",
+        "build-storybook": "storybook build",
+        "build-storybook-docs": "storybook build --docs",
+        "format": "prettier",
+        "storybook": "storybook dev --no-open -p 6006",
+        "type-check": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@appwrite.io/pink": "1.0.0",
+        "@appwrite.io/pink-icons": "1.0.0",
+        "@loom-js/core": "workspace:*",
+        "@loom-js/tags": "workspace:*",
+        "classnames": "^2.5.1"
+    },
+    "devDependencies": {
+        "@chromatic-com/storybook": "^5.2.1",
+        "@loom-js/storybook": "workspace:*",
+        "@loom-js/typescript-config": "workspace:*",
+        "@rollup/plugin-terser": "^1.0.0",
+        "@rollup/plugin-typescript": "^12.3.0",
+        "@storybook/addon-links": "^10.5.5",
+        "@storybook/html": "^10.5.5",
+        "@storybook/html-vite": "^10.5.5",
+        "@types/node": "^26.1.2",
+        "esbuild": "^0.28.1",
+        "esbuild-node-externals": "^1.23.1",
+        "rollup": "^4.62.4",
+        "rollup-plugin-delete": "^3.0.2",
+        "rollup-plugin-dts": "^6.4.1",
+        "rollup-plugin-esbuild": "^6.2.1",
+        "storybook": "^10.5.5",
+        "tslib": "^2.8.1",
+        "typescript": "^6.0.2",
+        "vite": "^8.2.0"
+    },
+    "peerDependencies": {
+        "@loom-js/core": "0.5.2",
+        "@loom-js/tags": "0.0.18"
+    }
 }

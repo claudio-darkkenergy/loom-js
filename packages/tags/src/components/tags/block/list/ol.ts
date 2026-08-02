@@ -1,10 +1,11 @@
-import { mergeAllowedAttrs } from '../../../../helpers';
-import { ListItems, type ListItemsProps } from './list-items';
 import {
     type AttrsTemplateTagValue,
     component,
     type ComponentProps
 } from '@loom-js/core';
+
+import { mergeAllowedAttrs } from '../../../../helpers';
+import { ListItems, type ListItemsProps } from './list-items';
 
 type RawOlProps = Pick<ListItemsProps, 'item' | 'itemProps'> & {
     listItemProps?: Omit<ListItemsProps, 'item' | 'itemProps'>;

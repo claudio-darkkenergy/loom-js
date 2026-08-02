@@ -1,5 +1,6 @@
-import { PinkTag, type PinkTagProps } from './pink-tag';
 import { type Meta, RenderVariants, type StoryObj } from '@loom-js/storybook';
+
+import { PinkTag, type PinkTagProps } from './pink-tag';
 
 const meta: Meta<PinkTagProps> = {
     title: 'Elements/PinkTag',

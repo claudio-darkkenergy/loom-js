@@ -4,18 +4,18 @@ Two advisory counts disagreed, and reconciling them turned out to be most of the
 
 **The gap is branch divergence.** GitHub's dependency graph scans `main`. `main` is 27 commits behind `edge-2026`, with a ~9,900-line `pnpm-lock.yaml` difference and materially older direct dependencies:
 
-| | `main` | `edge-2026` |
-| --- | --- | --- |
+|          | `main`    | `edge-2026`                  |
+| -------- | --------- | ---------------------------- |
 | `vercel` | `^37.8.0` | `^51.2.1` (51.8.0 installed) |
-| `turbo` | `^2.1.3` | `^2.9.6` (2.9.9 installed) |
+| `turbo`  | `^2.1.3`  | `^2.9.6` (2.9.9 installed)   |
 
 Matching the two sets by GHSA id gives the actionable picture:
 
-| | Advisories | Criticals |
-| --- | ---: | ---: |
-| Unique advisories behind GitHub's 156 alerts | 137 | 5 |
-| Already fixed on `edge-2026` | **94** | **4** |
-| **Surviving onto `edge-2026`** | **43** | **1** |
+|                                              | Advisories | Criticals |
+| -------------------------------------------- | ---------: | --------: |
+| Unique advisories behind GitHub's 156 alerts |        137 |         5 |
+| Already fixed on `edge-2026`                 |     **94** |     **4** |
+| **Surviving onto `edge-2026`**               |     **43** |     **1** |
 
 Surviving alerts by severity: 1 critical, 20 high, 23 medium, 5 low. Concentrated in `undici` (11), `tar` (9), `axios` (6), `js-yaml` (4), `vite` (4), `ws` (3), `minimatch` (3), `turbo` (2), `ajv` (2). The surviving critical is `node-tar` (decompression/parse DoS, patched 7.5.19), reached through the `vercel` CLI. **155 of 156 alerts have a published patch; only `ip` has none.**
 

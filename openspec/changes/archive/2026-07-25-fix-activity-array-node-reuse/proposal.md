@@ -13,8 +13,8 @@ The root cause is confirmed: array-valued activities have no working change-dete
 - **Remove leftover debug `console.log`s** in `activity.ts`, `get-text-update.ts`, and `component.ts` that fire on every reconciliation pass and distort DevTools observation.
 - **Example app: pass `key: color`** to the mapped `Div`s in `activity-effect-nested-array` (and set `{ deep: true }`) to exercise and demonstrate per-item node reuse across shuffles.
 - **Explicitly deferred (follow-ups, not in this change):**
-  - **Numeric keyed reconciliation.** A numeric user `key` collides with the index-based fallback keyspace during the outer `${...}` interpolation's re-reconciliation of the effect's resolved elements; `appendChildContext` then deletes the childCtx stored under a numeric key that equals an index. This is the finding #3/#4 double-reconciliation and needs the larger refactor below. String/stable keys are unaffected.
-  - `ctxScopes` inheritance in `appendChildContext` (finding #3 — the current non-inheritance is a needed safety net) and the html-parser `ContextFunction` diff always returning `true` (finding #4).
+    - **Numeric keyed reconciliation.** A numeric user `key` collides with the index-based fallback keyspace during the outer `${...}` interpolation's re-reconciliation of the effect's resolved elements; `appendChildContext` then deletes the childCtx stored under a numeric key that equals an index. This is the finding #3/#4 double-reconciliation and needs the larger refactor below. String/stable keys are unaffected.
+    - `ctxScopes` inheritance in `appendChildContext` (finding #3 — the current non-inheritance is a needed safety net) and the html-parser `ContextFunction` diff always returning `true` (finding #4).
 
 ## Capabilities
 

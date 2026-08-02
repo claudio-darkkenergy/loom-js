@@ -1,5 +1,6 @@
-import { PinkGridItem, type PinkGridItemProps } from './pink-grid-item';
 import { Meta, StoryObj } from '@loom-js/storybook';
+
+import { PinkGridItem, type PinkGridItemProps } from './pink-grid-item';
 
 const meta: Meta<typeof PinkGridItem> = {
     title: 'Components/PinkGridItem',

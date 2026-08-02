@@ -1,8 +1,8 @@
 import { type AttrsTemplateTagValue, component } from '@loom-js/core';
 
+import { mergeAllowedAttrs } from '../../../../helpers';
 import { Img, type ImgProps } from './img';
 import { Source, type SourceProps } from './source';
-import { mergeAllowedAttrs } from '../../../../helpers';
 
 export type PictureProps = ImgProps & {
     sources?: SourceProps[];

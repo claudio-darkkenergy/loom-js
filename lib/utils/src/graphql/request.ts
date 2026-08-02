@@ -1,9 +1,10 @@
-import { GraphQlResponse } from './types';
 import {
     type GraphQlRequestPayload,
     request,
     type RequestInitOptions
 } from '@loom-js/utils';
+
+import { GraphQlResponse } from './types';
 
 export type GraphQlRequestInit<D, T> = RequestInit &
     RequestInitOptions<D, GraphQlResponse<T>> &

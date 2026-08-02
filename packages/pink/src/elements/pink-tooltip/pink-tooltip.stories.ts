@@ -1,6 +1,7 @@
-import { PinkTooltip, type PinkTooltipProps } from './pink-tooltip';
 import { type Meta, type StoryObj, RenderVariants } from '@loom-js/storybook';
 import { Paragraph } from '@loom-js/tags';
+
+import { PinkTooltip, type PinkTooltipProps } from './pink-tooltip';
 
 const meta: Meta<PinkTooltipProps> = {
     title: 'Elements/PinkTooltip',

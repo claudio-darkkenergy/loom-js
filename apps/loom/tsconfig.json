@@ -2,20 +2,10 @@
     "extends": "@loom-js/typescript-config/app.json",
     "compilerOptions": {
         "paths": {
-            "@/fonts/*": [
-                "./src/assets/fonts/*"
-            ],
-            "@/*": [
-                "./src/*"
-            ],
+            "@/fonts/*": ["./src/assets/fonts/*"],
+            "@/*": ["./src/*"]
         }
     },
-    "include": [
-        "src",
-        "project"
-    ],
-    "exclude": [
-        "build",
-        "node_modules"
-    ]
+    "include": ["src", "project"],
+    "exclude": ["build", "node_modules"]
 }

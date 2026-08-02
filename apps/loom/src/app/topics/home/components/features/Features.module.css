@@ -17,14 +17,14 @@
     --item-flex-basis: 100%;
     container-type: inline-size;
 
-    [class^="card"] {
+    [class^='card'] {
         height: 100%;
     }
-    
+
     li {
         flex-basis: calc(var(--item-flex-basis) - var(--collective-gap));
     }
-    
+
     @media (width >= 1260px) {
         border-radius: var(--border-radius-medium) !important;
     }
@@ -40,5 +40,4 @@
             --item-flex-basis: 33%;
         }
     }
-    
 }

@@ -1,5 +1,6 @@
-import { mergeAllowedAttrs } from '../../../helpers/merge-allowed-attrs.js';
 import { type AttrsTemplateTagValue, component } from '@loom-js/core';
+
+import { mergeAllowedAttrs } from '../../../helpers/merge-allowed-attrs.js';
 
 export const Tr = component((html, { attrs, children, on, ...props }) => {
     const attrsOverrides = mergeAllowedAttrs(

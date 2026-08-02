@@ -1,5 +1,6 @@
-import { PinkTopNav, type PinkTopNavProps } from './pink-top-nav';
 import type { Meta, StoryObj } from '@loom-js/storybook';
+
+import { PinkTopNav, type PinkTopNavProps } from './pink-top-nav';
 
 const { parameters } = (window as any).storybook;
 

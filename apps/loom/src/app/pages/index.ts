@@ -1,7 +1,3 @@
-import styles from './styles.module.css';
-import { HeroBanner } from '@/app/components/containers/hero-banner';
-import { Features } from '@/app/topics/home/components/features';
-import { SyntaxCards } from '@/app/topics/home/components/syntax-container.ts/SyntaxContainer';
 import { getImageUrl } from '@loom-js/contentful';
 import {
     type ContextFunction,
@@ -9,6 +5,11 @@ import {
     type SimpleComponent
 } from '@loom-js/core';
 import classNames from 'classnames';
+
+import styles from './styles.module.css';
+import { HeroBanner } from '@/app/components/containers/hero-banner';
+import { Features } from '@/app/topics/home/components/features';
+import { SyntaxCards } from '@/app/topics/home/components/syntax-container.ts/SyntaxContainer';
 
 const Home: SimpleComponent = (props) => {
     const features = [

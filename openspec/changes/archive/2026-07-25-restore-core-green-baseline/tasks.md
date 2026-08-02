@@ -24,13 +24,13 @@
 - [x] 4b.2 Add a CI script that type-checks the test project (e.g. `type-check-tests: tsc -p tests/tsconfig.json`) so these no longer hide.
 - [x] 4b.4 (Optional consolidation) Two test configs now exist: `tests/tsconfig.json` (editor type-check) and `tsconfig.spec.json` (wtr esbuild transpile, referenced by `web-test-runner.config.mjs:11`). Consider pointing wtr at `tests/tsconfig.json` and deleting `tsconfig.spec.json` so there is a single test config. Verify `pnpm -F @loom-js/core test-ci` still passes after repointing.
 - [x] 4b.3 Fix the 13 latent test-file type errors now visible:
-  - `tests/index.ts` — `Config.win` missing (2339), implicit-any index (7015), `HookFunction` arg (2345). INTENT RECOVERED: this was the project's original hand-rolled puppeteer + Koa integration harness (custom `suite`/`test` DSL, injectable-window via `config.win`), predating `@web/test-runner` and now superseded by it; already broken (dead `test-pupp` script → nonexistent `tsconfig-tests.json`; toolchain deps `ts-node`/`tsconfig-paths`/`koa`/`proxyquire`/`chai` all removed). **DECISION (maintainer): DELETE `tests/index.ts`.** Also remove the now-dead `test-pupp` script from `package.json` and, if present, the stale `tsconfig-tests.json` reference. (`config.win` is confirmed **obsolete** — deleting this file removes its only usage; the injectable-window/SSR idea is being explored fresh, not resurrected from here.)
-  - `tests/support/mocks/component.ts` & `tests/support/mocks/template.ts` — `Cannot find module 'proxyquire'` (2307). Same abandoned harness era (`proxyquire` no longer a dep). **DECISION (maintainer): DELETE both mock files** (verify nothing still imports them first). Do NOT re-add `proxyquire`.
-  - `tests/support/components/container.ts:50` — `ContextFunction | Text | ContextFunction[]` not assignable (2322).
-  - `tests/templates/test-template.ts` — implicit-any binding elements (7031).
-  - `tests/unit/activity.spec.ts` — implicit-any `effect` (7031), unused `update` (6133).
-  - `tests/unit/app.spec.ts:23` & `tests/unit/component/life-cycles.ts:86,96` — object possibly undefined (2532).
-  - `tests/unit/routing.spec.ts:2` — `sanitizeLocation` no longer exported (2305) — resolved by task 2.1.
+    - `tests/index.ts` — `Config.win` missing (2339), implicit-any index (7015), `HookFunction` arg (2345). INTENT RECOVERED: this was the project's original hand-rolled puppeteer + Koa integration harness (custom `suite`/`test` DSL, injectable-window via `config.win`), predating `@web/test-runner` and now superseded by it; already broken (dead `test-pupp` script → nonexistent `tsconfig-tests.json`; toolchain deps `ts-node`/`tsconfig-paths`/`koa`/`proxyquire`/`chai` all removed). **DECISION (maintainer): DELETE `tests/index.ts`.** Also remove the now-dead `test-pupp` script from `package.json` and, if present, the stale `tsconfig-tests.json` reference. (`config.win` is confirmed **obsolete** — deleting this file removes its only usage; the injectable-window/SSR idea is being explored fresh, not resurrected from here.)
+    - `tests/support/mocks/component.ts` & `tests/support/mocks/template.ts` — `Cannot find module 'proxyquire'` (2307). Same abandoned harness era (`proxyquire` no longer a dep). **DECISION (maintainer): DELETE both mock files** (verify nothing still imports them first). Do NOT re-add `proxyquire`.
+    - `tests/support/components/container.ts:50` — `ContextFunction | Text | ContextFunction[]` not assignable (2322).
+    - `tests/templates/test-template.ts` — implicit-any binding elements (7031).
+    - `tests/unit/activity.spec.ts` — implicit-any `effect` (7031), unused `update` (6133).
+    - `tests/unit/app.spec.ts:23` & `tests/unit/component/life-cycles.ts:86,96` — object possibly undefined (2532).
+    - `tests/unit/routing.spec.ts:2` — `sanitizeLocation` no longer exported (2305) — resolved by task 2.1.
 
 ## 6. Commit shared Claude Code settings (`.claude/settings.json`)
 

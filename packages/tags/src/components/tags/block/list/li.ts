@@ -1,9 +1,10 @@
-import { mergeAllowedAttrs } from '../../../../helpers';
 import {
     type AttrsTemplateTagValue,
     component,
     type ComponentInputProps
 } from '@loom-js/core';
+
+import { mergeAllowedAttrs } from '../../../../helpers';
 
 export type LiProps = ComponentInputProps;
 

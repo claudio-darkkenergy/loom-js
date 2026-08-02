@@ -1,11 +1,12 @@
+import type { SimpleComponent } from '@loom-js/core';
+import { Div, type DivProps } from '@loom-js/tags';
+import classNames from 'classnames';
+
 import styles from './FocalContainer.module.css';
 import {
     SecondaryContainer,
     SecondaryContainerProps
 } from '@/app/components/containers/secondary-container';
-import type { SimpleComponent } from '@loom-js/core';
-import { Div, type DivProps } from '@loom-js/tags';
-import classNames from 'classnames';
 
 type FocalContainerProps = SecondaryContainerProps & {
     contentProps?: DivProps;

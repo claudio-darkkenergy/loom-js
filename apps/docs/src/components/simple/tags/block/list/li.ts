@@ -8,5 +8,7 @@ export const Li = component((html, { attrs, children, on, ...liProps }) => {
         liProps as unknown as AttrsTemplateTagValue
     );
 
-    return html`<li $attrs=${attrsOverrides} $on=${on}>${children}</li>`;
+    return html`
+        <li $attrs=${attrsOverrides} $on=${on}>${children}</li>
+    `;
 });

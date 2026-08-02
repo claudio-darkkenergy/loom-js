@@ -1,5 +1,5 @@
-import { Container, ContainerProps } from './components/container';
 import { AppInitProps, ComponentOptionalProps, init } from '../../src';
+import { Container, ContainerProps } from './components/container';
 
 export interface SetupOptions {
     appInitProps?: {} | AppInitProps;

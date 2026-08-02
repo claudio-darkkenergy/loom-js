@@ -1,6 +1,5 @@
 .heroBanner {
-    --areas: "content"
-        "hero-graphic";
+    --areas: 'content' 'hero-graphic';
     grid-template-areas: var(--areas);
 
     img {
@@ -28,9 +27,7 @@
     }
 
     @media (width >= 768px) {
-        --areas: ". hero-graphic"
-        "content hero-graphic"
-        ". hero-graphic";
+        --areas: '. hero-graphic' 'content hero-graphic' '. hero-graphic';
 
         img {
             max-width: auto;

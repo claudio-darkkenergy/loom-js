@@ -1,24 +1,24 @@
 {
-  "name": "@loom-js/contentful",
-  "version": "0.0.4",
-  "private": true,
-  "description": "A Contentful common library",
-  "exports": "./src/index.ts",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "Claudio Nunez Jr",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/node": "^26.1.2",
-    "tslib": "^2.8.1",
-    "typescript": "^6.0.2"
-  },
-  "dependencies": {
-    "@contentful/rich-text-types": "^17.2.7",
-    "@loom-js/core": "workspace:*",
-    "@loom-js/tags": "workspace:*",
-    "@loom-js/utils": "workspace:*"
-  }
+    "name": "@loom-js/contentful",
+    "version": "0.0.4",
+    "private": true,
+    "description": "A Contentful common library",
+    "exports": "./src/index.ts",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "Claudio Nunez Jr",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/node": "^26.1.2",
+        "tslib": "^2.8.1",
+        "typescript": "^6.0.2"
+    },
+    "dependencies": {
+        "@contentful/rich-text-types": "^17.2.7",
+        "@loom-js/core": "workspace:*",
+        "@loom-js/tags": "workspace:*",
+        "@loom-js/utils": "workspace:*"
+    }
 }

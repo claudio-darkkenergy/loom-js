@@ -1,5 +1,6 @@
-import { ContentfulDocument } from './rich-text-renderer';
 import { LinkProps } from '@loom-js/tags';
+
+import { ContentfulDocument } from './rich-text-renderer';
 
 export interface ContentfulAsset {
     contentType: 'image/*' | 'image/jpg' | 'image/png' | 'image/webp';

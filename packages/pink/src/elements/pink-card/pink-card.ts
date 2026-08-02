@@ -1,7 +1,8 @@
-import type { PinkDynamicProps } from '../../types';
 import { SimpleComponent } from '@loom-js/core';
 import { Div } from '@loom-js/tags';
 import classNames from 'classnames';
+
+import type { PinkDynamicProps } from '../../types';
 
 export type PinkCardProps = PinkDynamicProps & {
     isBorderDashed?: boolean;

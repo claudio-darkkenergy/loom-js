@@ -1,41 +1,41 @@
 {
-  "name": "loom-js",
-  "private": true,
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/darkkenergy/loomjs"
-  },
-  "scripts": {
-    "api": "pnpm vercel dev -p 2000",
-    "build": "turbo build",
-    "build-packages": "turbo build-package --cache-dir=.turbo",
-    "changeset": "changeset",
-    "clean": "find ./ -name node_modules -type d -exec rm -rf {} +",
-    "codegen-pink": "pnpm -F @loom-js/pink codegen",
-    "dev": "pnpm api & dotenvx run -f .env.local -- turbo dev",
-    "remote-cache": "turbo link",
-    "remote-cache-unlink": "turbo unlink",
-    "outdated-deps": "pnpm -r outdated",
-    "publish-packages": "pnpm build-packages && pnpm version-packages && changeset publish",
-    "status-packages": "changeset status",
-    "storybook": "turbo storybook",
-    "update-deps": "pnpm -r update -i -L",
-    "version-packages": "changeset version"
-  },
-  "devDependencies": {
-    "@dotenvx/dotenvx": "^2.19.1",
-    "@loom-js/typescript-config": "workspace:*",
-    "prettier": "^3.9.6",
-    "prettier-plugin-sort-imports": "^1.8.11",
-    "turbo": "^2.10.8",
-    "vercel": "^58.4.4"
-  },
-  "packageManager": "pnpm@10.33.0",
-  "engines": {
-    "node": ">=20",
-    "pnpm": ">=9"
-  },
-  "dependencies": {
-    "@changesets/cli": "^2.31.1"
-  }
+    "name": "loom-js",
+    "private": true,
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/darkkenergy/loomjs"
+    },
+    "scripts": {
+        "api": "pnpm vercel dev -p 2000",
+        "build": "turbo build",
+        "build-packages": "turbo build-package --cache-dir=.turbo",
+        "changeset": "changeset",
+        "clean": "find ./ -name node_modules -type d -exec rm -rf {} +",
+        "codegen-pink": "pnpm -F @loom-js/pink codegen",
+        "dev": "pnpm api & dotenvx run -f .env.local -- turbo dev",
+        "remote-cache": "turbo link",
+        "remote-cache-unlink": "turbo unlink",
+        "outdated-deps": "pnpm -r outdated",
+        "publish-packages": "pnpm build-packages && pnpm version-packages && changeset publish",
+        "status-packages": "changeset status",
+        "storybook": "turbo storybook",
+        "update-deps": "pnpm -r update -i -L",
+        "version-packages": "changeset version"
+    },
+    "devDependencies": {
+        "@dotenvx/dotenvx": "^2.19.1",
+        "@loom-js/typescript-config": "workspace:*",
+        "prettier": "^3.9.6",
+        "prettier-plugin-sort-imports": "^1.8.11",
+        "turbo": "^2.10.8",
+        "vercel": "^58.4.4"
+    },
+    "packageManager": "pnpm@10.33.0",
+    "engines": {
+        "node": ">=20",
+        "pnpm": ">=9"
+    },
+    "dependencies": {
+        "@changesets/cli": "^2.31.1"
+    }
 }

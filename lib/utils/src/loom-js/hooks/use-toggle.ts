@@ -1,5 +1,6 @@
-import { useMediaQuery } from './use-media-query';
 import { activity, type ValueProp } from '@loom-js/core';
+
+import { useMediaQuery } from './use-media-query';
 
 /**
  * Custom hook to toggle an activity based on media query matches.

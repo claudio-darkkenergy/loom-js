@@ -1,5 +1,6 @@
-import { PinkCodePanel, PinkCodePanelProps } from './pink-code-panel';
 import { ArgType, type Meta, type StoryObj } from '@loom-js/storybook';
+
+import { PinkCodePanel, PinkCodePanelProps } from './pink-code-panel';
 
 const { parameters } = (globalThis as any).storybook;
 

@@ -5,13 +5,8 @@
     "tabWidth": 4,
     "trailingComma": "none",
     "htmlWhitespaceSensitivity": "ignore",
-    "plugins": [
-        "prettier-plugin-sort-imports"
-    ],
-    "importTypeOrder": [
-        "NPMPackages",
-        "localImports"
-    ],
+    "plugins": ["prettier-plugin-sort-imports"],
+    "importTypeOrder": ["NPMPackages", "localImports"],
     "newlineBetweenTypes": true,
     "sortingMethod": "alphabetical",
     "stripNewlines": true,

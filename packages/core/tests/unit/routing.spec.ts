@@ -1,6 +1,7 @@
+import { expect } from '@esm-bundle/chai';
+
 import { Router, RouterPropValue } from '../support/components/router';
 import { runSetup } from '../support/run-setup';
-import { expect } from '@esm-bundle/chai';
 
 describe('routing', () => {
     let $test: HTMLElement;

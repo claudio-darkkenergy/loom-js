@@ -1,5 +1,6 @@
-import { PinkLoader, type PinkLoaderProps } from './pink-loader';
 import type { Meta, StoryObj } from '@loom-js/storybook';
+
+import { PinkLoader, type PinkLoaderProps } from './pink-loader';
 
 const meta: Meta<PinkLoaderProps> = {
     title: 'Elements/PinkLoader',

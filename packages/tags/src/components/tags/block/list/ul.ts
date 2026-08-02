@@ -1,6 +1,7 @@
+import { type AttrsTemplateTagValue, component } from '@loom-js/core';
+
 import { mergeAllowedAttrs } from '../../../../helpers';
 import { ListItems, type ListItemsProps } from './list-items';
-import { type AttrsTemplateTagValue, component } from '@loom-js/core';
 
 export type UlProps = Pick<ListItemsProps, 'item' | 'itemProps'> & {
     listItemProps?: Omit<ListItemsProps, 'item' | 'itemProps'>;

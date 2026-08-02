@@ -1,3 +1,6 @@
+import { expect } from '@esm-bundle/chai';
+import sinon from 'sinon';
+
 import { ComponentOptionalProps, component } from '../../src';
 import { activity } from '../../src/activity';
 import {
@@ -6,8 +9,6 @@ import {
 } from '../support/components/container';
 import { Input } from '../support/components/input';
 import { runSetup } from '../support/run-setup';
-import { expect } from '@esm-bundle/chai';
-import sinon from 'sinon';
 
 describe('activity', () => {
     let $test: HTMLElement;

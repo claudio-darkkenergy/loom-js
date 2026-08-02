@@ -4,9 +4,8 @@ import {
     ComponentProps
 } from '@loom-js/core';
 
-import { mergeAllowedAttrs } from '@app/helpers/loom-js';
-
 import { ListItems, ListItemsProps } from './list-items';
+import { mergeAllowedAttrs } from '@app/helpers/loom-js';
 
 export type UlProps = ListItemsProps & {
     listItemProps?: ComponentProps;
@@ -32,12 +31,14 @@ export const Ul = component<UlProps>(
 
         return html`
             <ul $attrs=${attrsOverrides} $on=${on}>
-                ${children ||
-                ListItems({
-                    ...listItemProps,
-                    item,
-                    itemProps
-                })}
+                ${
+                    children ||
+                    ListItems({
+                        ...listItemProps,
+                        item,
+                        itemProps
+                    })
+                }
             </ul>
         `;
     }

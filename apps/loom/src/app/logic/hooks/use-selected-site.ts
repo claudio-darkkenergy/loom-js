@@ -1,6 +1,7 @@
+import { redirect, watchRoute } from '@loom-js/core';
+
 import { site } from '../activity/selected-content';
 import { getSite } from '@/app/logic/providers/contentful';
-import { redirect, watchRoute } from '@loom-js/core';
 
 export const useSelectedSite = () => {
     const { update, effect } = site;

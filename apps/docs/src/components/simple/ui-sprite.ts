@@ -1,5 +1,6 @@
-import { Svg, SvgProps } from '@app/components/simple/tags';
 import { component } from '@loom-js/core';
+
+import { Svg, SvgProps } from '@app/components/simple/tags';
 
 export enum UiSpriteId {
     ArrowDown = 'icon-arrow-down',

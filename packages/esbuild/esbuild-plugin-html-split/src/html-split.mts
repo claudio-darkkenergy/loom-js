@@ -1,3 +1,5 @@
+import { Metafile, Plugin } from 'esbuild';
+
 import {
     checkIsEntryPoint,
     getDefaultTemplate,
@@ -6,7 +8,6 @@ import {
     getResourcePath
 } from './helpers.mjs';
 import type { HtmlTemplateArgs, HtmlSplitPluginOptions } from './types.mjs';
-import { Metafile, Plugin } from 'esbuild';
 import path from 'node:path';
 
 export const htmlSplit: (pluginOptions: HtmlSplitPluginOptions) => Plugin = ({

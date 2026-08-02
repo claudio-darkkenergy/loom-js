@@ -1,8 +1,9 @@
-import styles from './DocsSideNav.module.css';
-import { layoutState } from '@/app/logic/activity/layout-state';
 import { component, route } from '@loom-js/core';
 import { DropListItemProps, PinkSideNav } from '@loom-js/pink';
 import classNames from 'classnames';
+
+import styles from './DocsSideNav.module.css';
+import { layoutState } from '@/app/logic/activity/layout-state';
 
 type DocsSideNavProps = {
     isOpen?: boolean;

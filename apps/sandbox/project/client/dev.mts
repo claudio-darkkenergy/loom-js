@@ -1,5 +1,6 @@
-import { clientConfig } from './config.mjs';
 import { context } from 'esbuild';
+
+import { clientConfig } from './config.mjs';
 
 const runDev = async () => {
     const ctx = await context(clientConfig());

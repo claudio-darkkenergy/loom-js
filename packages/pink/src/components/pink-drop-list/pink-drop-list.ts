@@ -1,4 +1,3 @@
-import { WithIconProps, withIcon } from '../../modifiers';
 import type {
     ComponentInputProps,
     ComponentOptionalProps,
@@ -14,6 +13,8 @@ import {
     type UlProps
 } from '@loom-js/tags';
 import classNames from 'classnames';
+
+import { WithIconProps, withIcon } from '../../modifiers';
 
 export enum DropListArrow {
     Start = '',

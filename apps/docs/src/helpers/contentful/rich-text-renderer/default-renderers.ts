@@ -1,5 +1,6 @@
 import { BLOCKS, Inline, INLINES, MARKS } from '@contentful/rich-text-types';
 
+import { RenderMark, RenderNode } from './types';
 import {
     Blockquote,
     Bold,
@@ -26,8 +27,6 @@ import {
     Ul,
     Underline
 } from '@app/components/simple';
-
-import { RenderMark, RenderNode } from './types';
 
 const defaultInline = (_type: string, node: Inline) =>
     Span({

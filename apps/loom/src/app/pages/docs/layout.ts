@@ -1,3 +1,12 @@
+import {
+    route,
+    routeEffect,
+    watchRoute,
+    type SimpleComponent
+} from '@loom-js/core';
+import { Div } from '@loom-js/tags';
+import classNames from 'classnames';
+
 import { ScreenWidthPx } from '../constants';
 import { DocContainer } from './components/DocContainer';
 import { DocsLayoutSkeleton } from './components/DocsLayoutSkeleton';
@@ -12,14 +21,6 @@ import {
     useTopicTocToggle
 } from '@/app/logic/hooks';
 import { useSideNavToggle } from '@/app/logic/hooks/use-side-nav-toggle';
-import {
-    route,
-    routeEffect,
-    watchRoute,
-    type SimpleComponent
-} from '@loom-js/core';
-import { Div } from '@loom-js/tags';
-import classNames from 'classnames';
 
 const DocsLayout: SimpleComponent = ({ children, className, ...props }) => {
     const { effect: pageEffect } = page;

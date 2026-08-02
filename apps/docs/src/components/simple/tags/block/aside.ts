@@ -5,5 +5,7 @@ export interface AsideProps {
 }
 
 export const Aside = component<AsideProps>(
-    (html, { content }) => html`<aside>${content}</aside>`
+    (html, { content }) => html`
+        <aside>${content}</aside>
+    `
 );

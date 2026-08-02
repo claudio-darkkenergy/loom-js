@@ -1,9 +1,10 @@
+import type { Meta, StoryObj } from '@loom-js/storybook';
+import { Span } from '@loom-js/tags';
+
 import {
     PinkToggleButton,
     type PinkToggleButtonProps
 } from './pink-toggle-button';
-import type { Meta, StoryObj } from '@loom-js/storybook';
-import { Span } from '@loom-js/tags';
 
 const meta: Meta<PinkToggleButtonProps> = {
     title: 'Components/PinkToggleButton',

@@ -1,7 +1,8 @@
-import { PinkCard } from '../../elements/pink-card';
 import type { SimpleComponent, TemplateTagValue } from '@loom-js/core';
 import { Div, type DivProps } from '@loom-js/tags';
 import classNames from 'classnames';
+
+import { PinkCard } from '../../elements/pink-card';
 
 export type PinkGridItemProps = Omit<DivProps, 'children'> & {
     className?: string;

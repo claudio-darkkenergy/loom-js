@@ -1,7 +1,7 @@
 import { SimpleComponent } from '@loom-js/core';
+import { PinkGridBox, PinkSideNav } from '@loom-js/pink';
 
 import { AppLayout } from '@app/components/container/layout/app-layout';
-import { PinkGridBox, PinkSideNav } from '@loom-js/pink';
 
 export const LearnPage: SimpleComponent = ({ style }) => {
     console.log({ style });

@@ -1,6 +1,7 @@
-import { randomArray } from './activity/random-array.js';
 import { component } from '@loom-js/core';
 import { Div, Nav, Ul } from '@loom-js/tags';
+
+import { randomArray } from './activity/random-array.js';
 
 export const App = component((html, { onMounted, onUnmounted, title }) => {
     const { effect, update } = randomArray;

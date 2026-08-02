@@ -11,9 +11,7 @@
         "module": "ESNext",
         "moduleResolution": "Bundler",
         "paths": {
-            "@app/*": [
-                "./src/*"
-            ]
+            "@app/*": ["./src/*"]
         }
     }
 }

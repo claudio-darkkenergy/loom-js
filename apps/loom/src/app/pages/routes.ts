@@ -1,10 +1,11 @@
-import PageLayout from './layout';
-import { Bootstrap } from '@/app/bootstrap';
 import {
     type ComponentOptionalProps,
     type ContextFunction,
     createRoutes
 } from '@loom-js/core';
+
+import PageLayout from './layout';
+import { Bootstrap } from '@/app/bootstrap';
 
 const Routes = createRoutes({
     config: {

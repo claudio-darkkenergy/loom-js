@@ -1,5 +1,3 @@
-import { Breadcrumbs } from '@/app/components/content/breadcrumbs';
-import { topicTocToggle } from '@/app/logic/activity/toggles';
 import { routeEffect, type SimpleComponent } from '@loom-js/core';
 import {
     PinkActionBar,
@@ -8,6 +6,9 @@ import {
     PinkContainerProps
 } from '@loom-js/pink';
 import classNames from 'classnames';
+
+import { Breadcrumbs } from '@/app/components/content/breadcrumbs';
+import { topicTocToggle } from '@/app/logic/activity/toggles';
 
 export type DocContainerProps = PinkContainerProps;
 

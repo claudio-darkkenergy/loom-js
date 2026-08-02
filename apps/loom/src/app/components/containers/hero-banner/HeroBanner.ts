@@ -1,4 +1,3 @@
-import styles from './HeroBanner.module.css';
 import type { TemplateTagValue, SimpleComponent } from '@loom-js/core';
 import {
     PinkButtonsList,
@@ -8,6 +7,8 @@ import {
 } from '@loom-js/pink';
 import { Div, H1, Img, type ImgProps, Paragraph, Section } from '@loom-js/tags';
 import classNames from 'classnames';
+
+import styles from './HeroBanner.module.css';
 
 type HeroBannerProps = PinkContainerProps & {
     ctas?: PinkButtonProps[];

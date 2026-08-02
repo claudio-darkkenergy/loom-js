@@ -1,37 +1,37 @@
 {
-  "name": "@loom-js/loom",
-  "private": true,
-  "version": "0.0.9",
-  "author": "Claudio Nunez Jr.",
-  "license": "ISC",
-  "description": "Loomjs Documentation Site",
-  "scripts": {
-    "build": "tsx ./project/client/build.mts",
-    "build-manual": "pnpm type-check && pnpm build",
-    "dev": "tsx ./project/client/dev.mts",
-    "serve-build": "pnpx simple-server ./build",
-    "type-check": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@appwrite.io/pink": "^1.0.0",
-    "@appwrite.io/pink-icons": "^1.0.0",
-    "@contentful/rich-text-types": "^17.2.7",
-    "@loom-js/contentful": "workspace:*",
-    "@loom-js/core": "workspace:*",
-    "@loom-js/pink": "workspace:*",
-    "@loom-js/tags": "workspace:*",
-    "@loom-js/utils": "workspace:*",
-    "classnames": "^2.5.1",
-    "contentful": "^11.12.7"
-  },
-  "devDependencies": {
-    "@loom-js/typescript-config": "workspace:*",
-    "@types/node": "^26.1.2",
-    "esbuild": "^0.28.1",
-    "esbuild-plugin-clean": "^1.0.1",
-    "esbuild-plugin-copy": "^2.1.1",
-    "esbuild-plugin-html-split": "workspace:*",
-    "tsx": "^4.23.4",
-    "typescript": "^6.0.2"
-  }
+    "name": "@loom-js/loom",
+    "private": true,
+    "version": "0.0.9",
+    "author": "Claudio Nunez Jr.",
+    "license": "ISC",
+    "description": "Loomjs Documentation Site",
+    "scripts": {
+        "build": "tsx ./project/client/build.mts",
+        "build-manual": "pnpm type-check && pnpm build",
+        "dev": "tsx ./project/client/dev.mts",
+        "serve-build": "pnpx simple-server ./build",
+        "type-check": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@appwrite.io/pink": "^1.0.0",
+        "@appwrite.io/pink-icons": "^1.0.0",
+        "@contentful/rich-text-types": "^17.2.7",
+        "@loom-js/contentful": "workspace:*",
+        "@loom-js/core": "workspace:*",
+        "@loom-js/pink": "workspace:*",
+        "@loom-js/tags": "workspace:*",
+        "@loom-js/utils": "workspace:*",
+        "classnames": "^2.5.1",
+        "contentful": "^11.12.7"
+    },
+    "devDependencies": {
+        "@loom-js/typescript-config": "workspace:*",
+        "@types/node": "^26.1.2",
+        "esbuild": "^0.28.1",
+        "esbuild-plugin-clean": "^1.0.1",
+        "esbuild-plugin-copy": "^2.1.1",
+        "esbuild-plugin-html-split": "workspace:*",
+        "tsx": "^4.23.4",
+        "typescript": "^6.0.2"
+    }
 }

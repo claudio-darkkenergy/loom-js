@@ -1,5 +1,6 @@
-import { PinkActionBar, type PinkActionBarProps } from './pink-action-bar';
 import type { Meta, StoryObj } from '@loom-js/storybook';
+
+import { PinkActionBar, type PinkActionBarProps } from './pink-action-bar';
 
 const meta: Meta<typeof PinkActionBar> = {
     title: 'Elements/PinkActionBar',

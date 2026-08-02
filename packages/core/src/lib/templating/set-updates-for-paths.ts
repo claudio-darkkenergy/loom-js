@@ -56,8 +56,7 @@ export const setUpdatesForPaths = (
                     textFragment
                 );
                 const liveNode = liveNodeIterator.next().value as
-                    | Text
-                    | undefined;
+                    Text | undefined;
 
                 if (liveNode) {
                     const update = getTextUpdate(liveNode);

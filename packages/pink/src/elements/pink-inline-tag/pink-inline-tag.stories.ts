@@ -1,5 +1,3 @@
-import { PinkButton } from '../pink-button';
-import { PinkInlineTag, type PinkInlineTagProps } from './pink-inline-tag';
 import type { SimpleComponent } from '@loom-js/core';
 import {
     type Meta,
@@ -9,6 +7,9 @@ import {
     ArgType
 } from '@loom-js/storybook';
 import { Span } from '@loom-js/tags';
+
+import { PinkButton } from '../pink-button';
+import { PinkInlineTag, type PinkInlineTagProps } from './pink-inline-tag';
 
 const meta: Meta<PinkInlineTagProps> = {
     title: 'Elements/PinkInlineTag',

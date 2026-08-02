@@ -1,4 +1,3 @@
-import { PinkDynamicProps } from '../../types';
 import type {
     ComponentInputProps,
     ContextFunction,
@@ -6,6 +5,8 @@ import type {
 } from '@loom-js/core';
 import { Div, H2, Header, type HeaderProps } from '@loom-js/tags';
 import classNames from 'classnames';
+
+import { PinkDynamicProps } from '../../types';
 
 const GridCol1 = ({ gridCol1 = {} }: Pick<PinkGridHeaderProps, 'gridCol1'>) => {
     const {

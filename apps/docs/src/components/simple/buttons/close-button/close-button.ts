@@ -1,5 +1,6 @@
-import { UiSprite, UiSpriteId } from '@app/components/simple';
 import { component, MouseEventListener } from '@loom-js/core';
+
+import { UiSprite, UiSpriteId } from '@app/components/simple';
 
 export interface CloseButtonProps {
     className?: string;
@@ -7,12 +8,11 @@ export interface CloseButtonProps {
 }
 
 export const CloseButton = component<CloseButtonProps>(
-    (html, { className, onClick = () => {} }) =>
-        html`
-            <button $click="${onClick}" class="${className}">
-                ${UiSprite({
-                    svgId: UiSpriteId.X
-                })}
-            </button>
-        `
+    (html, { className, onClick = () => {} }) => html`
+        <button $click="${onClick}" class="${className}">
+            ${UiSprite({
+                svgId: UiSpriteId.X
+            })}
+        </button>
+    `
 );

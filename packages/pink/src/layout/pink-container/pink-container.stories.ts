@@ -1,6 +1,7 @@
-import { PinkContainer, type PinkContainerProps } from './pink-container';
 import { ArgType, type Meta, type StoryObj } from '@loom-js/storybook';
 import { Paragraph } from '@loom-js/tags';
+
+import { PinkContainer, type PinkContainerProps } from './pink-container';
 
 const meta: Meta<PinkContainerProps> = {
     title: 'Layout/PinkContainer',

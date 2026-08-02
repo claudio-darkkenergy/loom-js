@@ -1,20 +1,20 @@
 {
-  "name": "esbuild-plugin-html-split",
-  "private": true,
-  "version": "0.0.4",
-  "license": "MIT",
-  "exports": "./src/index.mts",
-  "publishConfig": {
-    "access": "public"
-  },
-  "dependencies": {
-    "esbuild": "^0.28.1"
-  },
-  "devDependencies": {
-    "@loom-js/typescript-config": "workspace:*",
-    "@types/node": "^26.1.2",
-    "ts-node": "^10.9.2",
-    "tslib": "^2.8.1",
-    "typescript": "^6.0.2"
-  }
+    "name": "esbuild-plugin-html-split",
+    "private": true,
+    "version": "0.0.4",
+    "license": "MIT",
+    "exports": "./src/index.mts",
+    "publishConfig": {
+        "access": "public"
+    },
+    "dependencies": {
+        "esbuild": "^0.28.1"
+    },
+    "devDependencies": {
+        "@loom-js/typescript-config": "workspace:*",
+        "@types/node": "^26.1.2",
+        "ts-node": "^10.9.2",
+        "tslib": "^2.8.1",
+        "typescript": "^6.0.2"
+    }
 }

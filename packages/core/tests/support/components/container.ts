@@ -20,8 +20,7 @@ export interface ContainerProps {
     componentProps?: TestComponentProps & ComponentOptionalProps;
     effect?: ActivityEffect<TestComponentProps>;
     TestComponent?:
-        | Component<TestComponentProps>
-        | SimpleComponent<TestComponentProps>;
+        Component<TestComponentProps> | SimpleComponent<TestComponentProps>;
 }
 
 export const Container = component<ContainerProps>(
@@ -62,9 +61,11 @@ export const Container = component<ContainerProps>(
 
         return html`
             <div $attrs=${attrsOverrides} $on=${on}>
-                ${effect
-                    ? ReactiveTestComponent()
-                    : TestComponent(componentProps)}
+                ${
+                    effect
+                        ? ReactiveTestComponent()
+                        : TestComponent(componentProps)
+                }
             </div>
         `;
     }

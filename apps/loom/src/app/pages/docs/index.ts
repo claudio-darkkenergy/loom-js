@@ -1,3 +1,7 @@
+import { type SimpleComponent } from '@loom-js/core';
+import { Aside, Div } from '@loom-js/tags';
+import classNames from 'classnames';
+
 import { ScreenWidthPx } from '../constants';
 import DocsLayout from './layout';
 import styles from './styles.module.css';
@@ -8,9 +12,6 @@ import {
 import { TopicContent } from '@/app/components/content/topic-content.ts';
 import { TopicToc } from '@/app/components/content/topic-toc';
 import { topic } from '@/app/logic/activity/selected-content';
-import { type SimpleComponent } from '@loom-js/core';
-import { Aside, Div } from '@loom-js/tags';
-import classNames from 'classnames';
 
 /**
  * The Docs component is a high-level component which renders documentation pages.

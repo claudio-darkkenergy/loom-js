@@ -1,9 +1,3 @@
-import { appContentActivity } from '@app/activities/app-content';
-import { pageContentActivity } from '@app/activities/page-content';
-import { getSite } from '@app/helpers/api/content/contentful';
-import { MainContentProps } from '@app/pages/types';
-import type { Page, Site } from '@app/types';
-import { type ApiProviderResponse } from '@app/types/api';
 import {
     type AnyComponent,
     component,
@@ -16,6 +10,13 @@ import {
     PinkTopNav,
     PinkSize
 } from '@loom-js/pink';
+
+import { appContentActivity } from '@app/activities/app-content';
+import { pageContentActivity } from '@app/activities/page-content';
+import { getSite } from '@app/helpers/api/content/contentful';
+import { MainContentProps } from '@app/pages/types';
+import type { Page, Site } from '@app/types';
+import { type ApiProviderResponse } from '@app/types/api';
 
 export interface AppLayoutProps {
     mainContent: AnyComponent<MainContentProps>;

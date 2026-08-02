@@ -1,8 +1,9 @@
-import { withIcon } from '../../modifiers/with-icon';
-import type { PinkDynamicProps } from '../../types';
 import type { SimpleComponent } from '@loom-js/core';
 import { Div } from '@loom-js/tags';
 import classNames from 'classnames';
+
+import { withIcon } from '../../modifiers/with-icon';
+import type { PinkDynamicProps } from '../../types';
 
 type Enumerate<
     N extends number,
@@ -12,8 +13,7 @@ type Enumerate<
     : Enumerate<N, [...Acc, Acc['length']]>;
 
 type NumberRange<F extends number, T extends number> =
-    | Exclude<Enumerate<T>, Enumerate<F>>
-    | T;
+    Exclude<Enumerate<T>, Enumerate<F>> | T;
 
 type TagProps = PinkDynamicProps & {
     // Appends the icon when provided vs. prepend placement.

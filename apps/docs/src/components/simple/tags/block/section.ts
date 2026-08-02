@@ -12,8 +12,8 @@ export const Section = component<SectionProps>(
             { ...attrs, ...(role ? { role } : {}) },
             props as unknown as AttrsTemplateTagValue
         );
-        return html`<section $attrs=${attrsOverrides} $on=${on}>
-            ${children}
-        </section>`;
+        return html`
+            <section $attrs=${attrsOverrides} $on=${on}>${children}</section>
+        `;
     }
 );

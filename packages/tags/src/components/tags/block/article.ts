@@ -5,6 +5,7 @@ export interface ArticleProps {
 }
 
 export const Article = component<ArticleProps>(
-    (html, { children, className, role }) =>
-        html`<article class=${className} role=${role}>${children}</article>`
+    (html, { children, className, role }) => html`
+        <article class=${className} role=${role}>${children}</article>
+    `
 );

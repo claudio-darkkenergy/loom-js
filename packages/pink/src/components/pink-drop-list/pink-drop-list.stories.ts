@@ -1,5 +1,6 @@
-import { PinkDropList, type PinkDropListProps } from './pink-drop-list';
 import { Meta, StoryObj } from '@loom-js/storybook';
+
+import { PinkDropList, type PinkDropListProps } from './pink-drop-list';
 
 const meta: Meta = {
     title: 'Components/PinkDropList',

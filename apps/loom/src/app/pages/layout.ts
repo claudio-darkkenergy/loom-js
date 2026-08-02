@@ -1,7 +1,3 @@
-import { layoutState } from '../logic/activity/layout-state';
-import { sideNavToggle } from '../logic/activity/toggles';
-import styles from './styles.module.css';
-import { BrandLogoLink } from '@/app/components/branding/brand-logo-link';
 import { component, route } from '@loom-js/core';
 import {
     PinkButton,
@@ -11,6 +7,11 @@ import {
 } from '@loom-js/pink';
 import { Div, Footer, Svg } from '@loom-js/tags';
 import classNames from 'classnames';
+
+import { layoutState } from '../logic/activity/layout-state';
+import { sideNavToggle } from '../logic/activity/toggles';
+import styles from './styles.module.css';
+import { BrandLogoLink } from '@/app/components/branding/brand-logo-link';
 
 const PageLayout = component((html, { children, className, style: theme }) => {
     const { effect: layoutStateEffect } = layoutState;

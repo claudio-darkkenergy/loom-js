@@ -1,13 +1,14 @@
 import {
-    PinkInteractiveTag,
-    type PinkInteractiveTagProps
-} from './pink-interactive-tag';
-import {
     type Meta,
     RenderVariants,
     type StoryObj,
     type RenderVariantsStoryProps
 } from '@loom-js/storybook';
+
+import {
+    PinkInteractiveTag,
+    type PinkInteractiveTagProps
+} from './pink-interactive-tag';
 
 const meta: Meta<PinkInteractiveTagProps> = {
     title: 'Elements/PinkInteractiveTag',

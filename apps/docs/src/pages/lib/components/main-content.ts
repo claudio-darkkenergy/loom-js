@@ -1,5 +1,3 @@
-import { ContentfulRichText } from '@app/components/simple';
-import { MainContentProps } from '@app/pages/types';
 import { MARKS } from '@contentful/rich-text-types';
 import type { SimpleComponent } from '@loom-js/core';
 import {
@@ -9,6 +7,9 @@ import {
     PinkGridBox
 } from '@loom-js/pink';
 import { H1, H2, Main, Paragraph, Section } from '@loom-js/tags';
+
+import { ContentfulRichText } from '@app/components/simple';
+import { MainContentProps } from '@app/pages/types';
 
 export const MainContent: SimpleComponent<MainContentProps> = ({
     page,

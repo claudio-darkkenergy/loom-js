@@ -16,6 +16,8 @@ export const Source = component<SourceProps>(
             Object.assign(attrs || {}, { media, srcset: srcSet, type }),
             props as unknown as AttrsTemplateTagValue
         );
-        return html` <source $attrs=${attrsOverrides} $on=${on} $src=${src} />`;
+        return html`
+            <source $attrs=${attrsOverrides} $on=${on} $src=${src} />
+        `;
     }
 );

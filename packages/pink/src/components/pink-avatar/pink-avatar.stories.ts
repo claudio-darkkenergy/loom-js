@@ -1,5 +1,3 @@
-import { PinkColor, PinkSize } from '../../types';
-import { PinkAvatar, PinkAvatarProps } from './pink-avatar';
 import {
     RenderVariants,
     type RenderVariantsStoryProps,
@@ -8,6 +6,9 @@ import {
     ArgType
 } from '@loom-js/storybook';
 import { Span } from '@loom-js/tags';
+
+import { PinkColor, PinkSize } from '../../types';
+import { PinkAvatar, PinkAvatarProps } from './pink-avatar';
 
 const meta: Meta<typeof PinkAvatar> = {
     title: 'Components/PinkAvatar',

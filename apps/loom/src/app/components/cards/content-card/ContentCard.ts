@@ -1,8 +1,9 @@
-import styles from './ContentCard.module.css';
 import type { TemplateTagValue, SimpleComponent } from '@loom-js/core';
 import { PinkCard } from '@loom-js/pink';
 import { H3, Img, Paragraph, type ImgProps } from '@loom-js/tags';
 import classNames from 'classnames';
+
+import styles from './ContentCard.module.css';
 
 export type ContentCardProps = {
     description?: TemplateTagValue;

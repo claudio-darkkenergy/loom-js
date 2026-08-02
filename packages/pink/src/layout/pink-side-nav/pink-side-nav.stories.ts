@@ -1,7 +1,8 @@
-import { withIcon } from '../../modifiers';
-import { PinkSideNav, type PinkSideNavProps } from './pink-side-nav';
 import { ArgType, type Meta, type StoryObj } from '@loom-js/storybook';
 import { Link } from '@loom-js/tags';
+
+import { withIcon } from '../../modifiers';
+import { PinkSideNav, type PinkSideNavProps } from './pink-side-nav';
 
 const { parameters } = (globalThis as any).storybook;
 

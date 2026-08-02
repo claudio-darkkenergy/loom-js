@@ -1,8 +1,9 @@
-import { LinkProps } from '@app/components/simple';
-import { ContentfulAsset } from '@app/types/contentful';
 import { Document as RichTextDocument } from '@contentful/rich-text-types';
 import { PlainObject } from '@loom-js/core';
 import { ContentfulCollection } from 'contentful';
+
+import { LinkProps } from '@app/components/simple';
+import { ContentfulAsset } from '@app/types/contentful';
 
 export interface Page {
     contentCollection?: ContentfulCollection<ContentProps>;

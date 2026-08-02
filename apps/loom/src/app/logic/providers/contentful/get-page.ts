@@ -1,3 +1,6 @@
+import { createQuery } from '@loom-js/utils';
+import { ContentfulCollection } from 'contentful';
+
 import { contentfulRequest } from './lib/contentful-request';
 import {
     shortPageFields,
@@ -7,8 +10,6 @@ import {
 } from './lib/fragments';
 import { pageBySlug } from './lib/queries';
 import { PageSummary } from './lib/types';
-import { createQuery } from '@loom-js/utils';
-import { ContentfulCollection } from 'contentful';
 
 const previewArg = '$isPreview: Boolean = true';
 const slugArg = '$slug: String!';

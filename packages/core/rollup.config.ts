@@ -2,12 +2,13 @@ import { unlink } from 'fs';
 import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
-const pkg = require('./package.json');
 import terser from '@rollup/plugin-terser';
 import typescriptRollupPlugin from '@rollup/plugin-typescript';
 import del from 'rollup-plugin-delete';
 import dts from 'rollup-plugin-dts';
 import typescript from 'typescript';
+
+const pkg = require('./package.json');
 
 // Delete old typings to avoid issues
 unlink('dist/index.d.ts', (err) => {

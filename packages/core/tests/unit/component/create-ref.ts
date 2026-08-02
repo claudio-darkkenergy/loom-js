@@ -1,7 +1,8 @@
 import { expect } from '@esm-bundle/chai';
-import { runSetup } from '../../support/run-setup';
+
 import { component } from '../../../src';
 import type { RefContext } from '../../../src/types';
+import { runSetup } from '../../support/run-setup';
 
 export const createRefSpec = () => {
     let $test: HTMLElement;
@@ -14,14 +15,18 @@ export const createRefSpec = () => {
             const TestComponent = component(
                 (html, { className, createRef }) => {
                     const RefComponent = component((html) => {
-                        return html`<span></span>`;
+                        return html`
+                            <span></span>
+                        `;
                     });
 
                     refContext = createRef();
 
-                    return html`<div class=${className}>
-                        ${RefComponent({ ref: refContext })}
-                    </div>`;
+                    return html`
+                        <div class=${className}>
+                            ${RefComponent({ ref: refContext })}
+                        </div>
+                    `;
                 }
             );
 

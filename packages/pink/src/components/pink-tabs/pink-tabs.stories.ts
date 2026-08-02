@@ -1,5 +1,6 @@
-import { PinkTabs, type PinkTabsProps } from './pink-tabs';
 import type { Meta, StoryObj } from '@loom-js/storybook';
+
+import { PinkTabs, type PinkTabsProps } from './pink-tabs';
 
 const meta: Meta<typeof PinkTabs> = {
     title: 'Components/PinkTabs',

@@ -1,5 +1,6 @@
-import { runSetup } from '../support/run-setup';
 import { expect } from '@esm-bundle/chai';
+
+import { runSetup } from '../support/run-setup';
 
 let $test: HTMLElement;
 const appClassName = 'app-test';

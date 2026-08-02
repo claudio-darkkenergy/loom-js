@@ -1,9 +1,10 @@
-import { contentfulRequest } from './lib/contentful-request';
-import { baseContentFields, contentFields } from './lib/fragments';
-import { contentById, contentBySlug } from './lib/queries';
 import { ContentProps } from '@loom-js/contentful';
 import { createQuery } from '@loom-js/utils';
 import { ContentfulCollection } from 'contentful';
+
+import { contentfulRequest } from './lib/contentful-request';
+import { baseContentFields, contentFields } from './lib/fragments';
+import { contentById, contentBySlug } from './lib/queries';
 
 const previewArg = '$isPreview: Boolean = true';
 const idArg = '$id: String!';

@@ -7,5 +7,7 @@ export const H2 = component((html, { attrs, children, on, ...props }) => {
         attrs,
         props as unknown as AttrsTemplateTagValue
     );
-    return html` <h2 $attrs=${attrsOverrides} $on=${on}>${children}</h2> `;
+    return html`
+        <h2 $attrs=${attrsOverrides} $on=${on}>${children}</h2>
+    `;
 });

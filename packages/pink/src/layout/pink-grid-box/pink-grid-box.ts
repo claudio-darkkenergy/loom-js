@@ -1,7 +1,8 @@
-import type { PinkDynamicProps } from '../../types';
 import { SimpleComponent } from '@loom-js/core';
 import { Ul, type UlProps } from '@loom-js/tags';
 import classNames from 'classnames';
+
+import type { PinkDynamicProps } from '../../types';
 
 export type PinkGridBoxProps = PinkDynamicProps &
     UlProps & {

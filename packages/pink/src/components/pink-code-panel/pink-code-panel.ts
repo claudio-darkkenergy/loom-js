@@ -1,9 +1,10 @@
-import type { PinkDynamicProps } from '../../types';
-import { PinkCodePanelContent } from './pink-code-panel-content';
-import { PinkCodePanelHeader } from './pink-code-panel-header';
 import type { ComponentOptionalProps } from '@loom-js/core';
 import { Span } from '@loom-js/tags';
 import classNames from 'classnames';
+
+import type { PinkDynamicProps } from '../../types';
+import { PinkCodePanelContent } from './pink-code-panel-content';
+import { PinkCodePanelHeader } from './pink-code-panel-header';
 
 export type PinkCodePanelProps = PinkDynamicProps & {
     codePanelContent?: string;

@@ -1,9 +1,10 @@
+import classNames from 'classnames';
+
 import styles from './DocsLayoutSkeleton.module.css';
 import {
     Bones,
     SkeletonLoader
 } from '@/app/components/content/skeleton-loader';
-import classNames from 'classnames';
 
 export const DocsLayoutSkeleton = () =>
     SkeletonLoader({

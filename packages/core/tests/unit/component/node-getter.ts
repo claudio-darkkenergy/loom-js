@@ -1,7 +1,8 @@
 import { expect } from '@esm-bundle/chai';
-import { runSetup } from '../../support/run-setup';
+
 import { component } from '../../../src';
 import { TemplateRoot } from '../../../src/types';
+import { runSetup } from '../../support/run-setup';
 
 export const nodeGetterSpec = () => {
     let $test: HTMLElement;
@@ -16,7 +17,9 @@ export const nodeGetterSpec = () => {
                     rootNode = node() as TemplateRoot;
                 };
 
-                return html`<div $click=${onClick} class=${className}></div>`;
+                return html`
+                    <div $click=${onClick} class=${className}></div>
+                `;
             });
 
             $test = await runSetup({

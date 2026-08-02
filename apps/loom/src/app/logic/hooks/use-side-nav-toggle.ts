@@ -1,5 +1,6 @@
-import { sideNavToggle } from '../activity/toggles';
 import { useToggle } from '@loom-js/utils';
+
+import { sideNavToggle } from '../activity/toggles';
 
 /**
  * Toggles the side navigation activity based on media query matches.

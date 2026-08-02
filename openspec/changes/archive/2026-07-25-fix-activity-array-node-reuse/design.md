@@ -33,7 +33,7 @@ Constraints: `@loom-js/core` has zero runtime dependencies and ships ES+CJS bund
 
 ### Decision 1: Diagnosis — repaint vs. teardown (resolved by code trace)
 
-A full trace of `handleArrayValue` → `resolveValue` → the Div `contextFunction` shows same-length shuffles **reuse** the per-index `childCtx.root` node and repaint it; nodes are not torn down. So finding #1 (the change-detection cascade) is the driver of the *unnecessary* re-renders, and per-item reuse under reorder is a keying question, not a teardown bug. This diagnosis is codified as tests (section 5) rather than throwaway `data-id` logging: the keyed reorder test asserts element-instance identity across shuffles, which is the same evidence a `data-id` probe would give, but permanent and regression-guarding.
+A full trace of `handleArrayValue` → `resolveValue` → the Div `contextFunction` shows same-length shuffles **reuse** the per-index `childCtx.root` node and repaint it; nodes are not torn down. So finding #1 (the change-detection cascade) is the driver of the _unnecessary_ re-renders, and per-item reuse under reorder is a keying question, not a teardown bug. This diagnosis is codified as tests (section 5) rather than throwaway `data-id` logging: the keyed reorder test asserts element-instance identity across shuffles, which is the same evidence a `data-id` probe would give, but permanent and regression-guarding.
 
 - **Alternative considered:** Ship a temporary `data-id` probe in the example first. Rejected — a node-identity assertion in the test suite is strictly better (durable, CI-enforced) and the code trace already settles the repaint-vs-teardown question.
 

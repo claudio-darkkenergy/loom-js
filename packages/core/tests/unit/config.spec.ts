@@ -1,4 +1,5 @@
 import { expect } from '@esm-bundle/chai';
+
 import { appendEvents, config, setToken } from '../../src/config';
 
 describe('config', () => {

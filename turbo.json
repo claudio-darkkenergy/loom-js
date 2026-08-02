@@ -3,65 +3,35 @@
     "ui": "tui",
     "tasks": {
         "build": {
-            "dependsOn": [
-                "^build",
-                "^build-package"
-            ],
-            "inputs": [
-                "$TURBO_DEFAULT$",
-                "!**/*.stories.{tsx,ts,jsx,js,mdx}"
-            ],
-            "outputs": [
-                "build/**"
-            ],
-            "env": [
-                "API_URL",
-                "CTF_IS_PREVIEW"
-            ]
+            "dependsOn": ["^build", "^build-package"],
+            "inputs": ["$TURBO_DEFAULT$", "!**/*.stories.{tsx,ts,jsx,js,mdx}"],
+            "outputs": ["build/**"],
+            "env": ["API_URL", "CTF_IS_PREVIEW"]
         },
         "build-package": {
-            "dependsOn": [
-                "^build-package"
-            ],
-            "outputs": [
-                "dist/**"
-            ]
+            "dependsOn": ["^build-package"],
+            "outputs": ["dist/**"]
         },
         "build-storybook": {
-            "dependsOn": [
-                "^build-package"
-            ],
-            "outputs": [
-                "storybook-static/**"
-            ]
+            "dependsOn": ["^build-package"],
+            "outputs": ["storybook-static/**"]
         },
         "dev": {
-            "dependsOn": [
-                "^build-package"
-            ],
+            "dependsOn": ["^build-package"],
             "cache": false,
             "persistent": true,
-            "env": [
-                "API_URL",
-                "CTF_IS_PREVIEW"
-            ]
+            "env": ["API_URL", "CTF_IS_PREVIEW"]
         },
         "storybook": {
-            "dependsOn": [
-                "^build-package"
-            ],
+            "dependsOn": ["^build-package"],
             "cache": false,
             "persistent": true
         },
         "topo": {
-            "dependsOn": [
-                "^topo"
-            ]
+            "dependsOn": ["^topo"]
         },
         "type-check": {
-            "dependsOn": [
-                "topo"
-            ]
+            "dependsOn": ["topo"]
         }
     }
 }

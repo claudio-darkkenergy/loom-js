@@ -1,8 +1,8 @@
-import { createRequire } from 'node:module';
-import { join, dirname } from 'path';
-
 import type { StorybookConfig } from '@storybook/html-vite';
+import { join, dirname } from 'path';
 import { mergeConfig } from 'vite';
+
+import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 /**
@@ -16,7 +16,7 @@ const config: StorybookConfig = {
     stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
     addons: [
         getAbsolutePath('@storybook/addon-links'),
-        getAbsolutePath('@chromatic-com/storybook'),
+        getAbsolutePath('@chromatic-com/storybook')
     ],
     framework: {
         name: getAbsolutePath('@storybook/html-vite'),

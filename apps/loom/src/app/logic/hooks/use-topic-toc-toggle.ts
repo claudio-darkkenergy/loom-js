@@ -1,5 +1,6 @@
-import { topicTocToggle } from '../activity/toggles';
 import { useToggle } from '@loom-js/utils';
+
+import { topicTocToggle } from '../activity/toggles';
 
 /**
  * Toggles the topic table of contents activity based on media query matches.

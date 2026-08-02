@@ -1,7 +1,8 @@
-import { ContentCard } from '@/app/components/cards/content-card';
-import { SecondaryContainer } from '@/app/components/containers/secondary-container';
 import { SimpleComponent } from '@loom-js/core';
 import { PinkGridBox } from '@loom-js/pink';
+
+import { ContentCard } from '@/app/components/cards/content-card';
+import { SecondaryContainer } from '@/app/components/containers/secondary-container';
 
 export const SyntaxCards: SimpleComponent = () => {
     const syntaxVariants = [

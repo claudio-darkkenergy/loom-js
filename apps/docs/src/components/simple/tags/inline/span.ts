@@ -7,5 +7,7 @@ export const Span = component((html, { attrs, children, on, ...props }) => {
         attrs,
         props as unknown as AttrsTemplateTagValue
     );
-    return html` <span $attrs=${attrsOverrides} $on=${on}>${children}</span> `;
+    return html`
+        <span $attrs=${attrsOverrides} $on=${on}>${children}</span>
+    `;
 });

@@ -1,9 +1,3 @@
-import {
-    type DropListItemProps,
-    PinkDropList,
-    type PinkDropListProps
-} from '../../components/pink-drop-list';
-import { PinkDynamicProps } from '../../types';
 import type {
     ComponentInputProps,
     SimpleComponent,
@@ -11,6 +5,13 @@ import type {
 } from '@loom-js/core';
 import { Div, Nav, Section } from '@loom-js/tags';
 import classNames from 'classnames';
+
+import {
+    type DropListItemProps,
+    PinkDropList,
+    type PinkDropListProps
+} from '../../components/pink-drop-list';
+import { PinkDynamicProps } from '../../types';
 
 const SideNavBottom: SimpleComponent = ({ children }) =>
     Div({

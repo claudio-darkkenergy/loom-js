@@ -1,10 +1,11 @@
-import { Span } from '../../inline';
-import { Li, type LiProps } from './li';
 import type {
     Component,
     ComponentInputProps,
     SimpleComponent
 } from '@loom-js/core';
+
+import { Span } from '../../inline';
+import { Li, type LiProps } from './li';
 
 export type ListItemsProps = LiProps & {
     item?: Component | SimpleComponent;

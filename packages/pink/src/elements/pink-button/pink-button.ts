@@ -1,7 +1,8 @@
-import { type WithIconProps, withIcon } from '../../modifiers';
 import { type SimpleComponent } from '@loom-js/core';
 import { Button, Link, type ButtonProps } from '@loom-js/tags';
 import classNames from 'classnames';
+
+import { type WithIconProps, withIcon } from '../../modifiers';
 
 export interface PinkButtonProps extends ButtonProps, WithIconProps {
     // A custom button size - modifies height.

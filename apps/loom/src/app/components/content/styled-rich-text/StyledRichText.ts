@@ -1,14 +1,15 @@
-import {
-    ContentfulRichText,
-    ContentfulRichTextProps
-} from '../contentful-rich-text';
-import styles from './StyledRichText.module.css';
 import { BLOCKS, MARKS } from '@contentful/rich-text-types';
 import { type SimpleComponent } from '@loom-js/core';
 import { PinkCodePanel } from '@loom-js/pink';
 import { H1, H2, H3, H4 } from '@loom-js/tags';
 import { toKebabCase } from '@loom-js/utils';
 import classNames from 'classnames';
+
+import {
+    ContentfulRichText,
+    ContentfulRichTextProps
+} from '../contentful-rich-text';
+import styles from './StyledRichText.module.css';
 
 export type StyledRichTextProps = ContentfulRichTextProps;
 

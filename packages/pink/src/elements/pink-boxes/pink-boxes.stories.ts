@@ -1,5 +1,6 @@
-import { PinkBoxes, type PinkBoxesProps } from './pink-boxes';
 import type { Meta, StoryObj } from '@loom-js/storybook';
+
+import { PinkBoxes, type PinkBoxesProps } from './pink-boxes';
 
 const meta: Meta<PinkBoxesProps> = {
     title: 'Elements/PinkBoxes',

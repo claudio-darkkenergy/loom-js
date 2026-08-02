@@ -1,5 +1,4 @@
 import { component, onRoute, router } from '../../../src';
-
 import { TestComponentProps } from './container';
 
 export interface RouterPropValue {

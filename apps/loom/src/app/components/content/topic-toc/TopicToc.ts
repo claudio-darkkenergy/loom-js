@@ -1,7 +1,8 @@
-import { Toc } from '../toc';
 import { ContentfulDocument, RichText } from '@loom-js/contentful';
 import { SimpleComponent } from '@loom-js/core';
 import { toKebabCase } from '@loom-js/utils';
+
+import { Toc } from '../toc';
 
 export type TopicTocProps = {
     json?: ContentfulDocument;

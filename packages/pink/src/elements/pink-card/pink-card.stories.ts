@@ -1,5 +1,6 @@
-import { PinkCard, type PinkCardProps } from './pink-card';
 import type { Meta, StoryObj } from '@loom-js/storybook';
+
+import { PinkCard, type PinkCardProps } from './pink-card';
 
 const meta: Meta<typeof PinkCard> = {
     title: 'Elements/PinkCard',

@@ -1,16 +1,16 @@
 import { expect } from '@esm-bundle/chai';
 
-import { Input } from '../support/components/input';
-import { runSetup } from '../support/run-setup';
+import type { ContainerProps } from '../support/components/container';
 import {
     NodeListFragment,
     SingleNodeFragment
 } from '../support/components/fragments';
-import type { ContainerProps } from '../support/components/container';
-import { nodeGetterSpec } from './component/node-getter';
-import { lifeCyclesSpec } from './component/life-cycles';
-import { createRefSpec } from './component/create-ref';
+import { Input } from '../support/components/input';
+import { runSetup } from '../support/run-setup';
 import { contextRefsSpec } from './component/context-refs';
+import { createRefSpec } from './component/create-ref';
+import { lifeCyclesSpec } from './component/life-cycles';
+import { nodeGetterSpec } from './component/node-getter';
 
 describe('component', () => {
     let $test: HTMLElement;

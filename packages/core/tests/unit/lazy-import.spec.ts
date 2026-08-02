@@ -1,10 +1,13 @@
 import { expect } from '@esm-bundle/chai';
+
 import { component, lazyImport, onRoute, onRouteUpdate } from '../../src';
 import type { Component } from '../../src/types';
 import { runSetup } from '../support/run-setup';
 
 const SimpleComponent1 = component((html) => {
-    return html` <h1>${'SimpleComponent1'}</h1> `;
+    return html`
+        <h1>${'SimpleComponent1'}</h1>
+    `;
 });
 const SimpleComponent2 = component((html) => {
     return html`

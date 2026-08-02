@@ -1,8 +1,9 @@
-import styles from './FeatureCard.module.css';
 import { type SimpleComponent } from '@loom-js/core';
 import { PinkCard } from '@loom-js/pink';
 import { H3, Img, type ImgProps } from '@loom-js/tags';
 import classNames from 'classnames';
+
+import styles from './FeatureCard.module.css';
 
 export type FeatureCardProps = { title?: string; bgImageProps?: ImgProps };
 

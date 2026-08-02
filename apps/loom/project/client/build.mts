@@ -1,5 +1,6 @@
-import { clientConfig } from './config.mjs';
 import { build } from 'esbuild';
+
+import { clientConfig } from './config.mjs';
 
 build(
     clientConfig({

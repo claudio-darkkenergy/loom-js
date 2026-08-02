@@ -1,14 +1,14 @@
 {
-  "name": "@loom-js/monitor",
-  "private": true,
-  "version": "0.0.0",
-  "license": "MIT",
-  "exports": "./src/index.ts",
-  "publishConfig": {
-    "access": "public"
-  },
-  "devDependencies": {
-    "@types/node": "^26.1.2",
-    "typescript": "^6.0.2"
-  }
+    "name": "@loom-js/monitor",
+    "private": true,
+    "version": "0.0.0",
+    "license": "MIT",
+    "exports": "./src/index.ts",
+    "publishConfig": {
+        "access": "public"
+    },
+    "devDependencies": {
+        "@types/node": "^26.1.2",
+        "typescript": "^6.0.2"
+    }
 }

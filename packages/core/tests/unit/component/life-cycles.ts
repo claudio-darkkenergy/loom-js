@@ -1,3 +1,5 @@
+import { expect } from '@esm-bundle/chai';
+
 import { component } from '../../../src';
 import type {
     LifeCycleHookProps,
@@ -5,7 +7,6 @@ import type {
     TemplateRootArray
 } from '../../../src/types';
 import { runSetup } from '../../support/run-setup';
-import { expect } from '@esm-bundle/chai';
 
 export const lifeCyclesSpec = () => {
     let $test: HTMLElement;

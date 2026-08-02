@@ -1,33 +1,33 @@
 <script type="text/javascript">
     const storyDecoratorClassName = 'story-decorator box u-overflow-x-auto';
     const decoratorBlockCenter = () => ({
-        className: `${storyDecoratorClassName} u-main-center`,
+        className: `${storyDecoratorClassName} u-main-center`
     });
     const decoratorBlockLeft = () => ({
-        className: storyDecoratorClassName,
+        className: storyDecoratorClassName
     });
     const decoratorBlockRight = () => ({
-        className: `${storyDecoratorClassName} u-main-right`,
+        className: `${storyDecoratorClassName} u-main-right`
     });
     const decoratorFlexCenter = () => ({
-        className: `${storyDecoratorClassName} u-flex u-main-center`,
+        className: `${storyDecoratorClassName} u-flex u-main-center`
     });
     const decoratorFlexLeft = () => ({
-        className: `${storyDecoratorClassName} u-flex`,
+        className: `${storyDecoratorClassName} u-flex`
     });
     const decoratorFlexRight = () => ({
-        className: `${storyDecoratorClassName} u-flex u-main-right`,
+        className: `${storyDecoratorClassName} u-flex u-main-right`
     });
     const decorator = {
         block: {
             center: decoratorBlockCenter,
             left: decoratorBlockLeft,
-            right: decoratorBlockRight,
+            right: decoratorBlockRight
         },
         flex: {
             center: decoratorFlexCenter,
             left: decoratorFlexLeft,
-            right: decoratorFlexRight,
+            right: decoratorFlexRight
         }
     };
     const parameters = {
@@ -36,7 +36,7 @@
 
     globalThis.storybook = {
         parameters
-    }
+    };
 </script>
 
 <style type="text/css">
@@ -45,6 +45,6 @@
     }
 
     .story-decorator {
-        --box-border-radius: var(--border-radius-medium)
+        --box-border-radius: var(--border-radius-medium);
     }
 </style>

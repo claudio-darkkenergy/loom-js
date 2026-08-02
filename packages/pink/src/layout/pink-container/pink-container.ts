@@ -1,7 +1,8 @@
-import { PinkDynamicProps } from '../../types';
 import { SimpleComponent } from '@loom-js/core';
 import { Div } from '@loom-js/tags';
 import classNames from 'classnames';
+
+import { PinkDynamicProps } from '../../types';
 
 export type PinkContainerProps = PinkDynamicProps;
 

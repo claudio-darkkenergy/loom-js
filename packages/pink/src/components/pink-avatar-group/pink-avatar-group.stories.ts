@@ -1,11 +1,12 @@
+import type { GetProps } from '@loom-js/core';
+import { ArgType, type Meta, type StoryObj } from '@loom-js/storybook';
+
 import { PinkColor, PinkSize } from '../../types';
 import { PinkAvatar } from '../pink-avatar/pink-avatar';
 import {
     PinkAvatarGroup,
     type PinkAvatarGroupProps
 } from './pink-avatar-group';
-import type { GetProps } from '@loom-js/core';
-import { ArgType, type Meta, type StoryObj } from '@loom-js/storybook';
 
 const meta: Meta<PinkAvatarGroupProps & StoryExtraArgs> = {
     title: 'Components/PinkAvatarGroup',

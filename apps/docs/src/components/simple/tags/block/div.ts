@@ -13,8 +13,10 @@ export const Div = component<DivProps>(
             divProps as unknown as AttrsTemplateTagValue
         );
 
-        return html`<div $attrs=${attrsOverrides} $on=${on} role=${role}>
-            ${children}
-        </div>`;
+        return html`
+            <div $attrs=${attrsOverrides} $on=${on} role=${role}>
+                ${children}
+            </div>
+        `;
     }
 );

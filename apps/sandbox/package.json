@@ -1,32 +1,32 @@
 {
-  "name": "@loom-js/sandbox",
-  "private": true,
-  "version": "1.0.1",
-  "author": "Claudio Nunez Jr.",
-  "license": "ISC",
-  "description": "",
-  "scripts": {
-    "build": "pnpm ts-node/esm -- ./project/client/build.mts",
-    "build-manual": "pnpm type-check && pnpm build",
-    "ts-node/esm": "node --no-warnings=ExperimentalWarning --loader ts-node/esm",
-    "dev": "pnpm ts-node/esm -- ./project/client/dev.mts",
-    "serve-build": "pnpm build && pnpx serve ./build -p 1002",
-    "type-check": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@loom-js/core": "workspace:*",
-    "@loom-js/monitor": "workspace:*",
-    "@loom-js/storybook": "workspace:*",
-    "@loom-js/tags": "workspace:*"
-  },
-  "devDependencies": {
-    "@loom-js/typescript-config": "workspace:*",
-    "@types/node": "^25.6.0",
-    "esbuild": "^0.28.0",
-    "esbuild-plugin-clean": "^1.0.1",
-    "esbuild-plugin-copy": "^2.1.1",
-    "esbuild-plugin-html-split": "workspace:*",
-    "ts-node": "^10.9.2",
-    "typescript": "^6.0.2"
-  }
+    "name": "@loom-js/sandbox",
+    "private": true,
+    "version": "1.0.1",
+    "author": "Claudio Nunez Jr.",
+    "license": "ISC",
+    "description": "",
+    "scripts": {
+        "build": "pnpm ts-node/esm -- ./project/client/build.mts",
+        "build-manual": "pnpm type-check && pnpm build",
+        "ts-node/esm": "node --no-warnings=ExperimentalWarning --loader ts-node/esm",
+        "dev": "pnpm ts-node/esm -- ./project/client/dev.mts",
+        "serve-build": "pnpm build && pnpx serve ./build -p 1002",
+        "type-check": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@loom-js/core": "workspace:*",
+        "@loom-js/monitor": "workspace:*",
+        "@loom-js/storybook": "workspace:*",
+        "@loom-js/tags": "workspace:*"
+    },
+    "devDependencies": {
+        "@loom-js/typescript-config": "workspace:*",
+        "@types/node": "^25.6.0",
+        "esbuild": "^0.28.0",
+        "esbuild-plugin-clean": "^1.0.1",
+        "esbuild-plugin-copy": "^2.1.1",
+        "esbuild-plugin-html-split": "workspace:*",
+        "ts-node": "^10.9.2",
+        "typescript": "^6.0.2"
+    }
 }

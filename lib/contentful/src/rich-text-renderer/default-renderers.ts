@@ -1,4 +1,3 @@
-import { RenderMark, RenderNode } from './types';
 import { BLOCKS, Inline, INLINES, MARKS } from '@contentful/rich-text-types';
 import {
     Blockquote,
@@ -26,6 +25,8 @@ import {
     Ul,
     Underline
 } from '@loom-js/tags';
+
+import { RenderMark, RenderNode } from './types';
 
 const defaultInline = (_type: string, node: Inline) =>
     Span({

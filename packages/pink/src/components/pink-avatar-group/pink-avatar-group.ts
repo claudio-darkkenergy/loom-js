@@ -1,7 +1,8 @@
-import { PinkAvatar } from '../pink-avatar';
 import { type SimpleComponent } from '@loom-js/core';
 import { Ul, type UlProps } from '@loom-js/tags';
 import classNames from 'classnames';
+
+import { PinkAvatar } from '../pink-avatar';
 
 export type PinkAvatarGroupProps = Omit<UlProps, 'item'>;
 

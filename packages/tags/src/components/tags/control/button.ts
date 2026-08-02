@@ -1,9 +1,10 @@
-import { mergeAllowedAttrs } from '../../../helpers';
 import {
     type Aria,
     type AttrsTemplateTagValue,
     component
 } from '@loom-js/core';
+
+import { mergeAllowedAttrs } from '../../../helpers';
 
 export enum ButtonType {
     Button = 'button',

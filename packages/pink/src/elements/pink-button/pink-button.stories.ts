@@ -1,10 +1,11 @@
-import { PinkButton, PinkButtonProps } from './pink-button';
 import {
     RenderVariants,
     type RenderVariantsStoryProps,
     type Meta,
     type StoryObj
 } from '@loom-js/storybook';
+
+import { PinkButton, PinkButtonProps } from './pink-button';
 
 const meta: Meta = {
     title: 'Elements/PinkButton',

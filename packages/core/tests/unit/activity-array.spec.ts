@@ -1,9 +1,10 @@
+import { expect } from '@esm-bundle/chai';
+import sinon from 'sinon';
+
 import { component } from '../../src';
 import { activity } from '../../src/activity';
 import { getContextForValue } from '../../src/lib/context/helpers';
 import { runSetup } from '../support/run-setup';
-import { expect } from '@esm-bundle/chai';
-import sinon from 'sinon';
 
 // A minimal keyed component: renders a `<div>` tagged with its color so tests
 // can locate it & compare element identity across updates.

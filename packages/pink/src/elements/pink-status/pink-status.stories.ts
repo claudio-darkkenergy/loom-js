@@ -1,9 +1,10 @@
+import type { Meta, StoryObj } from '@loom-js/storybook';
+
 import {
     PinkStatus,
     PinkStatusState,
     type PinkStatusProps
 } from './pink-status';
-import type { Meta, StoryObj } from '@loom-js/storybook';
 
 const meta: Meta<PinkStatusProps> = {
     title: 'Elements/PinkStatus',

@@ -1,7 +1,8 @@
-import styles from './SkeletonLoader.module.css';
 import { SimpleComponent } from '@loom-js/core';
 import { Div } from '@loom-js/tags';
 import classNames from 'classnames';
+
+import styles from './SkeletonLoader.module.css';
 
 export enum Bones {
     box = 'box',

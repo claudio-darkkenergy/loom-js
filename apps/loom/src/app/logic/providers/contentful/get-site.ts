@@ -1,8 +1,9 @@
+import { createQuery } from '@loom-js/utils';
+import { ContentfulCollection } from 'contentful';
+
 import { contentfulRequest } from './lib/contentful-request';
 import { siteCollection } from './lib/queries';
 import { Site } from './lib/types';
-import { createQuery } from '@loom-js/utils';
-import { ContentfulCollection } from 'contentful';
 
 const previewArg = '$isPreview: Boolean = true';
 const siteIdArg = '$siteId: String!';

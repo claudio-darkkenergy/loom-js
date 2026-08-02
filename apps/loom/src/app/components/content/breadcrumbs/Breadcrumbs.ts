@@ -1,7 +1,8 @@
-import styles from './Breadcrumbs.module.css';
 import type { SimpleComponent } from '@loom-js/core';
 import { Ol, Span } from '@loom-js/tags';
 import classNames from 'classnames';
+
+import styles from './Breadcrumbs.module.css';
 
 export type BreadcrumbsProps = { pathname: string };
 

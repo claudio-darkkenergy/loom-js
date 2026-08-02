@@ -1,8 +1,9 @@
-import { htmlTemplate } from './template.html.mjs';
 import { BuildOptions } from 'esbuild';
 import { clean } from 'esbuild-plugin-clean';
 import { copy } from 'esbuild-plugin-copy';
 import { htmlSplit } from 'esbuild-plugin-html-split';
+
+import { htmlTemplate } from './template.html.mjs';
 
 export interface ClientConfigOptions {
     apiUrl?: string;

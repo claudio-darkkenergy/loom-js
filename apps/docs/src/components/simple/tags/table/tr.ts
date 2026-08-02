@@ -8,8 +8,6 @@ export const Tr = component((html, { attrs, children, on, ...props }) => {
         props as unknown as AttrsTemplateTagValue
     );
     return html`
-        <tr $attrs=${attrsOverrides} $on=${on}>
-            ${children}
-        </tr>
+        <tr $attrs=${attrsOverrides} $on=${on}>${children}</tr>
     `;
 });

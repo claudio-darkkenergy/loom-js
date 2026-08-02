@@ -1,12 +1,13 @@
+import type { SimpleComponent } from '@loom-js/core';
+import { Button } from '@loom-js/tags';
+import classNames from 'classnames';
+
 import {
     type WithIconProps,
     withIcon,
     type WithTooltipProps,
     withTooltip
 } from '../../modifiers';
-import type { SimpleComponent } from '@loom-js/core';
-import { Button } from '@loom-js/tags';
-import classNames from 'classnames';
 
 export interface PinkTooltipProps extends WithTooltipProps, WithIconProps {
     isTag?: boolean;
