@@ -60,11 +60,11 @@ Shipping a release is a product decision. Attaching it to a security remediation
 
 The 156 is a property of `main`'s staleness. Targeting it directly would mean re-fixing 94 advisories already fixed on the working branch. The real backlog is 43, and the tasks are sized to that.
 
-### Decision 3: Take `vercel` to 57.x, and treat the dev-flow regression as the real work
+### Decision 3: Take `vercel` to 58.x, and treat the dev-flow regression as the real work
 
 Per user direction, and it is where the surviving severity concentrates — `vercel` is the top-level source of the `tar` and `undici` paths, including the one surviving critical. Staying on 51.x leaves them open, since the fixes landed in later majors.
 
-The bump's cost is not the version edit, it is the verification: `vercel dev -p 2000` must still serve `services/api/*.ts`, and the `@vercel/node` handler signature may have shifted across six majors. Verify by hitting an endpoint, not by watching the process start.
+The bump's cost is not the version edit, it is the verification: `vercel dev -p 2000` must still serve `services/api/*.ts`, and the `@vercel/node` handler signature may have shifted across seven majors. Verify by hitting an endpoint, not by watching the process start.
 
 - **Alternative considered:** Drop `vercel` if `services/` is unused. Not chosen — `pnpm dev` and `pnpm api` are the documented dev entry points and `services/api/log.ts` is live.
 
@@ -85,7 +85,7 @@ Any advisory left open needs a written reason (no patch published / fix requires
 ## Risks / Trade-offs
 
 - **`main` stays vulnerable while this change runs** → Accepted, and narrow: `main` is not developed on, and the advisories are build tooling that only affects someone who checks it out and installs. The published packages carry none of it. `main` gets the fixes when it is next released.
-- **`vercel` 51 → 57 breaks the local API dev flow** → Verify `pnpm api` serves a real request before declaring done; keep it in its own commit so it can be reverted without unpicking the other bumps.
+- **`vercel` 51 → 58 breaks the local API dev flow** → Verify `pnpm api` serves a real request before declaring done; keep it in its own commit so it can be reverted without unpicking the other bumps.
 - **`@web/dev-server-esbuild` sits under the test runner** → A bump there can break `test-ci` in ways unrelated to product code. Bump it separately so a failure stays attributable.
 - **Lockfile refresh silently changes far more than the advisories** → Review the lockfile diff for unexpected major jumps rather than trusting the count drop.
 - **GitHub's alert count will not move at all during this change** → Expected, since it tracks `main` and nothing here lands there. Measure against the local `pnpm audit` baseline on `edge-2026`; treating the GitHub number as the scoreboard would make correct work look like failure.
@@ -105,7 +105,7 @@ All steps run on `edge-2026`. `main` is not touched.
 
 ## Open Questions
 
-- Do the `services/api/*.ts` handlers need signature changes for `@vercel/node` under `vercel` 57.x?
+- Do the `services/api/*.ts` handlers need signature changes for `@vercel/node` under `vercel` 58.x?
 - Can all 11 `undici` and 9 `tar` alerts be cleared by the `vercel` bump alone, or is an `override` needed for a straggler?
 - Is `lib/open-ai` (and its `openai` dependency) still live, or vestigial alongside `services/`?
 - Should Dependabot/Renovate be enabled afterwards so `main` cannot drift this far again? Out of scope here, but this change is the argument for it.

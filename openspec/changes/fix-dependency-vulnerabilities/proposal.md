@@ -12,7 +12,7 @@ So the genuine remediation surface is far smaller than the headline suggests, an
 
 - **Remediate the 43 advisories that survive onto `edge-2026`**, concentrated in `undici` (11), `tar` (9), `axios` (6), `js-yaml` (4), `vite` (4), `ws` (3), `minimatch` (3):
   - **The one surviving critical** is `node-tar` (decompression/parse DoS, patched in 7.5.19), reached through the `vercel` CLI.
-  - **BREAKING (dev flow only)** `vercel` 51.8.0 → 57.x, the top-level source of the `tar` and `undici` paths. Six majors of drift means `vercel dev` and the `services/api/*` handlers must be re-verified.
+  - **BREAKING (dev flow only)** `vercel` 51.8.0 → 58.x, the top-level source of the `tar` and `undici` paths. Seven majors of drift means `vercel dev` and the `services/api/*` handlers must be re-verified.
   - `turbo` 2.9.9 → 2.10.7, plus lockfile-refresh bumps for `vite`, `contentful`, `esbuild`, `tsx`, and `@web/dev-server-esbuild`, several already satisfiable inside their declared ranges.
 - **Fix the two excluded-manifest alerts.** `apps/docs` and `apps/sandbox` account for exactly 1 alert each — a rounding error, not the driver. Bump their ranges, but treat them as best-effort: they have no lockfile, no install, and no CI, so nothing about them is verifiable by build or test.
 - **Record the residue.** 155 of 156 alerts have a published patch; only `ip` has none. Anything left open gets a written reason so a non-zero count stays meaningful.
