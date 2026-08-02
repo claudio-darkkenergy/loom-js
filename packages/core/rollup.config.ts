@@ -6,7 +6,6 @@ import terser from '@rollup/plugin-terser';
 import typescriptRollupPlugin from '@rollup/plugin-typescript';
 import del from 'rollup-plugin-delete';
 import dts from 'rollup-plugin-dts';
-import typescript from 'typescript';
 
 const pkg = require('./package.json');
 
@@ -30,10 +29,13 @@ const rollupConfig = [
     {
         input: './src/index.ts',
         plugins: [
-            // so Rollup can convert TypeScript to JavaScript
+            // so Rollup can convert TypeScript to JavaScript.
+
+            // Must use its own nested typescript 6 (see .pnpmfile.cjs) — do not pass
+
+            // the workspace's typescript@7 here; it lacks the legacy compiler API.
             typescriptRollupPlugin({
-                tsconfig: './tsconfig.json',
-                typescript
+                tsconfig: './tsconfig.json'
             }),
             terser({
                 keep_fnames: true

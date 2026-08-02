@@ -119,6 +119,18 @@ Two facts surfaced during implementation that amend D1/D2 mechanically without c
 
 2. **`packageJSONFiles` must enumerate every workspace manifest.** The plugin classifies an import as `NPMPackages` only if the package is listed in one of the `packageJSONFiles` (default: the root `package.json`, resolved relative to the prettier config). In this monorepo almost every real NPM dep lives in a workspace manifest, so with the default, imports like `@esm-bundle/chai` (devDep of `packages/core`) were classified as _local_ — a tree-wide reformat would have demoted NPM imports below local ones, violating this change's own spec ("NPM packages first"). `.prettierrc` now lists all 17 `package.json` files. Maintenance note: **a new workspace must be added to `packageJSONFiles`** or its deps will sort into the local group; the CI format check will surface the drift.
 
+### D8: Repo-wide TypeScript 7 + `.pnpmfile.cjs` (maintainer directive, 2026-08-02)
+
+After the initial implementation landed, the maintainer superseded the 0.1 "split" decision: **every workspace moves to `typescript@^7.0.2` now**, with TypeScript 6 existing only to appease tools that embed the legacy compiler API. That exposed a mechanism problem and widened the tool list:
+
+1. **Neither `overrides` nor `packageExtensions` can hold the pin once TS7 is in context.** pnpm resolves a tool's `typescript` _peer_ from the dependent workspace's context before consulting either mechanism. With every workspace supplying `typescript@7.0.2`, the scoped override's rewritten range produced only an `unmet peer` warning while resolution still picked 7.0.2, and a `packageExtensions` dependency was ignored for the same reason (both verified). The working mechanism is the **`readPackage` hook in `.pnpmfile.cjs`**: it deletes `typescript` from each tool's `peerDependencies` and adds `typescript: ^6.0.2` as a real dependency, giving the tool its own nested TS6 regardless of context. The `pnpm-workspace.yaml` override was removed in favor of the hook.
+
+2. **Four tools need the pin, not one** — all TS-API consumers, all on their latest published versions, none with TS7 support: `prettier-plugin-sort-imports`, `rollup-plugin-dts` (peer caps at `^6.0`), `@rollup/plugin-typescript`, `ts-node`. Additionally the three `rollup.config.ts` files were passing the _workspace's_ `typescript` (now 7.x) into `@rollup/plugin-typescript` via its `typescript:` option, overriding the nested TS6 and crashing the build (`ts.sys` undefined) — the explicit option was removed so each plugin uses its own.
+
+3. **Collateral fix: the changesets CLI.** The pre-existing security override `'js-yaml@<4.3.0': ^4.3.1` broke `changeset status` (and would have broken `publish-packages.yml`): `read-yaml-file@1.1.0` under `@manypkg/find-root` calls `yaml.safeLoad`, removed in js-yaml 4. Fixed with a companion override `'read-yaml-file@<2.0.0': ^2.1.0` — v2 calls `yaml.load` natively. Drop it together with the js-yaml override.
+
+4. **Verified green under TS7:** every workspace's `type-check` (core, tags, pink; `apps/loom`'s failures reproduce identically under TS 6.0.3 — pre-existing, not a TS7 regression), core `test-ci` 69/69, `build-packages` 3/3, `apps/loom` esbuild build, pink Storybook build, `pnpm format:check`, `pnpm status-packages`, all after a full `pnpm clean` + reinstall.
+
 ## Risks / Trade-offs
 
 - **A tree-wide reformat produces a large, noisy diff.** → Isolate it in its own commit with no behavior change, and add the SHA to `.git-blame-ignore-revs`.

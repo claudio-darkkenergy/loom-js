@@ -16,17 +16,10 @@ allowBuilds:
 # bump can reach — all sit under the vercel 58.4.4 CLI, which pins them.
 # Removal condition for each: drop it once a plain `pnpm install` resolves the
 # named parent to a version inside the patched range (check with `pnpm why`).
+# NOTE: tools that embed the legacy TypeScript compiler API are given their
+# own nested typescript 6 via the readPackage hook in .pnpmfile.cjs — see the
+# comment there for why neither overrides nor packageExtensions can do it.
 overrides:
-    # Two TypeScript majors coexist deliberately. The repo's own compiler is
-    # free to move to ^7 (each workspace pins its own typescript), while
-    # prettier-plugin-sort-imports uses TypeScript ONLY as a parser and calls
-    # the legacy compiler API (ts.createSourceFile/ScriptTarget) that
-    # TypeScript 7 no longer exports from its main entry. This pins that one
-    # peer edge to 6.x; no workspace's typescript is affected.
-    # Removal condition: delete the moment the plugin ships TypeScript 7
-    # support or is replaced by a Babel-based sorter.
-    # See openspec/changes/fix-prettier-import-sorting/.
-    'prettier-plugin-sort-imports>typescript': ^6.0.2
     # tar: GHSA-23hp-3jrh-7fpw (critical) + 8 more tar advisories.
     # @vercel/fun@1.3.0 pins tar 7.5.7; patched >=7.5.21.
     'tar@<7.5.21': ^7.5.22
@@ -41,6 +34,12 @@ overrides:
     # @vercel/python-analysis pins 3.15.1; patched >=4.3.0 only. It calls
     # yaml.load, which v4 keeps (as the safe loader), so the major jump holds.
     'js-yaml@<4.3.0': ^4.3.1
+    # Collateral repair for the js-yaml jump above: read-yaml-file@1 (under
+    # changesets' @manypkg/find-root) calls yaml.safeLoad, which js-yaml 4
+    # removed — breaking the changesets CLI (`pnpm status-packages` and the
+    # publish workflow). v2 calls yaml.load natively. Drop together with the
+    # js-yaml override.
+    'read-yaml-file@<2.0.0': ^2.1.0
     # path-to-regexp: GHSA-j3q9-mxjg-w52f (high), GHSA-27v5-c462-wpq7 (moderate).
     # @vercel/fun pins 8.2.0, @vercel/backends pins 8.3.0; patched >=8.4.0.
     'path-to-regexp@>=8.0.0 <8.4.0': ^8.4.2
