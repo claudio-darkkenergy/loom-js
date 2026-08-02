@@ -1,9 +1,5 @@
 {
     "bracketSpacing": true,
-    "importOrderCaseInsensitive": true,
-    "importOrderSeparation": true,
-    "importOrderSortSpecifiers": true,
-    "noMultipleEmptyLines": true,
     "semi": true,
     "singleQuote": true,
     "tabWidth": 4,
@@ -19,6 +15,25 @@
     "newlineBetweenTypes": true,
     "sortingMethod": "alphabetical",
     "stripNewlines": true,
+    "packageJSONFiles": [
+        "package.json",
+        "apps/docs/package.json",
+        "apps/examples/activity-effect-nested-array/package.json",
+        "apps/loom/package.json",
+        "apps/sandbox/package.json",
+        "lib/codegen/package.json",
+        "lib/contentful/package.json",
+        "lib/monitor/package.json",
+        "lib/open-ai/package.json",
+        "lib/storybook/package.json",
+        "lib/typescript-config/package.json",
+        "lib/utils/package.json",
+        "packages/core/package.json",
+        "packages/esbuild/esbuild-plugin-html-split/package.json",
+        "packages/pink/package.json",
+        "packages/tags/package.json",
+        "services/package.json"
+    ],
     "overrides": [
         {
             "files": "*.mjs",

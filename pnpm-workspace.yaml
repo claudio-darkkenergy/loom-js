@@ -17,6 +17,16 @@ allowBuilds:
 # Removal condition for each: drop it once a plain `pnpm install` resolves the
 # named parent to a version inside the patched range (check with `pnpm why`).
 overrides:
+    # Two TypeScript majors coexist deliberately. The repo's own compiler is
+    # free to move to ^7 (each workspace pins its own typescript), while
+    # prettier-plugin-sort-imports uses TypeScript ONLY as a parser and calls
+    # the legacy compiler API (ts.createSourceFile/ScriptTarget) that
+    # TypeScript 7 no longer exports from its main entry. This pins that one
+    # peer edge to 6.x; no workspace's typescript is affected.
+    # Removal condition: delete the moment the plugin ships TypeScript 7
+    # support or is replaced by a Babel-based sorter.
+    # See openspec/changes/fix-prettier-import-sorting/.
+    'prettier-plugin-sort-imports>typescript': ^6.0.2
     # tar: GHSA-23hp-3jrh-7fpw (critical) + 8 more tar advisories.
     # @vercel/fun@1.3.0 pins tar 7.5.7; patched >=7.5.21.
     'tar@<7.5.21': ^7.5.22
