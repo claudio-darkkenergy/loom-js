@@ -21,7 +21,8 @@
  *
  * Removal condition, per tool: delete its entry the moment it ships
  * TypeScript 7 support. All four are on their latest published versions as
- * of 2026-08-02. See openspec/changes/fix-prettier-import-sorting/.
+ * of 2026-08-02. See
+ * openspec/changes/archive/2026-08-02-fix-prettier-import-sorting/.
  */
 const LEGACY_TS_API_TOOLS = new Set([
     'prettier-plugin-sort-imports',

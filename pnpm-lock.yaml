@@ -16,7 +16,7 @@ overrides:
   smol-toml@<1.6.1: ^1.7.1
   '@tootallnate/once@<2.0.1': ^2.0.1
 
-pnpmfileChecksum: sha256-7XbBH4zMqX8v/biIyD3pXconRSV12ujdXXHzs+hoU+A=
+pnpmfileChecksum: sha256-+5mExs7X9OM0AurHNQB4brrRIkUODgU6OUbixjXFsfc=
 
 importers:
 
