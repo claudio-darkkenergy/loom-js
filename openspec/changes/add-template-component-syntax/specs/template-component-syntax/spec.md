@@ -12,7 +12,7 @@ A loom template SHALL support composing a component as an element whose tag is a
 
 #### Scenario: props are passed as attributes
 
-- **WHEN** a component element supplies props as `$prop=${value}`, static `attr="text"`, and boolean shorthand `$flag`
+- **WHEN** a component element supplies props as `prop=${value}`, static `attr="text"`, and boolean shorthand `flag`
 - **THEN** the component receives them as props with the corresponding values
 - **AND** interpolated values preserve their JavaScript type — objects, arrays, and functions are passed by reference, not coerced to strings
 

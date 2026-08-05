@@ -25,21 +25,23 @@ This proposal adds element syntax for composing components:
 ```ts
 html`
     <${PinkButton}
-        $isOnlyIcon
+        isOnlyIcon
         icon="icon-menu"
-        $onClick=${() => toggleSideNav(null)}
+        onClick=${() => toggleSideNav(null)}
     />
 `;
 ```
+
+(Component props carry no `$` sigil — `$` keeps its existing element-only meaning; see design Decision 8.)
 
 ## What Changes
 
 - **Add a transform pass at the front of `htmlParser`** that rewrites component-element syntax into the functional form loom already supports, _before_ the existing pipeline runs. The output target is `${Component({ …props })}` in text position — an already-supported composition form — so this is sugar over existing runtime semantics rather than a new runtime concept.
 
     ```
-    chunks:  ['<', ' label=', ' $onClick=', '/>']   values: [Button, 'Click', fn]
+    chunks:  ['<', ' label=', ' onClick=', '/>']   values: [Button, 'Click', fn]
                                     ↓ transform
-    chunks:  ['', '']                                values: [Button({ label: 'Click', onClick: fn })]
+    chunks:  ['', '']                               values: [Button({ label: 'Click', onClick: fn })]
                                     ↓ existing pipeline, unchanged
     chunks.join(TOKEN) → createContextualFragment → getPaths → setUpdatesForPaths
     ```
@@ -47,7 +49,7 @@ html`
 - **Detect component tags** by the one unambiguous signal available: a chunk ending in `<` or `</` immediately before an interpolation. Everything else falls through to `createContextualFragment` exactly as today.
 - **Cache the transform per call site.** `templateCacheStore` is already keyed on `TemplateStringsArray` identity, and the language guarantees one stable identity per template-literal site, so the transform runs once per site for the life of the process.
 - **Compile nested children into synthesized components** (see Decisions), never into bare nested `html` calls.
-- **Support the prop forms** the functional syntax supports: interpolated values (`$prop=${value}`) carrying arbitrary JS (objects, arrays, functions), static string attributes, and boolean shorthand.
+- **Support the prop forms** the functional syntax supports: interpolated values (`prop=${value}`) carrying arbitrary JS (objects, arrays, functions), quoted static string attributes (`prop="text"`), and boolean shorthand (`prop`). No `$` sigil on component tags — every attribute of a component element is a prop, and `$` keeps its existing element-only dispatch meaning (design Decision 8; the accepted grammar is written out in `design.md`).
 - **Named slots / `[slot]` content distribution**, so a component can accept more than one labelled content region rather than a single undifferentiated children payload. **Inherited 2026-08-04 from `fix-custom-element-registration` task 6.2**, which deferred it and had nowhere to put it; it lands here because it is the multi-region counterpart to the children compilation above, and both are content-distribution questions about the same authoring syntax. Note this covers `[slot]` distribution generally — not only the shadow-DOM `<slot>` element — since `defineElement` renders to the light DOM by default. Design is open; the prior art is the Open Questions section of `openspec/changes/archive/2026-08-04-fix-custom-element-registration/design.md`.
 
 Non-goals: replacing the native HTML parsing of ordinary markup; custom-element registration (separate change, `fix-custom-element-registration`, which targets **interop** — letting non-loom pages consume loom components — not authoring ergonomics); any change to activity/effect semantics.
