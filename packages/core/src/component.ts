@@ -1,6 +1,5 @@
 import { htmlParser } from './html-parser';
 import { lifeCycles, memoizedRefContext } from './lib/context';
-import { registerCustomElement } from './lib/templating';
 import type {
     Component,
     ComponentArgs,
@@ -115,6 +114,5 @@ export const component: ComponentFactory = <Props extends object = {}>(
         return contextFunction;
     };
 
-    registerCustomElement({ name: templateFunction.name, componentFunction });
     return componentFunction;
 };

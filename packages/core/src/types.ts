@@ -101,8 +101,7 @@ export type TemplateNodeUpdate = (
 
 /* Component */
 export type AnyComponent<Props extends object = {}> =
-    | Component<Props>
-    | SimpleComponent<Props>;
+    Component<Props> | SimpleComponent<Props>;
 // The component callable (external values to internal props)
 export type Component<Props extends object = {}> = (
     props?: ComponentInputProps<Props>
@@ -158,6 +157,15 @@ export type ComponentBaseArgs = LifeCycleHookProps & UtilityProps;
 export type ComponentFactory = <Props extends object = {}>(
     templateFunction: TemplateFunction<Props>
 ) => Component<Props>;
+
+// Options for `defineElement`. Encapsulation is opt-in: with no `shadow`, a
+// registered element renders into the light DOM, where app CSS applies.
+export type DefineElementOptions = {
+    shadow?: ShadowRootInit | false;
+    // Pushed onto the shadow root's `adoptedStyleSheets`. Ignored without
+    // `shadow` — light-DOM content is styled by the document already.
+    styles?: CSSStyleSheet[];
+};
 
 // @deprecated
 export type ComponentOptionalProps = ReservedProps;

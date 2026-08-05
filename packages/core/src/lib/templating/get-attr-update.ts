@@ -269,7 +269,21 @@ const setCustomElementProps = ({
         props: object;
     };
 
-    if (!customElement.isWebComponent || !newProps || !isObject(newProps)) {
+    if (!customElement.isWebComponent) {
+        // Not a registered custom element — either the tag was never passed to
+        // `defineElement`, or its defining module had not been evaluated when
+        // this template was parsed, so the element was not yet upgraded.
+        newProps &&
+            canDebug('warn') &&
+            loomConsole.warn(
+                `${attr?.nodeName} was set on <${(
+                    dynamicNode as HTMLElement
+                ).tagName?.toLowerCase()}>, which is not a registered custom element. Register it with \`defineElement\`, and make sure its module is imported before this template renders.`
+            );
+        return;
+    }
+
+    if (!newProps || !isObject(newProps)) {
         newProps &&
             canDebug('warn') &&
             loomConsole.warn(`${attr?.nodeName} must be an object literal.`);

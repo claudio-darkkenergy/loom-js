@@ -12,6 +12,7 @@
         "web development",
         "front-end framework"
     ],
+    "sideEffects": false,
     "exports": {
         "module": "./dist/index.mjs",
         "default": "./dist/index.js"

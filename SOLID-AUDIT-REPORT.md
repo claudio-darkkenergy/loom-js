@@ -68,8 +68,8 @@ _Violations to resolve the next time the affected file is touched._
 
 - **Principle violated:** OCP
 - **Severity:** 🟡 Moderate
-- **Violation:** `getSpecialAttrUpdate` (lines 45–113) dispatches to `specialAttrUpdaters` via a `switch(true)` on hard-coded string comparisons (`nodeName === 'attrs'`, `nodeName === 'on'`, `nodeName === 'props'`). The `specialAttrUpdaters` object (lines 288–433) lists every recognized `$`-prefixed attribute.
-- **Impact:** Adding a new special attribute type (e.g., `$ref`, `$key`, `$bind`) requires editing the `switch` block and adding a new entry to `specialAttrUpdaters` — two edits in a 434-line file that is the update hot path for every dynamic node in the framework.
+- **Violation:** `getSpecialAttrUpdate` (lines 45–113) dispatches to `specialAttrUpdaters` via a `switch(true)` on hard-coded string comparisons (`nodeName === 'attrs'`, `nodeName === 'on'`, `nodeName === 'props'`). The `specialAttrUpdaters` object (lines 300–445) lists every recognized `$`-prefixed attribute.
+- **Impact:** Adding a new special attribute type (e.g., `$ref`, `$key`, `$bind`) requires editing the `switch` block and adding a new entry to `specialAttrUpdaters` — two edits in a 445-line file that is the update hot path for every dynamic node in the framework.
 - **Recommended fix:** Consider converting the switch dispatch to a lookup on `specialAttrUpdaters[nodeName]` with a `default` fallback; new attribute types then extend the map without touching the dispatch logic. See the OCP section in `.claude/skills/solid-principles/SKILL.md`.
 - **Status:** 🔲 Open
 - **Audited:** 2026-05-02
