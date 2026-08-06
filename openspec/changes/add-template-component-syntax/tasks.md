@@ -19,28 +19,28 @@ The Decision 3 correction establishes that array items reconcile through `parent
 
 ## 2. Specs first (Red)
 
-- [ ] 2.1 Extend `specs/template-component-syntax/spec.md` with scenarios for the settled decisions: `</>` as the single closing form (and that `</${Component}>` / `<//>` are _not_ accepted), throw-on-malformed with the offending construct named, and `key=${…}` reaching `props.key` and participating in keyed reconciliation.
-- [ ] 2.2 Add a scenario covering whichever answer 1.3 produces for children-of-keyed-items.
-- [ ] 2.3 Write the tests for those scenarios against `@web/test-runner` + chai. Confirm they fail for the expected reason — the transform does not exist — and that nothing else regressed.
-- [ ] 2.4 Add the no-op guard test: a template with no component elements produces byte-identical input to `createContextualFragment`. This is the single most important regression test in the change; the whole risk argument rests on it.
+- [x] 2.1 Extend `specs/template-component-syntax/spec.md` with scenarios for the settled decisions: `</>` as the single closing form (and that `</${Component}>` / `<//>` are _not_ accepted), throw-on-malformed with the offending construct named, and `key=${…}` reaching `props.key` and participating in keyed reconciliation. — Also added: `$`-is-element-only, verbatim prop names, non-callable tag value, and unsupported attribute forms.
+- [x] 2.2 Add a scenario covering whichever answer 1.3 produces for children-of-keyed-items. — "children of keyed items reconcile with their parents", per Decision 10.
+- [x] 2.3 Write the tests for those scenarios against `@web/test-runner` + chai. Confirm they fail for the expected reason — the transform does not exist — and that nothing else regressed. — Red confirmed 2026-08-06: 34 new tests failed (stub throw / silent misrender / no throw), 74 existing passed. `tests/unit/template-component-syntax.spec.ts`.
+- [x] 2.4 Add the no-op guard test: a template with no component elements produces byte-identical input to `createContextualFragment`. This is the single most important regression test in the change; the whole risk argument rests on it. — Four guard specs assert `compileComponentTags` returns `null` (plain templates, ordinary interpolations, non-adjacent `<`, stray `</>` with no signal); `null` means `htmlParser` uses the original chunks object untouched.
 
 ## 3. Transform implementation (Green)
 
-- [ ] 3.1 New transform module under `packages/core/src/lib/templating/`. Fast bail-out before any scanning — templates with no component tags must not pay.
-- [ ] 3.2 Scanner per the 0.3 grammar: chunk-boundary detection for opening tags (Decision 4), plus the text-scanning rule and open-component stack that `</>` requires (Decision 5).
-- [ ] 3.3 Children compilation into synthesized components (Decision 3), honoring the 1.3 outcome for keys. Never emit a nested bare `` html`…` `` — `component.ts:55` binds `html` to a single instance and `html-parser.ts:62` clobbers on a different chunks array.
-- [ ] 3.4 Wire into the front of `htmlParser` (`html-parser.ts`). Cache the derived chunks on the existing `templateCacheStore` entry, keyed by the same `TemplateStringsArray` identity (Decision 1); cache the _plan_, not the values (Decision 2).
-- [ ] 3.5 Sub-template cache keying: derived sub-chunks live on the parent's cache entry, not in a global keyed store — a chunks slice has no stable `TemplateStringsArray` identity.
-- [ ] 3.6 Throw path per Decision 6, naming the construct and including surrounding chunk text.
-- [ ] 3.7 Types in `packages/core/src/types.ts` for the transform's inputs/outputs.
+- [x] 3.1 New transform module under `packages/core/src/lib/templating/`. Fast bail-out before any scanning — templates with no component tags must not pay. — `compile-component-tags.ts`; bail-out is a single pass checking chunk suffixes.
+- [x] 3.2 Scanner per the 0.3 grammar: chunk-boundary detection for opening tags (Decision 4), plus the text-scanning rule and open-component stack that `</>` requires (Decision 5). — Deliberately kept out of the templating barrel (imported by path from `html-parser.ts`) to avoid a barrel cycle.
+- [x] 3.3 Children compilation into synthesized components (Decision 3), honoring the 1.3 outcome for keys. Never emit a nested bare `` html`…` `` — `component.ts:55` binds `html` to a single instance and `html-parser.ts:62` clobbers on a different chunks array. — Synthesized children are always rootless fragments (no single-root guarantee); no `key` forwarded per Decision 10.
+- [x] 3.4 Wire into the front of `htmlParser` (`html-parser.ts`). Cache the derived chunks on the existing `templateCacheStore` entry, keyed by the same `TemplateStringsArray` identity (Decision 1); cache the _plan_, not the values (Decision 2). — Entry now holds `{ fragment, paths, plan }`; getters apply per render. Also fixed a latent fragment-root bug this surfaced — see design.md Implementation findings.
+- [x] 3.5 Sub-template cache keying: derived sub-chunks live on the parent's cache entry, not in a global keyed store — a chunks slice has no stable `TemplateStringsArray` identity. — Sub-chunks are closed over by the parent plan's synthesized component; their array identity is the cache key when the synth renders.
+- [x] 3.6 Throw path per Decision 6, naming the construct and including surrounding chunk text. — All messages prefixed `[loom] Component element syntax error:` with a ±24-char excerpt.
+- [x] 3.7 Types in `packages/core/src/types.ts` for the transform's inputs/outputs. — `TemplateTransformGetter`, `TemplateTransformPlan`.
 
 ## 4. Verification
 
-- [ ] 4.1 `test-ci`, `type-check`, `type-check-tests` green.
-- [ ] 4.2 Measure the scanner against the 0.4 byte budget. Report the actual number.
+- [x] 4.1 `test-ci`, `type-check`, `type-check-tests` green. — 108 passed / 0 failed, both type-checks clean (2026-08-06).
+- [x] 4.2 Measure the scanner against the 0.4 byte budget. Report the actual number. — **1,524 B of 1,536 B**: 8,987 B min+gzip vs the 7,463 B baseline. An initial cut was 15 B over; error-message trimming brought it under (see design.md Implementation findings).
 - [ ] 4.3 Hot-path check: confirm no measurable regression for templates without component elements.
 - [ ] 4.4 **Readability check** — convert a real `apps/loom` template and show before/after. `apps/loom/src/app/pages/layout.ts` is the proposal's own motivating example; use it. Confirm `apps/loom` still builds and renders unchanged.
-- [ ] 4.5 Prettier per `.prettierrc` on all changed files (`--check` clean); let the import-sort plugin handle ordering.
+- [x] 4.5 Prettier per `.prettierrc` on all changed files (`--check` clean); let the import-sort plugin handle ordering. — Verified clean 2026-08-06.
 
 ## 5. Docs & release
 

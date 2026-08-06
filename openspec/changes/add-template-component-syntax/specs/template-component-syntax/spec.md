@@ -22,6 +22,57 @@ A loom template SHALL support composing a component as an element whose tag is a
 - **THEN** that markup is available to the component as its `children` prop
 - **AND** the markup renders in its own component context, not the enclosing component's
 
+#### Scenario: prop names are verbatim
+
+- **WHEN** a component element supplies a prop with a mixed-case name such as `onClick=${fn}`
+- **THEN** the component receives the prop under the exact name as authored — no lowercasing, no camelCase conversion
+
+#### Scenario: `key` is an ordinary prop
+
+- **WHEN** a component element supplies `key=${id}` or `key="static"`
+- **THEN** the value reaches the component's `props.key`
+- **AND** it participates in keyed reconciliation exactly as `Component({ key })` does
+
+#### Scenario: children of keyed items reconcile with their parents
+
+- **WHEN** a keyed list item's template composes a component element with children markup, and the list is reordered
+- **THEN** the children's DOM nodes move with their keyed parent rather than being recreated
+- **AND** no `key` needs to be supplied on the inner component element (design Decision 10)
+
+### Requirement: `</>` is the single closing form
+
+A component element SHALL close with `</>` and nothing else.
+
+#### Scenario: `</>` closes the innermost open component element
+
+- **WHEN** a template contains `<${Panel}>…</>`
+- **THEN** the markup between the tags becomes `Panel`'s children
+- **AND** nesting resolves innermost-first
+
+#### Scenario: `</${Component}>` is not accepted
+
+- **WHEN** a template closes a component element as `</${Component}>`
+- **THEN** an error is raised at transform time naming the rejected closing form
+
+#### Scenario: `<//>` is not accepted
+
+- **WHEN** a template closes a component element as `<//>`
+- **THEN** an error is raised at transform time naming the rejected closing form
+
+#### Scenario: `</>` with no open component element
+
+- **WHEN** `</>` appears in a component-bearing template while no component element is open
+- **THEN** an error is raised at transform time stating that no component tag is open
+
+### Requirement: `$` is element-only
+
+Component-element attributes SHALL NOT carry the `$` sigil; `$` keeps its existing special-attribute meaning on real elements only.
+
+#### Scenario: `$`-prefixed prop throws
+
+- **WHEN** a component element supplies `$onClick=${fn}`
+- **THEN** an error is raised at transform time suggesting the unprefixed name `onClick`
+
 ### Requirement: Nested markup does not clobber the enclosing context
 
 Compiled child markup SHALL receive its own component context. The transform SHALL NOT emit a nested call to the enclosing component's bound `html`.
@@ -63,3 +114,13 @@ Component element syntax outside the supported grammar SHALL produce an actionab
 - **WHEN** a component element is unclosed, or uses an unsupported attribute form
 - **THEN** an error identifying the template and the offending construct is raised
 - **AND** the failure is not a silent fallthrough that renders nothing
+
+#### Scenario: unsupported attribute forms throw
+
+- **WHEN** a component element uses an unquoted static value (`a=b`), an interpolation inside a quoted value (`a="x ${y}"`), or an interpolation that is not immediately after `name=`
+- **THEN** an error is raised at transform time naming the offending construct and including the surrounding chunk text
+
+#### Scenario: non-callable tag value throws
+
+- **WHEN** the interpolated tag value of a component element is not a function at render time
+- **THEN** an error is raised naming the interpolation position

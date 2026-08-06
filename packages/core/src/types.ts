@@ -99,6 +99,22 @@ export type TemplateNodeUpdate = (
     valueCtx?: ComponentContextPartial
 ) => void;
 
+/* Template component-element transform */
+// Maps the raw call-site interpolations to the per-render value of one
+// derived slot (an untouched pass-through or a compiled component element).
+export type TemplateTransformGetter = (
+    interpolations: TemplateTagValue[]
+) => TemplateTagValue;
+
+// The cached per-call-site output of the component-tag transform: static
+// derived chunks plus one getter per derived slot. The chunks array identity
+// is stable for the life of the process (Decision 1), so it can serve as a
+// cache key exactly like a `TemplateStringsArray`.
+export interface TemplateTransformPlan {
+    chunks: string[];
+    getters: TemplateTransformGetter[];
+}
+
 /* Component */
 export type AnyComponent<Props extends object = {}> =
     Component<Props> | SimpleComponent<Props>;

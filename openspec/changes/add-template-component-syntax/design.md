@@ -190,6 +190,7 @@ component-tag := '<' ‹interp: Component› attrs ( '/>' | '>' children '</>' )
 - The tag interpolation must be **immediately** followed by whitespace, `/>`, or `>` (i.e. the following chunk starts with one of those). Anything else — e.g. `<${B}icon=…` — throws.
 - The attribute region (`attrs`) spans chunk boundaries: every `name=${value}` splits the chunks, so the scanner carries its attribute-region state across interpolation boundaries.
 - Whitespace (including newlines) separates attributes and may precede `/>` or `>`.
+- **Component-only templates become fragments.** A template whose top level consists solely of component elements and whitespace (e.g. the proposal's own `` html`<${PinkButton} …/>` ``) has no top-level HTML element after the transform, so the transform marks its derived chunks as a rootless fragment (prepends the `<>` marker). The template then takes the existing `isTemplateFragment` path (`html-parser.ts:30`) — same semantics authors get from `<>` today. Synthesized children templates are always fragments for the same reason: a children region has no single-root guarantee.
 
 ### Attributes
 
@@ -237,6 +238,11 @@ Each of these throws (or, where noted, is inert text), so adding it later is non
 - Interpolations inside quoted attribute values — throw; use ``name=${`…`}``.
 - Unquoted attribute values — throw.
 - Spread props (`...${props}`) — throw; pass an object to a named prop or use the functional form.
+
+## Implementation findings (2026-08-06)
+
+- **Latent fragment-root bug, now fixed.** For rootless (`<>`) templates, `htmlParser` captured `ctx.root = Array.from(liveFragment.childNodes)` **before** `setUpdatesForPaths` ran — but wiring a **top-level** dynamic slot replaces those very placeholder text nodes (`set-updates-for-paths.ts` calls `dynamicNode.replaceWith(textFragment)`), leaving `ctx.root` referencing detached nodes. Existing templates only put slots _inside_ elements, so it never surfaced; the transform's fragment-ized outputs (component-only templates, synthesized children) put slots at the top level and hit it immediately. Fix: re-capture the fragment root after updates are wired. This is a behavioral bug fix for all fragment templates, not only transformed ones — covered by the "component-only template" and "nested children" integration specs.
+- **Byte budget: met at 1,524 B of 1,536 B.** Post-implementation `dist/index.mjs` measures 8,987 B min+gzip against the 7,463 B baseline (same measurement command as the budget entry). An initial cut came in 15 B over; trimming decision-reference parentheticals from error messages and deduplicating one repeated message brought it under without touching the grammar.
 
 ## Risks / Trade-offs
 

@@ -4,19 +4,31 @@ import { loomConsole } from './lib/globals/loom-console';
 import { deepDiffObject, isObject } from './lib/helpers';
 import { reactive } from './lib/reactive';
 import { getPaths, setUpdatesForPaths } from './lib/templating';
+// Imported by path — not via the templating barrel — to avoid a barrel cycle
+// (`compile-component-tags` imports `component`, which imports this module).
+import { compileComponentTags } from './lib/templating/compile-component-tags';
 import type {
     ComponentContext,
     ComponentContextPartial,
     PlainObject,
     TemplateRoot, // TemplateNodeUpdate,
     TemplateRootArray,
-    TemplateTagValue
+    TemplateTagValue,
+    TemplateTransformPlan
 } from './types';
 
 // Component Template Cache Store
+// Keyed by chunks identity — the call site's `TemplateStringsArray`, or a
+// transform-synthesized chunks array (both are one stable identity for the
+// life of the process). A synthesized children template's derived sub-chunks
+// live on its parent's cached plan, never in a separate keyed store.
 const templateCacheStore = new Map<
-    TemplateStringsArray,
-    { fragment: DocumentFragment; paths: Set<[number[], Attr | undefined]> }
+    TemplateStringsArray | string[],
+    {
+        fragment: DocumentFragment;
+        paths: Set<[number[], Attr | undefined]>;
+        plan: TemplateTransformPlan | null;
+    }
 >();
 // Component Instance Context Store
 const instanceContextStore = new WeakSet<ComponentContextPartial>();
@@ -27,18 +39,23 @@ export function htmlParser(
     ...interpolations: TemplateTagValue[]
 ) {
     const ctx = this as ComponentContext;
-    const isTemplateFragment = /^<>/.test(chunks[0]?.trim() ?? '');
+    let cacheEntry = templateCacheStore.get(chunks);
 
     // This only runs once per component "definition" (`TaggedTemplate`.)
-    if (!templateCacheStore.has(chunks)) {
+    if (!cacheEntry) {
+        // Compile any component-element syntax out of the chunks before the
+        // native parser sees them. A `null` plan means no component tags —
+        // the template passes through byte-identical.
+        const plan = compileComponentTags(chunks);
+        const statics = plan ? plan.chunks : (chunks as readonly string[]);
         // Creates a `DocumentFragment` using the component HTML template as its context (children.)
         const fragment = document
             .createRange()
-            .createContextualFragment(chunks.join(config.TOKEN));
+            .createContextualFragment(statics.join(config.TOKEN));
 
         // Check for a "rootless" component template.
         // This will inherit its connected parent element as its root.
-        if (isTemplateFragment && fragment.childNodes[0]) {
+        if (/^<>/.test(statics[0]?.trim() ?? '') && fragment.childNodes[0]) {
             // Remove the fragment artifact "<>" from the renderable content.
             fragment.childNodes[0].textContent =
                 fragment.childNodes[0].textContent?.replace('<>', '') || null;
@@ -50,12 +67,20 @@ export function htmlParser(
             window.NodeFilter.SHOW_ALL
         );
 
-        // Cache the template using the `TemplateStringsArray`.
-        templateCacheStore.set(chunks, {
-            fragment,
-            paths: getPaths(treeWalker)
-        });
+        // Cache the template using the chunks identity.
+        cacheEntry = { fragment, paths: getPaths(treeWalker), plan };
+        templateCacheStore.set(chunks, cacheEntry);
     }
+
+    const { plan } = cacheEntry;
+    // Apply the cached plan to this render's raw interpolations — the plan is
+    // static, the derived values are not. Without a plan, both pass through.
+    const values = plan
+        ? plan.getters.map((get) => get(interpolations))
+        : interpolations;
+    const isTemplateFragment = /^<>/.test(
+        (plan ? plan.chunks[0] : chunks[0])?.trim() ?? ''
+    );
 
     // Runs only once per component "instance", while its root node or node-list is "alive".
     if (
@@ -66,15 +91,12 @@ export function htmlParser(
                 null
         )
     ) {
-        const {
-            fragment = document.createDocumentFragment(),
-            paths = new Set<[number[], Attr | undefined]>()
-        } = templateCacheStore.get(chunks) || {};
+        const { fragment, paths } = cacheEntry;
         // The live fragment - the `DocumentFragment`
         // which will contain all the live nodes which will exist in the DOM.
         const liveFragment = fragment.cloneNode(true) as DocumentFragment;
-        // Convert `interpolations[]` to object.
-        const valueObj = interpolations.reduce(
+        // Convert `values[]` to object.
+        const valueObj = values.reduce(
             (acc: { [key: number]: TemplateTagValue }, value, i) => {
                 acc[i] = value;
                 return acc;
@@ -122,6 +144,14 @@ export function htmlParser(
         _lifeCycles.preRender(ctx);
         // Set all the updaters for each dynamic node path & calls them.
         setUpdatesForPaths(paths, ctx, liveFragment);
+
+        if (isTemplateFragment) {
+            // Re-capture the root node-list: wiring a top-level dynamic slot
+            // replaces the placeholder text nodes captured above, which would
+            // leave `ctx.root` referencing detached nodes.
+            ctx.root = Array.from(liveFragment.childNodes) as TemplateRootArray;
+        }
+
         // setParentOnContext(ctx);
         instanceContextStore.add(ctx);
     } else {
@@ -135,8 +165,8 @@ export function htmlParser(
                 getShareableContext(ctx)
             );
 
-        // Set interpolations as new values of the `props` proxy object.
-        interpolations.forEach((value, i) => {
+        // Set the derived interpolations as new values of the `props` proxy object.
+        values.forEach((value, i) => {
             canDebugUpdates &&
                 loomConsole.info({
                     newValue: value,
