@@ -14,6 +14,21 @@ const Box = component<{ color?: string }>(
     `
 );
 
+// Probe pair for `openspec/changes/add-template-component-syntax` task 1.2:
+// `NestedChild` stands in for a transform-synthesized children component —
+// module-level, stable identity, no `key` of its own — interpolated in a
+// template slot of a keyed item, which is exactly what the transform emits.
+const NestedChild = component<{ color?: string }>(
+    (html, { color }) => html`
+        <em data-child=${color}></em>
+    `
+);
+const KeyedItem = component<{ color?: string }>(
+    (html, { children, color }) => html`
+        <div data-color=${color}>${children}</div>
+    `
+);
+
 const boxes = ($root: HTMLElement) =>
     Array.from($root.querySelectorAll<HTMLElement>('[data-color]'));
 const boxByColor = ($root: HTMLElement, color: string) =>
@@ -183,6 +198,83 @@ describe('activity (array values)', () => {
             expect(afterSecond['3'], '3 still reused').to.equal(
                 afterFirst['3']
             );
+        });
+    });
+
+    describe('keyed reconciliation with nested children (task 1.2 probe)', () => {
+        it('should move an unkeyed nested child with its keyed parent across a reorder', async () => {
+            const colors = activity(['red', 'green', 'blue'], { deep: true });
+            const TestComponent = component(
+                (html) => html`
+                    <main>
+                        ${colors.effect(({ value: cs }) =>
+                            cs.map((color) =>
+                                KeyedItem({
+                                    children: NestedChild({ color }),
+                                    color,
+                                    key: color
+                                })
+                            )
+                        )}
+                    </main>
+                `
+            );
+
+            const $test = await runSetup({ containerProps: { TestComponent } });
+            const childOf = (color: string) =>
+                $test.querySelector(`[data-color="${color}"] > [data-child]`);
+            const redChildBefore = childOf('red');
+            const blueChildBefore = childOf('blue');
+            expect(redChildBefore, 'red child rendered').to.exist;
+            expect(blueChildBefore, 'blue child rendered').to.exist;
+
+            colors.update(['blue', 'red', 'green']);
+
+            // If children fell to the index keyspace while their parents
+            // reconcile by key, these nodes would be recreated or would land
+            // under the wrong parent after the reorder.
+            expect(childOf('red'), 'red child reused').to.equal(redChildBefore);
+            expect(childOf('blue'), 'blue child reused').to.equal(
+                blueChildBefore
+            );
+            expect(
+                childOf('red')?.getAttribute('data-child'),
+                'red child content intact'
+            ).to.equal('red');
+        });
+
+        it('should keep nested children with their keyed parents across repeated reorders', async () => {
+            const colors = activity(['a', 'b', 'c'], { deep: true });
+            const TestComponent = component(
+                (html) => html`
+                    <main>
+                        ${colors.effect(({ value: cs }) =>
+                            cs.map((color) =>
+                                KeyedItem({
+                                    children: NestedChild({ color }),
+                                    color,
+                                    key: color
+                                })
+                            )
+                        )}
+                    </main>
+                `
+            );
+
+            const $test = await runSetup({ containerProps: { TestComponent } });
+            const childOf = (color: string) =>
+                $test.querySelector(`[data-color="${color}"] > [data-child]`);
+
+            colors.update(['c', 'b', 'a']);
+            const aAfterFirst = childOf('a');
+            const cAfterFirst = childOf('c');
+            expect(aAfterFirst, 'a child present after reversal').to.exist;
+
+            colors.update(['a', 'b', 'c']);
+
+            // The 2nd reorder proves the child ctx survived the 1st pass.
+            expect(childOf('a'), 'a child still reused').to.equal(aAfterFirst);
+            expect(childOf('c'), 'c child still reused').to.equal(cAfterFirst);
         });
     });
 

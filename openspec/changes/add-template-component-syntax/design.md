@@ -86,10 +86,10 @@ helpers.ts:19-24        → per-key {} pulled from parentCtx.children
 component.ts:39         that child ctx has NO ctxScopes → takes the `ctx = liveCtx` branch
 ```
 
-So the array path deliberately routes _around_ `ctxScopes`. This matters to the transform in two concrete ways, both of which are unproven and must be tested (see Open Questions):
+So the array path deliberately routes _around_ `ctxScopes`. This matters to the transform in two concrete ways, both probed 2026-08-05 (tests below; results also in the Resolved section):
 
-1. **One slot per template function.** A synthesized children component reached through a context that _does_ carry `ctxScopes`, with more than one live instance of itself, would collide into a single context. The array path avoids this; whether every path does is not established.
-2. **Key inheritance gap.** A synthesized children component receives no `key` prop unless the transform forwards one — so children of keyed items would reconcile **by index** while their parents reconcile **by key**.
+1. **One slot per template function — no reachable collision.** ~~Unproven.~~ Probed: `tests/unit/context-scopes.spec.ts`. A `ctxScopes`-carrying context is only ever the effect ctx (`activity.ts:112`), and it resolves exactly **one** value directly — the effect's return (`activity.ts:101-108`) — so at most one live instance of a template function can occupy its `ctxScopes` slot at a time. Every multi-instance path routes around the map: template-slot instances get per-slot contexts via `appendChildContext(ctx, value, slotIndex)` (`set-reactive-updates.ts:14`), and array instances get per-key/per-index contexts via `appendChildContext(parentCtx, value, key ?? i)` (`get-text-update.ts:65`). All three paths confirmed empirically: same-slot reuse across re-runs, two same-template slots staying distinct, and a three-instance unkeyed array staying distinct.
+2. **Key inheritance gap — does not exist for the emission shape.** ~~Unproven.~~ Probed: `tests/unit/activity-array.spec.ts` ("keyed reconciliation with nested children"). A child interpolated in a template slot of a keyed item is keyed by **interpolation-slot index within the per-key parent context**, not by list position — so it inherits its parent's keyed reconciliation implicitly and moves with it across reorders (identical node references across single and repeated reorders). See Decision 10.
 
 ### Decision 4: Detect component tags by chunk-boundary signal
 
@@ -147,6 +147,12 @@ An unmatched `</>` — one that appears while no component tag is open — is ma
 - **No back-compat break.** The transform's fast bail-out means a template with no component-tag signal is never scanned, so a stray literal `</>` in an existing template keeps today's behavior (the native parser silently drops it). The throw fires only in templates that already use component syntax — exactly where a stray `</>` should be loud rather than silently vanishing.
 
 The error message names the construct (`</>`), states that no component tag is open, and includes the surrounding chunk text per Decision 6.
+
+### Decision 10: The transform does not forward `key` to synthesized children (decided 2026-08-05)
+
+Synthesized children components stay keyless, deliberately. The 1.2 probe (`tests/unit/activity-array.spec.ts`, "keyed reconciliation with nested children") shows the feared gap does not exist for the transform's emission shape: a child interpolated in a template slot of a keyed item gets its context from `appendChildContext(parentCtx, value, slotIndex)` (`set-reactive-updates.ts:14`) — keyed by **interpolation-slot index inside the per-key parent context**. Slot index is stable regardless of list position, so the child inherits its parent's keyed reconciliation implicitly; forwarding the parent's `key` would add plumbing with no observable effect.
+
+Boundary this rests on: Decision 3 emits exactly **one** synthesized component per children region, in slot position. Keys only matter in **array** position, and the transform never emits synthesized components into arrays. Author-supplied arrays inside children markup keep today's semantics — the author keys them, exactly as in the functional form.
 
 ## Accepted Grammar (task 0.3 — the scanner is built and tested against this)
 
@@ -249,6 +255,9 @@ Recorded here so the reasoning is not re-litigated.
 - **`$` on component tags** → forbidden; `$`-prefixed names throw at transform time. See Decision 8.
 - **`</>` against an empty component stack** → throws; it is never a fragment terminator. See Decision 9.
 - **Accepted grammar** → written down explicitly, including attribute regions that span chunk boundaries. See the Accepted Grammar section; it is the artifact the scanner is built and tested against (tasks 0.3, 3.2).
+- **Byte budget (2026-08-05)** → the transform (scanner + plan builder + throw path) may add **at most 1,536 bytes (1.5 KiB) min+gzip** to the ES bundle. Measurement is reproducible: `pnpm -F @loom-js/core build-package`, then `esbuild dist/index.mjs --minify | gzip -9 | wc -c`, compared against the pre-change baseline of **7,463 bytes** (raw `dist/index.mjs` 21,917 B; minified 19,695 B; measured 2026-08-05 at commit `70c5981` with the workspace esbuild). A breach is a design smell — the grammar or the plan representation is too large — and gets redesigned, not renegotiated.
+- **`ctxScopes` collision (2026-08-05)** → not reachable on any existing path; probed in `tests/unit/context-scopes.spec.ts`. See the Decision 3 correction, point 1.
+- **Children of keyed items (2026-08-05)** → reconcile with their parents; no index-keyspace gap for the transform's emission shape. Probed in `tests/unit/activity-array.spec.ts`. See the Decision 3 correction, point 2, and Decision 10 (no `key` forwarding).
 - **How `key` props are supplied** → _no design work needed; the mechanism already exists._ `key` is an ordinary prop, not special syntax:
 
     ```ts
@@ -265,8 +274,4 @@ Recorded here so the reasoning is not re-litigated.
 
 ## Open Questions
 
-- **Does a synthesized children component ever reach a context carrying `ctxScopes` with more than one live instance of itself?** Per the Decision 3 correction, `ctxScopes` holds **one slot per template function**, so N instances in such a scope would collide into a single context. The array path routes around this via `parentCtx.children`; whether _every_ path does is unproven. Falsifiable — test it directly.
-
-- **Do children of keyed items reconcile by key or by index?** A synthesized children component receives no `key` prop unless the transform forwards one, which would leave children on the index keyspace while their parents are on the key keyspace. Concrete bug hypothesis; `tests/unit/activity-array.spec.ts` already has the harness.
-
-- **What is the byte budget** for the scanner in a zero-runtime-dependency package, and what is measured against it?
+None. All open questions are closed — see the Resolved section. The remaining unknowns (actual scanner size vs. budget, hot-path impact) are measurements scheduled in tasks 4.2 and 4.3, not design questions.
