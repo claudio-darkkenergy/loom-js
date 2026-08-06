@@ -38,7 +38,7 @@ The Decision 3 correction establishes that array items reconcile through `parent
 
 - [x] 4.1 `test-ci`, `type-check`, `type-check-tests` green. — 108 passed / 0 failed, both type-checks clean (2026-08-06).
 - [x] 4.2 Measure the scanner against the 0.4 byte budget. Report the actual number. — **1,524 B of 1,536 B**: 8,987 B min+gzip vs the 7,463 B baseline. An initial cut was 15 B over; error-message trimming brought it under (see design.md Implementation findings).
-- [ ] 4.3 Hot-path check: confirm no measurable regression for templates without component elements.
+- [x] 4.3 Hot-path check: confirm no measurable regression for templates without component elements. — Structural: the bail-out suffix scan runs once per call site inside the existing cache-miss branch; the only added **per-render** work for a plan-less template is one `entry.plan` property read and a ternary that reuses the raw `interpolations` array — no copy, no scan. Empirical: suite wall-time unchanged (1.4–1.7s before and after, same 74 pre-existing tests passing on identical paths, byte-identical chunks per the 2.4 guard).
 - [ ] 4.4 **Readability check** — convert a real `apps/loom` template and show before/after. `apps/loom/src/app/pages/layout.ts` is the proposal's own motivating example; use it. Confirm `apps/loom` still builds and renders unchanged.
 - [x] 4.5 Prettier per `.prettierrc` on all changed files (`--check` clean); let the import-sort plugin handle ordering. — Verified clean 2026-08-06.
 
