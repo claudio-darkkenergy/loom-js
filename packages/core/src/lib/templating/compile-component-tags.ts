@@ -67,7 +67,7 @@ const makeChildrenComponent = (region: Region) => {
             (
                 html as unknown as (
                     chunks: string[],
-                    ...v: TemplateTagValue[]
+                    ...values: TemplateTagValue[]
                 ) => ComponentContext
             )(childChunks, ...values)
     );
@@ -79,7 +79,7 @@ const makeComponentGetter = (frame: Frame): TemplateTransformGetter => {
     const { props, region, tagIndex } = frame;
     const child =
         region &&
-        (region.getters.length || region.statics.some((s) => s.trim()))
+        (region.getters.length || region.statics.some((text) => text.trim()))
             ? makeChildrenComponent(region)
             : null;
 
@@ -116,8 +116,8 @@ export const compileComponentTags = (
 
     // Fast bail-out (Decision 4): only a chunk ending in `<` or `</`
     // immediately before an interpolation can open component syntax.
-    for (let i = 0; i < last; i++) {
-        const chunk = chunks[i] as string;
+    for (let chunkIndex = 0; chunkIndex < last; chunkIndex++) {
+        const chunk = chunks[chunkIndex] as string;
 
         if (chunk.endsWith('<') || chunk.endsWith('</')) {
             hasSignal = true;
@@ -138,15 +138,15 @@ export const compileComponentTags = (
 
     // Attribute region for the current chunk. Returns the position where text
     // scanning resumes, or the chunk length when fully consumed.
-    const scanAttrs = (text: string, i: number): number => {
+    const scanAttrs = (text: string, chunkIndex: number): number => {
         const frame = attrsFrame as Frame;
         const len = text.length;
-        let p = 0;
+        let pos = 0;
 
         if (expectSeparator) {
-            const c = text[p];
+            const char = text[pos];
 
-            if (c !== undefined && !SEPARATOR.test(c)) {
+            if (char !== undefined && !SEPARATOR.test(char)) {
                 fail(
                     'the component tag and interpolated prop values must be followed by whitespace, `/>`, or `>`',
                     excerpt(text, 0)
@@ -156,89 +156,95 @@ export const compileComponentTags = (
             expectSeparator = false;
         }
 
-        while (p < len) {
-            const c = text[p] as string;
+        while (pos < len) {
+            const char = text[pos] as string;
 
-            if (/\s/.test(c)) {
-                p++;
+            if (/\s/.test(char)) {
+                pos++;
                 continue;
             }
 
-            if (c === '/') {
-                if (text[p + 1] === '>') {
+            if (char === '/') {
+                if (text[pos + 1] === '>') {
                     // Self-closing — emit into the enclosing region.
                     attrsFrame = null;
                     pushSlot(region, makeComponentGetter(frame));
-                    return p + 2;
+                    return pos + 2;
                 }
 
                 fail(
                     'unexpected `/` in the attribute region',
-                    excerpt(text, p)
+                    excerpt(text, pos)
                 );
             }
 
-            if (c === '>') {
+            if (char === '>') {
                 // Open with children — the frame goes onto the stack.
                 frame.region = createRegion();
                 frames.push(frame);
                 region = frame.region;
                 attrsFrame = null;
-                return p + 1;
+                return pos + 1;
             }
 
-            if (c === '$') {
-                let q = p + 1;
+            if (char === '$') {
+                let nameEnd = pos + 1;
 
-                while (q < len && NAME_CHAR.test(text[q] as string)) {
-                    q++;
+                while (
+                    nameEnd < len &&
+                    NAME_CHAR.test(text[nameEnd] as string)
+                ) {
+                    nameEnd++;
                 }
 
                 fail(
                     `component props take no \`$\` sigil — write \`${text.slice(
-                        p + 1,
-                        q
-                    )}\`, not \`${text.slice(p, q)}\``,
-                    excerpt(text, p)
+                        pos + 1,
+                        nameEnd
+                    )}\`, not \`${text.slice(pos, nameEnd)}\``,
+                    excerpt(text, pos)
                 );
             }
 
-            if (NAME_START.test(c)) {
-                let q = p + 1;
+            if (NAME_START.test(char)) {
+                let nameEnd = pos + 1;
 
-                while (q < len && NAME_CHAR.test(text[q] as string)) {
-                    q++;
+                while (
+                    nameEnd < len &&
+                    NAME_CHAR.test(text[nameEnd] as string)
+                ) {
+                    nameEnd++;
                 }
 
-                const name = text.slice(p, q);
-                const d = text[q];
+                const name = text.slice(pos, nameEnd);
+                const charAfterName = text[nameEnd];
 
-                if (d === '=') {
-                    const e = text[q + 1];
+                if (charAfterName === '=') {
+                    const valueChar = text[nameEnd + 1];
 
-                    if (e === '"' || e === "'") {
-                        const close = text.indexOf(e, q + 2);
+                    if (valueChar === '"' || valueChar === "'") {
+                        const closeQuote = text.indexOf(valueChar, nameEnd + 2);
 
-                        if (close === -1) {
+                        if (closeQuote === -1) {
                             fail(
                                 'a quoted attribute value must open and close within the same chunk (no interpolations inside quotes)',
-                                excerpt(text, q)
+                                excerpt(text, nameEnd)
                             );
                         }
 
                         // The value is a raw JS string — no entity decoding.
-                        const value = text.slice(q + 2, close);
+                        const value = text.slice(nameEnd + 2, closeQuote);
 
                         frame.props.push([name, () => value]);
-                        p = close + 1;
+                        pos = closeQuote + 1;
                         continue;
                     }
 
-                    if (q + 1 === len) {
-                        if (i === last) {
+                    if (nameEnd + 1 === len) {
+                        if (chunkIndex === last) {
                             fail(
                                 'unterminated component element',
-                                excerpt(text, p)
+                                excerpt(text, pos)
                             );
                         }
 
@@ -250,41 +256,41 @@ export const compileComponentTags = (
 
                     fail(
                         `unquoted attribute value for \`${name}\` — use quotes or an interpolation`,
-                        excerpt(text, q)
+                        excerpt(text, nameEnd)
                     );
                 }
 
-                if (d === undefined) {
-                    if (i === last) {
+                if (charAfterName === undefined) {
+                    if (chunkIndex === last) {
                         fail(
                             'unterminated component element',
-                            excerpt(text, p)
+                            excerpt(text, pos)
                         );
                     }
 
-                    return fail(BAD_ATTR_INTERPOLATION, excerpt(text, p));
+                    return fail(BAD_ATTR_INTERPOLATION, excerpt(text, pos));
                 }
 
-                if (SEPARATOR.test(d)) {
+                if (SEPARATOR.test(charAfterName)) {
                     // Boolean shorthand.
                     frame.props.push([name, () => true]);
-                    p = q;
+                    pos = nameEnd;
                     continue;
                 }
 
                 fail(
-                    `unexpected character \`${d}\` after attribute \`${name}\``,
-                    excerpt(text, q)
+                    `unexpected character \`${charAfterName}\` after attribute \`${name}\``,
+                    excerpt(text, nameEnd)
                 );
             }
 
             fail(
-                `unexpected character \`${c}\` in the attribute region`,
-                excerpt(text, p)
+                `unexpected character \`${char}\` in the attribute region`,
+                excerpt(text, pos)
             );
         }
 
-        if (i === last) {
+        if (chunkIndex === last) {
             fail('unterminated component element', excerpt(text, len - 1));
         }
 
@@ -293,45 +299,49 @@ export const compileComponentTags = (
 
     // Text position for the current chunk. Returns `true` when the chunk ends
     // by opening a component tag (consuming the following interpolation).
-    const scanText = (text: string, from: number, i: number): boolean => {
+    const scanText = (
+        text: string,
+        from: number,
+        chunkIndex: number
+    ): boolean => {
         const len = text.length;
-        let p = from;
+        let pos = from;
 
-        while (p < len) {
-            const lt = text.indexOf('<', p);
+        while (pos < len) {
+            const openAngle = text.indexOf('<', pos);
 
-            if (lt === -1) {
-                pushText(region, text.slice(p));
+            if (openAngle === -1) {
+                pushText(region, text.slice(pos));
                 return false;
             }
 
-            pushText(region, text.slice(p, lt));
+            pushText(region, text.slice(pos, openAngle));
 
-            const next = text[lt + 1];
+            const nextChar = text[openAngle + 1];
 
-            if (next === undefined) {
-                if (i === last) {
+            if (nextChar === undefined) {
+                if (chunkIndex === last) {
                     pushText(region, '<');
                     return false;
                 }
 
                 // Component open tag (Decision 4).
-                attrsFrame = { props: [], region: null, tagIndex: i };
+                attrsFrame = { props: [], region: null, tagIndex: chunkIndex };
                 expectSeparator = true;
                 return true;
             }
 
-            if (next === '/') {
-                const c2 = text[lt + 2];
+            if (nextChar === '/') {
+                const charAfterSlash = text[openAngle + 2];
 
-                if (c2 === '>') {
+                if (charAfterSlash === '>') {
                     // `</>` — close the innermost open component (Decision 5).
                     const frame = frames.pop();
 
                     if (!frame) {
                         fail(
                             'unmatched `</>` — no component element is open',
-                            excerpt(text, lt)
+                            excerpt(text, openAngle)
                         );
                     }
 
@@ -340,46 +350,46 @@ export const compileComponentTags = (
                               .region as Region)
                         : root;
                     pushSlot(region, makeComponentGetter(frame as Frame));
-                    p = lt + 3;
+                    pos = openAngle + 3;
                     continue;
                 }
 
-                if (c2 === '/') {
+                if (charAfterSlash === '/') {
                     fail(
                         '`<//>` is not an accepted closing form — close with `</>`',
-                        excerpt(text, lt)
+                        excerpt(text, openAngle)
                     );
                 }
 
-                if (c2 === undefined && i !== last) {
+                if (charAfterSlash === undefined && chunkIndex !== last) {
                     fail(
                         '`</${…}>` is not an accepted closing form — close with `</>`',
-                        excerpt(text, lt)
+                        excerpt(text, openAngle)
                     );
                 }
 
                 // A plain HTML end tag (or trailing text) — passes through.
                 pushText(region, '</');
-                p = lt + 2;
+                pos = openAngle + 2;
                 continue;
             }
 
             pushText(region, '<');
-            p = lt + 1;
+            pos = openAngle + 1;
         }
 
         return false;
     };
 
-    for (let i = 0; i < chunks.length; i++) {
-        const text = chunks[i] as string;
+    for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+        const text = chunks[chunkIndex] as string;
         let from = 0;
         let openedTag = false;
 
         if (attrsFrame) {
             if (pendingValueName) {
                 // The interpolation before this chunk was a prop value.
-                const valueIndex = i - 1;
+                const valueIndex = chunkIndex - 1;
                 const name = pendingValueName;
 
                 (attrsFrame as Frame).props.push([
@@ -390,16 +400,16 @@ export const compileComponentTags = (
                 expectSeparator = true;
             }
 
-            from = scanAttrs(text, i);
+            from = scanAttrs(text, chunkIndex);
         }
 
         if (!attrsFrame) {
-            openedTag = scanText(text, from, i);
+            openedTag = scanText(text, from, chunkIndex);
         }
 
-        if (i < last && !openedTag && !attrsFrame) {
+        if (chunkIndex < last && !openedTag && !attrsFrame) {
             // An ordinary interpolation — passes through untouched.
-            const valueIndex = i;
+            const valueIndex = chunkIndex;
 
             pushSlot(region, (interpolations) => interpolations[valueIndex]);
         }
@@ -411,7 +421,7 @@ export const compileComponentTags = (
 
     // A template whose top level is only component elements (and whitespace)
     // has no root element left — render it as a rootless fragment.
-    if (root.statics.every((s) => !s.trim())) {
+    if (root.statics.every((text) => !text.trim())) {
         root.statics[0] = `<>${root.statics[0]}`;
     }
 
