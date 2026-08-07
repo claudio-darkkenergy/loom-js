@@ -72,7 +72,10 @@ export type TemplateRootArray = TemplateRoot[];
 
 export type TemplateTagValueBase =
     | boolean
-    | Component
+    // Any component-shaped callable — covers `Component` and `SimpleComponent`
+    // with arbitrary `Props`, so components interpolate in tag position
+    // (`<${PinkButton} …/>`) without a cast.
+    | AnyComponent<any>
     | ContextFunction
     | EventListenerOrEventListenerObject
     | EventListener
@@ -89,7 +92,9 @@ export type TemplateTagValueBase =
 
 export type TemplateTagValue =
     | TemplateTagValueBase
-    | Record<string, TemplateTagValueBase>
+    // Recursive, so object-valued props carry arbitrary nesting — the runtime
+    // has always passed these through by reference.
+    | { [key: string]: TemplateTagValue }
     | TemplateTagValue[];
 
 export type TemplateTagValueFunction = <T>(props?: T) => TemplateTagValue;

@@ -13,22 +13,39 @@ import { sideNavToggle } from '../logic/activity/toggles';
 import styles from './styles.module.css';
 import { BrandLogoLink } from '@/app/components/branding/brand-logo-link';
 
-const PageLayout = component((html, { children, className, style: theme }) => {
-    const { effect: layoutStateEffect } = layoutState;
-    const { update: toggleSideNav } = sideNavToggle;
+const { effect: layoutStateEffect } = layoutState;
+const { update: toggleSideNav } = sideNavToggle;
 
+// The header brand cluster — the side-nav toggle (mobile only) next to the
+// brand logo. Component-only template, so it renders as a rootless fragment:
+// both elements land directly in the flex row, exactly like the array of
+// calls this replaces.
+const HeaderBrand = component<{ sideNav?: boolean }>(
+    (html, { sideNav }) => html`
+        <${PinkButton}
+            className=${classNames('is-only-mobile', { 'u-hide': !sideNav })}
+            icon="icon-menu"
+            isOnlyIcon
+            isText
+            onClick=${() => toggleSideNav(null)}
+        />
+        <${BrandLogoLink} />
+    `
+);
+
+const PageLayout = component((html, { children, className, style: theme }) => {
     return html`
         <div
             id="layout"
             class=${classNames('body-text-1', className)}
             style=${[theme, 'height: 100%']}
         >
-            ${PinkGridHeader({
-                className: classNames(
+            <${PinkGridHeader}
+                className=${classNames(
                     styles.header,
                     'body-text-1 u-padding-16'
-                ),
-                gridCol1: {
+                )}
+                gridCol1=${{
                     is: () =>
                         Div({
                             className: classNames(
@@ -36,25 +53,12 @@ const PageLayout = component((html, { children, className, style: theme }) => {
                                 styles.headerCol1
                             ),
                             children: layoutStateEffect(
-                                ({ value: { sideNav } }) => [
-                                    PinkButton({
-                                        className: classNames(
-                                            'is-only-mobile',
-                                            {
-                                                'u-hide': !sideNav
-                                            }
-                                        ),
-                                        icon: 'icon-menu',
-                                        isOnlyIcon: true,
-                                        isText: true,
-                                        onClick: () => toggleSideNav(null)
-                                    }),
-                                    BrandLogoLink({})
-                                ]
+                                ({ value: { sideNav } }) =>
+                                    HeaderBrand({ sideNav })
                             )
                         })
-                },
-                gridCol2: {
+                }}
+                gridCol2=${{
                     is: PinkTopNav,
                     className: styles.topNav,
                     items: [
@@ -75,14 +79,11 @@ const PageLayout = component((html, { children, className, style: theme }) => {
                         }
                     ],
                     onClick: route
-                },
-                style: 'background-color: #1c1c21; grid-auto-rows: min-content'
-            })}
+                }}
+                style="background-color: #1c1c21; grid-auto-rows: min-content"
+            />
             <main>${children}</main>
-            ${PinkContainer({
-                is: Footer,
-                children: '© 2024'
-            })}
+            <${PinkContainer} is=${Footer}>© 2024</>
         </div>
     `;
 });
