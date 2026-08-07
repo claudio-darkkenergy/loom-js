@@ -119,11 +119,17 @@ Anything outside the accepted grammar raises, rather than falling through to nat
 
 This is cheap because of Decision 1: the transform runs once per call site, so the throw fires on that site's **first render**, not per render. The error must name the offending construct and include the surrounding chunk text.
 
-### Decision 7: Attribute-name type checking is deferred (decided 2026-08-04)
+### Decision 7: Attribute-name type checking is deferred (decided 2026-08-04; premise falsified 2026-08-07)
 
-Checking attribute _names_ against the component's `Props` at the type level is theoretically reachable — TypeScript does give literal types to `TemplateStringsArray` under a generic tag. But it would require correlating names held in the `chunks` literal types against props held in `interpolations[0]`'s type, positionally, across two variadic tuples, recursing character-by-character. That is deep instantiation on the framework's most-used type; the realistic outcome is hitting instantiation-depth limits and degrading editor responsiveness on real templates. The repo also just moved to TypeScript 7's Go compiler (`c4e1cd3`), whose perf profile for that machinery should not be assumed.
+~~Checking attribute _names_ against the component's `Props` at the type level is theoretically reachable — TypeScript does give literal types to `TemplateStringsArray` under a generic tag.~~
 
-Deferred, not rejected. The cheaper fraction is available: because the transform emits `Component({ ...props })`, a generic transform can type-check the interpolated **values** (`onClick=${fn}` — is `fn` the right shape?) without checking the names. See tasks for the time-boxed spike and its acceptance bar.
+**Corrected by the 6.2 spike (2026-08-07): that premise is false.** Verified against the workspace compiler (tsc 7.0.2): a tagged template's chunks carry **no literal types**. A plain generic tag (`<T extends TemplateStringsArray>`) infers exactly `TemplateStringsArray`, and the variadic-tuple form (`readonly [...T] & TemplateStringsArray`) infers only `readonly string[]` — never `readonly ['a', 'b']`. The original worry here (instantiation-depth cost of character-level recursion) never comes into play: without literal chunk types, the type level cannot distinguish tag positions from prop-value positions from text slots at all, so there is nothing to correlate against.
+
+Consequences:
+
+- **6.2 (value checking) — abandoned as impossible, not expensive.** "Check interpolated values without checking names" still requires knowing _which_ interpolations are prop values of _which_ component — a correlation only chunk literals could provide. Checking by interpolation types alone cannot work: `${Button}` in text position is legal today, so a "component value ⇒ following values are props" overload would false-positive on legal templates.
+- **6.3 (name checking) — closed.** Its gate ("revisit only if 6.2 succeeds") can never open under the current compiler.
+- **Reopening condition:** TypeScript inferring literal chunk types for tagged templates (a long-requested language change). If that ever lands, both questions reopen — starting from this note, not from the falsified premise.
 
 ### Decision 8: `$` is forbidden on component tags (decided 2026-08-04)
 
