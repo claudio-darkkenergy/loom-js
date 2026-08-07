@@ -44,10 +44,10 @@ The Decision 3 correction establishes that array items reconcile through `parent
 
 ## 5. Docs & release
 
-- [ ] 5.1 Document the syntax in `packages/core/README.md`: element form, the `$` convention as settled in 0.1, `</>` closing, children, `key`, and the error behavior.
-- [ ] 5.2 State explicitly that this is **sugar over `${Component({…})}`** with no new runtime semantics, so readers know the two forms are interchangeable.
-- [ ] 5.3 Changeset for `@loom-js/core` — **minor** (additive syntax, no existing behavior changes).
-- [ ] 5.4 Update `SOLID-AUDIT-REPORT.md` and `.claude/skills/skill-config.md` if the new module changes the `packages/core/src/` public API surface or templating structure (per the repo's Skill Config Rule).
+- [x] 5.1 Document the syntax in `packages/core/README.md`: element form, the `$` convention as settled in 0.1, `</>` closing, children, `key`, and the error behavior. — New "Composing components (element syntax)" section between Components and Custom elements.
+- [x] 5.2 State explicitly that this is **sugar over `${Component({…})}`** with no new runtime semantics, so readers know the two forms are interchangeable. — Stated up front in the new README section.
+- [x] 5.3 Changeset for `@loom-js/core` — **minor** (additive syntax, no existing behavior changes). — `.changeset/template-component-syntax.md`; also notes the fragment-root fix.
+- [x] 5.4 Update `SOLID-AUDIT-REPORT.md` and `.claude/skills/skill-config.md` if the new module changes the `packages/core/src/` public API surface or templating structure (per the repo's Skill Config Rule). — skill-config's templating row now documents both barrel exclusions (`register-custom-element.ts`, `compile-component-tags.ts`); audit added one 🟢 Minor SRP entry for the new module (scanner/emitter co-location, weighed against the byte budget).
 
 ## 6. Deferred / tracked
 

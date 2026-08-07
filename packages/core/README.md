@@ -115,6 +115,51 @@ export const Button = component<ButtonProps>(
 );
 ```
 
+### Composing components (element syntax)
+
+Components compose inside templates as elements, with props written as attributes:
+
+```ts
+html`
+    <${PinkButton}
+        isOnlyIcon
+        icon="icon-menu"
+        onClick=${() => toggleSideNav(null)}
+    />
+`;
+```
+
+This is **sugar over the functional form** — the template above compiles to `${PinkButton({ isOnlyIcon: true, icon: 'icon-menu', onClick: … })}` before the native parser runs, with no new runtime semantics. The two forms are interchangeable, mix freely in one template, and render identically; templates that use no component tags pass through the pipeline byte-identical. The transform runs once per template call site and is cached.
+
+**Props** come in three forms, and the prop name is always taken **verbatim** — `onClick` stays `onClick`, with no lowercasing (component tags never reach the native HTML parser):
+
+| Form            | Compiles to        | Notes                                                           |
+| --------------- | ------------------ | --------------------------------------------------------------- |
+| `name`          | `{ name: true }`   | boolean shorthand                                               |
+| `name="text"`   | `{ name: 'text' }` | static string; single or double quotes; no HTML entity decoding |
+| `name=${value}` | `{ name: value }`  | any JS value, passed by reference — objects, arrays, functions  |
+
+**No `$` sigil on component tags.** Every attribute of a component element is a prop, so the sigil carries no information — `$` keeps its element-only meaning (`$click`, `$attrs`, `$on`, `$props` on real elements), and a `$`-prefixed prop on a component tag throws. Write `onClick=${fn}`, not `$onClick=${fn}`.
+
+**Children** go between the opening tag and the single closing form, `</>`:
+
+```ts
+html`
+    <${Panel} heading="Docs">
+        <p>Any markup, ${interpolations}, and nested components:</p>
+        <${Chip} label=${label} />
+    </>
+`;
+```
+
+The wrapped markup reaches the component as its `children` prop, rendering in its own component context. `</>` always closes the innermost open component tag — `</${Panel}>` and `<//>` are not accepted and throw.
+
+**`key`** is an ordinary prop (`key=${item.id}`) and participates in keyed reconciliation exactly as `Component({ key })` does. Children of keyed items move with their parents automatically; no `key` is needed on inner component elements.
+
+A template whose top level is only component elements (and whitespace) renders as a rootless fragment, the same as templates that start with `<>`.
+
+**Errors.** Malformed component syntax throws on the template's first render — naming the offending construct and quoting the surrounding template text — rather than falling through to the native parser and silently mis-rendering. This covers unclosed tags, unmatched `</>`, `$`-prefixed props, unquoted attribute values (`a=b`), and interpolations inside quoted values (`a="x ${y}"` — use ``a=${`x ${y}`}`` instead).
+
 ### Custom elements
 
 `component()` defines a component for use inside loom templates. It does **not** define a custom element. When you want a component to be consumable from a non-loom page as `<some-element>`, define it with `defineElement()` instead — it is `component()` plus registration, and returns the same callable `Component`.

@@ -3,7 +3,7 @@
 _Maintained by `.claude/skills/solid-audit/SKILL.md`. Update this file using the audit skill — do not edit violation statuses manually._
 
 **Last full audit:** 2026-05-02
-**Last updated:** 2026-05-02
+**Last updated:** 2026-08-07
 
 ---
 
@@ -11,12 +11,12 @@ _Maintained by `.claude/skills/solid-audit/SKILL.md`. Update this file using the
 
 | Principle | 🔴 Critical | 🟡 Moderate | 🟢 Minor | ✅ Resolved |
 | --------- | ----------- | ----------- | -------- | ----------- |
-| SRP       | 0           | 3           | 3        | 0           |
+| SRP       | 0           | 3           | 4        | 0           |
 | OCP       | 0           | 1           | 1        | 0           |
 | LSP       | 0           | 1           | 0        | 0           |
 | ISP       | 0           | 0           | 1        | 0           |
 | DIP       | 1           | 1           | 0        | 0           |
-| **Total** | **1**       | **6**       | **5**    | **0**       |
+| **Total** | **1**       | **6**       | **6**    | **0**       |
 
 ---
 
@@ -149,6 +149,18 @@ _Low-risk drift to fix opportunistically._
 - **Recommended fix:** Minor refactor: lift the two `memo` calls into a `buildNodeCache(paths, liveFragment)` helper and let `setUpdatesForPaths` call it. See the SRP section in `.claude/skills/solid-principles/SKILL.md`.
 - **Status:** 🔲 Open
 - **Audited:** 2026-05-02
+
+---
+
+### `packages/core/src/lib/templating/compile-component-tags.ts`
+
+- **Principle violated:** SRP
+- **Severity:** 🟢 Minor
+- **Violation:** The module co-locates the grammar scanner (`scanAttrs`, `scanText`) with the plan emitter (`makeComponentGetter`, `makeChildrenComponent`) — parsing the accepted grammar and constructing the render-time getters are two separable concerns in one file.
+- **Impact:** A change to the plan representation (e.g. a different getter shape) must be made in the same file that owns grammar recognition, mildly increasing the blast radius of either kind of change; it does not block testing (the single export is unit-tested directly).
+- **Recommended fix:** Low priority, and weigh against the change's explicit byte budget (design.md, `add-template-component-syntax`) before acting: splitting emitter helpers into a sibling module would add import/export surface to a size-capped zero-dependency package. If split, follow the SRP section in `.claude/skills/solid-principles/SKILL.md`.
+- **Status:** 🔲 Open
+- **Audited:** 2026-08-07
 
 ---
 
