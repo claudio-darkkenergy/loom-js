@@ -154,6 +154,32 @@ html`
 
 The wrapped markup reaches the component as its `children` prop, rendering in its own component context. `</>` always closes the innermost open component tag — `</${Panel}>` and `<//>` are not accepted and throw.
 
+**Named slots** give a component more than one labelled content region. A top-level child of the children region carrying a `slot="name"` label — a plain element or a component element — is grouped into that named region instead of `children`, and the component renders it by interpolating `slots.name`:
+
+```ts
+export const Card = component(
+    (html, { children, slots }) => html`
+        <article>
+            <header>${slots?.header}</header>
+            <div>${children}</div>
+            <footer>${slots?.footer}</footer>
+        </article>
+    `
+);
+
+html`
+    <${Card}>
+        <h2 slot="header">Title</h2>
+        <p>Everything unlabelled stays ordinary children.</p>
+        <${Chip} slot="footer" label=${label} />
+    </>
+`;
+```
+
+The functional form is the same call the element syntax compiles to: `Card({ slots: { header: H2({ children: 'Title' }) }, children: … })`. Each named region renders in its own component context as a rootless fragment; an absent region simply renders nothing. Multiple same-label siblings concatenate in source order, and a distributed plain element keeps its `slot` attribute (inert in the light DOM, exactly as the platform leaves it on natively assigned nodes) — while a labelled _component_ element's `slot` prop is consumed as addressing, never forwarded.
+
+Slot labels are recognized **only on top-level children** and must be static, non-empty, quoted strings — `slot=${name}`, `slot`, `slot=name`, and `slot=""` throw at transform time. Deeper `slot` attributes keep their native meaning and pass through untouched (e.g. children of a nested custom element distributing into its shadow DOM); loom's distribution applies to the light DOM only, and never competes with native `<slot>` distribution — a shadow-rooted custom element written as markup (`<my-el><span slot="x">…</span></my-el>`) is left entirely to the platform.
+
 **`key`** is an ordinary prop (`key=${item.id}`) and participates in keyed reconciliation exactly as `Component({ key })` does. Children of keyed items move with their parents automatically; no `key` is needed on inner component elements.
 
 A template whose top level is only component elements (and whitespace) renders as a rootless fragment, the same as templates that start with `<>`.

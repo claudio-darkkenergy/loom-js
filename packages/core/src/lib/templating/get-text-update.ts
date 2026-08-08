@@ -49,9 +49,12 @@ const handleArrayValue = (
     parentCtx?: ComponentContextPartial
 ) => {
     const liveNodeIsArray = Array.isArray(liveNode);
+    // `parentNode`, not `parentElement` — a top-level slot of a fragment
+    // template has a `DocumentFragment` parent, which can host insertions
+    // but is not an `Element`.
     const liveNodeParent = liveNodeIsArray
-        ? liveNode[0]?.parentElement
-        : liveNode?.parentElement;
+        ? liveNode[0]?.parentNode
+        : liveNode?.parentNode;
     let nextLiveNode: TemplateRootArray;
 
     if (!valueArray.length) {

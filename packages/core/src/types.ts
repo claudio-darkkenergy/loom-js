@@ -201,6 +201,11 @@ export type ReservedProps = {
     onClick?: SyntheticRouteEventListener | EventListenerOrEventListenerObject;
     ref?: RefContext;
     routeProps?: RouteValue;
+    // Named content regions (design Decision 3 of `add-named-slots`): each
+    // key is a region name, addressed in the template as `${slots?.name}`.
+    // Element syntax always supplies `ContextFunction`s; the functional form
+    // may pass anything interpolatable.
+    slots?: PlainObject<TemplateTagValue>;
     style?: StyleProp;
 };
 
