@@ -11,12 +11,12 @@ _Maintained by `.claude/skills/solid-audit/SKILL.md`. Update this file using the
 
 | Principle | 🔴 Critical | 🟡 Moderate | 🟢 Minor | ✅ Resolved |
 | --------- | ----------- | ----------- | -------- | ----------- |
-| SRP       | 0           | 3           | 4        | 0           |
+| SRP       | 0           | 3           | 3        | 1           |
 | OCP       | 0           | 1           | 1        | 0           |
 | LSP       | 0           | 1           | 0        | 0           |
 | ISP       | 0           | 0           | 1        | 0           |
 | DIP       | 1           | 1           | 0        | 0           |
-| **Total** | **1**       | **6**       | **6**    | **0**       |
+| **Total** | **1**       | **6**       | **5**    | **1**       |
 
 ---
 
@@ -152,18 +152,6 @@ _Low-risk drift to fix opportunistically._
 
 ---
 
-### `packages/core/src/lib/templating/compile-component-tags.ts`
-
-- **Principle violated:** SRP
-- **Severity:** 🟢 Minor
-- **Violation:** The module co-locates the grammar scanner (`scanAttrs`, `scanText`) with the plan emitter (`makeComponentGetter`, `makeChildrenComponent`) — parsing the accepted grammar and constructing the render-time getters are two separable concerns in one file.
-- **Impact:** A change to the plan representation (e.g. a different getter shape) must be made in the same file that owns grammar recognition, mildly increasing the blast radius of either kind of change; it does not block testing (the single export is unit-tested directly).
-- **Recommended fix:** Low priority, and weigh against the change's explicit byte budget (design.md, `add-template-component-syntax`) before acting: splitting emitter helpers into a sibling module would add import/export surface to a size-capped zero-dependency package. If split, follow the SRP section in `.claude/skills/solid-principles/SKILL.md`.
-- **Status:** 🔲 Open
-- **Audited:** 2026-08-07
-
----
-
 ### `packages/core/src/config.ts`
 
 - **Principle violated:** OCP
@@ -180,4 +168,11 @@ _Low-risk drift to fix opportunistically._
 
 _Closed violations. Do not delete these — they are a record of improvements made._
 
-_None yet._
+### `packages/core/src/lib/templating/compile-component-tags.ts` → `compile-component-tags/`
+
+- **Principle violated:** SRP
+- **Severity:** 🟢 Minor
+- **Violation:** The module co-located the grammar scanner (`scanAttrs`, `scanText`) with the plan emitter (`makeComponentGetter`, `makeChildrenComponent`) — parsing the accepted grammar and constructing the render-time getters are two separable concerns in one file. The `add-named-slots` change grew the file further (plain-tag walker, depth tracking), triggering the entry's revisit condition.
+- **Resolution:** Split into a folder module, one concern per file: `grammar.ts` (token classes, name reader, throw path), `regions.ts` (statics/getters assembly primitives), `emit.ts` (synthesized components + component getter), `scanner.ts` (the cooperating scan state machine), `types.ts` (transform-internal shapes), `index.ts` (public contract: bail-out + plan finalization). The public import path is unchanged (the folder's `index.ts` resolves under the package's CJS-mode NodeNext resolution), and the test suite was mirrored into `tests/unit/compile-component-tags/` with one spec file per concern. Bundle cost of the split: +13 B min+gzip (rollup flattens the folder).
+- **Status:** ✅ Resolved
+- **Audited:** 2026-08-07 (resolved 2026-08-07, `add-named-slots` task 5.3)
