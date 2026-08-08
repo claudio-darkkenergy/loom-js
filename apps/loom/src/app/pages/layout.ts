@@ -5,7 +5,7 @@ import {
     PinkGridHeader,
     PinkTopNav
 } from '@loom-js/pink';
-import { Div, Footer, Svg } from '@loom-js/tags';
+import { Footer, Svg } from '@loom-js/tags';
 import classNames from 'classnames';
 
 import { layoutState } from '../logic/activity/layout-state';
@@ -45,23 +45,20 @@ const PageLayout = component((html, { children, className, style: theme }) => {
                     styles.header,
                     'body-text-1 u-padding-16'
                 )}
-                gridCol1=${{
-                    is: () =>
-                        Div({
-                            className: classNames(
-                                'u-flex u-gap-8',
-                                styles.headerCol1
-                            ),
-                            children: layoutStateEffect(
-                                ({ value: { sideNav } }) =>
-                                    HeaderBrand({ sideNav })
-                            )
-                        })
-                }}
-                gridCol2=${{
-                    is: PinkTopNav,
-                    className: styles.topNav,
-                    items: [
+                style="background-color: #1c1c21; grid-auto-rows: min-content"
+            >
+                <div
+                    slot="col1"
+                    class=${classNames('u-flex u-gap-8', styles.headerCol1)}
+                >
+                    ${layoutStateEffect(({ value: { sideNav } }) =>
+                        HeaderBrand({ sideNav })
+                    )}
+                </div>
+                <${PinkTopNav}
+                    slot="col2"
+                    className=${classNames(styles.topNav, 'grid-header-col-2')}
+                    items=${[
                         { children: 'Docs', href: '/docs' },
                         {
                             className: classNames(
@@ -77,11 +74,10 @@ const PageLayout = component((html, { children, className, style: theme }) => {
                             onClick: () => {},
                             target: '_blank'
                         }
-                    ],
-                    onClick: route
-                }}
-                style="background-color: #1c1c21; grid-auto-rows: min-content"
-            />
+                    ]}
+                    onClick=${route}
+                />
+            </>
             <main>${children}</main>
             <${PinkContainer} is=${Footer}>© 2024</>
         </div>
