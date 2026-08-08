@@ -27,6 +27,7 @@ A loom template SHALL support composing a component as an element whose tag is a
 - **WHEN** a component element wraps markup between its opening and closing tags
 - **THEN** that markup is available to the component as its `children` prop
 - **AND** the markup renders in its own component context, not the enclosing component's
+- **AND** any `slot`-labelled top-level elements in that markup are distributed into the component's named regions per the `named-slots` capability, with only the unlabelled remainder forming `children`
 
 #### Scenario: prop names are verbatim
 
