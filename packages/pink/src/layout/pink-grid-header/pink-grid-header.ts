@@ -1,87 +1,44 @@
-import type {
-    ComponentInputProps,
-    ContextFunction,
-    SimpleComponent
-} from '@loom-js/core';
-import { Div, H2, Header, type HeaderProps } from '@loom-js/tags';
+import { component } from '@loom-js/core';
+import { Header, type HeaderProps } from '@loom-js/tags';
 import classNames from 'classnames';
 
-import { PinkDynamicProps } from '../../types';
+/**
+ * A header laid out on the pink grid. Content arrives through named slots
+ * rather than object props:
+ *
+ * ```ts
+ * html`
+ *     <${PinkGridHeader}>
+ *         <h2 slot="col1" class="grid-header-col-1">Databases</h2>
+ *         <${PinkButton} slot="col2" className="grid-header-col-2">…</>
+ *     </>
+ * `;
+ * ```
+ *
+ * `col1` renders as the leading column; `col2`–`col4` render inside the
+ * trailing flex cluster. Slotted content is rendered as authored — callers
+ * place the pink grid classes (`grid-header-col-1`…`-4`) on their own
+ * elements.
+ *
+ * The `Header` tag component owns the props-to-attributes mapping, exactly
+ * as it did for the functional form: `attrs` for arbitrary attributes, `on`
+ * for listeners, plus top-level `className`/`id`/`style`.
+ */
+export type PinkGridHeaderProps = Omit<HeaderProps, 'children'>;
 
-const GridCol1 = ({ gridCol1 = {} }: Pick<PinkGridHeaderProps, 'gridCol1'>) => {
-    const {
-        className: gridCol1_className,
-        is: gridCol1_is = H2,
-        ...gridCol1Props
-    } = gridCol1;
-
-    return gridCol1_is({
-        ...gridCol1Props,
-        className: classNames(gridCol1_className, 'grid-header-col-1'),
-        key: 'gridCol1'
-    });
-};
-
-const GridCols = ({
-    gridCol2,
-    gridCol3,
-    gridCol4
-}: Pick<PinkGridHeaderProps, 'gridCol2' | 'gridCol3' | 'gridCol4'>) =>
-    [gridCol2, gridCol3, gridCol4]
-        .reduce((acc, gridCol, i) => {
-            if (!gridCol) {
-                return acc;
-            }
-
-            const {
-                className: girdColClassName,
-                is = Div,
-                ...gridColProps
-            } = gridCol;
-
-            acc = acc.concat(
-                is({
-                    ...gridColProps,
-                    className: classNames(
-                        girdColClassName,
-                        `grid-header-col-${i + 2}`
-                    ),
-                    key: `gridCol${i + 2}`
-                })
-            );
-
-            return acc;
-        }, [] as ContextFunction[])
-        .reverse();
-
-export type PinkGridHeaderProps = Omit<HeaderProps, 'children'> & {
-    gridCol1?: ComponentInputProps<PinkDynamicProps>;
-    gridCol2?: ComponentInputProps<PinkDynamicProps>;
-    gridCol3?: ComponentInputProps<PinkDynamicProps>;
-    gridCol4?: ComponentInputProps<PinkDynamicProps>;
-};
-
-export const PinkGridHeader: SimpleComponent<PinkGridHeaderProps> = ({
-    className,
-    gridCol1,
-    gridCol2,
-    gridCol3,
-    gridCol4,
-    ...headerProps
-}) => {
-    return Header({
-        ...headerProps,
-        children: [
-            GridCol1({ gridCol1 }),
-            Div({
-                children: GridCols({
-                    gridCol2,
-                    gridCol3,
-                    gridCol4
-                }),
-                className: 'u-flex u-gap-16 u-contents-mobile'
-            })
-        ],
-        className: classNames(className, 'grid-header')
-    });
-};
+export const PinkGridHeader = component<PinkGridHeaderProps>(
+    (html, { attrs, className, id, on, slots, style }) => html`
+        <${Header}
+            attrs=${attrs}
+            className=${classNames(className, 'grid-header')}
+            id=${id}
+            on=${on}
+            style=${style}
+        >
+            ${slots?.col1}
+            <div class="u-flex u-gap-16 u-contents-mobile">
+                ${slots?.col4}${slots?.col3}${slots?.col2}
+            </div>
+        </>
+    `
+);
