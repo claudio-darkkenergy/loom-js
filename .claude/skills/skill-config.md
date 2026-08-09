@@ -147,6 +147,7 @@ Routing is provided by `@loom-js/core`'s built-in router:
 - `component()` holds its own template context (memoized across renders); `SimpleComponent` is a plain function that returns a `ContextFunction`.
 - Templates use tagged-template literals with a single top-level element.
 - Components compose in templates as elements (`<${Component} prop=${value}>…</>`); children markup becomes the `children` prop, and `slot="name"`-labelled top-level children become named regions on the `slots` prop (`${slots?.name}` in the receiving template). Labels must be static quoted strings; the functional form is the identical call (`Component({ slots: { name: … }, children: … })`).
+- Spread props: `...${object}` in a component element's attribute region spreads the object's entries as props with object-literal semantics (authored order, last-wins duplicates; nullish/primitive values are a no-op) — identical to `Component({ ...object })`. A `slot` key via spread is an ordinary prop, never a label, and markup `children`/`slots` win over spread-supplied ones.
 - Lifecycle hooks (`onCreated`, `onRendered`, `onMounted`, `onUnmounted`, `onBeforeRender`) are provided via props.
 
 ### Reactivity

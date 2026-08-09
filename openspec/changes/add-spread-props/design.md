@@ -34,9 +34,11 @@ The getter applies `Object.assign`-style spreading per render. Nullish and primi
 
 A `slot` key inside a spread object is an ordinary prop named `slot` — never a region label, because labels are resolved at transform time against static text and spread values exist only at render time. Same reasoning as the parent's rejection of interpolated labels; documented rather than guarded (there is nothing to throw on — the key is simply a prop). `key` and `ref` via spread behave exactly as in the functional form.
 
-### Decision 5: Byte budget
+### Decision 5: Byte budget — 160 B min+gzip over the measured baseline (task 0.1, decided 2026-08-08)
 
 Set in tasks section 0 against the measured post-`add-named-slots` baseline (9,850 B min+gzip, same measurement command). Expected cost is small: one token recognition in `scanAttrs`, one pending-spread state, one spread step in the emit loop.
+
+**Decided:** the spread addition may add **at most 160 bytes min+gzip** to `dist/index.mjs`. Baseline re-measured 2026-08-08 at exactly **9,850 B** (no drift from the `add-named-slots` close), giving a ceiling of **10,010 B**. Measurement command unchanged: `pnpm -F @loom-js/core build-package`, then `esbuild dist/index.mjs --minify | gzip -9 | wc -c` with the workspace esbuild. Per the parent's discipline: a breach is a design smell to be redesigned, not renegotiated.
 
 ## Risks / Trade-offs
 
