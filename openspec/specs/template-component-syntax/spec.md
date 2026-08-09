@@ -8,7 +8,7 @@ This capability targets **authoring ergonomics** inside loom templates. Exposing
 
 ### Requirement: Components compose via element syntax
 
-A loom template SHALL support composing a component as an element whose tag is an interpolated component reference, with props supplied as attributes.
+A loom template SHALL support composing a component as an element whose tag is an interpolated component reference, with props supplied as attributes, including spreading an interpolated object's entries as props.
 
 #### Scenario: component element renders
 
@@ -45,6 +45,23 @@ A loom template SHALL support composing a component as an element whose tag is a
 - **WHEN** a keyed list item's template composes a component element with children markup, and the list is reordered
 - **THEN** the children's DOM nodes move with their keyed parent rather than being recreated
 - **AND** no `key` needs to be supplied on the inner component element (design Decision 10)
+
+#### Scenario: spread props apply in source order
+
+- **WHEN** a component element supplies `...${object}` among its attributes
+- **THEN** the object's entries become props exactly as `Component({ ...object })` would receive them
+- **AND** spreads and named props apply in authored order with last-wins duplicates, like an object literal
+
+#### Scenario: nullish spread values are a no-op
+
+- **WHEN** the interpolated spread value is `null`, `undefined`, or a primitive
+- **THEN** no props are added and no error is raised — matching JS object-spread semantics
+
+#### Scenario: spread values carry no transform-time constructs
+
+- **WHEN** a spread object contains a `slot` key
+- **THEN** it arrives as an ordinary prop named `slot`, never as a region label
+- **AND** markup-derived `children` and `slots` still take precedence over spread-supplied ones
 
 ### Requirement: `</>` is the single closing form
 
@@ -114,7 +131,7 @@ The transform SHALL be a no-op for templates that contain no component element s
 
 ### Requirement: Malformed component syntax fails clearly
 
-Component element syntax outside the supported grammar SHALL produce an actionable error rather than silently mis-rendering.
+Component element syntax outside the supported grammar SHALL produce an actionable error rather than silently mis-rendering, with `...` immediately before an interpolation no longer among the rejected forms.
 
 #### Scenario: unclosed or malformed component element
 
@@ -124,8 +141,13 @@ Component element syntax outside the supported grammar SHALL produce an actionab
 
 #### Scenario: unsupported attribute forms throw
 
-- **WHEN** a component element uses an unquoted static value (`a=b`), an interpolation inside a quoted value (`a="x ${y}"`), or an interpolation that is not immediately after `name=`
+- **WHEN** a component element uses an unquoted static value (`a=b`), an interpolation inside a quoted value (`a="x ${y}"`), or an interpolation that is not immediately after `name=` or `...`
 - **THEN** an error is raised at transform time naming the offending construct and including the surrounding chunk text
+
+#### Scenario: `...` not followed by an interpolation throws
+
+- **WHEN** `...` appears in an attribute region other than immediately before an interpolation
+- **THEN** an error is raised at transform time naming the offending construct
 
 #### Scenario: non-callable tag value throws
 
