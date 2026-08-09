@@ -131,13 +131,16 @@ html`
 
 This is **sugar over the functional form** — the template above compiles to `${PinkButton({ isOnlyIcon: true, icon: 'icon-menu', onClick: … })}` before the native parser runs, with no new runtime semantics. The two forms are interchangeable, mix freely in one template, and render identically; templates that use no component tags pass through the pipeline byte-identical. The transform runs once per template call site and is cached.
 
-**Props** come in three forms, and the prop name is always taken **verbatim** — `onClick` stays `onClick`, with no lowercasing (component tags never reach the native HTML parser):
+**Props** come in four forms, and the prop name is always taken **verbatim** — `onClick` stays `onClick`, with no lowercasing (component tags never reach the native HTML parser):
 
 | Form            | Compiles to        | Notes                                                           |
 | --------------- | ------------------ | --------------------------------------------------------------- |
 | `name`          | `{ name: true }`   | boolean shorthand                                               |
 | `name="text"`   | `{ name: 'text' }` | static string; single or double quotes; no HTML entity decoding |
 | `name=${value}` | `{ name: value }`  | any JS value, passed by reference — objects, arrays, functions  |
+| `...${object}`  | `{ ...object }`    | spread; JS object-spread semantics, no whitespace after `...`   |
+
+**Spread props** apply with object-literal semantics: spreads and named props land in authored order with last-wins duplicates, so `<${Header} ...${headerProps} className=${x}>` behaves exactly like `Header({ ...headerProps, className: x })`. Nullish and primitive spread values are a render-time no-op, matching `{ ...null }` in JS. A `slot` key inside a spread object arrives as an ordinary prop, never as a slot label (labels are resolved at transform time), and markup-derived `children`/`slots` still win over spread-supplied ones.
 
 **No `$` sigil on component tags.** Every attribute of a component element is a prop, so the sigil carries no information — `$` keeps its element-only meaning (`$click`, `$attrs`, `$on`, `$props` on real elements), and a `$`-prefixed prop on a component tag throws. Write `onClick=${fn}`, not `$onClick=${fn}`.
 
@@ -184,7 +187,7 @@ Slot labels are recognized **only on top-level children** and must be static, no
 
 A template whose top level is only component elements (and whitespace) renders as a rootless fragment, the same as templates that start with `<>`.
 
-**Errors.** Malformed component syntax throws on the template's first render — naming the offending construct and quoting the surrounding template text — rather than falling through to the native parser and silently mis-rendering. This covers unclosed tags, unmatched `</>`, `$`-prefixed props, unquoted attribute values (`a=b`), and interpolations inside quoted values (`a="x ${y}"` — use ``a=${`x ${y}`}`` instead).
+**Errors.** Malformed component syntax throws on the template's first render — naming the offending construct and quoting the surrounding template text — rather than falling through to the native parser and silently mis-rendering. This covers unclosed tags, unmatched `</>`, `$`-prefixed props, unquoted attribute values (`a=b`), interpolations inside quoted values (`a="x ${y}"` — use ``a=${`x ${y}`}`` instead), and `...` not immediately before an interpolation.
 
 ### Custom elements
 

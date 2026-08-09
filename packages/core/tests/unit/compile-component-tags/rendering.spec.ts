@@ -49,6 +49,31 @@ describe('component element rendering (integration)', () => {
         );
     });
 
+    it('should render a spread identically to the functional spread form', async () => {
+        const chipProps = { label: 'spread' };
+        const ElementForm = component(
+            (html) => html`
+                <main><${Chip} ...${chipProps} /></main>
+            `
+        );
+        const FunctionalForm = component(
+            (html) => html`
+                <main>${Chip({ ...chipProps })}</main>
+            `
+        );
+
+        const $element = await runSetup({
+            containerProps: { TestComponent: ElementForm }
+        });
+        const $functional = await runSetup({
+            containerProps: { TestComponent: FunctionalForm }
+        });
+
+        expect($element.querySelector('main')?.innerHTML.trim()).to.equal(
+            $functional.querySelector('main')?.innerHTML.trim()
+        );
+    });
+
     it('should deliver static, boolean, and interpolated props with their JS types', async () => {
         const onClick = () => {};
         const TestComponent = component(

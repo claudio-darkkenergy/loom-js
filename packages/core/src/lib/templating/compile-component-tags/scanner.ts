@@ -31,6 +31,7 @@ export const scan = (chunks: ArrayLike<string>, last: number): Region => {
     let region = root;
     let attrsFrame: Frame | null = null;
     let pendingValueName: string | null = null;
+    let pendingSpread = false;
     let expectSeparator = false;
     let plainTag: PlainTag | null = null;
 
@@ -263,6 +264,24 @@ export const scan = (chunks: ArrayLike<string>, last: number): Region => {
                     )}\`, not \`${text.slice(pos, nameEnd)}\``,
                     excerpt(text, pos)
                 );
+            }
+
+            if (text.startsWith('...', pos)) {
+                if (pos + 3 !== len) {
+                    fail(
+                        '`...` must immediately precede an interpolated value — write `...${object}`',
+                        excerpt(text, pos)
+                    );
+                }
+
+                if (chunkIndex === last) {
+                    fail('unterminated component element', excerpt(text, pos));
+                }
+
+                // `...` at the chunk end — the interpolation that follows
+                // spreads into the props object.
+                pendingSpread = true;
+                return len;
             }
 
             if (NAME_START.test(char)) {
@@ -557,6 +576,16 @@ export const scan = (chunks: ArrayLike<string>, last: number): Region => {
                     (interpolations) => interpolations[valueIndex]
                 ]);
                 pendingValueName = null;
+                expectSeparator = true;
+            } else if (pendingSpread) {
+                // The interpolation before this chunk was a spread value.
+                const valueIndex = chunkIndex - 1;
+
+                (attrsFrame as Frame).props.push([
+                    null,
+                    (interpolations) => interpolations[valueIndex]
+                ]);
+                pendingSpread = false;
                 expectSeparator = true;
             }
 

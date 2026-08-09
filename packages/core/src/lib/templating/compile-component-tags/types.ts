@@ -13,9 +13,11 @@ export interface Region {
 // depth and its named regions; `slotLabel` is the label this element itself
 // carries when it sits at the top level of an enclosing children region.
 // The slot fields are optional so the hot-path frame literal stays small.
+// A `null` prop name marks a spread entry — the getter's value spreads into
+// the props object at that position.
 export interface Frame {
     activeSlot?: string | null;
-    props: [string, TemplateTransformGetter][];
+    props: [string | null, TemplateTransformGetter][];
     region: Region | null;
     slotLabel?: string;
     slotRegions?: Map<string, Region>;

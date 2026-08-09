@@ -66,7 +66,13 @@ export const makeComponentGetter = (frame: Frame): TemplateTransformGetter => {
         const tagProps: PlainObject = {};
 
         props.forEach(([name, get]) => {
-            tagProps[name] = get(interpolations);
+            if (name === null) {
+                // A spread entry — JS object-spread semantics, so nullish
+                // and primitive values are a no-op.
+                Object.assign(tagProps, get(interpolations));
+            } else {
+                tagProps[name] = get(interpolations);
+            }
         });
 
         if (child) {
