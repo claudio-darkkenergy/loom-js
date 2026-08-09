@@ -29,11 +29,8 @@ export type PinkGridHeaderProps = Omit<HeaderProps, 'children'>;
 export const PinkGridHeader = component<PinkGridHeaderProps>(
     (html, { attrs, className, id, on, slots, style }) => html`
         <${Header}
-            attrs=${attrs}
+            ...${{ attrs, id, on, style }}
             className=${classNames(className, 'grid-header')}
-            id=${id}
-            on=${on}
-            style=${style}
         >
             ${slots?.col1}
             <div class="u-flex u-gap-16 u-contents-mobile">
