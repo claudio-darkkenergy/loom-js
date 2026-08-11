@@ -148,6 +148,7 @@ Routing is provided by `@loom-js/core`'s built-in router:
 - Templates use tagged-template literals with a single top-level element.
 - Components compose in templates as elements (`<${Component} prop=${value}>…</>`); children markup becomes the `children` prop, and `slot="name"`-labelled top-level children become named regions on the `slots` prop (`${slots?.name}` in the receiving template). Labels must be static quoted strings; the functional form is the identical call (`Component({ slots: { name: … }, children: … })`).
 - Spread props: `...${object}` in a component element's attribute region spreads the object's entries as props with object-literal semantics (authored order, last-wins duplicates; nullish/primitive values are a no-op) — identical to `Component({ ...object })`. A `slot` key via spread is an ordinary prop, never a label, and markup `children`/`slots` win over spread-supplied ones.
+- Core element components (`src/elements/`): `RouteLink` (self-wired SPA routing), `Svg`, `Picture`, and `el(tagName)` (a plain tag as a memoized component value — for `is=` props, render callbacks, and props transformers). Convention: every top-level `component()`/factory definition in a shakeable core module carries a `/* @__PURE__ */` annotation (the build preserves them — do not re-add `removeComments` to the package tsconfig or drop terser's `preserve_annotations`).
 - Lifecycle hooks (`onCreated`, `onRendered`, `onMounted`, `onUnmounted`, `onBeforeRender`) are provided via props.
 
 ### Reactivity

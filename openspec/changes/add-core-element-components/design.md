@@ -38,11 +38,20 @@ A component's template has one fixed root, so "`<picture>` when `sources`, bare 
 
 Against the freshly measured baseline (post-`add-spread-props`: 9,944 B min+gzip, same measurement command). Expectations to be ratified by section 0: `el()` and `RouteLink` small (one template each plus factory/handler logic), `Svg` small, `Picture` medium (two internal components + chooser). Per repo discipline: budgets are ceilings; a breach is a design smell to redesign, not renegotiate.
 
+**Decided (task 0.1, 2026-08-10):** baseline re-measured at exactly **9,944 B**. Per-addition ceilings: `el()` **256 B**, `RouteLink` **256 B**, `Svg` **224 B**, `Picture` **352 B** — sum **1,088 B**, whole-bundle ceiling **11,032 B**. Measurement command unchanged (`pnpm -F @loom-js/core build-package`, then `esbuild dist/index.mjs --minify | gzip -9 | wc -c` with the workspace esbuild); each addition measured in its section-order isolation (delta over the previous section's landed number).
+
 ## Risks / Trade-offs
 
 - **[Template-identity subtleties in `el()`]** — dynamic chunks arrays are a first outside the compiler; a bug here corrupts DOM reuse. → TDD includes re-render/reconciliation specs (same `el` component across updates reuses nodes), not just first-render output.
 - **[`RouteLink` policy gaps]** (external-origin detection, hash links, modifier keys) → specs enumerate the fall-through cases explicitly; anything `route()` itself mishandles is filed against the router, not patched in `RouteLink`.
 - **[Budget creep across four additions]** → each addition measured separately in section 3; the sum is also recorded.
+
+## Findings (apply session)
+
+- **Tree-shaking required build-pipeline fixes (task 4.1, 2026-08-10):** top-level `component(...)` definitions are function calls bundlers cannot prove pure, so consumers kept all four element components regardless of imports. Fix: `/* @__PURE__ */` annotations on every top-level `component()` in `src/elements/` — plus two pipeline changes for the annotations to survive to `dist`: drop `removeComments: true` from `packages/core/tsconfig.json` (stripped them at TS emit) and add `format: { preserve_annotations: true }` to the terser call in `rollup.config.ts` (stripped them at output). Verified: an entry importing only `component` from `dist/index.mjs` shed 471 B and contains no element-component markers; full-vs-minimal delta 619 B ≈ the additions' 630 B. Convention forward: **any future top-level `component()`/factory definition in a shakeable core module needs the annotation.** Bundle-size measurement unaffected (annotations are stripped by the measurement minify).
+
+- **Router shift-click gap (task 0.3, filed 2026-08-10):** `Router.route()` excepts ctrl/meta-clicks (returns before `preventDefault`, preserving native new-tab) but not **shift-clicks**, so a shift-click meaning "open in new window" gets SPA-hijacked. Middle-clicks are unaffected (`click` never fires for them). Per Decision 3 this is a router defect, not `RouteLink`'s to patch — candidate one-line fix (`event?.shiftKey` joining the early return) for a router change; `routing.ts`'s deprecated `onRoute` lacks even the ctrl/meta check, one more reason `RouteLink` wires `route()`.
+- **Cross-origin `pushState` throws** (`SecurityError`), independently confirming Decision 3's requirement that `RouteLink` itself gates on same-origin before delegating to `route()`.
 
 ## Open Questions
 
