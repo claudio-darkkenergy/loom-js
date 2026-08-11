@@ -5,6 +5,29 @@ import type {
     TemplateTagValue
 } from '../../types';
 
+// Array-slot contexts live under a derived key so a slot changing kind
+// (component ⇄ array) can never hand one kind's context state to the other.
+const arraySlotKey = (key: number | string) => `${key}[]`;
+
+const getPersistentChildContext = (
+    parentCtx: ComponentContextPartial,
+    key: number | string
+) => {
+    let childCtx = (
+        parentCtx.children as Map<number | string, ComponentContextPartial>
+    ).get(key);
+
+    if (!childCtx) {
+        childCtx = {} as ComponentContextPartial;
+        (
+            parentCtx.children as Map<number | string, ComponentContextPartial>
+        ).set(key, childCtx);
+    }
+
+    childCtx.parent = parentCtx;
+    return childCtx;
+};
+
 export const appendChildContext = (
     parentCtx: ComponentContextPartial = {},
     value: TemplateTagValue,
@@ -16,18 +39,20 @@ export const appendChildContext = (
         typeof value === 'function' &&
         value.name.toLowerCase().endsWith('contextfunction')
     ) {
-        let childCtx = parentCtx.children.get(key);
-
-        if (!childCtx) {
-            childCtx = {} as ComponentContextPartial;
-            parentCtx.children.set(key, childCtx);
-        }
-
-        childCtx.parent = parentCtx;
-        return childCtx;
+        // A context function replaced any array previously in this slot, so the
+        // array's slot context is stale — drop it.
+        parentCtx.children.delete(arraySlotKey(key));
+        return getPersistentChildContext(parentCtx, key);
+    } else if (Array.isArray(value)) {
+        // Array values need a persistent context too: it carries the `children`
+        // map of per-item contexts, so re-reconciling the array reuses each
+        // item's live context (& DOM) instead of rebuilding from scratch.
+        // An array also replaces whatever component held the plain key.
+        parentCtx.children.delete(key);
+        return getPersistentChildContext(parentCtx, arraySlotKey(key));
     } else if (!(value instanceof Node)) {
-        // A non-`ContextFunction` value replaced a component in this slot, so its
-        // child context is stale — drop it.
+        // A primitive value replaced a component or array in this slot, so
+        // either child context is stale — drop both.
         //
         // Resolved DOM `Node`s are exempt: an `activity.effect(...)` subtree is
         // reconciled first by the effect itself (with its context functions) &
@@ -36,6 +61,7 @@ export const appendChildContext = (
         // index keyspace & would otherwise delete the child context of a keyed
         // item whose key happens to equal an index (e.g. numeric keys).
         parentCtx.children.delete(key);
+        parentCtx.children.delete(arraySlotKey(key));
     }
 };
 

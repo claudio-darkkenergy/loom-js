@@ -26,7 +26,6 @@ export const DocContainer: SimpleComponent<DocContainerProps> = ({
 }) => {
     const { update: toggleTopicToc } = topicTocToggle;
     const newChildren = [
-        // 2b. Not same node
         PinkActionBar({
             className: 'u-width-full-line',
             startContent: {
@@ -45,23 +44,9 @@ export const DocContainer: SimpleComponent<DocContainerProps> = ({
                 })
             }
         }),
-        // children: topicTocToggleEffect(({ value: topicToc }) =>
-        //     PinkButton({
-        //         className: classNames('is-not-desktop'),
-        //         icon: 'icon-list',
-        //         isOnlyIcon: true,
-        //         isText: true,
-        //         onClick: () => toggleTopicToc(null)
-        //     })
-        // )
-        // }
-        // })
-        // 2a. Same node
         children
     ];
-    console.log({ newChildren });
 
-    // 2.Same node
     return PinkContainer({
         ...props,
         className: classNames('u-grid', className),
