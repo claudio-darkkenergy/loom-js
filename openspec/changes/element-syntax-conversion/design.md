@@ -1,0 +1,50 @@
+## Context
+
+Every prerequisite is archived: `add-template-component-syntax` (element syntax), `add-named-slots`, `add-spread-props`, `add-core-element-components` (`RouteLink`, `Svg`, `Picture`, `el()`), `fix-router-activation-policy`. The 2026-08-10 audit (recorded in the umbrella's Decision 4) classified all 89 tags call sites; the umbrella's Decisions 4–8 settled the patterns, and `PinkGridHeader` + `PageLayout` are the living precedent for both the conversion shape and the DOM-parity proof.
+
+## Goals / Non-Goals
+
+**Goals:**
+
+- Zero `@loom-js/tags` imports in first-party code; the package deleted; pink majored.
+- Per-component DOM parity — the puppeteer harness from `add-named-slots` 4.3, byte-equal modulo `slot` attributes.
+- The pilot captures the context-count reduction the whole effort exists for.
+
+**Non-Goals:**
+
+- The lint package (umbrella section 5).
+- Core runtime changes of any kind.
+- API redesigns beyond what conversion forces (data-shaped APIs like `PinkTopNav`'s `items=` stay data-shaped).
+
+## Decisions
+
+### Decision 1: Conversion patterns are fixed by the audit — one per category
+
+- **Children-prop composition (55 sites):** the host becomes a template `component()`; nested wrapper calls become markup; labelled regions use named slots. Regions interpolate in templates — never as children-array items (the documented array limitation).
+- **`is=` polymorphism (10 sites):** the `is` prop survives, typed `Component`; defaults change from tags wrappers to `el('div')`/`el('ul')`/etc.; call sites compose `<${is} …>` or keep the functional call where the site is value-shaped.
+- **`item:`/`ListItems` render props (9 sites):** `Ul`/`Ol` hosts become templates owning `<ul>`/`<ol>` markup; the per-item callback becomes an authored `.map` whose return is a component call (functional form — the sanctioned value position).
+- **Transformers and third-party callbacks (residue):** `withIcon`/`withTooltip` build their icon/tooltip span via `el('span')`; `StyledRichText`'s `renderNode` returns `el('h1')`…`el('h4')` calls; `docs/index.ts`'s effect returns `el('aside')({…})`.
+- **Effects and maps otherwise keep the functional form** — that is architecture, not debt.
+
+### Decision 2: Pilot components and metrics
+
+Pilot trio, one per dominant shape: **`PinkBox`** (trivial `Div` wrapper), **`PinkContainer`** (`is=` passthrough with app consumers), **`PinkTopNav`** (list-heavy, `items=` data API, already slot-labelled in `PageLayout`). Metrics captured before/after on the app root page: `pink` dist min+gzip, app bundle total bytes, and **runtime component-context count** — measured by temporary instrumentation (a counter incremented per context creation in a local core build, read from the parity harness; the instrumentation never lands). DOM parity per component via the established harness.
+
+### Decision 3: Retirement mechanics
+
+Order: pink conversion (peerDep drop last) → app conversion → `ContentfulRichText` gets a local `mergeAllowedAttrs` copy (one consumer; core is not gaining a props-to-attrs util that element syntax exists to obsolete) → delete `packages/tags` + prune `.prettierrc` `packageJSONFiles` and `CLAUDE.md` → owner runs `npm deprecate '@loom-js/tags'` (needs npm auth — recorded as an owner step with suggested message text in tasks).
+
+### Decision 4: Pink majors once, at the end
+
+One changeset describing the composition-API break and the peerDep removal; per-component breaking notes accumulate in it as sections land. No interim pink releases mid-conversion (`main` publishes on merge — this branch holds until the change completes).
+
+## Risks / Trade-offs
+
+- **[Scale: 43 files]** → strict per-component increments with parity proof before moving on; sections ordered so pink leaf components go before their pink consumers.
+- **[Storybook stories exercise old APIs]** → stories update with their component in the same increment; `*.stories.*` are excluded from app-build inputs so cache noise stays down.
+- **[Array-limitation regressions]** → the one forbidden shape (region values inside children arrays) is named in every conversion section; parity harness catches the stringify symptom (`[object …]` text).
+- **[Uncommitted `fix-docs-toc-duplication` WIP overlaps `apps/loom`]** → app conversion coordinates with the owner before touching files that WIP holds open.
+
+## Open Questions
+
+None blocking — patterns, pilot, metrics, and retirement mechanics are all settled above; anything the pilot falsifies comes back here before the full sweep.
