@@ -13,9 +13,9 @@
 
 ## 2. Core survivors
 
-- [ ] 2.1 `RouteLink` in core (tree-shakeable, byte-budgeted, TDD per repo workflow).
-- [ ] 2.2 Media utilities (`Svg`, `Picture`, `ResponsiveImage`, `Source`) in core; delete the `Text` createTextNode helper (SSR-hostile, trivial).
-- [ ] 2.3 `el(tagName)` factory if 0.1 says it earns its bytes.
+- [x] 2.1 `RouteLink` in core (tree-shakeable, byte-budgeted, TDD per repo workflow). → landed via `2026-08-10-add-core-element-components` (134 B of 256 B).
+- [x] 2.2 Media utilities (`Svg`, `Picture`, `ResponsiveImage`, `Source`) in core; delete the `Text` createTextNode helper (SSR-hostile, trivial). → `Svg` + `Picture` landed per Decision 6 (`ResponsiveImage` chooser merged into `Picture`, `Source` as type; Svg 150 B / Picture 214 B). `Text` has zero uses — its deletion folds into 4.1's whole-package removal rather than a separate edit.
+- [x] 2.3 `el(tagName)` factory if 0.1 says it earns its bytes. → 0.1 said yes; landed (132 B of 256 B). Note the tree-shaking convention it forced: `/* @__PURE__ */` on top-level `component()` definitions (see the archived change's design Findings).
 
 ## 3. Pilot, then full conversion
 
