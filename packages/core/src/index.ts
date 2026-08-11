@@ -3,6 +3,7 @@ export * from './app';
 export * from './component';
 export * from './config';
 export * from './define-element';
+export * from './elements';
 export * from './lazy-import';
 export * from './router';
 export * from './routing';

@@ -189,6 +189,24 @@ A template whose top level is only component elements (and whitespace) renders a
 
 **Errors.** Malformed component syntax throws on the template's first render — naming the offending construct and quoting the surrounding template text — rather than falling through to the native parser and silently mis-rendering. This covers unclosed tags, unmatched `</>`, `$`-prefixed props, unquoted attribute values (`a=b`), interpolations inside quoted values (`a="x ${y}"` — use ``a=${`x ${y}`}`` instead), and `...` not immediately before an interpolation.
 
+### Element components
+
+Core ships a small set of kit-agnostic, tree-shakeable element components — element-level building blocks that carry real behavior (plain structure is better authored as markup):
+
+**`RouteLink`** — an anchor wired to the SPA router. Same-origin activations route via `route()` with no caller-supplied handler; `target="_blank"` and cross-origin hrefs fall through to the browser default (ctrl/cmd-click keeps its native new-tab behavior via the router itself).
+
+```ts
+html`
+    <${RouteLink} href="/docs">Docs</>
+`;
+```
+
+**`Svg`** — sprite composition. `<${Svg} path="/static/svg/sprite.svg" svgId="logo" size="20" />` renders an `<svg fill="currentColor">` whose `<use>` references `path#svgId`; `size` sets both dimensions, `height`/`width` set them individually, defaulting to `1em`.
+
+**`Picture`** — responsive image. With a `sources` array it renders a `<picture>` containing one `<source>` per entry plus the `<img>`; without one it renders the `<img>` alone. `SourceProps` is exported for typing the entries.
+
+**`el(tagName)`** — a plain HTML tag as a component value, for the places element syntax needs an element _as a value_: polymorphic `is=` props (`is=${el('footer')}`), third-party render callbacks (`el('h2')({ children, className })`), and props transformers. Memoized per tag — `el('footer') === el('footer')` — so re-renders reuse DOM nodes; void tags (`el('img')`, `el('hr')`, …) render childless. Prefer writing markup when you can; reach for `el()` only where a component reference must travel as a JS value.
+
 ### Custom elements
 
 `component()` defines a component for use inside loom templates. It does **not** define a custom element. When you want a component to be consumable from a non-loom page as `<some-element>`, define it with `defineElement()` instead — it is `component()` plus registration, and returns the same callable `Component`.

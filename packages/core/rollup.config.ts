@@ -38,6 +38,7 @@ const rollupConfig = [
                 tsconfig: './tsconfig.json'
             }),
             terser({
+                format: { preserve_annotations: true },
                 keep_fnames: true
             })
         ],
