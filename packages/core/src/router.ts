@@ -19,8 +19,6 @@ class Router {
     private params = {} as { [key: string]: string };
     private pathImporter?: () => Promise<any>;
     private pathname?: string;
-    // Matches to the path segment while omitting slashes, i.e "/segment-1/" = "segment-1".
-    private pathSegmentRx = '(?:\\/(\\w+[\\w|-]*))';
     private routeActivity: ReturnType<typeof activity<RouteValue, Location>>;
     private routesConfig?: RoutesConfig;
 
@@ -68,9 +66,16 @@ class Router {
         event: SyntheticRouteEvent<T> | null,
         options?: OnRouteOptions
     ) {
-        if (event?.ctrlKey || event?.metaKey) {
-            // Maintains browser native behavior to open a link in a new tab
-            // when holding the CTRL or CMD key when clicking the link.
+        if (
+            event?.ctrlKey ||
+            event?.metaKey ||
+            event?.shiftKey ||
+            event?.altKey ||
+            event?.defaultPrevented
+        ) {
+            // Maintains native behavior for modified activations — new tab
+            // (ctrl/cmd), new window (shift), download (alt) — and leaves
+            // events another handler already consumed.
             return;
         }
 
@@ -140,18 +145,6 @@ class Router {
         );
     }
 
-    // Parses out the dynamic parameter values from the current path.
-    private parseParams(routePath: string, segmentValues: string[]) {
-        const matchKey = routePath.match(/\/:(\w+)\/?/);
-
-        // Set the params if any exist.
-        if (matchKey) {
-            matchKey.slice(1).forEach((param, i) => {
-                this.params[param] = segmentValues[i] || '';
-            });
-        }
-    }
-
     // The activity transform logic - updates the route value & activity when a route is matched
     // to the current location.
     private transform(
@@ -163,28 +156,10 @@ class Router {
         }
 
         const { pathname } = sanitizeLocation(location);
-        let segmentValues: string[] = [];
-
-        // Search for a matched route & importer.
-        let [matchedRoute, pathImporter] =
-            Object.entries(this.routesConfig).find(([routePath]) => {
-                // Replace each dynamic param segment w/ the path segment regex.
-                const routePathRx = routePath.replace(
-                    // paramRx
-                    /\/:\w+\/?/,
-                    `${this.pathSegmentRx}?`
-                );
-                const matchValue = pathname.match(
-                    new RegExp(`^${routePathRx}$`)
-                );
-
-                if (matchValue) {
-                    segmentValues = matchValue.slice(1);
-                    return true;
-                }
-
-                return false;
-            }) || [];
+        const { matchedRoute, pathImporter, segmentValues } = matchRoute(
+            this.routesConfig,
+            pathname
+        );
 
         // Skip the activity update if a route was invalid or not matched to the configured routes.
         if (!matchedRoute || !this.validateRoute(pathname, pathImporter)) {
@@ -196,7 +171,7 @@ class Router {
         this.pathImporter = pathImporter;
         this.pathname = pathname;
         // @TODO this.parseQuery();
-        this.parseParams(matchedRoute, segmentValues);
+        this.params = extractParams(matchedRoute, segmentValues);
 
         update(this.getRouteValue(location));
     }
@@ -223,6 +198,47 @@ class Router {
         return true;
     }
 }
+
+// Matches to the path segment while omitting slashes, i.e "/segment-1/" = "segment-1".
+const pathSegmentRx = '(?:\\/(\\w+[\\w|-]*))';
+
+// Matches the pathname against the configured route paths — each dynamic
+// param segment is replaced with the path segment regex.
+const matchRoute = (routesConfig: RoutesConfig, pathname: string) => {
+    let segmentValues: string[] = [];
+    const [matchedRoute, pathImporter] =
+        Object.entries(routesConfig).find(([routePath]) => {
+            const routePathRx = routePath.replace(
+                // paramRx
+                /\/:\w+\/?/,
+                `${pathSegmentRx}?`
+            );
+            const matchValue = pathname.match(new RegExp(`^${routePathRx}$`));
+
+            if (matchValue) {
+                segmentValues = matchValue.slice(1);
+                return true;
+            }
+
+            return false;
+        }) || [];
+
+    return { matchedRoute, pathImporter, segmentValues };
+};
+
+// Parses the dynamic parameter values out of the matched route path.
+const extractParams = (routePath: string, segmentValues: string[]) => {
+    const params: { [key: string]: string } = {};
+    const matchKey = routePath.match(/\/:(\w+)\/?/);
+
+    if (matchKey) {
+        matchKey.slice(1).forEach((param, paramIndex) => {
+            params[param] = segmentValues[paramIndex] || '';
+        });
+    }
+
+    return params;
+};
 
 /**
  * Returns `true` if `Window.Location` has changed in consideration to `origin`, `pathname`, & `search`.
