@@ -3,7 +3,7 @@
 _Maintained by `.claude/skills/solid-audit/SKILL.md`. Update this file using the audit skill — do not edit violation statuses manually._
 
 **Last full audit:** 2026-05-02
-**Last updated:** 2026-08-07
+**Last updated:** 2026-08-11
 
 ---
 
@@ -11,12 +11,12 @@ _Maintained by `.claude/skills/solid-audit/SKILL.md`. Update this file using the
 
 | Principle | 🔴 Critical | 🟡 Moderate | 🟢 Minor | ✅ Resolved |
 | --------- | ----------- | ----------- | -------- | ----------- |
-| SRP       | 0           | 3           | 3        | 1           |
+| SRP       | 0           | 2           | 3        | 2           |
 | OCP       | 0           | 1           | 1        | 0           |
 | LSP       | 0           | 1           | 0        | 0           |
 | ISP       | 0           | 0           | 1        | 0           |
 | DIP       | 1           | 1           | 0        | 0           |
-| **Total** | **1**       | **6**       | **5**    | **1**       |
+| **Total** | **1**       | **5**       | **5**    | **2**       |
 
 ---
 
@@ -47,18 +47,6 @@ _Violations to resolve the next time the affected file is touched._
 - **Violation:** The `POST` function performs at least five distinct operations: parse the request body, generate a timestamp, construct the S3 object key, read the existing log file, append the new entry, write the updated file back, and format the HTTP response.
 - **Impact:** Any change to the log-entry schema, the S3 key naming strategy, or the HTTP response shape requires editing this single function, increasing the chance of regressions across unrelated concerns.
 - **Recommended fix:** Extract three helpers — `buildLogEntry(body)`, `buildLogKey(prefix, date)`, and `appendToStore(store, key, entry)` — so that `POST` becomes a thin orchestrator. Apply after resolving the DIP Critical violation above (SRP section, `.claude/skills/solid-principles/SKILL.md`).
-- **Status:** 🔲 Open
-- **Audited:** 2026-05-02
-
----
-
-### `packages/core/src/router.ts`
-
-- **Principle violated:** SRP
-- **Severity:** 🟡 Moderate
-- **Violation:** The `Router` class (294 lines) is responsible for at least four distinct concerns: matching a `Location` to a route config entry (`transform` + `validateRoute`), extracting dynamic URL parameters (`parseParams`), coordinating lazy-loaded page imports (`pageRouteEffect`), and managing History API updates (`route`, `redirect`, `watchRoute`).
-- **Impact:** A change to URL parameter syntax, a new validation rule, or a swap of the lazy-import strategy all require editing the same class, increasing cognitive load and the risk of breaking unrelated routing behavior.
-- **Recommended fix:** The internal `Router` class is not exported; refactoring its private methods into separate, focused helpers (e.g., `matchRoute`, `extractParams`, `validateRoute`) within the same file would lower complexity without changing the public API. See the SRP section in `.claude/skills/solid-principles/SKILL.md`.
 - **Status:** 🔲 Open
 - **Audited:** 2026-05-02
 
@@ -176,3 +164,17 @@ _Closed violations. Do not delete these — they are a record of improvements ma
 - **Resolution:** Split into a folder module, one concern per file: `grammar.ts` (token classes, name reader, throw path), `regions.ts` (statics/getters assembly primitives), `emit.ts` (synthesized components + component getter), `scanner.ts` (the cooperating scan state machine), `types.ts` (transform-internal shapes), `index.ts` (public contract: bail-out + plan finalization). The public import path is unchanged (the folder's `index.ts` resolves under the package's CJS-mode NodeNext resolution), and the test suite was mirrored into `tests/unit/compile-component-tags/` with one spec file per concern. Bundle cost of the split: +13 B min+gzip (rollup flattens the folder).
 - **Status:** ✅ Resolved
 - **Audited:** 2026-08-07 (resolved 2026-08-07, `add-named-slots` task 5.3)
+
+---
+
+### `packages/core/src/router.ts`
+
+- **Principle violated:** SRP
+- **Severity:** 🟡 Moderate
+- **Violation:** The `Router` class (294 lines) is responsible for at least four distinct concerns: matching a `Location` to a route config entry (`transform` + `validateRoute`), extracting dynamic URL parameters (`parseParams`), coordinating lazy-loaded page imports (`pageRouteEffect`), and managing History API updates (`route`, `redirect`, `watchRoute`).
+- **Impact:** A change to URL parameter syntax, a new validation rule, or a swap of the lazy-import strategy all require editing the same class, increasing cognitive load and the risk of breaking unrelated routing behavior.
+- **Recommended fix:** The internal `Router` class is not exported; refactoring its private methods into separate, focused helpers (e.g., `matchRoute`, `extractParams`, `validateRoute`) within the same file would lower complexity without changing the public API. See the SRP section in `.claude/skills/solid-principles/SKILL.md`.
+- **Resolution:** Landed the recommended fix via `fix-router-activation-policy` (which also generalized the activation-policy guard): `matchRoute` and `extractParams` extracted as pure module-level helpers beside the class — `extractParams` returns its params object instead of mutating `this.params` — with `transform` reduced to an orchestrator; `validateRoute` stays a private method as it needs `redirect`/`routesConfig`. Public API unchanged; full suite plus new `route-activation` specs green; +32 B min+gzip combined with the guard fix.
+- **Status:** ✅ Resolved
+- **Audited:** 2026-05-02
+- **Resolved:** 2026-08-11
