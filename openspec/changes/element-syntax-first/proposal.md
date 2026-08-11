@@ -1,4 +1,4 @@
-> **STATUS: EXPLORATORY STUB.** Captures direction from an `explore` session (2026-08-07, following `add-named-slots`). Decisions marked as settled were made by the project owner in that session; open questions are real. Not ready for `/opsx:apply` — refine before implementing, and expect this to split into smaller changes (it already spun out `add-spread-props`).
+> **STATUS: UMBRELLA — section 0 closed 2026-08-10.** Captured direction from an `explore` session (2026-08-07); the section-0 decisions (el() factory, RouteLink v1, media shape, tags endgame, array-limitation handling) closed in the 2026-08-10 apply session — see design.md Decisions 4–8. Implementation proceeds via spun-out changes (`add-spread-props` archived 2026-08-08; next: `add-core-element-components`, then pink/app conversion + tags retirement, then the lint package). This change tracks the umbrella tasks until the splits land.
 
 ## Why
 

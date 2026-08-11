@@ -2,14 +2,14 @@
 
 ## 0. Decisions to close (design.md Open Questions)
 
-- [ ] 0.1 Audit the 8 `is=` sites and 12 value-position sites: which refactor away (the `PinkGridHeader` precedent), which genuinely need element-as-value — decides the `el(tagName)` factory.
-- [ ] 0.2 `RouteLink` API (incl. active-state question) and media-utility API shapes for core.
-- [ ] 0.3 Resolve or explicitly document the array-reconciliation limitation (fragment-rooted values in children arrays) before pink conversion begins.
-- [ ] 0.4 Tags endgame mechanics (delete vs archive; npm deprecation message) and docs sequencing with `add-server-rendering`.
+- [x] 0.1 Audit the 8 `is=` sites and 12 value-position sites: which refactor away (the `PinkGridHeader` precedent), which genuinely need element-as-value — decides the `el(tagName)` factory. → Full-tree audit found 89 sites/43 files; residue is 9 sites in 3 shapes, all "plain tag as callable value" — `el()` confirmed (design Decision 4).
+- [x] 0.2 `RouteLink` API (incl. active-state question) and media-utility API shapes for core. → RouteLink v1 minimal, no active-state (Decision 5); media = `Svg` + `Picture` with merged chooser, `Source` as type, drop unused exports (Decision 6).
+- [x] 0.3 Resolve or explicitly document the array-reconciliation limitation (fragment-rooted values in children arrays) before pink conversion begins. → Documented as unsupported, fix deferred (Decision 7); conversion pattern avoids the path.
+- [x] 0.4 Tags endgame mechanics (delete vs archive; npm deprecation message) and docs sequencing with `add-server-rendering`. → Delete + npm deprecate; docs overhaul first, SSR rebases; remaining work splits into concrete changes (Decision 8).
 
 ## 1. Prerequisite
 
-- [ ] 1.1 `add-spread-props` implemented and archived.
+- [x] 1.1 `add-spread-props` implemented and archived. → landed 2026-08-08 (94 B of its 160 B budget), archived as `2026-08-08-add-spread-props`.
 
 ## 2. Core survivors
 

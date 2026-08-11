@@ -16,14 +16,31 @@ Pink is one UI kit of possible many; kit-agnostic components may not live there.
 
 Eslint rules as enforcers (e.g. "no `${Component({…})}` interpolation where element syntax serves", "no `@loom-js/tags` imports"), published like the esbuild plugin is. Not codemods — no external users exist; the in-repo migration is done by hand. Biome: GritQL plugin expressing the same patterns, lint-only (no fix support), shipped as a courtesy without parity promises.
 
+## Decisions (closed 2026-08-10, apply session — 0.1 audit + owner sign-off)
+
+### Decision 4: `el(tagName)` earns its bytes — (a)+(b) combined, confirmed by audit
+
+Full-tree audit (2026-08-10, stories excluded): **89 call sites in 43 files** invoke tags components. 55 are children-prop composition (convert to markup directly); 1 effect return and 9 map/`item:` returns use the functional form legitimately (the `item:` contract dies with `ListItems` — authors own their loops); **10 `is=` sites and a residue of 9 sites in 6 files genuinely need element-as-value**. The residue has exactly three shapes, all "a plain tag as a callable value": the `is=` values themselves (`Div`, `Ul`, `Nav`, `Span`, `Section`, `Footer` — root-tag polymorphism has no slots equivalent, so the `PinkGridHeader` precedent does not extend here); third-party callback contracts (Contentful `renderNode` returning `H1`–`H4` in `StyledRichText`); and pink's `withIcon`/`withTooltip` props transformers (assemble a `Span` into a props object; never render). Core gains a single memoized, tree-shakeable, byte-budgeted `el(tagName)` factory; everything else converts to markup.
+
+### Decision 5: `RouteLink` v1 is minimal — no active-state
+
+`href` + children/slots + internally wired `route()`; `target="_blank"`/external hrefs pass through without SPA hijack. Active-state is deferred — additive later if wanted; keeps the byte budget tight. Designed fresh, not ported: tags' `Link` only defaulted `href`/`target` and plumbed `onClick`.
+
+### Decision 6: Media survivors are `Svg` + `Picture` with the chooser merged
+
+`Svg` ports as-is (sprite-URL convention stays; presentational, tree-shakeable). `Picture` absorbs `ResponsiveImage`'s chooser — no `sources` → bare `<img>` — and `Source` becomes `Picture`'s internal plus an exported props type. Tags' standalone `ResponsiveImage` and `Source` exports have **zero first-party uses** (the app ships its own local `ResponsiveImage`) and are dropped. `Text` deletes (settled earlier; audit confirms zero uses). Note: `mergeAllowedAttrs` has one app consumer (`ContentfulRichText`) needing a home when tags dies.
+
+### Decision 7: Array-reconciliation limitation is documented and deferred
+
+Fragment-rooted values as items of a children array (they stringify — see `2026-08-07-add-named-slots` design) are documented as unsupported. The conversion pattern — interpolate regions in templates, as converted components already do — avoids the path entirely; a core reconciliation fix spins out as its own change only if the pilot trips it.
+
+### Decision 8: Tags endgame — delete + npm deprecate; docs go first; the change splits
+
+`packages/tags` is deleted from the repo once zero first-party imports remain (git history preserves it); published versions get `npm deprecate` pointing to element syntax and the core survivors. Docs sequencing: this change's docs overhaul lands first and `add-server-rendering` rebases its docs on it. Structure: per the proposal's own expectation, the remaining work splits — a concrete `add-core-element-components` change (RouteLink + media + `el()`, spec'd and byte-budgeted), then pink/app conversion + tags retirement, then the lint package.
+
 ## Open Questions
 
-- **The `el(tagName)` factory.** The 8 polymorphic `is=` sites and some of the 12 value-position sites need "element as value." Candidates: (a) a single memoized core `el('footer')` factory — one ~15-line export replacing 40 wrappers; (b) refactor `is=` patterns away entirely (named slots replaced `PinkGridHeader`'s — do the others follow?); (c) per-component inline `component()` definitions. Leaning (a)+(b) combined: audit each `is=` site first, add `el()` only if genuinely needed after refactors.
-- **Media utility API shape in core.** Port as-is, or redesign (`Svg`'s sprite-URL convention is opinionated; is it core-worthy as designed)?
-- **`RouteLink` API.** Minimum: `href`, children/slots, wired `route()`; question: active-state affordance (router knows the current route — does `RouteLink` expose it)?
-- **Pilot scope and metrics.** Which 2–3 pink components pilot the conversion, and capture the unseen number: runtime component-context count before/after (plus pink dist and app bundle sizes).
-- **Tags endgame mechanics.** Delete the package vs archive it; what the final changeset/npm deprecation message says.
-- **Sequencing with `add-server-rendering`.** Both rewrite the docs story; both touch core surface. Likely order: spread-props → core survivors → pink conversion (docs updated alongside) → tags removal, with SSR proceeding independently but docs coordinated.
+- **Pilot scope and metrics.** Which 2–3 pink components pilot the conversion, and capture the unseen number: runtime component-context count before/after (plus pink dist and app bundle sizes). (Deferred to the conversion change's section 0.)
 
 ## Risks / Trade-offs
 
