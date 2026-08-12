@@ -144,8 +144,20 @@ export const activity = <V, I = V>(
         },
         // Returns a shallow copy of the current value.
         value,
+        /**
+         * Registers a caller-managed watcher — the action runs immediately
+         * with the current value, then on every update, until the returned
+         * unsubscriber is invoked. Unlike `effect`, whose subscription is
+         * managed through its component context, `watch` cleanup is the
+         * caller's responsibility (e.g. pair it with `onUnmounted`).
+         * @param action A handler receiving the current `ValueProp`.
+         * @returns An `Unsubscriber` that permanently stops the watcher.
+         */
         watch(action: (valueProp: ValueProp<V>) => any) {
-            reactiveEffect(() => action({ value: valueProp.value }), valueProp);
+            return reactiveEffect(
+                () => action({ value: valueProp.value }),
+                valueProp
+            );
         }
     };
 };

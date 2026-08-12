@@ -47,6 +47,7 @@ export type {
     TemplateFunction,
     TemplateTagValue,
     TemplateTagValueFunction,
+    Unsubscriber,
     UtilityProps,
     ValueProp
 } from './types';

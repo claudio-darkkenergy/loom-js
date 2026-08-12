@@ -94,7 +94,7 @@ class Router {
 
     watchRoute(action: (valueProp: ValueProp<RouteValue>) => any) {
         const { watch } = this.routeActivity;
-        watch(action);
+        return watch(action);
     }
 
     // Returns the route value for the current location.

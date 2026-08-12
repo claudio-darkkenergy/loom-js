@@ -314,6 +314,10 @@ export type RouteValue = {
     pathname?: string | undefined;
 };
 
+// Permanently stops a reactive subscription (`reactiveEffect`, `watch`,
+// `watchRoute`). Idempotent — later invocations are no-ops.
+export type Unsubscriber = () => void;
+
 export type ValueProp<V = unknown> = {
     value: V;
 };
