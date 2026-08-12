@@ -8,7 +8,7 @@
 
 - **WHEN** `el('footer')({ children })` is composed (functionally or as `<${el('footer')}>…</>`)
 - **THEN** a `<footer>` element renders with the children inside
-- **AND** `attrs` and `on` props map to attributes and listeners; `className`, `id`, and `style` map to their attributes — the flat surface the tags wrappers exposed, so converted delegators pass the same shape to `el()` roots and not-yet-converted tags roots alike
+- **AND** `attrs`, `on`, and `onClick` props map to attributes and listeners; `className`, `id`, and `style` map to their attributes — the flat surface the tags wrappers exposed, so converted delegators pass the same shape to `el()` roots and not-yet-converted tags roots alike
 
 #### Scenario: el() is memoized per tag name
 

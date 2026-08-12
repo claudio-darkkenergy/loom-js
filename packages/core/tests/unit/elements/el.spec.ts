@@ -40,6 +40,21 @@ describe('el(tagName)', () => {
         expect(onClick.calledOnce, 'listener wired').to.be.true;
     });
 
+    it('should bind the reserved onClick prop as a click listener', async () => {
+        const onClick = sinon.fake();
+        const TestComponent = component(
+            (html) => html`
+                <main>${el('button')({ children: 'go', onClick })}</main>
+            `
+        );
+
+        const $test = await runSetup({ containerProps: { TestComponent } });
+        const $button = $test.querySelector('button');
+
+        $button?.dispatchEvent(new Event('click'));
+        expect(onClick.calledOnce, 'onClick wired').to.be.true;
+    });
+
     it('should memoize per tag name, case-insensitively', () => {
         expect(el('footer')).to.equal(el('footer'));
         expect(el('Footer'), 'tag names are case-insensitive').to.equal(

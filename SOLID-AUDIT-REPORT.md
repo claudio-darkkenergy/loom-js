@@ -11,12 +11,12 @@ _Maintained by `.claude/skills/solid-audit/SKILL.md`. Update this file using the
 
 | Principle | 🔴 Critical | 🟡 Moderate | 🟢 Minor | ✅ Resolved |
 | --------- | ----------- | ----------- | -------- | ----------- |
-| SRP       | 0           | 2           | 3        | 2           |
+| SRP       | 0           | 1           | 3        | 3           |
 | OCP       | 0           | 1           | 1        | 0           |
-| LSP       | 0           | 1           | 0        | 0           |
-| ISP       | 0           | 0           | 1        | 0           |
+| LSP       | 0           | 0           | 0        | 1           |
+| ISP       | 0           | 0           | 0        | 1           |
 | DIP       | 1           | 1           | 0        | 0           |
-| **Total** | **1**       | **5**       | **5**    | **2**       |
+| **Total** | **1**       | **3**       | **4**    | **5**       |
 
 ---
 
@@ -64,30 +64,6 @@ _Violations to resolve the next time the affected file is touched._
 
 ---
 
-### `packages/pink/src/elements/pink-button/pink-button.ts`
-
-- **Principle violated:** LSP
-- **Severity:** 🟡 Moderate
-- **Violation:** `PinkButton` silently renders as `<a>` (via `Link`) when `href` is present and as `<button>` (via `Button`) otherwise — the root element type is not part of the `PinkButtonProps` contract, so callers cannot predict it.
-- **Impact:** Code that queries for `button` elements, tests for button-specific attributes (`type`, `disabled`), or passes `PinkButton` anywhere a predictable `<button>` wrapper is expected will break or produce incorrect output when `href` is added, without any TypeScript warning.
-- **Recommended fix:** Expose the element choice explicitly: rename to `PinkLinkButton` when an `href` is required, or add an `as: 'button' | 'link'` prop that makes the contract visible. Alternatively, document the switching behavior in `PinkButtonProps` so callers opt in consciously. See the LSP section in `.claude/skills/solid-principles/SKILL.md`.
-- **Status:** 🔲 Open
-- **Audited:** 2026-05-02
-
----
-
-### `apps/loom/src/app/pages/docs/layout.ts`
-
-- **Principle violated:** SRP
-- **Severity:** 🟡 Moderate
-- **Violation:** `DocsLayout` (a `SimpleComponent`) both orchestrates data for the page — calling `useSelectedPage('/docs')`, `useSideNav(...)`, `useDefaultTopicRedirect(...)`, and `watchRoute(...)` — and renders the full page structure including nested activity effects.
-- **Impact:** Changes to the data-fetch strategy (e.g., swapping Contentful for another source), the breakpoint logic, or the redirect rule all require editing the layout component, blurring the line between data orchestration and rendering.
-- **Recommended fix:** Extract a `useDocsLayout()` hook that encapsulates the four setup calls and returns derived state; `DocsLayout` then only calls the hook and renders. This mirrors the established pattern in `apps/loom/src/app/logic/hooks/`. See the SRP section in `.claude/skills/solid-principles/SKILL.md`.
-- **Status:** 🔲 Open
-- **Audited:** 2026-05-02
-
----
-
 ## 🟢 Minor
 
 _Low-risk drift to fix opportunistically._
@@ -99,18 +75,6 @@ _Low-risk drift to fix opportunistically._
 - **Violation:** The file co-locates DOM mutation observation setup (`_lifeCycles.observe`, `domChanged`, and the `MutationObserver` callback at lines 52–180) with lifecycle hook creation and state management (`lifeCycles`, `createLifeCycleHook`, `lifeCycleStateUpdateEffect` at lines 195–270).
 - **Impact:** The DOM observation concern and the lifecycle hook factory concern each have distinct reasons to change (e.g., a new browser API for mutation detection, or a new lifecycle event), making the file slightly harder to navigate and modify independently.
 - **Recommended fix:** Extract `_lifeCycles.observe` and `domChanged` into a sibling file (e.g., `mutation-observer.ts`) and import from it. See the SRP section in `.claude/skills/solid-principles/SKILL.md`.
-- **Status:** 🔲 Open
-- **Audited:** 2026-05-02
-
----
-
-### `packages/pink/src/types/index.ts`
-
-- **Principle violated:** ISP
-- **Severity:** 🟢 Minor
-- **Violation:** `PinkDynamicProps` declares `is?: Component | any` — the `any` in the union defeats type checking on the `is` prop — and an index signature `[key: string | symbol]: unknown` that forces every consumer to accept an effectively unbounded set of unknown keys.
-- **Impact:** TypeScript cannot catch type mismatches on the `is` prop or on any property passed through `PinkDynamicProps`. Consumers that need only `is` are still forced to accept all unknown keys, making it impossible to detect extraneous prop passing at the type level.
-- **Recommended fix:** Narrow `is` to `Component` (drop the `| any`); consider removing the index signature and replacing it with explicit opt-in `attrs?: AttrsTemplateTagValue` for pass-through needs. See the ISP section in `.claude/skills/solid-principles/SKILL.md`.
 - **Status:** 🔲 Open
 - **Audited:** 2026-05-02
 
@@ -164,6 +128,48 @@ _Closed violations. Do not delete these — they are a record of improvements ma
 - **Resolution:** Split into a folder module, one concern per file: `grammar.ts` (token classes, name reader, throw path), `regions.ts` (statics/getters assembly primitives), `emit.ts` (synthesized components + component getter), `scanner.ts` (the cooperating scan state machine), `types.ts` (transform-internal shapes), `index.ts` (public contract: bail-out + plan finalization). The public import path is unchanged (the folder's `index.ts` resolves under the package's CJS-mode NodeNext resolution), and the test suite was mirrored into `tests/unit/compile-component-tags/` with one spec file per concern. Bundle cost of the split: +13 B min+gzip (rollup flattens the folder).
 - **Status:** ✅ Resolved
 - **Audited:** 2026-08-07 (resolved 2026-08-07, `add-named-slots` task 5.3)
+
+---
+
+### `packages/pink/src/elements/pink-button/pink-button.ts`
+
+- **Principle violated:** LSP
+- **Severity:** 🟡 Moderate
+- **Violation:** `PinkButton` silently renders as `<a>` (via `Link`) when `href` is present and as `<button>` (via `Button`) otherwise — the root element type is not part of the `PinkButtonProps` contract, so callers cannot predict it.
+- **Impact:** Code that queries for `button` elements, tests for button-specific attributes (`type`, `disabled`), or passes `PinkButton` anywhere a predictable `<button>` wrapper is expected will break or produce incorrect output when `href` is added, without any TypeScript warning.
+- **Recommended fix:** Expose the element choice explicitly: rename to `PinkLinkButton` when an `href` is required, or add an `as: 'button' | 'link'` prop that makes the contract visible. Alternatively, document the switching behavior in `PinkButtonProps` so callers opt in consciously. See the LSP section in `.claude/skills/solid-principles/SKILL.md`.
+- **Resolution:** Took the document-the-contract option during the `element-syntax-conversion` tags retirement (task 2.1): `PinkButtonProps.href` now carries the root-element contract in its doc comment — `href` set → `<a>` root (with `target`), unset → `<button>` root (with `type`/`disabled`/`title`/`aria`) — and each root-specific prop is annotated with the root it applies to. The props are now locally defined (no tags `ButtonProps` inheritance), so the annotated surface is the whole contract; the root switch itself is DOM-parity-proven against the pre-conversion output.
+- **Status:** ✅ Resolved
+- **Audited:** 2026-05-02
+- **Resolved:** 2026-08-11
+
+---
+
+### `packages/pink/src/types/index.ts`
+
+- **Principle violated:** ISP
+- **Severity:** 🟢 Minor
+- **Violation:** `PinkDynamicProps` declares `is?: Component | any` — the `any` in the union defeats type checking on the `is` prop — and an index signature `[key: string | symbol]: unknown` that forces every consumer to accept an effectively unbounded set of unknown keys.
+- **Impact:** TypeScript cannot catch type mismatches on the `is` prop or on any property passed through `PinkDynamicProps`. Consumers that need only `is` are still forced to accept all unknown keys, making it impossible to detect extraneous prop passing at the type level.
+- **Recommended fix:** Narrow `is` to `Component` (drop the `| any`); consider removing the index signature and replacing it with explicit opt-in `attrs?: AttrsTemplateTagValue` for pass-through needs. See the ISP section in `.claude/skills/solid-principles/SKILL.md`.
+- **Resolution:** Landed the recommended fix in the `element-syntax-conversion` pilot (task 1.2, pulled forward from the 2.5 plan): `is` is now typed `Component` and the index signature is gone — arbitrary passthrough goes through the standard `attrs`/`on` props. Ripple typing fixes landed in `pink-tag`, `pink-interactive-tag`, and its story; whole-app DOM parity held.
+- **Status:** ✅ Resolved
+- **Audited:** 2026-05-02
+- **Resolved:** 2026-08-11
+
+---
+
+### `apps/loom/src/app/pages/docs/layout.ts`
+
+- **Principle violated:** SRP
+- **Severity:** 🟡 Moderate
+- **Violation:** `DocsLayout` (a `SimpleComponent`) both orchestrates data for the page — calling `useSelectedPage('/docs')`, `useSideNav(...)`, `useDefaultTopicRedirect(...)`, and `watchRoute(...)` — and renders the full page structure including nested activity effects.
+- **Impact:** Changes to the data-fetch strategy (e.g., swapping Contentful for another source), the breakpoint logic, or the redirect rule all require editing the layout component, blurring the line between data orchestration and rendering.
+- **Recommended fix:** Extract a `useDocsLayout()` hook that encapsulates the four setup calls and returns derived state; `DocsLayout` then only calls the hook and renders. This mirrors the established pattern in `apps/loom/src/app/logic/hooks/`. See the SRP section in `.claude/skills/solid-principles/SKILL.md`.
+- **Resolution:** Landed the recommended fix via `fix-per-render-hook-leaks` (task 3.1/3.2): the four setup calls moved into a new run-once `useDocsLayout()` hook in `apps/loom/src/app/logic/hooks/use-docs-layout.ts`, with the redirect and topic watchers scoped to the docs route (`RoutePath.Docs`); `DocsLayout` now calls the hook and renders. The extraction also fixes the per-mount listener/watcher leaks that motivated the change.
+- **Status:** ✅ Resolved
+- **Audited:** 2026-05-02
+- **Resolved:** 2026-08-11
 
 ---
 

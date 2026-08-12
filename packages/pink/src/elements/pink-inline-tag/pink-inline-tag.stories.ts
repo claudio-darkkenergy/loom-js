@@ -1,4 +1,4 @@
-import type { SimpleComponent } from '@loom-js/core';
+import { el, type SimpleComponent } from '@loom-js/core';
 import {
     type Meta,
     type StoryObj,
@@ -6,7 +6,6 @@ import {
     type RenderVariantsStoryProps,
     ArgType
 } from '@loom-js/storybook';
-import { Span } from '@loom-js/tags';
 
 import { PinkButton } from '../pink-button';
 import { PinkInlineTag, type PinkInlineTagProps } from './pink-inline-tag';
@@ -46,7 +45,7 @@ const PinkButtonWithInlineTag: SimpleComponent<PinkInlineTagProps> = (props) =>
     PinkButton({
         ...props,
         children: [
-            Span({
+            el('span')({
                 className: 'text',
                 children: 'button'
             }),

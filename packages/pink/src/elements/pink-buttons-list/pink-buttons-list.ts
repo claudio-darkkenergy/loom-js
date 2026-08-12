@@ -1,26 +1,66 @@
-import type { ComponentInputProps, SimpleComponent } from '@loom-js/core';
-import { Ul, type UlProps } from '@loom-js/tags';
+import { component, type ComponentInputProps } from '@loom-js/core';
 import classNames from 'classnames';
 
 import { PinkButton, type PinkButtonProps } from '../pink-button';
 
-export type PinkButtonsListProps = Omit<UlProps, 'item'> & {
+export interface PinkButtonsListProps {
     itemProps?: ComponentInputProps<PinkButtonProps>[];
-};
+    listItemProps?: ComponentInputProps;
+}
 
-export const PinkButtonsList: SimpleComponent<PinkButtonsListProps> = ({
-    className,
-    itemProps,
-    listItemProps,
-    ...ulProps
-}) =>
-    Ul({
-        ...ulProps,
-        className: classNames(className, 'buttons-list'),
-        item: (buttonProps: PinkButtonProps) => PinkButton({ ...buttonProps }),
-        itemProps,
-        listItemProps: {
-            ...listItemProps,
-            className: classNames(listItemProps?.className, 'buttons-list-item')
+const ButtonsListItem = component<ComponentInputProps>(
+    (html, { attrs, children, className, id, on, onClick, style }) => html`
+        <li
+            $attrs=${attrs}
+            $click=${onClick}
+            $on=${on}
+            class=${className}
+            id=${id}
+            style=${style}
+        >
+            ${children}
+        </li>
+    `
+);
+
+export const PinkButtonsList = component<
+    ComponentInputProps<PinkButtonsListProps>
+>(
+    (
+        html,
+        {
+            attrs,
+            children,
+            className,
+            id,
+            itemProps,
+            listItemProps,
+            on,
+            onClick,
+            style
         }
-    });
+    ) => html`
+        <ul
+            $attrs=${attrs}
+            $click=${onClick}
+            $on=${on}
+            class=${classNames(className, 'buttons-list')}
+            id=${id}
+            style=${style}
+        >
+            ${
+                children ||
+                itemProps?.map((buttonProps) =>
+                    ButtonsListItem({
+                        ...listItemProps,
+                        children: PinkButton(buttonProps),
+                        className: classNames(
+                            listItemProps?.className,
+                            'buttons-list-item'
+                        )
+                    })
+                )
+            }
+        </ul>
+    `
+);

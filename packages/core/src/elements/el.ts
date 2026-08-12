@@ -17,6 +17,7 @@ export const el = (tagName: string): Component => {
         const isVoid = VOID_TAG.test(tag);
         const chunks = [
             `<${tag} $attrs=`,
+            ' $click=',
             ' $on=',
             ' class=',
             ' id=',
@@ -24,9 +25,10 @@ export const el = (tagName: string): Component => {
         ].concat(isVoid ? [' />'] : ['>', `</${tag}>`]);
 
         tagComponent = component(
-            (html, { attrs, children, className, id, on, style }) => {
+            (html, { attrs, children, className, id, on, onClick, style }) => {
                 const values: TemplateTagValue[] = [
                     attrs,
+                    onClick,
                     on,
                     className,
                     id,

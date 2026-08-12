@@ -1,17 +1,24 @@
-import { SimpleComponent } from '@loom-js/core';
-import { Div } from '@loom-js/tags';
+import {
+    el,
+    type ComponentInputProps,
+    type SimpleComponent
+} from '@loom-js/core';
 import classNames from 'classnames';
 
 import type { PinkDynamicProps } from '../../types';
 
-export type PinkCardProps = PinkDynamicProps & {
-    isBorderDashed?: boolean;
-    isAllowFocus?: boolean;
-};
+export type PinkCardProps = ComponentInputProps<
+    PinkDynamicProps & {
+        isBorderDashed?: boolean;
+        isAllowFocus?: boolean;
+    }
+>;
 
+// Pure delegation — no markup of its own, so no template (and no extra
+// component context): the root element comes entirely from `is`.
 export const PinkCard: SimpleComponent<PinkCardProps> = ({
-    is = Div,
     className,
+    is = el('div'),
     isAllowFocus,
     isBorderDashed,
     ...props

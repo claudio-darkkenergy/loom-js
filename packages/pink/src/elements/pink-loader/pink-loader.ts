@@ -1,8 +1,7 @@
-import { type SimpleComponent } from '@loom-js/core';
-import { Div, type DivProps } from '@loom-js/tags';
+import { component, type ComponentInputProps } from '@loom-js/core';
 import classNames from 'classnames';
 
-export type PinkLoaderProps = Omit<DivProps, 'className'> & {
+export type PinkLoaderProps = ComponentInputProps<{
     // Works with `percent` to show a progress vs. rotating loader.
     // `false` or `undefined` results in a rotating loader.
     isLoading?: boolean;
@@ -12,29 +11,46 @@ export type PinkLoaderProps = Omit<DivProps, 'className'> & {
     isTransparent?: boolean;
     // 0-100 - works with `isLoading = true`
     percent?: number;
-};
+}>;
 
-export const PinkLoader: SimpleComponent<PinkLoaderProps> = ({
-    isLoading,
-    isSmall,
-    isTransparent,
-    percent = 0,
-    style,
-    ...props
-}) =>
-    Div({
-        ...props,
-        className: classNames('loader', {
-            'is-loading': isLoading,
-            'is-small': isSmall,
-            'is-transparent': isTransparent && !isLoading
-        }),
-        style: [
-            style,
-            isLoading ? { '--loading': `${percent}%` } : undefined,
-            {
-                '--loader-bg-color-light': 'var(--color-neutral-5)',
-                '--loader-bg-color-dark': 'var(--color-neutral-100)'
-            }
-        ]
-    });
+// The `loader` class owns the visual — a caller `className` is not part of
+// the contract (matching the pre-conversion API, which dropped it).
+export const PinkLoader = component<PinkLoaderProps>(
+    (
+        html,
+        {
+            attrs,
+            children,
+            id,
+            isLoading,
+            isSmall,
+            isTransparent,
+            on,
+            onClick,
+            percent = 0,
+            style
+        }
+    ) => html`
+        <div
+            $attrs=${attrs}
+            $click=${onClick}
+            $on=${on}
+            class=${classNames('loader', {
+                'is-loading': isLoading,
+                'is-small': isSmall,
+                'is-transparent': isTransparent && !isLoading
+            })}
+            id=${id}
+            style=${[
+                style,
+                isLoading ? { '--loading': `${percent}%` } : undefined,
+                {
+                    '--loader-bg-color-light': 'var(--color-neutral-5)',
+                    '--loader-bg-color-dark': 'var(--color-neutral-100)'
+                }
+            ]}
+        >
+            ${children}
+        </div>
+    `
+);

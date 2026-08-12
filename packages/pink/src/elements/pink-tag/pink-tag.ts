@@ -1,5 +1,8 @@
-import type { ComponentInputProps, SimpleComponent } from '@loom-js/core';
-import { Div } from '@loom-js/tags';
+import {
+    el,
+    type ComponentInputProps,
+    type SimpleComponent
+} from '@loom-js/core';
 import classNames from 'classnames';
 
 import { withIcon } from '../../modifiers/with-icon';
@@ -18,8 +21,6 @@ type NumberRange<F extends number, T extends number> =
 type TagProps = PinkDynamicProps & {
     // Appends the icon when provided vs. prepend placement.
     appendIcon?: boolean;
-    // Forwarded to the root by interactive tags (`PinkInteractiveTag`).
-    href?: string;
     isDanger?: boolean;
     // The classname for the icon - renders only when provided.
     icon?: string;
@@ -32,7 +33,7 @@ type TagProps = PinkDynamicProps & {
 
 const Tag: SimpleComponent<TagProps> = ({
     className,
-    is = Div,
+    is = el('div'),
     isDanger,
     isEyebrowHeading,
     isInfo,

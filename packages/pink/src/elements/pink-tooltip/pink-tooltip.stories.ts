@@ -1,5 +1,5 @@
+import { el } from '@loom-js/core';
 import { type Meta, type StoryObj, RenderVariants } from '@loom-js/storybook';
-import { Paragraph } from '@loom-js/tags';
 
 import { PinkTooltip, type PinkTooltipProps } from './pink-tooltip';
 
@@ -25,7 +25,7 @@ export const Variants: Story = {
                 children: 'User ID',
                 icon: 'icon-duplicate',
                 isTag: true,
-                popupMessage: Paragraph({
+                popupMessage: el('p')({
                     children: popupMessage,
                     className: 'text u-margin-block-start-8'
                 })
