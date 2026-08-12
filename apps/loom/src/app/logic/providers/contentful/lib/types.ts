@@ -1,5 +1,5 @@
 import type { ContentfulAsset, ContentfulDocument } from '@loom-js/contentful';
-import type { LinkProps } from '@loom-js/tags';
+import type { TemplateTagValue } from '@loom-js/core';
 import type { ContentfulCollection } from 'contentful';
 
 export interface ContentfulApp {
@@ -62,9 +62,16 @@ export interface NavItem {
 
 // export type Pages = PageProps[];
 
+export interface NavLinkProps {
+    children?: TemplateTagValue;
+    className?: string;
+    href?: string;
+    target?: '_blank' | '_self';
+}
+
 export interface NavProps {
     className?: string;
-    navigation: LinkProps[];
+    navigation: NavLinkProps[];
 }
 
 // Media

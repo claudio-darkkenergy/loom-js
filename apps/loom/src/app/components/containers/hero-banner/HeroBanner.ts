@@ -1,22 +1,30 @@
-import type { TemplateTagValue, SimpleComponent } from '@loom-js/core';
+import {
+    el,
+    Picture,
+    type ComponentInputProps,
+    type PictureProps,
+    type SimpleComponent,
+    type TemplateTagValue
+} from '@loom-js/core';
 import {
     PinkButtonsList,
     PinkContainer,
-    type PinkContainerProps,
     type PinkButtonProps
 } from '@loom-js/pink';
-import { Div, H1, Img, type ImgProps, Paragraph, Section } from '@loom-js/tags';
 import classNames from 'classnames';
 
 import styles from './HeroBanner.module.css';
 
-type HeroBannerProps = PinkContainerProps & {
+type HeroBannerProps = ComponentInputProps<{
     ctas?: PinkButtonProps[];
     description?: TemplateTagValue;
-    imgProps?: ImgProps;
+    imgProps?: PictureProps;
     title?: TemplateTagValue;
-};
+}>;
 
+// Functional form: page layouts consume HeroBanner as a children-array item,
+// and a component-tag-rooted template would render as a fragment — the
+// documented forbidden shape for array items.
 export const HeroBanner: SimpleComponent<HeroBannerProps> = ({
     ctas,
     description,
@@ -26,25 +34,31 @@ export const HeroBanner: SimpleComponent<HeroBannerProps> = ({
 }) =>
     PinkContainer({
         ...props,
+        attrs: { role: 'banner' },
         className: classNames(
             'u-gap-32 u-grid u-text-center',
             styles.heroBanner
         ),
-        attrs: { role: 'banner' },
-        is: Section,
+        is: el('section'),
         children: [
-            imgProps && Img(imgProps),
-            Div({
+            imgProps &&
+                Picture({
+                    ...imgProps,
+                    // The retired tags Img always emitted these defaults.
+                    height: imgProps.height ?? 'auto',
+                    width: imgProps.width ?? 'auto'
+                }),
+            el('div')({
                 className: classNames(
                     'u-flex-vertical u-gap-24',
                     styles.content
                 ),
                 children: [
-                    H1({
+                    el('h1')({
                         children: title,
                         className: 'heading-level-3'
                     }),
-                    Paragraph({
+                    el('p')({
                         children: description
                     }),
                     ctas &&

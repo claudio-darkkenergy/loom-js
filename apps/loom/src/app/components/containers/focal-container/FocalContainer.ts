@@ -1,5 +1,8 @@
-import type { SimpleComponent } from '@loom-js/core';
-import { Div, type DivProps } from '@loom-js/tags';
+import {
+    el,
+    type ComponentInputProps,
+    type SimpleComponent
+} from '@loom-js/core';
 import classNames from 'classnames';
 
 import styles from './FocalContainer.module.css';
@@ -9,7 +12,7 @@ import {
 } from '@/app/components/containers/secondary-container';
 
 type FocalContainerProps = SecondaryContainerProps & {
-    contentProps?: DivProps;
+    contentProps?: ComponentInputProps;
 };
 
 export const FocalContainer: SimpleComponent<FocalContainerProps> = ({
@@ -21,7 +24,7 @@ export const FocalContainer: SimpleComponent<FocalContainerProps> = ({
     return SecondaryContainer({
         ...props,
         className: classNames(styles.focalContainer, className),
-        children: Div({
+        children: el('div')({
             ...contentProps,
             children
         }),

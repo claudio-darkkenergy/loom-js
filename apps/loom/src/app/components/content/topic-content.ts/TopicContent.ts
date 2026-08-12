@@ -1,6 +1,5 @@
 import { ContentfulDocument } from '@loom-js/contentful';
-import { component } from '@loom-js/core';
-import { H1 } from '@loom-js/tags';
+import { component, el } from '@loom-js/core';
 
 import { StyledRichText } from '../styled-rich-text/StyledRichText';
 
@@ -14,7 +13,7 @@ export const TopicContent = component<TopicContentProps>(
         <div class=${className}>
             ${
                 title &&
-                H1({
+                el('h1')({
                     children: title,
                     className: 'heading-level-3',
                     style: 'color: hsl(var(--brand-color-2))'

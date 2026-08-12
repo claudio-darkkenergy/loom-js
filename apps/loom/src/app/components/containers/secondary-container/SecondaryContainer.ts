@@ -1,11 +1,17 @@
-import type { SimpleComponent, TemplateTagValue } from '@loom-js/core';
+import {
+    el,
+    type ComponentInputProps,
+    type SimpleComponent,
+    type TemplateTagValue
+} from '@loom-js/core';
 import { PinkContainer } from '@loom-js/pink';
-import { H2, Section, type SectionProps } from '@loom-js/tags';
 
-export type SecondaryContainerProps = SectionProps & {
+export type SecondaryContainerProps = ComponentInputProps<{
     title: TemplateTagValue;
-};
+}>;
 
+// Forwards caller `children` — the functional form keeps arbitrary children
+// values (including arrays) off the component-tag region path.
 export const SecondaryContainer: SimpleComponent<SecondaryContainerProps> = ({
     children,
     title,
@@ -13,9 +19,9 @@ export const SecondaryContainer: SimpleComponent<SecondaryContainerProps> = ({
 }) => {
     return PinkContainer({
         ...props,
-        is: Section,
+        is: el('section'),
         children: [
-            H2({
+            el('h2')({
                 children: title,
                 className: 'heading-level-4 u-padding-16 u-text-center'
             }),

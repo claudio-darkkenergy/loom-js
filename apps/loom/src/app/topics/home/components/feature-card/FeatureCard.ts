@@ -1,12 +1,18 @@
-import { type SimpleComponent } from '@loom-js/core';
+import {
+    el,
+    Picture,
+    type PictureProps,
+    type SimpleComponent
+} from '@loom-js/core';
 import { PinkCard } from '@loom-js/pink';
-import { H3, Img, type ImgProps } from '@loom-js/tags';
 import classNames from 'classnames';
 
 import styles from './FeatureCard.module.css';
 
-export type FeatureCardProps = { title?: string; bgImageProps?: ImgProps };
+export type FeatureCardProps = { title?: string; bgImageProps?: PictureProps };
 
+// Forwards caller `children` — the functional form keeps arbitrary children
+// values (including arrays) off the component-tag region path.
 export const FeatureCard: SimpleComponent<FeatureCardProps> = ({
     bgImageProps,
     children,
@@ -16,8 +22,14 @@ export const FeatureCard: SimpleComponent<FeatureCardProps> = ({
     return PinkCard({
         className: classNames(styles.featureCard, className),
         children: [
-            bgImageProps && Img(bgImageProps),
-            H3({
+            bgImageProps &&
+                Picture({
+                    ...bgImageProps,
+                    // The retired tags Img always emitted these defaults.
+                    height: bgImageProps.height ?? 'auto',
+                    width: bgImageProps.width ?? 'auto'
+                }),
+            el('h3')({
                 className: 'heading-level-6',
                 children: title
             }),

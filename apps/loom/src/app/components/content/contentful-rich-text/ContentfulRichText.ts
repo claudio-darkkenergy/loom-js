@@ -8,7 +8,8 @@ import {
     component,
     TemplateTagValue
 } from '@loom-js/core';
-import { mergeAllowedAttrs } from '@loom-js/tags';
+
+import { mergeAllowedAttrs } from './merge-allowed-attrs';
 
 export type { ContentfulDocument };
 

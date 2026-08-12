@@ -1,25 +1,32 @@
-import type { SimpleComponent } from '@loom-js/core';
-import { Ol, Span } from '@loom-js/tags';
+import { component, type ComponentInputProps } from '@loom-js/core';
 import classNames from 'classnames';
 
 import styles from './Breadcrumbs.module.css';
 
-export type BreadcrumbsProps = { pathname: string };
+export type BreadcrumbsProps = ComponentInputProps<{ pathname: string }>;
 
-export const Breadcrumbs: SimpleComponent<BreadcrumbsProps> = ({
-    pathname,
-    ...props
-}) => {
-    const itemProps = pathname
-        .replace(/^\//, '')
-        .split('/')
-        .map((path) => ({ children: path.replace('-', ' ') }));
+const BreadcrumbItem = component<ComponentInputProps>(
+    (html, { children }) => html`
+        <li class=${styles.breadcrumb}><span>${children}</span></li>
+    `
+);
 
-    return Ol({
-        ...props,
-        className: classNames('u-flex', styles.breadcrumbs),
-        item: Span,
-        itemProps,
-        listItemProps: { className: styles.breadcrumb }
-    });
-};
+export const Breadcrumbs = component<BreadcrumbsProps>(
+    (html, { attrs, id, on, onClick, pathname, style }) => html`
+        <ol
+            $attrs=${attrs}
+            $click=${onClick}
+            $on=${on}
+            class=${classNames('u-flex', styles.breadcrumbs)}
+            id=${id}
+            style=${style}
+        >
+            ${pathname
+                .replace(/^\//, '')
+                .split('/')
+                .map((path) =>
+                    BreadcrumbItem({ children: path.replace('-', ' ') })
+                )}
+        </ol>
+    `
+);

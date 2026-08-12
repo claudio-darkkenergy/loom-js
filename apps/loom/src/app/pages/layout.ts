@@ -1,11 +1,10 @@
-import { component, el, route } from '@loom-js/core';
+import { component, el, route, Svg } from '@loom-js/core';
 import {
     PinkButton,
     PinkContainer,
     PinkGridHeader,
     PinkTopNav
 } from '@loom-js/pink';
-import { Svg } from '@loom-js/tags';
 import classNames from 'classnames';
 
 import { layoutState } from '../logic/activity/layout-state';

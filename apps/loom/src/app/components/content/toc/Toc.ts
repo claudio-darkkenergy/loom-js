@@ -1,28 +1,37 @@
-import { type SimpleComponent } from '@loom-js/core';
-import { H4, Link, Nav, Ul } from '@loom-js/tags';
+import { component, type ComponentInputProps } from '@loom-js/core';
 
 type TocItem = {
     title: string;
     url: string;
 };
 
-export type TocProps = {
+export type TocProps = ComponentInputProps<{
     items?: TocItem[];
     title?: string;
-};
+}>;
 
-export const Toc: SimpleComponent<TocProps> = ({ items, title, ...props }) => {
-    return Nav({
-        ...props,
-        children: [
-            H4({ className: 'heading-level-7', children: title }),
-            Ul({
-                item: Link,
-                itemProps: items?.map(({ title, url }) => ({
-                    children: title,
-                    href: url
-                }))
-            })
-        ]
-    });
-};
+const TocLinkItem = component<ComponentInputProps<{ href?: string }>>(
+    (html, { children, href }) => html`
+        <li><a href=${href} target="_self">${children}</a></li>
+    `
+);
+
+export const Toc = component<TocProps>(
+    (html, { attrs, className, id, items, on, onClick, style, title }) => html`
+        <nav
+            $attrs=${attrs}
+            $click=${onClick}
+            $on=${on}
+            class=${className}
+            id=${id}
+            style=${style}
+        >
+            <h4 class="heading-level-7">${title}</h4>
+            <ul>
+                ${items?.map(({ title: itemTitle, url }) =>
+                    TocLinkItem({ children: itemTitle, href: url })
+                )}
+            </ul>
+        </nav>
+    `
+);

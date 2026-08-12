@@ -1,5 +1,4 @@
-import { type SimpleComponent } from '@loom-js/core';
-import { Aside, Div } from '@loom-js/tags';
+import { el, type SimpleComponent } from '@loom-js/core';
 import classNames from 'classnames';
 
 import { ScreenWidthPx } from '../constants';
@@ -47,7 +46,7 @@ const Docs: SimpleComponent = (props) => {
                     // });
                 }
 
-                return Aside({
+                return el('aside')({
                     className: classNames(
                         styles.topicAside,
                         'u-margin-block-start-24 u-padding-block-16'

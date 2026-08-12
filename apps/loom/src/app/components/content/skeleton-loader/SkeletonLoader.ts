@@ -1,5 +1,4 @@
-import { SimpleComponent } from '@loom-js/core';
-import { Div } from '@loom-js/tags';
+import { component, el, type ComponentInputProps } from '@loom-js/core';
 import classNames from 'classnames';
 
 import styles from './SkeletonLoader.module.css';
@@ -18,64 +17,64 @@ export enum Bones {
     mainHeadingLong = 'mainHeadingLong'
 }
 
-export type SkeletonLoaderProps = {
+export type SkeletonLoaderProps = ComponentInputProps<{
     bones: Bones[];
-};
+}>;
 
-export const SkeletonLoader: SimpleComponent<SkeletonLoaderProps> = ({
-    bones,
-    className,
-    style
-}) =>
-    Div({
-        className: classNames(className, styles.skeletonLoader, styles.animate),
-        style,
-        children: bones.map((bone) => {
-            if (
-                [
-                    Bones.details,
-                    Bones.detailsDouble,
-                    Bones.detailsSingle
-                ].includes(bone)
-            ) {
-                const lineCount =
-                    bone === Bones.detailsDouble
-                        ? 2
-                        : bone === Bones.detailsSingle
-                          ? 1
-                          : 3;
-                return Div({
-                    className: styles.details,
-                    children: Array(lineCount).fill(Div())
-                });
-            }
+const renderBone = (bone: Bones) => {
+    if (
+        [Bones.details, Bones.detailsDouble, Bones.detailsSingle].includes(bone)
+    ) {
+        const lineCount =
+            bone === Bones.detailsDouble
+                ? 2
+                : bone === Bones.detailsSingle
+                  ? 1
+                  : 3;
+        return el('div')({
+            className: styles.details,
+            children: Array(lineCount).fill(el('div')({}))
+        });
+    }
 
-            return Div({
-                className: classNames({
-                    [styles.box]: [
-                        Bones.box,
-                        Bones.boxAuto,
-                        Bones.boxTall,
-                        Bones.boxXTall
-                    ].includes(bone),
-                    [styles._auto]: bone === Bones.boxAuto,
-                    [styles._tall]: bone === Bones.boxTall,
-                    [styles._xTall]: bone === Bones.boxXTall,
-                    [styles.heading]: [
-                        Bones.heading,
-                        Bones.headingLong,
-                        Bones.mainHeading,
-                        Bones.mainHeadingLong
-                    ].includes(bone),
-                    [styles._main]: [
-                        Bones.mainHeading,
-                        Bones.mainHeadingLong
-                    ].includes(bone),
-                    [styles._long]: [
-                        Bones.headingLong,
-                        Bones.mainHeadingLong
-                    ].includes(bone)
-                })
-            });
+    return el('div')({
+        className: classNames({
+            [styles.box]: [
+                Bones.box,
+                Bones.boxAuto,
+                Bones.boxTall,
+                Bones.boxXTall
+            ].includes(bone),
+            [styles._auto]: bone === Bones.boxAuto,
+            [styles._tall]: bone === Bones.boxTall,
+            [styles._xTall]: bone === Bones.boxXTall,
+            [styles.heading]: [
+                Bones.heading,
+                Bones.headingLong,
+                Bones.mainHeading,
+                Bones.mainHeadingLong
+            ].includes(bone),
+            [styles._main]: [Bones.mainHeading, Bones.mainHeadingLong].includes(
+                bone
+            ),
+            [styles._long]: [Bones.headingLong, Bones.mainHeadingLong].includes(
+                bone
+            )
         })
     });
+};
+
+export const SkeletonLoader = component<SkeletonLoaderProps>(
+    (html, { bones, className, style }) => html`
+        <div
+            class=${classNames(
+                className,
+                styles.skeletonLoader,
+                styles.animate
+            )}
+            style=${style}
+        >
+            ${bones.map(renderBone)}
+        </div>
+    `
+);

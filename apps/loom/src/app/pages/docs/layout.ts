@@ -1,5 +1,4 @@
-import { route, routeEffect, type SimpleComponent } from '@loom-js/core';
-import { Div } from '@loom-js/tags';
+import { el, route, routeEffect, type SimpleComponent } from '@loom-js/core';
 import classNames from 'classnames';
 
 import { DocContainer } from './components/DocContainer';
@@ -17,7 +16,7 @@ const DocsLayout: SimpleComponent = ({ children, className, ...props }) => {
 
     useDocsLayout();
 
-    return Div({
+    return el('div')({
         ...props,
         className: classNames(className, 'u-flex'),
         children: [

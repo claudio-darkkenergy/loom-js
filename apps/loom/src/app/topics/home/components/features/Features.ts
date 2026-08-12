@@ -1,6 +1,4 @@
-import { type SimpleComponent } from '@loom-js/core';
-import { PinkGridBox } from '@loom-js/pink';
-import { Ul } from '@loom-js/tags';
+import { el, type SimpleComponent } from '@loom-js/core';
 import classNames from 'classnames';
 
 import styles from './Features.module.css';
@@ -21,12 +19,13 @@ export const Features: SimpleComponent<FeaturesProps> = ({
     FocalContainer({
         ...props,
         title: 'Features',
-        children: Ul({
+        children: el('ul')({
             className: classNames(
                 'u-flex u-flex-wrap u-gap-16 u-main-center u-text-center',
                 styles.featured
             ),
-            item: ContentCard,
-            itemProps: features
+            children: features.map((cardProps) =>
+                el('li')({ children: ContentCard(cardProps) })
+            )
         })
     });

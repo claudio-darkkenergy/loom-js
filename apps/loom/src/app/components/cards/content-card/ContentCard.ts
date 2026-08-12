@@ -1,33 +1,35 @@
-import type { TemplateTagValue, SimpleComponent } from '@loom-js/core';
+import {
+    component,
+    Picture,
+    type ComponentInputProps,
+    type PictureProps,
+    type TemplateTagValue
+} from '@loom-js/core';
 import { PinkCard } from '@loom-js/pink';
-import { H3, Img, Paragraph, type ImgProps } from '@loom-js/tags';
 import classNames from 'classnames';
 
 import styles from './ContentCard.module.css';
 
-export type ContentCardProps = {
+export type ContentCardProps = ComponentInputProps<{
     description?: TemplateTagValue;
     title?: string;
-    bgImageProps?: ImgProps;
-};
+    bgImageProps?: PictureProps;
+}>;
 
-export const ContentCard: SimpleComponent<ContentCardProps> = ({
-    bgImageProps,
-    className,
-    description,
-    title,
-    ...props
-}) => {
-    return PinkCard({
-        ...props,
-        className: classNames(styles.contentCard, className),
-        children: [
-            bgImageProps && Img(bgImageProps),
-            H3({
-                className: 'heading-level-6',
-                children: title
-            }),
-            Paragraph({ children: description })
-        ]
-    });
-};
+export const ContentCard = component<ContentCardProps>(
+    (html, { bgImageProps, className, description, title }) => html`
+        <${PinkCard} className=${classNames(styles.contentCard, className)}>
+            ${
+                bgImageProps &&
+                Picture({
+                    ...bgImageProps,
+                    // The retired tags Img always emitted these defaults.
+                    height: bgImageProps.height ?? 'auto',
+                    width: bgImageProps.width ?? 'auto'
+                })
+            }
+            <h3 class="heading-level-6">${title}</h3>
+            <p>${description}</p>
+        </>
+    `
+);
