@@ -165,6 +165,9 @@ export interface ComponentContext<Props extends object = {}>
     render: TaggedTemplate;
     refs: Set<RefContext>;
     root: TemplateRoot | TemplateRootArray;
+    // Internal — cleanup callbacks run when this context's subtree is
+    // genuinely detached (unmount teardown); cleared after running.
+    teardowns: Set<Unsubscriber>;
     values: Es6Object<TemplateTagValue>;
 }
 

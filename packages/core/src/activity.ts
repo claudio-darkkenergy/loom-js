@@ -116,7 +116,20 @@ export const activity = <V, I = V>(
                     // Set the current action scope.
                     scopedActions.set(ctx, action);
                     // Set up the reactive effect for the activity.
-                    reactiveEffect(renderEffect, valueProp);
+                    const disposeRenderEffect = reactiveEffect(
+                        renderEffect,
+                        valueProp
+                    );
+
+                    // Register the unmount cleanup — dispose the render
+                    // effect and release this context from the activity's
+                    // scoped actions so it stops pinning the context (and
+                    // its DOM) once the subtree is genuinely detached.
+                    ctx.teardowns = ctx.teardowns || new Set();
+                    ctx.teardowns.add(() => {
+                        disposeRenderEffect();
+                        scopedActions.delete(ctx);
+                    });
                 }
                 // Handle when `effect` is recalled.
                 else {

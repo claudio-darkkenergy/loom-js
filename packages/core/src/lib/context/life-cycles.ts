@@ -96,44 +96,38 @@ export const _lifeCycles = {
  */
 const domChanged: MutationCallback = (diffNodes) => {
     const canDebugMutations = canDebug('mutations');
+    // Removal candidates collected across the whole batch — a node that is
+    // removed and re-inserted within the same batch (a move, e.g. an array
+    // reorder) must not unmount, so resolution waits until every record has
+    // been processed (see the batch-end pass below).
+    const removalCandidates = new Map<Node, ComponentContextPartial>();
+
     canDebugMutations && loomConsole.groupCollapsed('loom (Mutating...)');
 
     diffNodes.forEach(({ addedNodes, removedNodes, type }) => {
         switch (type) {
             case 'childList':
-                // Handle removed nodes.
+                // Collect removal candidates.
                 if (removedNodes.length) {
-                    const cleanUp = (node: Node) => {
+                    const collect = (node: Node) => {
                         const ctx = lifeCycleNodes.get(node);
 
-                        if (ctx?.lifeCycleState) {
-                            lifeCycleNodes.delete(node);
-                            ctx.lifeCycleState.value = 'unmounted';
-                            canDebugMutations &&
-                                loomConsole.info(
-                                    `${
-                                        ctx.key ? `\`${ctx.key}\` ` : ''
-                                    }unmounted`,
-                                    node,
-                                    getShareableContext(ctx)
-                                );
-                        }
+                        ctx?.lifeCycleState && removalCandidates.set(node, ctx);
                     };
 
-                    // Calls the `onUnmounted` life-cycle handler for each removed node if defined.
                     removedNodes.forEach((node) => {
                         const treeWalker = document.createTreeWalker(
                             node,
                             window.NodeFilter.SHOW_ELEMENT
                         );
 
-                        // Cleanup & handle the unmount of this node...
-                        cleanUp(treeWalker.currentNode);
+                        // Collect this node...
+                        collect(treeWalker.currentNode);
 
                         // ...and all of its children.
                         while (treeWalker.nextNode()) {
                             const currentNode = treeWalker.currentNode;
-                            cleanUp(currentNode);
+                            collect(currentNode);
                         }
                     });
                 }
@@ -176,7 +170,41 @@ const domChanged: MutationCallback = (diffNodes) => {
         }
     });
 
+    // Batch-end resolution: only genuinely detached candidates unmount and
+    // tear down — moved-but-still-attached nodes keep their registration
+    // and subscriptions.
+    removalCandidates.forEach((ctx, node) => {
+        if (document.contains(node)) {
+            return;
+        }
+
+        lifeCycleNodes.delete(node);
+
+        if (ctx.lifeCycleState) {
+            ctx.lifeCycleState.value = 'unmounted';
+        }
+
+        teardownContext(ctx);
+        canDebugMutations &&
+            loomConsole.info(
+                `${ctx.key ? `\`${ctx.key}\` ` : ''}unmounted`,
+                node,
+                getShareableContext(ctx)
+            );
+    });
+
     canDebugMutations && loomConsole.groupEnd();
+};
+
+// Runs and clears a detached context's cleanup callbacks, cascading through
+// its child contexts. The context objects themselves stay in their parents'
+// `children` maps (persistence is untouched) — only subscriptions are
+// released; a later render re-subscribes through the effect's first-call
+// guard.
+const teardownContext = (ctx: ComponentContextPartial) => {
+    ctx.teardowns?.forEach((teardown) => teardown());
+    ctx.teardowns?.clear();
+    ctx.children?.forEach((childCtx) => teardownContext(childCtx));
 };
 
 /*
