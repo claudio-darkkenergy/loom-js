@@ -26,7 +26,6 @@
         "packages/core/package.json",
         "packages/esbuild/esbuild-plugin-html-split/package.json",
         "packages/pink/package.json",
-        "packages/tags/package.json",
         "services/package.json"
     ],
     "overrides": [

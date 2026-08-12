@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 pnpm + turborepo monorepo published under the `@loom-js/*` scope. Workspaces are defined in `pnpm-workspace.yaml`:
 
-- `packages/*` — published framework packages (`core`, `tags`, `pink`).
+- `packages/*` — published framework packages (`core`, `pink`).
 - `packages/esbuild/*` — published esbuild plugins (`esbuild-plugin-html-split`).
 - `lib/*` — internal utilities (`utils`, `contentful`, `storybook`, `typescript-config`, plus untracked `codegen`, `monitor`, `open-ai`).
 - `apps/*` — runnable apps. **Note:** `apps/docs` and `apps/sandbox` are explicitly excluded from the pnpm workspace (`!apps/docs`, `!apps/sandbox`) — only `apps/loom` (and any future siblings) are part of the install graph. Both excluded apps still exist on disk and have `package.json` files; they are not installed or built by `pnpm install` / `turbo`.
@@ -79,8 +79,7 @@ Concepts you will see across consumers:
 
 ### Other published packages
 
-- **`@loom-js/tags`** — Component wrappers around HTML tags, built on `core`. peerDep: `@loom-js/core`.
-- **`@loom-js/pink`** — Design system layered on `@appwrite.io/pink`. Has Storybook at port 6006 and is the only package with a `build` script (alias for `build-storybook`). peerDeps: `@loom-js/core`, `@loom-js/tags`.
+- **`@loom-js/pink`** — Design system layered on `@appwrite.io/pink`. Has Storybook at port 6006 and is the only package with a `build` script (alias for `build-storybook`). peerDep: `@loom-js/core`.
 - **`packages/esbuild/esbuild-plugin-html-split`** — esbuild plugin used by the apps to split the HTML template per route at build time. The `htmlSplit({ routes, template, spa, ... })` plugin call lives in each app's `project/client/config.mts`.
 
 ### Apps

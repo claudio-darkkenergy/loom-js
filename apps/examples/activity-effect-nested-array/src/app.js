@@ -1,5 +1,4 @@
-import { component } from '@loom-js/core';
-import { Div, Nav, Ul } from '@loom-js/tags';
+import { component, el } from '@loom-js/core';
 
 import { randomArray } from './activity/random-array.js';
 
@@ -21,11 +20,11 @@ export const App = component((html, { onMounted, onUnmounted, title }) => {
     return html`<>
         <h1>${title}</h1>
         <main>
-            ${Ul({
+            ${el('ul')({
                 style: { display: 'flex', 'flex-direction': 'column' },
                 children: [
                     effect(({ value: colors }) =>
-                        Div({
+                        el('div')({
                             style: {
                                 'background-color': colors[0],
                                 height: '50px',
@@ -33,10 +32,10 @@ export const App = component((html, { onMounted, onUnmounted, title }) => {
                             }
                         })
                     ),
-                    Nav({
+                    el('nav')({
                         children: effect(({ value: colors }) =>
                             colors?.map((color) =>
-                                Div({
+                                el('div')({
                                     key: color,
                                     style: {
                                         'background-color': color,
@@ -47,14 +46,14 @@ export const App = component((html, { onMounted, onUnmounted, title }) => {
                             )
                         )
                     }),
-                    Div({ children: 'Nested Div 1' }),
-                    Div({ children: 'Nested Div 2' })
+                    el('div')({ children: 'Nested Div 1' }),
+                    el('div')({ children: 'Nested Div 2' })
                 ]
-            })}${Ul({
+            })}${el('ul')({
                 style: { display: 'flex', 'flex-direction': 'column' },
                 children: effect(({ value: colors }) =>
                     colors?.slice(0, 3).map((color) =>
-                        Div({
+                        el('div')({
                             key: color,
                             style: {
                                 'background-color': color,
@@ -67,7 +66,7 @@ export const App = component((html, { onMounted, onUnmounted, title }) => {
             })}
             ${effect(({ value: colors }) =>
                 colors?.map((color) =>
-                    Div({
+                    el('div')({
                         key: color,
                         style: {
                             'background-color': color,

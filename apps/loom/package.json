@@ -19,7 +19,6 @@
         "@loom-js/contentful": "workspace:*",
         "@loom-js/core": "workspace:*",
         "@loom-js/pink": "workspace:*",
-        "@loom-js/tags": "workspace:*",
         "@loom-js/utils": "workspace:*",
         "classnames": "^2.5.1",
         "contentful": "^11.12.7"

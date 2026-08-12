@@ -1,17 +1,16 @@
-import type {
-    ComponentInputProps,
-    Component,
-    SimpleComponent,
-    GetProps
+import {
+    el,
+    type ComponentInputProps,
+    type Component,
+    type SimpleComponent,
+    type GetProps
 } from '@loom-js/core';
-import { Ul, type UlProps } from '@loom-js/tags';
 
 export type RenderVariantsStoryProps<Props extends object = {}> =
-    ComponentInputProps<
-        Omit<UlProps, 'item'> & {
-            itemProps: ComponentInputProps<Props>[];
-        }
-    >;
+    ComponentInputProps<{
+        itemProps: ComponentInputProps<Props>[];
+        listItemProps?: ComponentInputProps;
+    }>;
 
 export const RenderVariants =
     (
@@ -34,12 +33,16 @@ export const RenderVariants =
             ...(overrideProps?.(unorderedListProps) || {})
         };
 
-        return Ul({
-            ...overrides,
-            item,
+        const { itemProps, listItemProps, style, ...ulProps } = overrides;
+
+        return el('ul')({
+            ...ulProps,
+            children: itemProps?.map((props) =>
+                el('li')({ ...listItemProps, children: item(props) })
+            ),
             style: Object.assign(
                 { display: 'flex', gap: '30px', 'flex-wrap': 'wrap' },
-                overrides.style
+                style
             )
         });
     };

@@ -18,7 +18,6 @@
     "dependencies": {
         "@contentful/rich-text-types": "^17.2.7",
         "@loom-js/core": "workspace:*",
-        "@loom-js/tags": "workspace:*",
         "@loom-js/utils": "workspace:*"
     }
 }

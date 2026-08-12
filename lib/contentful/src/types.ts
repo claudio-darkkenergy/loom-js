@@ -1,5 +1,3 @@
-import { LinkProps } from '@loom-js/tags';
-
 import { ContentfulDocument } from './rich-text-renderer';
 
 export interface ContentfulAsset {
@@ -37,7 +35,12 @@ export interface NavItem {
 
 // export type Pages = PageProps[];
 
+export interface NavLinkProps {
+    href?: string;
+    target?: '_blank' | '_self';
+}
+
 export interface NavProps {
     className?: string;
-    navigation: LinkProps[];
+    navigation: NavLinkProps[];
 }

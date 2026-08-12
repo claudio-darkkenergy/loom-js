@@ -28,7 +28,7 @@ export default [
     // an array for the `output` option, where we can specify
     // `file` and `format` for each target)
     {
-        external: ['@loom-js/core', '@loom-js/tags', 'classnames'],
+        external: ['@loom-js/core', 'classnames'],
         input: './src/index.ts',
         plugins: [
             // so Rollup can convert TypeScript to JavaScript.

@@ -7,7 +7,7 @@ import {
     ArgType
 } from '@loom-js/storybook';
 
-import { PinkButton } from '../pink-button';
+import { PinkButton, type PinkButtonProps } from '../pink-button';
 import { PinkInlineTag, type PinkInlineTagProps } from './pink-inline-tag';
 
 const meta: Meta<PinkInlineTagProps> = {
@@ -41,7 +41,7 @@ export const DisabledState: Story = {
     }
 };
 
-const PinkButtonWithInlineTag: SimpleComponent<PinkInlineTagProps> = (props) =>
+const PinkButtonWithInlineTag: SimpleComponent<PinkButtonProps> = (props) =>
     PinkButton({
         ...props,
         children: [
@@ -56,7 +56,7 @@ const PinkButtonWithInlineTag: SimpleComponent<PinkInlineTagProps> = (props) =>
     });
 
 type UsageWithButtonsStory = StoryObj<
-    RenderVariantsStoryProps<PinkInlineTagProps>
+    RenderVariantsStoryProps<PinkButtonProps>
 >;
 
 export const UsageWithButtons: UsageWithButtonsStory = {

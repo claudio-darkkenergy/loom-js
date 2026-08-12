@@ -9,7 +9,6 @@
     },
     "dependencies": {
         "@loom-js/core": "workspace:*",
-        "@loom-js/tags": "workspace:*",
         "@storybook/types": "^8.6.14"
     },
     "devDependencies": {
