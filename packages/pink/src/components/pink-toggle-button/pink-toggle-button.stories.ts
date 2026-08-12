@@ -1,5 +1,5 @@
+import { el } from '@loom-js/core';
 import type { Meta, StoryObj } from '@loom-js/storybook';
-import { Span } from '@loom-js/tags';
 
 import {
     PinkToggleButton,
@@ -49,7 +49,7 @@ export const IconToggleWithTooltip: Story = {
     args: {
         buttonProps: [
             {
-                children: Span({
+                children: el('span')({
                     className: 'tooltip-popup is-bottom is-center',
                     children: 'List View'
                 }),
@@ -57,7 +57,7 @@ export const IconToggleWithTooltip: Story = {
                 icon: 'icon-view-list'
             },
             {
-                children: Span({
+                children: el('span')({
                     className: 'tooltip-popup is-bottom is-center',
                     children: 'Grid View'
                 }),

@@ -31,7 +31,7 @@ const meta: Meta<PinkAvatarGroupProps & StoryExtraArgs> = {
 export default meta;
 
 type Story = StoryObj<PinkAvatarGroupProps & StoryExtraArgs>;
-type StoryExtraArgs = { color?: PinkColor | string; size?: PinkSize };
+type StoryExtraArgs = { color?: PinkColor; size?: PinkSize };
 
 export const Sizes: Story = {
     args: {

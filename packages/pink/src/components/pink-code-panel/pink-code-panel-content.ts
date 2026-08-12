@@ -1,10 +1,14 @@
-import { component, ComponentOptionalProps } from '@loom-js/core';
-import { Code, Span } from '@loom-js/tags';
+import { component, type ComponentInputProps } from '@loom-js/core';
 import classNames from 'classnames';
 
 export type CodeLineProps = {
     useLineNumber?: boolean;
 };
+
+// Splitting the raw source into lines is a parsing concern of its own
+// (SOLID audit SRP entry) — kept out of the render path.
+const splitCodeLines = (source: string): string[] | undefined =>
+    source?.split('\n');
 
 const CodeLine = component<CodeLineProps>(
     (html, { children, useLineNumber = false }) => {
@@ -13,36 +17,49 @@ const CodeLine = component<CodeLineProps>(
 
         return html`
             <span class="u-contents">
-                ${Span({
-                    attrs: { 'aria-hidden': !useLineNumber },
-                    className: classNames({
-                        'grid-code-line-number': useLineNumber
-                    })
-                })}
+                <span
+                    $attrs=${{ 'aria-hidden': !useLineNumber }}
+                    class=${useLineNumber ? 'grid-code-line-number' : undefined}
+                ></span>
                 <pre>${text}</pre>
             </span>
         `;
     }
 );
 
-export interface PinkCodePanelContentProps extends ComponentOptionalProps {
+export type PinkCodePanelContentProps = ComponentInputProps<{
     children: string;
     useLineNumbers?: boolean;
-}
+}>;
 
-export const PinkCodePanelContent = ({
-    children,
-    className,
-    useLineNumbers = true,
-    ...props
-}: PinkCodePanelContentProps) =>
-    Code({
-        ...props,
-        children: children?.split('\n').map((codeLineText) =>
-            CodeLine({
-                children: codeLineText,
-                useLineNumber: useLineNumbers
-            })
-        ),
-        className: classNames(className, 'code-panel-content grid-code')
-    });
+export const PinkCodePanelContent = component<PinkCodePanelContentProps>(
+    (
+        html,
+        {
+            attrs,
+            children,
+            className,
+            id,
+            on,
+            onClick,
+            style,
+            useLineNumbers = true
+        }
+    ) => html`
+        <code
+            $attrs=${attrs}
+            $click=${onClick}
+            $on=${on}
+            class=${classNames(className, 'code-panel-content grid-code')}
+            id=${id}
+            style=${style}
+        >
+            ${splitCodeLines(children)?.map((codeLineText) =>
+                CodeLine({
+                    children: codeLineText,
+                    useLineNumber: useLineNumbers
+                })
+            )}
+        </code>
+    `
+);

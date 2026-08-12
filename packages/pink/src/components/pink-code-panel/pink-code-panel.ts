@@ -1,5 +1,4 @@
-import type { ComponentOptionalProps } from '@loom-js/core';
-import { Span } from '@loom-js/tags';
+import { el, type ComponentInputProps } from '@loom-js/core';
 import classNames from 'classnames';
 
 import type { PinkDynamicProps } from '../../types';
@@ -18,20 +17,25 @@ export const PinkCodePanel = ({
     className,
     codePanelContent,
     codePanelTextColor,
-    is = Span,
+    is = el('span'),
     style,
     ...props
-}: ComponentOptionalProps & PinkCodePanelProps) =>
+}: ComponentInputProps<PinkCodePanelProps>) =>
     is({
         ...props,
         className: classNames(className, 'code-panel'),
-        style: [
-            style,
-            {
-                '--p-code-panel-content': codePanelContent,
-                '--p-code-panel-text-color': codePanelTextColor
-            }
-        ]
+        // Omitted entirely when empty — a style value that resolves to
+        // nothing must not reach the root's style binding.
+        style:
+            codePanelContent === undefined && codePanelTextColor === undefined
+                ? style
+                : [
+                      style,
+                      {
+                          '--p-code-panel-content': codePanelContent,
+                          '--p-code-panel-text-color': codePanelTextColor
+                      }
+                  ]
     });
 
 PinkCodePanel.Header = PinkCodePanelHeader;

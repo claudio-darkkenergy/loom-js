@@ -1,3 +1,4 @@
+import { el } from '@loom-js/core';
 import {
     RenderVariants,
     type RenderVariantsStoryProps,
@@ -5,7 +6,6 @@ import {
     type StoryObj,
     ArgType
 } from '@loom-js/storybook';
-import { Span } from '@loom-js/tags';
 
 import { PinkColor, PinkSize } from '../../types';
 import { PinkAvatar, PinkAvatarProps } from './pink-avatar';
@@ -52,7 +52,7 @@ export const Types: StoryObj<
                 color: PinkColor.Pink
             },
             {
-                children: Span({ className: 'icon-code' })
+                children: el('span')({ className: 'icon-code' })
             },
             {
                 alt: 'Randomly chosen image related to technics',
@@ -80,7 +80,7 @@ export const ColorAndSize: Story = {
 
 export const Icon: Story = {
     args: {
-        children: Span({ className: 'icon-code' })
+        children: el('span')({ className: 'icon-code' })
     }
 };
 

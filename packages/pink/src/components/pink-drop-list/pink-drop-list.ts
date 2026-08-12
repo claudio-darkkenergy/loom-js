@@ -1,17 +1,9 @@
-import type {
-    ComponentInputProps,
-    ComponentOptionalProps,
-    SimpleComponent
-} from '@loom-js/core';
 import {
-    Div,
-    Link,
-    type LinkProps,
-    Section,
-    type SectionProps,
-    Ul,
-    type UlProps
-} from '@loom-js/tags';
+    component,
+    el,
+    type ComponentInputProps,
+    type SimpleComponent
+} from '@loom-js/core';
 import classNames from 'classnames';
 
 import { WithIconProps, withIcon } from '../../modifiers';
@@ -23,63 +15,125 @@ export enum DropListArrow {
     NoArrow = 'no-arrow'
 }
 
-export type DropListItemProps = LinkProps &
-    WithIconProps & { isSelected?: boolean };
+export type DropListItemProps = WithIconProps & {
+    href?: string;
+    isSelected?: boolean;
+    target?: '_blank' | '_self';
+};
 
-interface DropListProps extends UlProps {
+interface DropListProps {
     arrow?: DropListArrow;
     isBlockEnd?: boolean;
     isInlineEnd?: boolean;
     itemProps?: ComponentInputProps<DropListItemProps>[];
+    listItemProps?: ComponentInputProps;
 }
 
-const DropList: SimpleComponent<DropListProps> = ({
-    className,
-    itemProps,
-    listItemProps,
-    ...ulProps
-}) =>
-    Ul({
-        ...ulProps,
-        className: classNames(className, 'drop-list'),
-        item: ({
+const DropListItem = component<ComponentInputProps>(
+    (html, { attrs, children, className, id, on, onClick, style }) => html`
+        <li
+            $attrs=${attrs}
+            $click=${onClick}
+            $on=${on}
+            class=${className}
+            id=${id}
+            style=${style}
+        >
+            ${children}
+        </li>
+    `
+);
+
+const DropList = component<ComponentInputProps<DropListProps>>(
+    (
+        html,
+        {
+            attrs,
+            children,
             className,
-            isSelected,
-            ...props
-        }: ComponentInputProps<DropListItemProps>) =>
-            Link(
-                withIcon({
-                    ...props,
-                    className: classNames(className, 'drop-button', {
-                        'is-selected': isSelected
-                    })
-                })
-            ),
-        itemProps,
-        listItemProps: {
-            ...listItemProps,
-            className: classNames(listItemProps?.className, 'drop-list-item')
+            id,
+            itemProps,
+            listItemProps,
+            on,
+            onClick,
+            style
         }
-    });
+    ) => html`
+        <ul
+            $attrs=${attrs}
+            $click=${onClick}
+            $on=${on}
+            class=${classNames(className, 'drop-list')}
+            id=${id}
+            style=${style}
+        >
+            ${
+                children ||
+                itemProps?.map(
+                    ({
+                        attrs: itemAttrs,
+                        className: itemClassName,
+                        href,
+                        isSelected,
+                        target,
+                        ...props
+                    }) =>
+                        DropListItem({
+                            ...listItemProps,
+                            children: el('a')(
+                                withIcon({
+                                    ...props,
+                                    attrs: {
+                                        ...itemAttrs,
+                                        ...(href === undefined ? {} : { href }),
+                                        target: target ?? '_self'
+                                    },
+                                    className: classNames(
+                                        itemClassName,
+                                        'drop-button',
+                                        {
+                                            'is-selected': isSelected
+                                        }
+                                    )
+                                })
+                            ),
+                            className: classNames(
+                                listItemProps?.className,
+                                'drop-list-item'
+                            )
+                        })
+                )
+            }
+        </ul>
+    `
+);
 
-type DropSectionProps = SectionProps;
-
-const DropSection: SimpleComponent<DropSectionProps> = ({
+const DropSection: SimpleComponent<ComponentInputProps<{ role?: string }>> = ({
+    attrs,
     className,
+    role,
     ...props
 }) =>
-    Section({
+    el('section')({
         ...props,
+        attrs: {
+            ...attrs,
+            ...(role ? { role } : {})
+        },
         className: classNames(className, 'drop-section')
     });
 
-export type PinkDropListProps = ComponentOptionalProps & DropListProps;
+export type PinkDropListProps = ComponentInputProps<DropListProps>;
 
-export const PinkDropList = (dropListProps: PinkDropListProps) =>
-    Div({
-        children: DropSection({ children: DropList(dropListProps) }),
-        className: 'drop-list-wrapper'
-    });
+const DropListWrapper = component<PinkDropListProps>(
+    (html, props) => html`
+        <div class="drop-list-wrapper">
+            ${DropSection({ children: DropList(props) })}
+        </div>
+    `
+);
 
-PinkDropList.List = DropList;
-PinkDropList.Section = DropSection;
+export const PinkDropList = Object.assign(DropListWrapper, {
+    List: DropList,
+    Section: DropSection
+});

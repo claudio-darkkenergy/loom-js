@@ -1,23 +1,35 @@
-import { SimpleComponent } from '@loom-js/core';
-import { Div, Img, ImgProps } from '@loom-js/tags';
+import {
+    el,
+    type ComponentInputProps,
+    type SimpleComponent
+} from '@loom-js/core';
 import classNames from 'classnames';
 
 import { PinkColor, PinkSize } from '../../types';
 
-export type PinkAvatarProps = ImgProps & {
+export type PinkAvatarProps = ComponentInputProps<{
+    alt?: string;
     color?: PinkColor;
+    height?: number | string;
     isWith3Char?: boolean;
     size?: PinkSize;
-};
+    src?: string;
+    width?: number | string;
+}>;
 
+// Branching root — `img` for image avatars, `div` for character avatars —
+// with no markup of its own, so the functional form stays.
 export const PinkAvatar: SimpleComponent<PinkAvatarProps> = ({
+    alt,
+    attrs,
     children,
     className,
-    isWith3Char,
     color = PinkColor.Default,
+    height = 'auto',
+    isWith3Char,
     size = PinkSize.Medium,
     src,
-    style,
+    width = 'auto',
     ...avatarProps
 }) => {
     const avatarClassName = classNames(className, 'avatar', {
@@ -27,12 +39,22 @@ export const PinkAvatar: SimpleComponent<PinkAvatarProps> = ({
     });
 
     // All images must set the `alt` attribute to a string.
-    return typeof avatarProps.alt === 'string'
-        ? Img({
+    return typeof alt === 'string'
+        ? el('img')({
               ...avatarProps,
-              className: avatarClassName,
-              src,
-              style
+              attrs: {
+                  ...attrs,
+                  alt,
+                  height,
+                  ...(src === undefined ? {} : { src }),
+                  width
+              },
+              className: avatarClassName
           })
-        : Div({ ...avatarProps, children, className: avatarClassName });
+        : el('div')({
+              ...avatarProps,
+              attrs,
+              children,
+              className: avatarClassName
+          });
 };

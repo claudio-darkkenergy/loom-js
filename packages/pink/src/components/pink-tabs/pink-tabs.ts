@@ -1,15 +1,9 @@
-import type { ComponentInputProps, SimpleComponent } from '@loom-js/core';
 import {
-    Button,
-    type ButtonProps,
-    Div,
-    type DivProps,
-    Link,
-    type LinkProps,
-    Span,
-    Ul,
-    type UlProps
-} from '@loom-js/tags';
+    component,
+    el,
+    type ComponentInputProps,
+    type SimpleComponent
+} from '@loom-js/core';
 import classNames from 'classnames';
 
 import { withIcon } from '../../modifiers';
@@ -19,19 +13,18 @@ enum TabsButtonScrollPlacement {
     End = 'end'
 }
 
-type TabsButtonScrollProps = ButtonProps & {
-    placement: TabsButtonScrollPlacement;
-};
-
-const TabsButtonScroll: SimpleComponent<TabsButtonScrollProps> = ({
-    placement,
-    style,
-    ...buttonProps
-}) =>
-    Button(
+// Delegator over el('button') — the children come from withIcon.
+const TabsButtonScroll: SimpleComponent<
+    ComponentInputProps<{ placement: TabsButtonScrollPlacement }>
+> = ({ attrs, placement, style, ...buttonProps }) =>
+    el('button')(
         withIcon({
             ...buttonProps,
-            aria: { label: `Show items at ${placement} side` },
+            attrs: {
+                ...attrs,
+                'aria-label': `Show items at ${placement} side`,
+                type: 'button'
+            },
             className: classNames('tabs-button-scroll', `is-${placement}`),
             icon: `icon-cheveron-${placement === TabsButtonScrollPlacement.Start ? 'left' : 'right'}`,
             iconProps: {
@@ -42,63 +35,115 @@ const TabsButtonScroll: SimpleComponent<TabsButtonScrollProps> = ({
         })
     );
 
-export type LinkItemProps = LinkProps & { isSelected?: boolean };
+export type LinkItemProps = ComponentInputProps<{
+    href?: string;
+    isSelected?: boolean;
+    target?: '_blank' | '_self';
+}>;
 
-export type PinkTabsProps = DivProps & {
-    hideControls?: boolean;
-    tabsListProps?: Omit<UlProps, 'item'> & {
-        itemProps?: LinkItemProps[];
-    };
+type TabsItemProps = LinkItemProps & {
+    liProps?: ComponentInputProps;
 };
 
-export const PinkTabs: SimpleComponent<PinkTabsProps> = ({
-    className,
-    tabsListProps,
-    hideControls = false,
-    ...props
-}) => {
-    const TabsList = Ul({
-        className: 'tabs-list',
-        item: ({
+const TabsItem = component<TabsItemProps>(
+    (
+        html,
+        {
+            attrs,
             children,
-            className: linkClassName,
+            className,
+            href,
+            id,
             isSelected,
-            ...linkProps
-        }: ComponentInputProps<LinkItemProps>) =>
-            Link({
-                ...linkProps,
-                children: Span({
-                    children,
-                    className: 'text'
-                }),
-                className: classNames(linkClassName, 'tabs-button', {
-                    'is-selected': isSelected
-                })
-            }),
-        itemProps: tabsListProps?.itemProps,
-        key: 'tabs-list',
-        listItemProps: {
-            ...tabsListProps?.listItemProps,
-            className: classNames(
-                tabsListProps?.listItemProps?.className,
-                'tabs-item'
-            )
+            liProps,
+            on,
+            onClick,
+            style,
+            target
         }
-    });
+    ) => html`
+        <li
+            $attrs=${liProps?.attrs}
+            $click=${liProps?.onClick}
+            $on=${liProps?.on}
+            class=${liProps?.className}
+            id=${liProps?.id}
+            style=${liProps?.style}
+        >
+            <a
+                $attrs=${attrs}
+                $click=${onClick}
+                $on=${on}
+                class=${classNames(className, 'tabs-button', {
+                    'is-selected': isSelected
+                })}
+                href=${href}
+                id=${id}
+                style=${style}
+                target=${target ?? '_self'}
+            >
+                <span class="text">${children}</span>
+            </a>
+        </li>
+    `
+);
 
-    return Div({
-        ...props,
-        children: hideControls
-            ? TabsList
-            : [
-                  TabsButtonScroll({
-                      placement: TabsButtonScrollPlacement.Start
-                  }),
-                  TabsButtonScroll({
-                      placement: TabsButtonScrollPlacement.End
-                  }),
-                  TabsList
-              ],
-        className: classNames(className, 'tabs')
-    });
-};
+export type PinkTabsProps = ComponentInputProps<{
+    hideControls?: boolean;
+    tabsListProps?: ComponentInputProps<{
+        itemProps?: LinkItemProps[];
+        listItemProps?: ComponentInputProps;
+    }>;
+}>;
+
+export const PinkTabs = component<PinkTabsProps>(
+    (
+        html,
+        {
+            attrs,
+            className,
+            hideControls = false,
+            id,
+            on,
+            onClick,
+            style,
+            tabsListProps
+        }
+    ) => html`
+        <div
+            $attrs=${attrs}
+            $click=${onClick}
+            $on=${on}
+            class=${classNames(className, 'tabs')}
+            id=${id}
+            style=${style}
+        >
+            ${
+                hideControls
+                    ? undefined
+                    : [
+                          TabsButtonScroll({
+                              placement: TabsButtonScrollPlacement.Start
+                          }),
+                          TabsButtonScroll({
+                              placement: TabsButtonScrollPlacement.End
+                          })
+                      ]
+            }
+            <ul class="tabs-list">
+                ${tabsListProps?.itemProps?.map((itemProps) =>
+                    TabsItem({
+                        ...itemProps,
+                        liProps: {
+                            ...tabsListProps?.listItemProps,
+                            className: classNames(
+                                tabsListProps?.listItemProps?.className,
+                                'tabs-item'
+                            )
+                        }
+                    })
+                )}
+            </ul>
+        </div>
+    `
+);
