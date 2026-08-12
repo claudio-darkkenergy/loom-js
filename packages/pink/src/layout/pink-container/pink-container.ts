@@ -1,17 +1,30 @@
-import { SimpleComponent } from '@loom-js/core';
-import { Div } from '@loom-js/tags';
+import {
+    el,
+    type ComponentInputProps,
+    type SimpleComponent
+} from '@loom-js/core';
 import classNames from 'classnames';
 
 import { PinkDynamicProps } from '../../types';
 
-export type PinkContainerProps = PinkDynamicProps;
+export type PinkContainerProps = ComponentInputProps<PinkDynamicProps>;
 
+// Pure delegation — no markup of its own, so no template (and no extra
+// component context): the root element comes entirely from `is`.
 export const PinkContainer: SimpleComponent<PinkContainerProps> = ({
+    attrs,
+    children,
     className,
-    is = Div,
-    ...containerProps
+    id,
+    is = el('div'),
+    on,
+    style
 }) =>
     is({
-        ...containerProps,
-        className: classNames(className, 'container')
+        attrs,
+        children,
+        className: classNames(className, 'container'),
+        id,
+        on,
+        style
     });

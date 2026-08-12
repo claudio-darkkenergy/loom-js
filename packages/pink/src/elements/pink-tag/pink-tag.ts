@@ -1,4 +1,4 @@
-import type { SimpleComponent } from '@loom-js/core';
+import type { ComponentInputProps, SimpleComponent } from '@loom-js/core';
 import { Div } from '@loom-js/tags';
 import classNames from 'classnames';
 
@@ -18,6 +18,8 @@ type NumberRange<F extends number, T extends number> =
 type TagProps = PinkDynamicProps & {
     // Appends the icon when provided vs. prepend placement.
     appendIcon?: boolean;
+    // Forwarded to the root by interactive tags (`PinkInteractiveTag`).
+    href?: string;
     isDanger?: boolean;
     // The classname for the icon - renders only when provided.
     icon?: string;
@@ -61,6 +63,6 @@ export type PinkTagProps = Omit<TagProps, 'is'>;
 /**
  * Tags help organize and differentiate between different categories of content. In the Appwrite console, tags may be interactive or static.
  */
-export const PinkTag = (props: PinkTagProps) => Tag(props);
+export const PinkTag = (props: ComponentInputProps<PinkTagProps>) => Tag(props);
 
 PinkTag.Tag = Tag;

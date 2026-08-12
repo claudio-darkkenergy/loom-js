@@ -15,24 +15,36 @@ export const el = (tagName: string): Component => {
 
     if (!tagComponent) {
         const isVoid = VOID_TAG.test(tag);
-        const chunks = [`<${tag} $attrs=`, ' $on=', ' class='].concat(
-            isVoid ? [' />'] : ['>', `</${tag}>`]
-        );
+        const chunks = [
+            `<${tag} $attrs=`,
+            ' $on=',
+            ' class=',
+            ' id=',
+            ' style='
+        ].concat(isVoid ? [' />'] : ['>', `</${tag}>`]);
 
-        tagComponent = component((html, { attrs, children, className, on }) => {
-            const values: TemplateTagValue[] = [attrs, on, className];
+        tagComponent = component(
+            (html, { attrs, children, className, id, on, style }) => {
+                const values: TemplateTagValue[] = [
+                    attrs,
+                    on,
+                    className,
+                    id,
+                    style
+                ];
 
-            if (!isVoid) {
-                values.push(children);
+                if (!isVoid) {
+                    values.push(children);
+                }
+
+                return (
+                    html as unknown as (
+                        tagChunks: string[],
+                        ...tagValues: TemplateTagValue[]
+                    ) => ComponentContext
+                )(chunks, ...values);
             }
-
-            return (
-                html as unknown as (
-                    tagChunks: string[],
-                    ...tagValues: TemplateTagValue[]
-                ) => ComponentContext
-            )(chunks, ...values);
-        });
+        );
         tagComponents.set(tag, tagComponent);
     }
 

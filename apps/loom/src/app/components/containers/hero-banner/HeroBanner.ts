@@ -30,8 +30,8 @@ export const HeroBanner: SimpleComponent<HeroBannerProps> = ({
             'u-gap-32 u-grid u-text-center',
             styles.heroBanner
         ),
+        attrs: { role: 'banner' },
         is: Section,
-        role: 'banner',
         children: [
             imgProps && Img(imgProps),
             Div({

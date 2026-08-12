@@ -1,11 +1,11 @@
-import { component, route } from '@loom-js/core';
+import { component, el, route } from '@loom-js/core';
 import {
     PinkButton,
     PinkContainer,
     PinkGridHeader,
     PinkTopNav
 } from '@loom-js/pink';
-import { Footer, Svg } from '@loom-js/tags';
+import { Svg } from '@loom-js/tags';
 import classNames from 'classnames';
 
 import { layoutState } from '../logic/activity/layout-state';
@@ -79,7 +79,7 @@ const PageLayout = component((html, { children, className, style: theme }) => {
                 />
             </>
             <main>${children}</main>
-            <${PinkContainer} is=${Footer}>© 2024</>
+            <${PinkContainer} is=${el('footer')}>© 2024</>
         </div>
     `;
 });

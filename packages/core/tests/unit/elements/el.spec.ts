@@ -18,7 +18,9 @@ describe('el(tagName)', () => {
                         attrs: { 'data-kind': 'colophon' },
                         children: 'fine print',
                         className: 'foot',
-                        on: { click: onClick }
+                        id: 'colophon-1',
+                        on: { click: onClick },
+                        style: 'color: red'
                     })}
                 </main>
             `
@@ -30,6 +32,8 @@ describe('el(tagName)', () => {
         expect($footer, 'footer rendered').to.exist;
         expect($footer?.getAttribute('data-kind')).to.equal('colophon');
         expect($footer?.classList.contains('foot')).to.be.true;
+        expect($footer?.id).to.equal('colophon-1');
+        expect($footer?.getAttribute('style')).to.contain('color: red');
         expect($footer?.textContent).to.contain('fine print');
 
         $footer?.dispatchEvent(new Event('click'));

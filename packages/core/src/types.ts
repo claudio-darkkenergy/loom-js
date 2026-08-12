@@ -36,8 +36,11 @@ export interface PlainObject<T = unknown> {
 type ValidAttrValue = string | boolean | number | undefined | null;
 type StyleProp = ValidAttrValue | Record<string, ValidAttrValue> | StyleProp[];
 
+// The index admits `StyleProp` so a literal with a `style` key type-checks —
+// the `$attrs` updater already handles style strings/objects/arrays at
+// runtime (`mergeAndSetStyleValues`).
 type PossibleAttrs = {
-    [key: string]: ValidAttrValue | Record<string, ValidAttrValue>;
+    [key: string]: ValidAttrValue | Record<string, ValidAttrValue> | StyleProp;
 };
 
 export type AttrsTemplateTagValue = PossibleAttrs & {
