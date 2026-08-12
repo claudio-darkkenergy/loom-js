@@ -5,8 +5,10 @@
     "description": "Common library utilities",
     "exports": "./src/index.ts",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "type-check": "tsc --noEmit"
+        "type-check": "tsc --noEmit",
+        "test-ci": "wtr --config \"web-test-runner.config.mjs\"",
+        "test-dev": "wtr --config \"web-test-runner.config.mjs\" --watch",
+        "type-check-tests": "tsc -p tests/tsconfig.json"
     },
     "keywords": [],
     "author": "Claudio Nunez Jr",
@@ -15,7 +17,16 @@
         "@loom-js/core": "workspace:*"
     },
     "devDependencies": {
+        "@esm-bundle/chai": "4.3.4-fix.0",
+        "@types/chai": "^5.2.3",
+        "@types/mocha": "^10.0.10",
         "@types/node": "^26.1.2",
+        "@types/sinon": "22.0.0",
+        "@web/dev-server-esbuild": "^2.0.0",
+        "@web/test-runner": "^1.0.0",
+        "@web/test-runner-puppeteer": "^1.0.1",
+        "puppeteer": "^25.4.0",
+        "sinon": "22.1.0",
         "tslib": "^2.8.1",
         "typescript": "^7.0.2"
     }

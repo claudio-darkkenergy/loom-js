@@ -196,9 +196,36 @@ importers:
         specifier: workspace:*
         version: link:../../packages/core
     devDependencies:
+      '@esm-bundle/chai':
+        specifier: 4.3.4-fix.0
+        version: 4.3.4-fix.0
+      '@types/chai':
+        specifier: ^5.2.3
+        version: 5.2.3
+      '@types/mocha':
+        specifier: ^10.0.10
+        version: 10.0.10
       '@types/node':
         specifier: ^26.1.2
         version: 26.1.2
+      '@types/sinon':
+        specifier: 22.0.0
+        version: 22.0.0
+      '@web/dev-server-esbuild':
+        specifier: ^2.0.0
+        version: 2.0.0
+      '@web/test-runner':
+        specifier: ^1.0.0
+        version: 1.0.0(yauzl@2.10.0)
+      '@web/test-runner-puppeteer':
+        specifier: ^1.0.1
+        version: 1.0.1(yauzl@2.10.0)
+      puppeteer:
+        specifier: ^25.4.0
+        version: 25.4.0(yauzl@2.10.0)
+      sinon:
+        specifier: 22.1.0
+        version: 22.1.0
       tslib:
         specifier: ^2.8.1
         version: 2.8.1

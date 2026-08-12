@@ -5,54 +5,64 @@ type RequestDataCacheMeta = {
     result: ApiProviderResponse<unknown>;
 };
 
-const pendingRequests = new Map<string, Set<AbortController>>();
+// In-flight requests shared per signature — concurrent identical calls await
+// one fetch (single flight) instead of racing or cancelling each other.
+const inflightRequests = new Map<
+    string,
+    Promise<ApiProviderResponse<unknown>>
+>();
 const requestDataCache = new Map<string, RequestDataCacheMeta>();
 
+// `true` when the caller supplied a cache key and any of its values changed
+// relative to the stored key (including a length change).
+const cacheKeyChanged = (incomingKey?: any[], storedKey?: any[]) =>
+    !!incomingKey &&
+    (incomingKey.length !== storedKey?.length ||
+        incomingKey.some(
+            (keyValue, keyIndex) => !Object.is(keyValue, storedKey?.[keyIndex])
+        ));
+
 export const request = async function makeRequest<D, T>(
-    // purge: CacheKeyPurger,
     input: RequestInfo,
     init: RequestInit & RequestInitOptions<D, T>
 ): Promise<ApiProviderResponse<D>> {
-    const reqSignature = JSON.stringify({ input, init });
+    // `cacheKey` identifies when a cached entry goes stale, so it must not
+    // participate in the signature that identifies which entry that is.
+    const { cacheKey, ...signatureInit } = init;
+    const reqSignature = JSON.stringify({ input, init: signatureInit });
 
-    // Bust the cache if a key was provide & any key value has changed.
-    if (init.cacheKey && requestDataCache.has(reqSignature)) {
-        const { cacheKey } = requestDataCache.get(
-            reqSignature
-        ) as RequestDataCacheMeta;
-        if (
-            cacheKey &&
-            cacheKey.some((key, i) => !Object.is(key, cacheKey[i]))
-        ) {
-            requestDataCache.delete(reqSignature);
-        }
+    // Bust the cache if a key was provided & any key value has changed.
+    if (
+        requestDataCache.has(reqSignature) &&
+        cacheKeyChanged(cacheKey, requestDataCache.get(reqSignature)?.cacheKey)
+    ) {
+        requestDataCache.delete(reqSignature);
     }
 
-    if (!requestDataCache.has(reqSignature)) {
+    const cached = requestDataCache.get(reqSignature);
+
+    if (cached) {
+        return cached.result as ApiProviderResponse<D>;
+    }
+
+    // Join an identical in-flight request instead of fetching again.
+    const inflight = inflightRequests.get(reqSignature);
+
+    if (inflight) {
+        return inflight as Promise<ApiProviderResponse<D>>;
+    }
+
+    const flight = (async (): Promise<ApiProviderResponse<D>> => {
         let res: Response;
         let status = 0;
-        const controllerQueue =
-            pendingRequests.get(reqSignature) || new Set<AbortController>();
         const controller = new AbortController();
 
-        // Add the controller queue to the pending request.
-        pendingRequests.set(reqSignature, controllerQueue);
-
-        // Abort all pending requests.
-        controllerQueue?.forEach((ctrl) =>
-            ctrl.abort(
-                'A repeat request caused an inflight request to be cancelled.'
-            )
-        );
-
-        // Queue the controller.
-        controllerQueue.add(controller);
-
-        // Handle request timeout.
+        // Handle request timeout — aborts the shared flight if it is still
+        // airborne when the timer fires.
         init.timeout &&
             setTimeout(
                 () =>
-                    controllerQueue?.has(controller) &&
+                    inflightRequests.has(reqSignature) &&
                     controller.abort(
                         `The request timed out after ${init.timeout} seconds.`
                     ),
@@ -70,31 +80,38 @@ export const request = async function makeRequest<D, T>(
                 status = res.status;
                 throw new Error(res.statusText);
             }
-        } catch (e: unknown) {
-            const error = e as { message: string; status: number };
+        } catch (caught: unknown) {
+            const error = caught as { message: string; status: number };
 
-            console.error(e);
+            console.error(caught);
+            // Error results are returned, not thrown — and never cached, so
+            // the next call retries.
             return { error: error.message, status: status || error.status };
         }
 
-        // Dequeue the controller.
-        controllerQueue.delete(controller);
-
-        // Dequeue the pending request.
-        controllerQueue.size && pendingRequests.delete(reqSignature);
-
         const body: T = await res[init.type || 'json']();
-        requestDataCache.set(reqSignature, {
-            cacheKey: init.cacheKey,
-            result: {
-                data:
-                    typeof init?.adapter === 'function'
-                        ? init.adapter(body)
-                        : (body as unknown as D),
-                status: res.status
-            }
-        });
-    }
+        const result: ApiProviderResponse<D> = {
+            data:
+                typeof init?.adapter === 'function'
+                    ? init.adapter(body)
+                    : (body as unknown as D),
+            status: res.status
+        };
 
-    return requestDataCache.get(reqSignature)?.result as ApiProviderResponse<D>;
+        // Only successful responses are cached.
+        requestDataCache.set(reqSignature, { cacheKey, result });
+
+        return result;
+    })();
+
+    inflightRequests.set(
+        reqSignature,
+        flight as Promise<ApiProviderResponse<unknown>>
+    );
+
+    try {
+        return await flight;
+    } finally {
+        inflightRequests.delete(reqSignature);
+    }
 };
