@@ -1,5 +1,5 @@
+import { el } from '@loom-js/core';
 import { ArgType, type Meta, type StoryObj } from '@loom-js/storybook';
-import { Link } from '@loom-js/tags';
 
 import { withIcon } from '../../modifiers';
 import { PinkSideNav, type PinkSideNavProps } from './pink-side-nav';
@@ -23,11 +23,11 @@ type Story = StoryObj<PinkSideNavProps>;
 
 export const Nav: Story = {
     args: {
-        bottom: Link(
+        bottom: el('a')(
             withIcon({
+                attrs: { href: '#' },
                 className: 'drop-button',
                 children: 'Menu Item',
-                href: '#',
                 icon: 'icon-cog'
             })
         ),

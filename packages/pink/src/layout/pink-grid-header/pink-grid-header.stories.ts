@@ -1,5 +1,5 @@
+import { el } from '@loom-js/core';
 import type { Meta, StoryObj } from '@loom-js/storybook';
-import { Div, H2, Span } from '@loom-js/tags';
 
 import { PinkToggleButton } from '../../components/pink-toggle-button/index.js';
 import { PinkButton } from '../../elements/pink-button/index.js';
@@ -26,7 +26,7 @@ type Story = StoryObj<PinkGridHeaderProps>;
 export const Example: Story = {
     args: {
         slots: {
-            col1: H2({
+            col1: el('h2')({
                 children: 'Databases',
                 className:
                     'heading-level-5 u-trim-1 u-cross-child-center grid-header-col-1'
@@ -48,10 +48,10 @@ export const Example: Story = {
                 ],
                 className: 'grid-header-col-3'
             }),
-            col4: Div({
+            col4: el('div')({
                 children: PinkButton({
                     children: [
-                        Span({
+                        el('span')({
                             children: 'Columns',
                             className: 'is-only-desktop'
                         }),

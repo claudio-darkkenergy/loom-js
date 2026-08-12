@@ -1,11 +1,14 @@
-import { SimpleComponent } from '@loom-js/core';
-import { Ul, type UlProps } from '@loom-js/tags';
+import {
+    el,
+    type ComponentInputProps,
+    type SimpleComponent
+} from '@loom-js/core';
 import classNames from 'classnames';
 
 import type { PinkDynamicProps } from '../../types';
 
-export type PinkGridBoxProps = PinkDynamicProps &
-    UlProps & {
+export type PinkGridBoxProps = ComponentInputProps<
+    PinkDynamicProps & {
         cols?: 'auto' | string | number;
         gridAutoRows?:
             | 'auto'
@@ -20,8 +23,10 @@ export type PinkGridBoxProps = PinkDynamicProps &
         gridGap?: string;
         gridItemSize?: string;
         gridItemSizeSmallScreens?: string;
-    };
+    }
+>;
 
+// Pure delegation — the root element comes entirely from `is`.
 export const PinkGridBox: SimpleComponent<PinkGridBoxProps> = ({
     className,
     cols = 'auto',
@@ -29,26 +34,36 @@ export const PinkGridBox: SimpleComponent<PinkGridBoxProps> = ({
     gridGap,
     gridItemSize,
     gridItemSizeSmallScreens,
-    is = Ul,
+    is = el('ul'),
     style,
     ...props
 }) => {
-    let gridTemplateColumns = !Number.isNaN(Number(cols))
+    const gridTemplateColumns = !Number.isNaN(Number(cols))
         ? `repeat(${cols}, 1fr)`
         : undefined;
 
     return is({
         ...props,
-        style: [
-            style,
-            {
-                '--grid-gap': gridGap,
-                '--grid-item-size': gridItemSize,
-                '--grid-item-size-small-screens': gridItemSizeSmallScreens,
-                'grid-auto-rows': gridAutoRows,
-                'grid-template-columns': gridTemplateColumns
-            }
-        ],
+        // Omitted entirely when empty — a style value that resolves to
+        // nothing must not reach the root's style binding.
+        style:
+            gridAutoRows === undefined &&
+            gridGap === undefined &&
+            gridItemSize === undefined &&
+            gridItemSizeSmallScreens === undefined &&
+            gridTemplateColumns === undefined
+                ? style
+                : [
+                      style,
+                      {
+                          '--grid-gap': gridGap,
+                          '--grid-item-size': gridItemSize,
+                          '--grid-item-size-small-screens':
+                              gridItemSizeSmallScreens,
+                          'grid-auto-rows': gridAutoRows,
+                          'grid-template-columns': gridTemplateColumns
+                      }
+                  ],
         className: classNames(className, 'grid-box')
     });
 };

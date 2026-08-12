@@ -1,5 +1,4 @@
-import { component } from '@loom-js/core';
-import { Header, type HeaderProps } from '@loom-js/tags';
+import { component, type ComponentInputProps } from '@loom-js/core';
 import classNames from 'classnames';
 
 /**
@@ -19,23 +18,23 @@ import classNames from 'classnames';
  * trailing flex cluster. Slotted content is rendered as authored — callers
  * place the pink grid classes (`grid-header-col-1`…`-4`) on their own
  * elements.
- *
- * The `Header` tag component owns the props-to-attributes mapping, exactly
- * as it did for the functional form: `attrs` for arbitrary attributes, `on`
- * for listeners, plus top-level `className`/`id`/`style`.
  */
-export type PinkGridHeaderProps = Omit<HeaderProps, 'children'>;
+export type PinkGridHeaderProps = Omit<ComponentInputProps, 'children'>;
 
 export const PinkGridHeader = component<PinkGridHeaderProps>(
-    (html, { attrs, className, id, on, slots, style }) => html`
-        <${Header}
-            ...${{ attrs, id, on, style }}
-            className=${classNames(className, 'grid-header')}
+    (html, { attrs, className, id, on, onClick, slots, style }) => html`
+        <header
+            $attrs=${attrs}
+            $click=${onClick}
+            $on=${on}
+            class=${classNames(className, 'grid-header')}
+            id=${id}
+            style=${style}
         >
             ${slots?.col1}
             <div class="u-flex u-gap-16 u-contents-mobile">
                 ${slots?.col4}${slots?.col3}${slots?.col2}
             </div>
-        </>
+        </header>
     `
 );

@@ -1,11 +1,14 @@
-import type { SimpleComponent, TemplateTagValue } from '@loom-js/core';
-import { Div, type DivProps } from '@loom-js/tags';
+import {
+    el,
+    type ComponentInputProps,
+    type SimpleComponent,
+    type TemplateTagValue
+} from '@loom-js/core';
 import classNames from 'classnames';
 
 import { PinkCard } from '../../elements/pink-card';
 
-export type PinkGridItemProps = Omit<DivProps, 'children'> & {
-    className?: string;
+export type PinkGridItemProps = Omit<ComponentInputProps, 'children'> & {
     bottomLeft?: TemplateTagValue;
     bottomRight?: TemplateTagValue;
     topLeft?: TemplateTagValue;
@@ -23,29 +26,29 @@ export const PinkGridItem: SimpleComponent<PinkGridItemProps> = ({
     return PinkCard({
         ...props,
         className: classNames('u-margin-auto', className),
-        children: Div({
+        children: el('div')({
             className: 'grid-item-1',
             children: [
                 topLeft &&
-                    Div({
+                    el('div')({
                         className: 'grid-item-1-start-start',
                         children: topLeft,
                         key: 'topLeft'
                     }),
                 topRight &&
-                    Div({
+                    el('div')({
                         className: 'grid-item-1-start-end',
                         children: topRight,
                         key: 'topRight'
                     }),
                 bottomLeft &&
-                    Div({
+                    el('div')({
                         className: 'grid-item-1-end-start',
                         children: bottomLeft,
                         key: 'bottomLeft'
                     }),
                 bottomRight &&
-                    Div({
+                    el('div')({
                         className: 'grid-item-1-end-end',
                         children: bottomRight,
                         key: 'bottomRight'

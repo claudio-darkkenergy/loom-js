@@ -1,9 +1,10 @@
-import type {
-    ComponentInputProps,
-    SimpleComponent,
-    TemplateTagValue
+import {
+    component,
+    el,
+    type ComponentInputProps,
+    type SimpleComponent,
+    type TemplateTagValue
 } from '@loom-js/core';
-import { Div, Nav, Section } from '@loom-js/tags';
 import classNames from 'classnames';
 
 import {
@@ -13,40 +14,36 @@ import {
 } from '../../components/pink-drop-list';
 import { PinkDynamicProps } from '../../types';
 
-const SideNavBottom: SimpleComponent = ({ children }) =>
-    Div({
-        children: Section({
-            children,
-            className: 'drop-section'
-        }),
-        className: 'side-nav-bottom'
-    });
+const SideNavBottom = component<ComponentInputProps>(
+    (html, { children }) => html`
+        <div class="side-nav-bottom">
+            <section class="drop-section">${children}</section>
+        </div>
+    `
+);
 
 interface SideNavTopProps {
     listProps: PinkDropListProps;
 }
 
-const SideNavTop: SimpleComponent<SideNavTopProps> = ({ listProps }) =>
-    Div({
-        children: Section({
-            children: PinkDropList(listProps)
-        }),
-        className: 'side-nav-main'
-    });
+const SideNavTop = component<ComponentInputProps<SideNavTopProps>>(
+    (html, { listProps }) => html`
+        <div class="side-nav-main">
+            <section>${PinkDropList(listProps)}</section>
+        </div>
+    `
+);
 
 export type PinkSideNavProps = PinkDynamicProps & {
-    // mainButtonProps: any[];
     bottom?: TemplateTagValue;
     topLinkProps?: ComponentInputProps<DropListItemProps>[];
 };
 
-export const PinkSideNav: SimpleComponent<PinkSideNavProps> = ({
-    bottom,
-    className,
-    is = Nav,
-    topLinkProps,
-    ...props
-}) => {
+// Pure delegation at the root (`is`); the inner level-1 wrapper travels as
+// a value.
+export const PinkSideNav: SimpleComponent<
+    ComponentInputProps<PinkSideNavProps>
+> = ({ bottom, className, is = el('nav'), topLinkProps, ...props }) => {
     const sideNavTop = SideNavTop({
         listProps: {
             itemProps: topLinkProps
@@ -63,7 +60,7 @@ export const PinkSideNav: SimpleComponent<PinkSideNavProps> = ({
 
     return is({
         ...props,
-        children: Div({
+        children: el('div')({
             children,
             className: 'side-nav-level-1'
         }),
