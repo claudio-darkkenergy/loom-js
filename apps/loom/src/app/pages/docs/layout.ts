@@ -1,41 +1,21 @@
-import {
-    route,
-    routeEffect,
-    watchRoute,
-    type SimpleComponent
-} from '@loom-js/core';
+import { route, routeEffect, type SimpleComponent } from '@loom-js/core';
 import { Div } from '@loom-js/tags';
 import classNames from 'classnames';
 
-import { ScreenWidthPx } from '../constants';
 import { DocContainer } from './components/DocContainer';
 import { DocsLayoutSkeleton } from './components/DocsLayoutSkeleton';
 import { DocsSideNav } from './components/DocsSideNav';
 import styles from './styles.module.css';
 import { page } from '@/app/logic/activity/selected-content';
 import { sideNavToggle, topicTocToggle } from '@/app/logic/activity/toggles';
-import {
-    useDefaultTopicRedirect,
-    useSelectedPage,
-    useSelectedTopic,
-    useTopicTocToggle
-} from '@/app/logic/hooks';
-import { useSideNavToggle } from '@/app/logic/hooks/use-side-nav-toggle';
+import { useDocsLayout } from '@/app/logic/hooks';
 
 const DocsLayout: SimpleComponent = ({ children, className, ...props }) => {
     const { effect: pageEffect } = page;
     const { effect: sideNavToggleEffect } = sideNavToggle;
     const { effect: topicTocToggleEffect } = topicTocToggle;
 
-    useSideNavToggle(`(width >= ${ScreenWidthPx.TabletStart}px)`);
-    useTopicTocToggle(`(width >= ${ScreenWidthPx.DesktopStart}px)`);
-    useDefaultTopicRedirect('/docs/get-started');
-    // Page data
-    useSelectedPage('/docs');
-    watchRoute(({ value: routeValue }) =>
-        // Topic data
-        useSelectedTopic(routeValue.params.topic)
-    );
+    useDocsLayout();
 
     return Div({
         ...props,

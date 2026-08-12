@@ -1,28 +1,21 @@
-import {
-    type ComponentOptionalProps,
-    type ContextFunction,
-    createRoutes
-} from '@loom-js/core';
+import { createRoutes, type SimpleComponent } from '@loom-js/core';
 
+import { RoutePath } from './constants';
 import PageLayout from './layout';
 import { Bootstrap } from '@/app/bootstrap';
 
 const Routes = createRoutes({
     config: {
-        '/': () => import('@/app/pages/'),
-        '/docs/:topic': () => import('@/app/pages/docs/')
+        [RoutePath.Home]: () => import('@/app/pages/'),
+        [RoutePath.Docs]: () => import('@/app/pages/docs/')
     }
 });
 
-export default Bootstrap(
-    ({
+const App: SimpleComponent = ({ className, style, ...props }) =>
+    PageLayout({
+        children: Routes(props),
         className,
-        style,
-        ...props
-    }: ComponentOptionalProps): ContextFunction | undefined =>
-        PageLayout({
-            children: Routes(props),
-            className,
-            style
-        })
-);
+        style
+    });
+
+export default Bootstrap(App);

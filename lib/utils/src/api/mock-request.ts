@@ -4,6 +4,6 @@ export const lazyMock = async <R>(resource: string): Promise<R> =>
     await import(resource);
 
 export const mockRequest = <D>(resource: RequestInfo) =>
-    request<D>(resource, {
+    request<D, D>(resource, {
         headers: { 'Content-type': 'application/json' }
     });

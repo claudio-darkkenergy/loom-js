@@ -24,17 +24,21 @@ export const matchQuery = (
         matches: mql.matches,
         media: mql.media
     } as MediaQueryListEvent);
-    mql.addEventListener('change', ({ currentTarget, target }) => {
+    // Named so `unsubscribeMql` can remove the same reference it registered —
+    // removing `onChange` itself would be a no-op since it was never added.
+    const onMqlChange = ({ currentTarget, target }: MediaQueryListEvent) => {
         const mqlTarget = (target || currentTarget) as MediaQueryList;
 
         onChange.call(mqlTarget, {
             matches: mqlTarget.matches,
             media: mqlTarget.media
         } as MediaQueryListEvent);
-    });
+    };
+
+    mql.addEventListener('change', onMqlChange);
 
     return {
         // Remove the mql listener.
-        unsubscribeMql: () => mql.removeEventListener('change', onChange)
+        unsubscribeMql: () => mql.removeEventListener('change', onMqlChange)
     };
 };

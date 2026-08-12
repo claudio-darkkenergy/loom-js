@@ -3,7 +3,7 @@
 _Maintained by `.claude/skills/solid-audit/SKILL.md`. Update this file using the audit skill — do not edit violation statuses manually._
 
 **Last full audit:** 2026-05-02
-**Last updated:** 2026-08-11
+**Last updated:** 2026-08-12
 
 ---
 
@@ -11,12 +11,12 @@ _Maintained by `.claude/skills/solid-audit/SKILL.md`. Update this file using the
 
 | Principle | 🔴 Critical | 🟡 Moderate | 🟢 Minor | ✅ Resolved |
 | --------- | ----------- | ----------- | -------- | ----------- |
-| SRP       | 0           | 1           | 3        | 3           |
+| SRP       | 0           | 1           | 2        | 4           |
 | OCP       | 0           | 1           | 1        | 0           |
 | LSP       | 0           | 0           | 0        | 1           |
 | ISP       | 0           | 0           | 0        | 1           |
 | DIP       | 1           | 1           | 0        | 0           |
-| **Total** | **1**       | **3**       | **4**    | **5**       |
+| **Total** | **1**       | **3**       | **3**    | **6**       |
 
 ---
 
@@ -75,18 +75,6 @@ _Low-risk drift to fix opportunistically._
 - **Violation:** The file co-locates DOM mutation observation setup (`_lifeCycles.observe`, `domChanged`, and the `MutationObserver` callback at lines 52–180) with lifecycle hook creation and state management (`lifeCycles`, `createLifeCycleHook`, `lifeCycleStateUpdateEffect` at lines 195–270).
 - **Impact:** The DOM observation concern and the lifecycle hook factory concern each have distinct reasons to change (e.g., a new browser API for mutation detection, or a new lifecycle event), making the file slightly harder to navigate and modify independently.
 - **Recommended fix:** Extract `_lifeCycles.observe` and `domChanged` into a sibling file (e.g., `mutation-observer.ts`) and import from it. See the SRP section in `.claude/skills/solid-principles/SKILL.md`.
-- **Status:** 🔲 Open
-- **Audited:** 2026-05-02
-
----
-
-### `packages/pink/src/components/pink-code-panel/pink-code-panel-content.ts`
-
-- **Principle violated:** SRP
-- **Severity:** 🟢 Minor
-- **Violation:** `PinkCodePanelContent` both parses the raw code string into lines (`children?.split('\n')`) and renders those lines via `CodeLine` components — two separate transformations in one function.
-- **Impact:** A change to the parsing strategy (e.g., preserving trailing whitespace, handling CRLF, adding syntax highlighting tokens) requires editing a rendering function, increasing the chance of unintended UI regressions.
-- **Recommended fix:** Extract `splitCodeLines(source: string): string[]` as a pure helper; `PinkCodePanelContent` then calls it and maps the result to `CodeLine`. See the SRP section in `.claude/skills/solid-principles/SKILL.md`.
 - **Status:** 🔲 Open
 - **Audited:** 2026-05-02
 
@@ -170,6 +158,20 @@ _Closed violations. Do not delete these — they are a record of improvements ma
 - **Status:** ✅ Resolved
 - **Audited:** 2026-05-02
 - **Resolved:** 2026-08-11
+
+---
+
+### `packages/pink/src/components/pink-code-panel/pink-code-panel-content.ts`
+
+- **Principle violated:** SRP
+- **Severity:** 🟢 Minor
+- **Violation:** `PinkCodePanelContent` both parses the raw code string into lines (`children?.split('\n')`) and renders those lines via `CodeLine` components — two separate transformations in one function.
+- **Impact:** A change to the parsing strategy (e.g., preserving trailing whitespace, handling CRLF, adding syntax highlighting tokens) requires editing a rendering function, increasing the chance of unintended UI regressions.
+- **Recommended fix:** Extract `splitCodeLines(source: string): string[]` as a pure helper; `PinkCodePanelContent` then calls it and maps the result to `CodeLine`. See the SRP section in `.claude/skills/solid-principles/SKILL.md`.
+- **Resolution:** Landed the recommended fix during the `element-syntax-conversion` pink sweep (task 2.3), which also converted the component to a template: `splitCodeLines(source)` is a pure module-level helper and the render path only maps its result to `CodeLine`. DOM parity with the pre-conversion output proven (whitespace inside `<pre>` compared verbatim).
+- **Status:** ✅ Resolved
+- **Audited:** 2026-05-02
+- **Resolved:** 2026-08-12
 
 ---
 

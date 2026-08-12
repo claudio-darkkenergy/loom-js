@@ -1,14 +1,6 @@
-import {
-    type GraphQlRequestPayload,
-    request,
-    type RequestInitOptions
-} from '@loom-js/utils';
+import { request } from '@loom-js/utils';
 
-import { GraphQlResponse } from './types';
-
-export type GraphQlRequestInit<D, T> = RequestInit &
-    RequestInitOptions<D, GraphQlResponse<T>> &
-    GraphQlRequestPayload;
+import { type GraphQlRequestInit, GraphQlResponse } from './types';
 
 /**
  * Performs a GraphQL request to the specified URL.
