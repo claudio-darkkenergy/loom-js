@@ -1,9 +1,12 @@
-import type { ComponentInputProps, SimpleComponent } from '@loom-js/core';
-import { Span, SpanProps } from '@loom-js/tags';
+import {
+    el,
+    type ComponentInputProps,
+    type SimpleComponent
+} from '@loom-js/core';
 import classNames from 'classnames';
 
-const Icon: SimpleComponent<SpanProps> = ({ attrs, ...iconProps }) =>
-    Span({
+const Icon: SimpleComponent = ({ attrs, ...iconProps }) =>
+    el('span')({
         ...iconProps,
         attrs: Object.assign(attrs || {}, {
             'aria-hidden': true
@@ -17,7 +20,7 @@ export interface WithIconProps {
     // The classname for the icon - renders only when provided.
     icon?: string;
     // The classname for the icon element.
-    iconProps?: SpanProps;
+    iconProps?: ComponentInputProps;
 }
 
 export const withIcon = <T>({

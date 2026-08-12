@@ -1,5 +1,4 @@
-import { TemplateTagValue, type ComponentInputProps } from '@loom-js/core';
-import { Span } from '@loom-js/tags';
+import { el, TemplateTagValue, type ComponentInputProps } from '@loom-js/core';
 import classNames from 'classnames';
 
 export interface WithTooltipProps {
@@ -22,7 +21,7 @@ export const withTooltip = ({
 }: ComponentInputProps<WithTooltipProps>) => {
     const childrenWithTooltip = [].concat(
         children as any,
-        Span({
+        el('span')({
             attrs: {
                 role: 'tooltip'
             },
