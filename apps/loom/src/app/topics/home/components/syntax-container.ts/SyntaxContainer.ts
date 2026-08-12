@@ -1,4 +1,4 @@
-import { SimpleComponent } from '@loom-js/core';
+import { el, SimpleComponent } from '@loom-js/core';
 import { PinkGridBox } from '@loom-js/pink';
 
 import { ContentCard } from '@/app/components/cards/content-card';
@@ -20,8 +20,9 @@ export const SyntaxCards: SimpleComponent = () => {
             // className: classNames('u-text-center', styles.featured),
             cols: 1,
             gridAutoRows: 'auto',
-            item: ContentCard,
-            itemProps: syntaxVariants
+            children: syntaxVariants.map((cardProps) =>
+                el('li')({ children: ContentCard(cardProps) })
+            )
         })
     });
 };
