@@ -46,6 +46,20 @@ One changeset describing the composition-API break and the peerDep removal; per-
 - **[Array-limitation regressions]** → the one forbidden shape (region values inside children arrays) is named in every conversion section; parity harness catches the stringify symptom (`[object …]` text).
 - **[Uncommitted `fix-docs-toc-duplication` WIP overlaps `apps/loom`]** → app conversion coordinates with the owner before touching files that WIP holds open.
 
+## Final Metrics (5.4, recorded 2026-08-12)
+
+| Metric                          |     Before |                                   After | Delta                 |
+| ------------------------------- | ---------: | --------------------------------------: | --------------------- |
+| Runtime component contexts, `/` |        106 |                                  **86** | **−20 (−19%)**        |
+| App bundle (all JS, gzip −9)    |   34,246 B |                                35,688 B | +1,442 B              |
+| Pink dist (min+gzip)            |    3,328 B |                                 4,222 B | +894 B                |
+| `@loom-js/tags` in first-party  | 89 sites\* |                                       0 | package deleted       |
+| Core suite                      |  169 green | 170 green (+`el()` `onClick` red-green) | all type-checks clean |
+
+\* Plus the lib/ scope the audit missed (`lib/contentful`, `lib/storybook`, the workspace example app).
+
+**Reading the numbers:** the context reduction is the effort's thesis and it delivered — every converted wrapper context (one per tags element) is gone; what remains is one context per authored template. The byte costs moved rather than vanished: pink and the app now own their template strings instead of sharing tags' generic machinery, so pink dist grew, and the app bundle nets +1,442 B after the tags code (including the copy that had been riding in through `lib/contentful`'s renderers, invisible to the original audit) tree-shook out. Every step of the conversion is DOM-parity-proven byte-equal (`#layout` on `/`, plus `/docs/get-started` against live content).
+
 ## Open Questions
 
 None blocking — patterns, pilot, metrics, and retirement mechanics are all settled above; anything the pilot falsifies comes back here before the full sweep.

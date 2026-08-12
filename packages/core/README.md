@@ -131,6 +131,8 @@ html`
 
 This is **sugar over the functional form** — the template above compiles to `${PinkButton({ isOnlyIcon: true, icon: 'icon-menu', onClick: … })}` before the native parser runs, with no new runtime semantics. The two forms are interchangeable, mix freely in one template, and render identically; templates that use no component tags pass through the pipeline byte-identical. The transform runs once per template call site and is cached.
 
+**Element syntax is the primary authoring surface.** Compose in markup — elements, attributes, children, named slots — and reserve the functional call for genuine _value positions_: an effect callback's return, a `.map` item, an `is=` prop, a props transformer — anywhere a component must travel as a JS value (with `el(tagName)` covering plain tags there). The functional form is not a legacy mode: it is the architecture the syntax compiles to, and the sanctioned escape hatch wherever a value position calls for it. Two composition constraints follow from the array-reconciliation limitation: interpolate regions in templates rather than passing them as children-array items, and keep components that are consumed as children-array items off component-tag roots (a component-tag-rooted template renders as a rootless fragment).
+
 **Props** come in four forms, and the prop name is always taken **verbatim** — `onClick` stays `onClick`, with no lowercasing (component tags never reach the native HTML parser):
 
 | Form            | Compiles to        | Notes                                                           |

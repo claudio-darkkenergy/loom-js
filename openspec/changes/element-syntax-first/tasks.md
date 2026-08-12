@@ -19,15 +19,17 @@
 
 ## 3. Pilot, then full conversion
 
-- [ ] 3.1 Pilot: convert 2–3 representative pink components (one trivial wrapper consumer, one passthrough, one list-heavy); measure pink dist, app bundle, and runtime component-context count before/after; DOM-parity proof per component.
-- [ ] 3.2 Full pink conversion (36 files) and app conversion (18 files), component-by-component with parity checks.
-- [ ] 3.3 Remove `@loom-js/tags` from pink peerDeps and all first-party imports.
+- [x] 3.1 Pilot: convert 2–3 representative pink components (one trivial wrapper consumer, one passthrough, one list-heavy); measure pink dist, app bundle, and runtime component-context count before/after; DOM-parity proof per component. → Done in `element-syntax-conversion` sections 0–1 (PinkBox / PinkContainer / PinkTopNav; one pattern falsified and amended: pure delegators stay functional).
+- [x] 3.2 Full pink conversion (36 files) and app conversion (18 files), component-by-component with parity checks. → Done in `element-syntax-conversion` sections 2–3, plus lib/ scope the audit missed (`lib/contentful` renderers, `lib/storybook` fixture, the workspace example app). Every step byte-equal (`/` and a live-content docs route).
+- [x] 3.3 Remove `@loom-js/tags` from pink peerDeps and all first-party imports. → Done (`element-syntax-conversion` 4.1; the dep lived in pink `dependencies`, not peerDeps).
 
 ## 4. Retirement & repositioning
 
-- [ ] 4.1 Retire `packages/tags` per 0.4; changesets (pink major, core minor(s)).
-- [ ] 4.2 Docs overhaul: core README leads with element syntax; functional form documented as architecture/escape hatch; coordinate with `add-server-rendering` docs.
-- [ ] 4.3 Update `.claude/skills/skill-config.md` and `SOLID-AUDIT-REPORT.md` per repo rules.
+- [x] 4.1 Retire `packages/tags` per 0.4; changesets (pink major, core minor(s)). → Package deleted; changesets landed (pink major + core minor for the `el()` flat-surface widening); `npm deprecate` remains the owner step, exact text in the pink changeset.
+- [x] 4.2 Docs overhaul: core README leads with element syntax; functional form documented as architecture/escape hatch; coordinate with `add-server-rendering` docs. → README already led with element syntax post-prerequisites; the explicit markup-first positioning (+ the two array-limitation composition constraints) added in `element-syntax-conversion` 5.1. SSR docs rebase on this per Decision 8.
+- [x] 4.3 Update `.claude/skills/skill-config.md` and `SOLID-AUDIT-REPORT.md` per repo rules. → skill-config: tags rows pruned + markup-first authoring convention with the conversion patterns; audit report: pink-button LSP 🟡, pink/types ISP 🟢, and pink-code-panel-content SRP 🟢 all ✅.
+
+**Archive note (from `element-syntax-conversion` 5.5):** this umbrella's `specs/element-syntax-authoring/` draft is superseded by the delta spec that landed with `element-syntax-conversion` — prune the umbrella's copy at archive time so capability ownership stays single.
 
 ## 5. Enforcement package
 
