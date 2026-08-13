@@ -1,6 +1,7 @@
 {
     "name": "@loom-js/open-ai",
     "version": "0.0.0",
+    "private": true,
     "description": "",
     "main": "src/index.ts",
     "exports": "./src/index.ts",
