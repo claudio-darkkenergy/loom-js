@@ -4,18 +4,18 @@ The docs layout wraps whole component subtrees in toggle-driven activity effects
 
 ## What Changes
 
-- `DocsSideNav` owns its open-state: it registers `sideNavToggle.watch` on mount, toggling its `_open` class imperatively via its `node()` root, and unsubscribes on unmount. The `isOpen` prop and the `sideNavToggleEffect` wrapper in `DocsLayout` are removed.
+- `DocsSideNav` keeps the declarative `sideNavToggleEffect` boundary (revised during review): its subtree is cheap to re-render, so the framework idiom wins per-site — the imperative pattern is reserved for the boundary with real re-render cost.
 - `DocsLayout` converts from a `SimpleComponent` to a `component()` template component (it owns real structure — the two-pane flex wrapper — and needs lifecycle + `node()` access). Its `topicTocToggle.watch` toggles the `_open` class on the `DocContainer` root element; the `topicTocToggleEffect` wrapper is removed. `DocContainer` itself stays a `SimpleComponent` (pure delegator with an array of children — template conversion would hit the documented array limitation).
-- Toggle clicks become single `classList` operations: zero re-renders, zero refetches, DOM node identity preserved.
-- Both watches unsubscribe on unmount and re-register on remount — no accumulation across docs entries (the manual-cleanup pattern `add-reactive-unsubscribe` was built for).
+- TOC toggle clicks become single `classList` operations: zero re-renders of the topic content, zero refetches, DOM node identity preserved. Side-nav toggles stay declarative (cheap re-render, post-teardown leak-free).
+- The TOC watch unsubscribes on unmount and re-registers on remount — no accumulation across docs entries (the manual-cleanup pattern `add-reactive-unsubscribe` was built for).
 
-Out of scope: converting `DocContainer` or other docs components to element syntax (the `element-syntax-conversion` workstream's call), and any change to the toggle activities, hooks, or breakpoint behavior (`hook-setup-idempotence` semantics are untouched).
+Out of scope: converting `DocContainer` or other docs components to element syntax (the `element-syntax-conversion` workstream's call), and any change to the toggle activities, hooks, or breakpoint behavior (`hook-setup-idempotence` semantics are untouched). Identified follow-up (separate change): a core _reactive attribute binding_ primitive — attr-level effects that update one attribute without re-rendering the subtree — which would let the TOC site return to declarative code as well.
 
 ## Capabilities
 
 ### New Capabilities
 
-- `docs-toggle-boundaries`: side-nav and TOC toggles update the docs layout by class mutation only — the affected DOM nodes keep their identity, no content re-render or refetch occurs, and the underlying watch subscriptions are released on unmount and re-established on remount without stacking.
+- `docs-toggle-boundaries`: the TOC toggle updates the docs layout by class mutation only — the container keeps its node identity, no content re-render or refetch occurs, and the watch subscription is released on unmount and re-established on remount without stacking; the side-nav toggle remains a declarative effect boundary whose class always reflects the toggle state.
 
 ### Modified Capabilities
 
@@ -24,6 +24,5 @@ Out of scope: converting `DocContainer` or other docs components to element synt
 ## Impact
 
 - `apps/loom/src/app/pages/docs/layout.ts` — component() conversion, effect wrappers removed, TOC class watch.
-- `apps/loom/src/app/pages/docs/components/DocsSideNav/DocsSideNav.ts` — internal open-state wiring, `isOpen` prop removed.
 - Verification is browser-based (apps have no test runner — same D6 posture as `fix-per-render-hook-leaks`): node-identity preservation across toggles, no-refetch, unsubscribe-on-exit behavior.
 - No package changes; no changeset (`@loom-js/loom` private).

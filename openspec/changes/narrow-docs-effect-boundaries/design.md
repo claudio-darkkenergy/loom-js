@@ -8,9 +8,9 @@ Available primitives: `watch` returns an `Unsubscriber` (`reactive-unsubscribe`)
 
 **Goals:**
 
-- A toggle click mutates classes only: no component re-render, no topic refetch, DOM node identity preserved.
-- Watch subscriptions are balanced: registered on mount, released on unmount, re-registered on remount — never stacking across docs entries.
-- Initial toggle state renders correctly (from `activity.value()`) before the watch's immediate fire confirms it.
+- A TOC toggle click mutates one class: no content re-render, no topic refetch, DOM node identity preserved. The side nav stays declaratively bound (cheap boundary — see D1).
+- The TOC watch subscription is balanced: registered on mount, released on unmount, re-registered on remount — never stacking across docs entries.
+- Initial TOC state renders correctly (from `activity.value()`) before the watch's immediate fire confirms it.
 
 **Non-Goals:**
 
@@ -19,13 +19,13 @@ Available primitives: `watch` returns an `Unsubscriber` (`reactive-unsubscribe`)
 
 ## Decisions
 
-**D1 — Class mutation via `watch` + `classList.toggle`, owned by the component nearest the DOM.** `DocsSideNav` watches `sideNavToggle` and toggles `styles._open` on its own root (`node()`); `DocsLayout` watches `topicTocToggle` and toggles `styles._open` on the `DocContainer` root, found via `node().querySelector('.' + styles.docContainer)` (CSS-module class names are stable handles). Alternative — refs plumbed through pink props — heavier and needs `RefContext` wiring through `PinkContainer`; rejected.
+**D1 — Imperative escape hatch only where the re-render cost is real (revised during review).** Loom's reactivity is subtree-grained — an effect boundary cannot wrap a single attribute — so a declarative toggle costs a full subtree re-render. That cost is decisive for the TOC (`DocContainer` re-renders the action bar, breadcrumbs, and the whole topic content) and negligible for the side nav (a short list). Per-site verdicts: the TOC uses `topicTocToggle.watch` + `classList.toggle` on the `DocContainer` root, found via `node().querySelector('.' + styles.docContainer)`; `DocsSideNav` keeps its declarative `sideNavToggleEffect` boundary — the framework idiom (single source of truth, auto-managed subscription via unmount teardown) wins where there is no measured cost. The symmetric all-imperative version was implemented and rolled back: it traded idiom for perf at a site with nothing to gain. Follow-up identified: a core reactive-attribute-binding primitive (attr-level effects over the existing `get-attr-update` machinery + `Unsubscriber`s) would make even the TOC site declarative; this change is its motivating use case.
 
 **D2 — `DocsLayout` converts to `component()`.** It owns genuine structure (the flex two-pane wrapper), so template conversion is consistent with the sweep's own D1 rule — and it is the only way to get `onMounted`/`onUnmounted`/`node()` where the TOC class target lives. Its template root is a plain `<div>` with `${...}` slots (no compiled-children-region array hazard). The `...props` spread onto the old `Div` is dropped: the call site forwards only `children`/`className` plus route props that the markup never consumed; `class` binds explicitly.
 
-**D3 — Mount-scoped subscription lifecycle.** Each component registers its lifecycle handlers once (first render); the handlers close over a shared `unsubscribe` slot in that first render's scope: `onMounted` (re-fired per mount) creates the watch and stores its unsubscriber; the single `onUnmounted` handler both performs any existing duty (`DocsSideNav`'s `layoutState` update) and invokes the unsubscriber. Registrations stay balanced 1:1 with mount transitions. Note: lifecycle hooks only keep their **first** registered handler per event (`createLifeCycleHook` guard), so all unmount work must live in one handler.
+**D3 — Mount-scoped subscription lifecycle (TOC watch).** `DocsLayout` registers its lifecycle handlers once (first render); the handlers close over a shared `unsubscribe` slot in that first render's scope: `onMounted` (re-fired per mount) creates the watch and stores its unsubscriber; `onUnmounted` invokes it. Registrations stay balanced 1:1 with mount transitions. Note: lifecycle hooks only keep their **first** registered handler per event (`createLifeCycleHook` guard), so all unmount work must live in one handler.
 
-**D4 — Initial state from `activity.value()` in the template; the watch's immediate fire re-asserts it on mount.** The template renders `_open` classes from the toggles' current values, so there is no unstyled flash; the watch registered in `onMounted` fires immediately (by `watch`'s contract) and confirms/corrects the class. Manual-toggle persistence across docs entries (from `hook-setup-idempotence`) is thereby preserved: remount renders whatever the shared activity currently holds.
+**D4 — Initial TOC state from `topicTocToggle.value()` in the template; the watch's immediate fire re-asserts it on mount.** The template renders the container's `_open` class from the toggle's current value, so there is no unstyled flash; the watch registered in `onMounted` fires immediately (by `watch`'s contract) and confirms/corrects the class. Manual-toggle persistence across docs entries (from `hook-setup-idempotence`) is thereby preserved: remount renders whatever the shared activity currently holds. The side nav gets the same persistence for free through its effect boundary.
 
 ## Risks / Trade-offs
 
