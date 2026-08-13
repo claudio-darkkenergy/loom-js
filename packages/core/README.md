@@ -325,10 +325,35 @@ When creating a new activity, you may provide a default value. One or more effec
     - `effect(({ value }) => (ctx?: ComponentContext) => Node)`
         - An effect is called at least once per use, when it's first introducted during the component render process. Additionally, it's called once per activity update.
         - `value` - the initial activity value, or the new value on updates.
+    - `bind(select?)`
+        - Creates a reactive attribute binding for template attr slots — the bound attribute applies `select` of the current value immediately and stays in sync with every update, **without re-rendering the component**. Cleanup is automatic: the binding is disposed when a re-render replaces the slot's value and on unmount.
+        - `select` - projects the activity value to the attribute value; defaults to identity.
+        - Prefer `bind` over an `effect` boundary when only an attribute depends on the activity; prefer `effect` when content or structure changes.
     - `update(newValue)`
         - Calling this method will trigger all subscribed effects from the related activity, passing the new value to each effect.
     - `value()`
         - A getter which always returns the current value, which is initially `initialValue`.
+    - `watch(action)`
+        - Subscribes a caller-managed handler: `action` runs immediately with the current value, then on every update.
+        - Returns an `Unsubscriber` — cleanup is the caller's responsibility (e.g. pair it with `onUnmounted`), unlike `effect` (context-managed) and `bind` (template-managed).
+
+**Attribute binding example**
+
+```ts
+import { activity, component } from '@loom-js/core';
+
+const isOpen = activity(false);
+
+const Panel = component(
+    (html) => html`
+        <section
+            class=${isOpen.bind((open) => (open ? 'panel _open' : 'panel'))}
+        >
+            Content is untouched when the class updates.
+        </section>
+    `
+);
+```
 
 **Quick Example**
 

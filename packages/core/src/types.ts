@@ -1,3 +1,5 @@
+import type { AttrBinding } from './lib/attr-binding';
+
 export interface AppGlobalConfig {
     debug?: boolean;
     debugScope?: ConfigDebugAllowable & object;
@@ -94,6 +96,7 @@ export type TemplateTagValueBase =
     | void;
 
 export type TemplateTagValue =
+    | AttrBinding
     | TemplateTagValueBase
     // Recursive, so object-valued props carry arbitrary nesting — the runtime
     // has always passed these through by reference.

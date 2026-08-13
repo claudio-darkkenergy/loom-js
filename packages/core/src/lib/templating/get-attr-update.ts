@@ -1,13 +1,16 @@
 import { canDebug, config } from '../../config';
 import type {
     AttrsTemplateTagValue,
+    ComponentContextPartial,
     ConfigEvent,
     OnTemplateTagValue,
     PlainObject,
     TemplateNodeUpdate,
     TemplateTagValue,
-    TemplateTagValueFunction
+    TemplateTagValueFunction,
+    Unsubscriber
 } from '../../types';
+import { bindAttr, isAttrBinding } from '../attr-binding';
 import { loomConsole } from '../globals/loom-console';
 import { isObject, toCamelCase } from '../helpers';
 import { resolveValue } from './resolve-value';
@@ -16,7 +19,13 @@ import type { DynamicNode } from './types';
 type BoundSpecialAttrTemplateNodeUpdate = (
     ctx: {
         attr?: Attr;
+        // Active binding unsubscribers per attr key, for re-render swap
+        // disposal (`add-reactive-attr-bindings` design D3).
+        bindingRegistry?: Map<string, Unsubscriber>;
         dynamicNode: DynamicNode;
+        // The component context owning this template — the teardown root
+        // where binding subscriptions register (design D2).
+        hostCtx?: ComponentContextPartial;
         listenerCtx?: ListenerCtx | ListenerCtxCollection;
         nodeName: string;
     },
@@ -31,18 +40,26 @@ interface ListenerCtxCollection {
     [key: string]: ListenerCtx | undefined;
 }
 
-export const getAttrUpdate = (dynamicNode: DynamicNode, dynamicAttr: Attr) => {
+export const getAttrUpdate = (
+    dynamicNode: DynamicNode,
+    dynamicAttr: Attr,
+    hostCtx?: ComponentContextPartial
+) => {
     // Special attributes start w/ `$`.
     if (dynamicAttr['nodeName'][0] === '$') {
-        return getSpecialAttrUpdate(dynamicNode, dynamicAttr);
+        return getSpecialAttrUpdate(dynamicNode, dynamicAttr, hostCtx);
     }
     // Handle dynamic standard attributes.
     else {
-        return getStandardAttrUpdate(dynamicNode, dynamicAttr);
+        return getStandardAttrUpdate(dynamicNode, dynamicAttr, hostCtx);
     }
 };
 
-const getSpecialAttrUpdate = (dynamicNode: DynamicNode, attr: Attr) => {
+const getSpecialAttrUpdate = (
+    dynamicNode: DynamicNode,
+    attr: Attr,
+    hostCtx?: ComponentContextPartial
+) => {
     let updater: TemplateNodeUpdate;
     // Removes the prefix "$".
     const nodeName = attr.nodeName.slice(1);
@@ -55,7 +72,9 @@ const getSpecialAttrUpdate = (dynamicNode: DynamicNode, attr: Attr) => {
                 specialAttrUpdaters.attrs as BoundSpecialAttrTemplateNodeUpdate
             ).bind(null, {
                 attr,
+                bindingRegistry: new Map<string, Unsubscriber>(),
                 dynamicNode,
+                hostCtx,
                 nodeName
             });
             break;
@@ -112,8 +131,15 @@ const getSpecialAttrUpdate = (dynamicNode: DynamicNode, attr: Attr) => {
     return updater;
 };
 
-const getStandardAttrUpdate =
-    (dynamicNode: DynamicNode, attr: Attr) => (newValue: TemplateTagValue) => {
+const getStandardAttrUpdate = (
+    dynamicNode: DynamicNode,
+    attr: Attr,
+    hostCtx?: ComponentContextPartial
+) => {
+    // At most one live binding subscription per attr slot
+    // (`add-reactive-attr-bindings` design D3).
+    let unsubscribeBinding: Unsubscriber | undefined;
+    const applyValue = (newValue: TemplateTagValue) => {
         // Special attributes start w/ `$`.
         let nodeName =
             attr['nodeName'][0] === '$'
@@ -166,6 +192,24 @@ const getStandardAttrUpdate =
                 element.setAttribute(nodeName, String(value));
         }
     };
+
+    return (newValue: TemplateTagValue) => {
+        if (unsubscribeBinding) {
+            // A re-render replaced the slot's value — dispose the previous
+            // binding subscription and deregister its teardown first.
+            unsubscribeBinding();
+            hostCtx?.teardowns?.delete(unsubscribeBinding);
+            unsubscribeBinding = undefined;
+        }
+
+        if (isAttrBinding(newValue)) {
+            unsubscribeBinding = bindAttr(applyValue, newValue, hostCtx);
+            return;
+        }
+
+        applyValue(newValue);
+    };
+};
 
 const mergeAndSetStyleValues = (
     $target: HTMLElement | SVGElement,
@@ -297,10 +341,55 @@ const setCustomElementProps = ({
     }
 };
 
+// Applies one `$attrs` entry to the element — shared by the static path and
+// the per-entry binding application.
+const applyAttrsEntry = (
+    element: HTMLElement | SVGElement,
+    key: string,
+    value: TemplateTagValue
+) => {
+    const resolvedValue = resolveValue(value);
+
+    // Falsy value - remove the attribute from the element.
+    // Removing the attribute also solves for boolean attributes, i.e. `disabled`.
+    // (Previously removed the literal `$attrs` node name — a latent bug.)
+    // @TODO Handle number zero - 0?
+    if (!Boolean(resolvedValue)) {
+        element.removeAttribute(key === 'className' ? 'class' : key);
+        return;
+    }
+
+    switch (true) {
+        case key === 'className' && typeof resolvedValue === 'string':
+            resolvedValue && element.setAttribute('class', resolvedValue);
+
+            break;
+        // Handle style as Array of possible style values,
+        // ie. ['ruleName: value;', { ruleName: 'value' }, undefined, false].
+        case key === 'style' && Array.isArray(resolvedValue):
+            mergeAndSetStyleValues(
+                element,
+                resolvedValue as TemplateTagValue[]
+            );
+            break;
+        // Handle style as `CSSStyleDeclaration` object notation.
+        case key === 'style' && isObject(resolvedValue):
+            Object.entries(resolvedValue).forEach(([propName, value]) => {
+                (value || value === 0) &&
+                    element.style.setProperty(propName, String(value));
+            });
+            break;
+        // Truthy value exists - add and/or set the attribute & its value.
+        default:
+            element.setAttribute(key, String(resolvedValue));
+            break;
+    }
+};
+
 const specialAttrUpdaters: {
     [key: string]: BoundSpecialAttrTemplateNodeUpdate;
 } = {
-    attrs: ({ attr, dynamicNode, nodeName }, newValue) => {
+    attrs: ({ attr, bindingRegistry, dynamicNode, hostCtx }, newValue) => {
         // The new value must be an object literal.
         if (!newValue || !isObject(newValue)) {
             newValue &&
@@ -316,48 +405,28 @@ const specialAttrUpdaters: {
         // Loop to set the attrs.
         Object.entries(newValue as AttrsTemplateTagValue).forEach(
             ([key, value]) => {
-                const resolvedValue = resolveValue(value);
+                const previousUnsubscribe = bindingRegistry?.get(key);
 
-                // Falsy value - remove the attribute from the element.
-                // Removing the attribute also solves for boolean attributes, i.e. `disabled`.
-                // @TODO Handle number zero - 0?
-                if (!Boolean(resolvedValue)) {
-                    element.removeAttribute(nodeName);
+                if (previousUnsubscribe) {
+                    // A re-render replaced this entry — dispose the previous
+                    // binding subscription and deregister its teardown first.
+                    previousUnsubscribe();
+                    hostCtx?.teardowns?.delete(previousUnsubscribe);
+                    bindingRegistry?.delete(key);
+                }
+
+                if (isAttrBinding(value)) {
+                    const unsubscribe = bindAttr(
+                        (attrValue) => applyAttrsEntry(element, key, attrValue),
+                        value,
+                        hostCtx
+                    );
+
+                    bindingRegistry?.set(key, unsubscribe);
                     return;
                 }
 
-                switch (true) {
-                    case key === 'className' &&
-                        typeof resolvedValue === 'string':
-                        resolvedValue &&
-                            element.setAttribute('class', resolvedValue);
-
-                        break;
-                    // Handle style as Array of possible style values,
-                    // ie. ['ruleName: value;', { ruleName: 'value' }, undefined, false].
-                    case key === 'style' && Array.isArray(resolvedValue):
-                        mergeAndSetStyleValues(
-                            element,
-                            resolvedValue as TemplateTagValue[]
-                        );
-                        break;
-                    // Handle style as `CSSStyleDeclaration` object notation.
-                    case key === 'style' && isObject(resolvedValue):
-                        Object.entries(resolvedValue).forEach(
-                            ([propName, value]) => {
-                                (value || value === 0) &&
-                                    element.style.setProperty(
-                                        propName,
-                                        String(value)
-                                    );
-                            }
-                        );
-                        break;
-                    // Truthy value exists - add and/or set the attribute & its value.
-                    default:
-                        element.setAttribute(key, String(resolvedValue));
-                        break;
-                }
+                applyAttrsEntry(element, key, value);
             }
         );
     },

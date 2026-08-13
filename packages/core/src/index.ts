@@ -1,4 +1,5 @@
 export * from './activity';
+export type { AttrBinding } from './lib/attr-binding';
 export * from './app';
 export * from './component';
 export * from './config';

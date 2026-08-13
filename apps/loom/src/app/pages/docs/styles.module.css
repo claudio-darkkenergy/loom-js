@@ -45,14 +45,16 @@
             }
         }
     }
+}
 
-    &._open {
-        grid-template-areas:
-            'header header'
-            'main sidebar';
+/* The TOC open state lives on the layout root (a reactive attr binding in
+   `DocsLayout`), so the container rules target it as a descendant. */
+._open .docContainer {
+    grid-template-areas:
+        'header header'
+        'main sidebar';
 
-        .topicAside {
-            display: block;
-        }
+    .topicAside {
+        display: block;
     }
 }

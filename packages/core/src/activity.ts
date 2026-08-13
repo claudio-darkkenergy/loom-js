@@ -1,3 +1,4 @@
+import { ATTR_BINDING, AttrBinding } from './lib/attr-binding';
 import { appendChildContext } from './lib/context';
 import { isObject, shallowDiffArray, shallowDiffObject } from './lib/helpers';
 import { reactive, reactiveEffect } from './lib/reactive';
@@ -10,6 +11,7 @@ import type {
     PlainObject,
     TemplateRoot,
     TemplateRootArray,
+    TemplateTagValue,
     ValueProp
 } from './types';
 
@@ -88,6 +90,32 @@ export const activity = <V, I = V>(
     }
 
     return {
+        /**
+         * Creates an attribute binding for template attr slots — the bound
+         * attribute applies `select` of the current value immediately and
+         * stays in sync with every update, without re-rendering the host
+         * component. Cleanup is automatic: the templating layer disposes the
+         * binding when a re-render replaces the slot's value and on unmount
+         * teardown. Prefer this over an `effect` boundary when only an
+         * attribute depends on the activity.
+         * @param select Projects the activity value to the attribute value;
+         *      defaults to identity.
+         * @returns An `AttrBinding` to interpolate as an attribute value.
+         */
+        bind(
+            select: (bindValue: V) => TemplateTagValue = (bindValue) =>
+                bindValue as unknown as TemplateTagValue
+        ): AttrBinding<V> {
+            return {
+                [ATTR_BINDING]: true,
+                select,
+                watch: (action) =>
+                    reactiveEffect(
+                        () => action({ value: valueProp.value }),
+                        valueProp
+                    )
+            };
+        },
         effect(action: ActivityEffectAction<V>) {
             return function activityContextFunction(
                 ctx: ComponentContextPartial = {}

@@ -37,7 +37,7 @@ export const setUpdatesForPaths = (
         .forEach(([dynamicNode, dynamicAttr], i) => {
             // When the dynamic node is `Text` it can have 1 or more dynamic slot
             if (dynamicAttr) {
-                const update = getAttrUpdate(dynamicNode, dynamicAttr);
+                const update = getAttrUpdate(dynamicNode, dynamicAttr, ctx);
                 // Setup effect udpate.
                 setReactiveUpdates(update, i, ctx);
             } else if (
