@@ -1,14 +1,14 @@
 ## Purpose
 
-Defines the docs section's toggle-rendering contract: the topic-TOC toggle updates the layout by mutating one class on the persistent container element (no content re-render, no refetch, node identity preserved), with its class-driving watch subscription balanced across docs entries and exits; the side-nav toggle remains a declarative effect boundary whose class always reflects the shared toggle state. The split is deliberate — the imperative escape hatch is reserved for the boundary whose re-render cost is real (see the change's design D1); a future core reactive-attribute-binding primitive would let the TOC site return to declarative form.
+Defines the docs section's toggle-rendering contract: the topic-TOC toggle updates the layout by mutating one class on the layout root via a declarative reactive attribute binding (`topicTocToggle.bind(...)` — see `reactive-attr-bindings`), so the container element keeps its node identity and content with no re-render or refetch, and the binding's subscription stays balanced across docs entries and exits; the side-nav toggle remains a declarative effect boundary whose class always reflects the shared toggle state. Both sites are now fully declarative — the imperative-watch escape hatch this capability originally reserved for the TOC was retired by the binding primitive.
 
-This capability covers `apps/loom/src/app/pages/docs/` and builds on `hook-setup-idempotence` (toggle state persistence) and `reactive-unsubscribe` (the watch unsubscriber).
+This capability covers `apps/loom/src/app/pages/docs/` and builds on `hook-setup-idempotence` (toggle state persistence) and `reactive-attr-bindings` (the class binding).
 
 ## Requirements
 
 ### Requirement: TOC toggles mutate a class without re-rendering content
 
-Toggling the topic TOC SHALL update the `_open` class on the existing container element — the container SHALL keep its DOM node identity and its rendered topic content, and no topic-content fetch SHALL occur.
+Toggling the topic TOC SHALL update the `_open` class on the existing container element — the container SHALL keep its DOM node identity and its rendered topic content, and no topic-content fetch SHALL occur. The class SHALL be driven by a declarative attribute binding (`topicTocToggle.bind(...)`) rather than an imperative watch.
 
 #### Scenario: TOC toggle preserves the container and issues no fetch
 
