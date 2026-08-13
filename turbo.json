@@ -1,11 +1,12 @@
 {
     "$schema": "./node_modules/turbo/schema.json",
     "ui": "tui",
+    "globalPassThroughEnv": ["ENABLE_EXPERIMENTAL_COREPACK"],
     "tasks": {
         "build": {
             "dependsOn": ["^build", "^build-package"],
             "inputs": ["$TURBO_DEFAULT$", "!**/*.stories.{tsx,ts,jsx,js,mdx}"],
-            "outputs": ["build/**"],
+            "outputs": ["build/**", "storybook-static/**"],
             "env": ["API_URL", "CTF_IS_PREVIEW"]
         },
         "build-package": {
