@@ -12,11 +12,12 @@ const runDev = async () => {
 
     await ctx.watch();
 
-    let { host, port } = await ctx.serve({
+    const { hosts, port } = await ctx.serve({
         port: 9092,
         servedir: './build',
         fallback: './build/index.html'
     });
+    const host = hosts[0] ?? 'localhost';
 
     console.info(
         `esbuild is running the app on ~ ${

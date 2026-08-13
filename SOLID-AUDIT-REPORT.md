@@ -12,11 +12,11 @@ _Maintained by `.claude/skills/solid-audit/SKILL.md`. Update this file using the
 | Principle | 🔴 Critical | 🟡 Moderate | 🟢 Minor | ✅ Resolved |
 | --------- | ----------- | ----------- | -------- | ----------- |
 | SRP       | 0           | 1           | 2        | 4           |
-| OCP       | 0           | 1           | 1        | 0           |
+| OCP       | 0           | 0           | 1        | 1           |
 | LSP       | 0           | 0           | 0        | 1           |
 | ISP       | 0           | 0           | 0        | 1           |
 | DIP       | 1           | 1           | 0        | 0           |
-| **Total** | **1**       | **3**       | **3**    | **6**       |
+| **Total** | **1**       | **2**       | **3**    | **7**       |
 
 ---
 
@@ -47,18 +47,6 @@ _Violations to resolve the next time the affected file is touched._
 - **Violation:** The `POST` function performs at least five distinct operations: parse the request body, generate a timestamp, construct the S3 object key, read the existing log file, append the new entry, write the updated file back, and format the HTTP response.
 - **Impact:** Any change to the log-entry schema, the S3 key naming strategy, or the HTTP response shape requires editing this single function, increasing the chance of regressions across unrelated concerns.
 - **Recommended fix:** Extract three helpers — `buildLogEntry(body)`, `buildLogKey(prefix, date)`, and `appendToStore(store, key, entry)` — so that `POST` becomes a thin orchestrator. Apply after resolving the DIP Critical violation above (SRP section, `.claude/skills/solid-principles/SKILL.md`).
-- **Status:** 🔲 Open
-- **Audited:** 2026-05-02
-
----
-
-### `packages/core/src/lib/templating/get-attr-update.ts`
-
-- **Principle violated:** OCP
-- **Severity:** 🟡 Moderate
-- **Violation:** `getSpecialAttrUpdate` (lines 45–113) dispatches to `specialAttrUpdaters` via a `switch(true)` on hard-coded string comparisons (`nodeName === 'attrs'`, `nodeName === 'on'`, `nodeName === 'props'`). The `specialAttrUpdaters` object (lines 300–445) lists every recognized `$`-prefixed attribute.
-- **Impact:** Adding a new special attribute type (e.g., `$ref`, `$key`, `$bind`) requires editing the `switch` block and adding a new entry to `specialAttrUpdaters` — two edits in a 445-line file that is the update hot path for every dynamic node in the framework.
-- **Recommended fix:** Consider converting the switch dispatch to a lookup on `specialAttrUpdaters[nodeName]` with a `default` fallback; new attribute types then extend the map without touching the dispatch logic. See the OCP section in `.claude/skills/solid-principles/SKILL.md`.
 - **Status:** 🔲 Open
 - **Audited:** 2026-05-02
 
@@ -186,3 +174,17 @@ _Closed violations. Do not delete these — they are a record of improvements ma
 - **Status:** ✅ Resolved
 - **Audited:** 2026-05-02
 - **Resolved:** 2026-08-11
+
+---
+
+### `packages/core/src/lib/templating/get-attr-update.ts`
+
+- **Principle violated:** OCP
+- **Severity:** 🟡 Moderate
+- **Violation:** `getSpecialAttrUpdate` (lines 45–113) dispatched to `specialAttrUpdaters` via a `switch(true)` on hard-coded string comparisons (`nodeName === 'attrs'`, `nodeName === 'on'`, `nodeName === 'props'`). The `specialAttrUpdaters` object (lines 300–445) listed every recognized `$`-prefixed attribute. The file had grown to 514 lines by resolution time.
+- **Impact:** Adding a new special attribute type (e.g., `$ref`, `$key`, `$bind`) required editing the `switch` block and adding a new entry to `specialAttrUpdaters` — two edits in the update hot path for every dynamic node in the framework.
+- **Recommended fix:** Consider converting the switch dispatch to a lookup on `specialAttrUpdaters[nodeName]` with a `default` fallback; new attribute types then extend the map without touching the dispatch logic. See the OCP section in `.claude/skills/solid-principles/SKILL.md`.
+- **Resolution:** Landed the dispatch-map fix via `resolve-remaining-audit-items` (tasks 1.1–1.3), adapted to factories because each branch built different bind-time state: named special attributes (`attrs`, `on`, `props`) live in a `specialAttrUpdaterFactories` map whose entries own their state (fresh binding-registry Map, listener collection) and return the update closure; unmapped names fall back to `eventUpdaterFactory` (for `config.events` names — dynamic, so not map keys) then `defaultUpdaterFactory`, preserving the switch's precedence. A new special attribute type is now a single map entry with no dispatch edit; the factory typing also removed the `as BoundSpecialAttrTemplateNodeUpdate` casts. Type-check, type-check-tests, and the full suite (188 tests) green.
+- **Status:** ✅ Resolved
+- **Audited:** 2026-05-02
+- **Resolved:** 2026-08-12
