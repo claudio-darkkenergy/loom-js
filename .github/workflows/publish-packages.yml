@@ -11,6 +11,12 @@ jobs:
     release:
         name: Release
         runs-on: ubuntu-latest
+        permissions:
+            # changesets/action: push the version branch and open the Version PR
+            contents: write
+            pull-requests: write
+            # npm trusted publishing (OIDC) — no NPM_TOKEN secret involved
+            id-token: write
         # To use Turborepo Remote Caching, set the following environment variables for the job.
         env:
             TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
@@ -34,12 +40,24 @@ jobs:
               # https://github.com/pnpm/action-setup
               uses: pnpm/action-setup@v3
 
-            - name: Install Node.js 20.x
+            - name: Install Node.js 24.x
               # https://github.com/actions/setup-node
               uses: actions/setup-node@v4
               with:
-                  node-version: 20.x
+                  node-version: 24.x
                   cache: 'pnpm'
+
+            # Trusted publishing needs npm >= 11.5.1; don't rely on the
+            # runner's bundled npm staying new enough.
+            - name: Upgrade npm for OIDC trusted publishing
+              run: npm install -g npm@latest && npm --version
+
+            # An existing ~/.npmrc stops changesets/action from writing one
+            # with an (absent) NPM_TOKEN, which would shadow OIDC auth.
+            # provenance=true attests the build; requires each package's
+            # repository field to match this repo.
+            - name: Configure npm for tokenless publish
+              run: echo "provenance=true" > "$HOME/.npmrc"
 
             - name: Install Dependencies
               run: pnpm install
@@ -54,7 +72,6 @@ jobs:
                   # version: pnpm version-packages
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             # - name: Send a Slack notification if a publish happens
             # if: steps.changesets.outputs.published == 'true'

@@ -21,7 +21,8 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/darkkenergy/loomjs/packages/pink"
+        "url": "git+https://github.com/claudio-darkkenergy/loom-js.git",
+        "directory": "packages/pink"
     },
     "scripts": {
         "build": "pnpm build-storybook",
