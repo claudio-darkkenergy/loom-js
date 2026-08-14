@@ -2,7 +2,7 @@ import {
     component,
     el,
     type ComponentInputProps,
-    type SimpleComponent,
+    simple,
     type TemplateTagValue
 } from '@loom-js/core';
 import classNames from 'classnames';
@@ -41,29 +41,29 @@ export type PinkSideNavProps = PinkDynamicProps & {
 
 // Pure delegation at the root (`is`); the inner level-1 wrapper travels as
 // a value.
-export const PinkSideNav: SimpleComponent<
-    ComponentInputProps<PinkSideNavProps>
-> = ({ bottom, className, is = el('nav'), topLinkProps, ...props }) => {
-    const sideNavTop = SideNavTop({
-        listProps: {
-            itemProps: topLinkProps
-        }
-    });
-    const children = bottom
-        ? [
-              sideNavTop,
-              SideNavBottom({
-                  children: bottom
-              })
-          ]
-        : (sideNavTop as TemplateTagValue);
+export const PinkSideNav = simple<ComponentInputProps<PinkSideNavProps>>(
+    ({ bottom, className, is = el('nav'), topLinkProps, ...props }) => {
+        const sideNavTop = SideNavTop({
+            listProps: {
+                itemProps: topLinkProps
+            }
+        });
+        const children = bottom
+            ? [
+                  sideNavTop,
+                  SideNavBottom({
+                      children: bottom
+                  })
+              ]
+            : (sideNavTop as TemplateTagValue);
 
-    return is({
-        ...props,
-        children: el('div')({
-            children,
-            className: 'side-nav-level-1'
-        }),
-        className: classNames(className, 'side-nav')
-    });
-};
+        return is({
+            ...props,
+            children: el('div')({
+                children,
+                className: 'side-nav-level-1'
+            }),
+            className: classNames(className, 'side-nav')
+        });
+    }
+);

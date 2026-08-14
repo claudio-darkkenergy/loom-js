@@ -1,8 +1,4 @@
-import {
-    el,
-    type ComponentInputProps,
-    type SimpleComponent
-} from '@loom-js/core';
+import { el, simple } from '@loom-js/core';
 import classNames from 'classnames';
 
 import { withIcon } from '../../modifiers/with-icon';
@@ -31,39 +27,44 @@ type TagProps = PinkDynamicProps & {
     isWarning?: boolean;
 };
 
-const Tag: SimpleComponent<TagProps> = ({
-    className,
-    is = el('div'),
-    isDanger,
-    isEyebrowHeading,
-    isInfo,
-    isSelected,
-    isSuccess,
-    isWarning,
-    ...props
-}) => {
-    const eyebrowHeadingClassName = `eyebrow-heading${isEyebrowHeading ? `-${Number(isEyebrowHeading)}` : ''}`;
+const Tag = simple<TagProps>(
+    ({
+        className,
+        is = el('div'),
+        isDanger,
+        isEyebrowHeading,
+        isInfo,
+        isSelected,
+        isSuccess,
+        isWarning,
+        ...props
+    }) => {
+        const eyebrowHeadingClassName = `eyebrow-heading${isEyebrowHeading ? `-${Number(isEyebrowHeading)}` : ''}`;
 
-    return is(
-        withIcon({
-            ...props,
-            className: classNames(className, 'tag', {
-                [eyebrowHeadingClassName]: Boolean(isEyebrowHeading),
-                'is-danger': isDanger,
-                'is-info': isInfo,
-                'is-selected': isSelected,
-                'is-success': isSuccess,
-                'is-warning': isWarning
+        return is(
+            withIcon({
+                ...props,
+                className: classNames(className, 'tag', {
+                    [eyebrowHeadingClassName]: Boolean(isEyebrowHeading),
+                    'is-danger': isDanger,
+                    'is-info': isInfo,
+                    'is-selected': isSelected,
+                    'is-success': isSuccess,
+                    'is-warning': isWarning
+                })
             })
-        })
-    );
-};
+        );
+    }
+);
 
 export type PinkTagProps = Omit<TagProps, 'is'>;
 
 /**
  * Tags help organize and differentiate between different categories of content. In the Appwrite console, tags may be interactive or static.
  */
-export const PinkTag = (props: ComponentInputProps<PinkTagProps>) => Tag(props);
-
-PinkTag.Tag = Tag;
+export const PinkTag = Object.assign(
+    simple<PinkTagProps>((props) => Tag(props)),
+    // Expose the `is`-polymorphic base — factory-returned functions don't
+    // accept expando assignment (`PinkTag.Tag = ...`) under TS.
+    { Tag }
+);

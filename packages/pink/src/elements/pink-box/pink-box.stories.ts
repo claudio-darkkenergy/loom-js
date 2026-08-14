@@ -1,4 +1,4 @@
-import type { ComponentProps } from '@loom-js/core';
+import type { ComponentOutputProps } from '@loom-js/core';
 import type { Meta, StoryObj } from '@loom-js/storybook';
 
 import { PinkBox, type PinkBoxProps } from './pink-box';
@@ -10,7 +10,7 @@ const meta: Meta = {
 
 export default meta;
 
-type Story = StoryObj<ComponentProps<PinkBoxProps>>;
+type Story = StoryObj<ComponentOutputProps<PinkBoxProps>>;
 
 export const Box: Story = {
     args: {

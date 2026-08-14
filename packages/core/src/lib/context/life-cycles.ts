@@ -268,7 +268,10 @@ const createLifeCycleHook = (
     const event = ctx.ref?.[eventName];
     ctx[eventName] =
         typeof event === 'function'
-            ? (root) => handler(root) & event(root)
+            ? (root) => {
+                  handler(root);
+                  event(root);
+              }
             : handler;
 };
 

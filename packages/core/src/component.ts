@@ -1,24 +1,23 @@
 import { htmlParser } from './html-parser';
 import { lifeCycles, memoizedRefContext } from './lib/context';
 import type {
-    Component,
-    ComponentArgs,
     ComponentContextPartial,
     ComponentFactory,
-    ComponentOutputProps,
-    ContextNodeGetter,
-    LifeCycleHookProps,
+    ComponentInputProps,
     RefContext,
-    TaggedTemplate,
-    TemplateFunction,
-    TemplateRoot,
-    TemplateRootArray
+    TemplateFunction
 } from './types';
 
 export const component: ComponentFactory = <Props extends object = {}>(
     templateFunction: TemplateFunction<Props>
 ) => {
-    const componentFunction: Component = (props = {}) => {
+    const componentFunction = (
+        // The empty-object default only applies to propless calls, which the
+        // public `Component` signature permits only when `Props` has no
+        // required members — so `{}` is a valid `ComponentInputProps<Props>`
+        // in every legal call.
+        props: ComponentInputProps<Props> = {} as ComponentInputProps<Props>
+    ) => {
         /**
          * The component context function is responsible for configuring each component & its
          * context.
@@ -34,7 +33,7 @@ export const component: ComponentFactory = <Props extends object = {}>(
             dryRun = false
         ) {
             const scopedCtx = liveCtx.ctxScopes
-                ? liveCtx.ctxScopes.get(templateFunction as TemplateFunction)
+                ? liveCtx.ctxScopes.get(templateFunction)
                 : null;
             const ctx = scopedCtx || (!liveCtx.ctxScopes ? liveCtx : {});
             // Holds any possible child `RefContext`s.
@@ -47,9 +46,9 @@ export const component: ComponentFactory = <Props extends object = {}>(
 
                 ctx.children = new Map();
                 ctx.fragment = false;
-                ctx.fingerPrint = templateFunction as TemplateFunction;
+                ctx.fingerPrint = templateFunction;
                 ctx.lifeCycles = lifeCycles(ctx);
-                ctx.node = () => ctx.root as TemplateRoot | TemplateRootArray;
+                ctx.node = () => ctx.root!;
                 ctx.refs = new Set<RefContext>();
                 // ctx.render = htmlParser.bind(ctx);
                 ctx.render = htmlParser.bind(ctx);
@@ -70,26 +69,28 @@ export const component: ComponentFactory = <Props extends object = {}>(
 
                 if (liveCtx.ctxScopes) {
                     ctx.parent = liveCtx;
-                    liveCtx.ctxScopes.set(
-                        templateFunction as TemplateFunction,
-                        ctx
-                    );
+                    liveCtx.ctxScopes.set(templateFunction, ctx);
                 }
             }
 
             ctx.key = props.key;
-            ctx.props = {
+            // One object serves both the cached context and the template call
+            // below — the context store is `Props`-agnostic, so reading
+            // `ctx.props` back would erase the `Props` members' types.
+            const inputProps: ComponentInputProps<Props> = {
                 ...props,
                 children: Array.isArray(props.children)
                     ? props.children.flat()
                     : props.children
             };
 
+            ctx.props = inputProps;
+
             if (dryRun) {
                 return ctx;
             }
 
-            refIterator = (ctx.refs as Set<RefContext>).values();
+            refIterator = ctx.refs!.values();
 
             /*
              * ```
@@ -99,16 +100,13 @@ export const component: ComponentFactory = <Props extends object = {}>(
              * );
              * ```
              */
-            return templateFunction(
-                ctx.render as TaggedTemplate,
-                {
-                    ...(ctx.props as ComponentOutputProps<Props>),
-                    ...(ctx.lifeCycles as LifeCycleHookProps),
-                    createRef: memoizedRefContext(ctx, refIterator),
-                    ctxRefs: () => (ctx.refs as Set<RefContext>).values(),
-                    node: ctx.node as ContextNodeGetter
-                } as ComponentArgs<Props>
-            );
+            return templateFunction(ctx.render!, {
+                ...inputProps,
+                ...ctx.lifeCycles!,
+                createRef: memoizedRefContext(ctx, refIterator),
+                ctxRefs: () => ctx.refs!.values(),
+                node: ctx.node!
+            });
         }
 
         return contextFunction;

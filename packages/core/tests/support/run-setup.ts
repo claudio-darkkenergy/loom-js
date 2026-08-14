@@ -1,9 +1,9 @@
-import { AppInitProps, ComponentOptionalProps, init } from '../../src';
+import { AppInitProps, ReservedProps, init } from '../../src';
 import { Container, ContainerProps } from './components/container';
 
 export interface SetupOptions {
     appInitProps?: {} | AppInitProps;
-    containerProps: ContainerProps & ComponentOptionalProps;
+    containerProps: ContainerProps & ReservedProps;
 }
 
 export const runSetup = ({

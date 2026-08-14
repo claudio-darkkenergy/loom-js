@@ -8,6 +8,7 @@ export * from './elements';
 export * from './lazy-import';
 export * from './router';
 export * from './routing';
+export * from './simple';
 export type {
     ActivityEffect,
     ActivityEffectAction,
@@ -20,14 +21,9 @@ export type {
     AttrsTemplateTagValue,
     AnyComponent,
     Component,
-    // @deprecated - use `ComponentOutputProps`.
-    ComponentArgs,
     ComponentContext,
     ComponentInputProps,
-    // @deprecated - use `ReservedProps`.
-    ComponentOptionalProps,
     ComponentOutputProps,
-    ComponentProps,
     ContextFunction,
     DefineElementOptions,
     GetProps,
@@ -38,8 +34,6 @@ export type {
     PlainObject,
     ReactiveComponent,
     RefContext,
-    RenderFunction,
-    RenderProps,
     ReservedProps,
     RouteValue,
     SimpleComponent,

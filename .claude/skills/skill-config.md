@@ -140,8 +140,9 @@ Routing is provided by `@loom-js/core`'s built-in router:
 
 ### Component model
 
-- Component unit = one `component()` call or one `SimpleComponent` function — both return a `ContextFunction`.
-- `component()` holds its own template context (memoized across renders); `SimpleComponent` is a plain function that returns a `ContextFunction`.
+- Component unit = one `component()` call or one `simple()` call — both return a callable producing a `ContextFunction`.
+- `component()` holds its own template context (memoized across renders); `simple()` wraps a pass-through render function (returns `ContextFunction`(s) from other components, no template of its own). Declare pass-throughs via `simple<Props>(render)` — never as bare `SimpleComponent`-annotated functions: the factory guarantees the render function a props object (`{}` on propless calls), so implementations destructure without `= {}` defaults.
+- Props are conditionally required (`core-types-cleanup`): `Component<Props>`/`SimpleComponent<Props>` accept propless calls only when `Props` has no required members. `component()`/`simple()` handle the runtime default internally.
 - Templates use tagged-template literals with a single top-level element.
 - Components compose in templates as elements (`<${Component} prop=${value}>…</>`); children markup becomes the `children` prop, and `slot="name"`-labelled top-level children become named regions on the `slots` prop (`${slots?.name}` in the receiving template). Labels must be static quoted strings; the functional form is the identical call (`Component({ slots: { name: … }, children: … })`).
 - Spread props: `...${object}` in a component element's attribute region spreads the object's entries as props with object-literal semantics (authored order, last-wins duplicates; nullish/primitive values are a no-op) — identical to `Component({ ...object })`. A `slot` key via spread is an ordinary prop, never a label, and markup `children`/`slots` win over spread-supplied ones.

@@ -11,7 +11,7 @@ export interface AppInitProps {
     app: ContextFunction;
     append?: boolean | null;
     globalConfig?: AppGlobalConfig;
-    onAppMounted?: (mountedApp: Element) => any;
+    onAppMounted?: (mountedApp: Element) => void;
     root?: Element | null;
 }
 
@@ -21,6 +21,8 @@ export interface Aria {
     role?: string;
 }
 
+// String- and symbol-keyed record — `reactive.ts` tracks symbol-keyed deps,
+// which the string-only `PlainObject` cannot carry.
 export interface Es6Object<T = unknown> {
     [key: string | symbol]: T;
 }
@@ -29,6 +31,8 @@ export interface LoomGlobal {
     console: Console;
 }
 
+// String-keyed record for props/templating paths — see `Es6Object` for the
+// symbol-keyed variant.
 export interface PlainObject<T = unknown> {
     [key: string]: T;
 }
@@ -59,8 +63,11 @@ export type OnTemplateTagValue = Record<
 type SpecialTemplateTagValue = AttrsTemplateTagValue | OnTemplateTagValue;
 
 export interface TaggedTemplate {
-    this?: ComponentContext;
+    // The runtime binds the parser to a component context
+    // (`htmlParser.bind(ctx)`); `void` admits already-bound and standalone
+    // callables.
     (
+        this: ComponentContext | void,
         chunks: TemplateStringsArray,
         ...interpolations: TemplateTagValue[]
     ): ComponentContext;
@@ -129,18 +136,13 @@ export interface TemplateTransformPlan {
 /* Component */
 export type AnyComponent<Props extends object = {}> =
     Component<Props> | SimpleComponent<Props>;
-// The component callable (external values to internal props)
-export type Component<Props extends object = {}> = (
-    props?: ComponentInputProps<Props>
-) => ContextFunction;
-
-// @deprecated
-export type ComponentArgs<Props extends object = {}> = ComponentBaseProps &
-    ComponentInputProps<Props>;
-
-// @deprecated
-export type ComponentProps<Props extends object = {}> =
-    ComponentOutputProps<Props>;
+// The component callable (external values to internal props).
+// `{} extends Props` is true exactly when `Props` has no required members —
+// props stay optional for those components, and become mandatory the moment
+// `Props` declares a required member.
+export type Component<Props extends object = {}> = {} extends Props
+    ? (props?: ComponentInputProps<Props>) => ContextFunction
+    : (props: ComponentInputProps<Props>) => ContextFunction;
 
 export type ComponentInputProps<Props extends object = {}> = {
     [P in keyof Props]: Props[P];
@@ -157,8 +159,11 @@ export interface ComponentContext<Props extends object = {}>
     extends LifeCycleHandlerProps, Pick<ReservedProps, 'key' | 'ref'> {
     children: Map<number | string, ComponentContextPartial>;
     chunks: TemplateStringsArray;
-    ctxScopes: Map<TemplateFunction<Props>, ComponentContextPartial>;
-    fingerPrint: TemplateFunction<Props>;
+    // `TemplateFunction<any>` is a deliberate variance escape: the scope map
+    // and fingerprint store *every* component's template function regardless
+    // of its `Props`, so a `Props`-invariant key type would reject them all.
+    ctxScopes: Map<TemplateFunction<any>, ComponentContextPartial>;
+    fingerPrint: TemplateFunction<any>;
     fragment: boolean;
     lifeCycleState: LifeCycleState;
     lifeCycles: LifeCycleHookProps;
@@ -181,7 +186,6 @@ export type UtilityProps = {
     ctxRefs(): IterableIterator<RefContext>;
     node: ContextNodeGetter;
 };
-export type ComponentBaseArgs = LifeCycleHookProps & UtilityProps;
 // The component definition (internal props from external values)
 // It takes a `TemplateFunction`.
 export type ComponentFactory = <Props extends object = {}>(
@@ -196,9 +200,6 @@ export type DefineElementOptions = {
     // `shadow` — light-DOM content is styled by the document already.
     styles?: CSSStyleSheet[];
 };
-
-// @deprecated
-export type ComponentOptionalProps = ReservedProps;
 
 export type ReservedProps = {
     attrs?: AttrsTemplateTagValue;
@@ -226,13 +227,21 @@ export type ContextFunction = (
 // Returns the parent of `TemplateRoot` or `TemplateRootArray`.
 export type ContextNodeGetter = () => TemplateRoot | TemplateRootArray;
 
-// A pass-through component
-export type SimpleComponent<Props extends object = {}> = (
-    props: ComponentInputProps<Props>
-) => ContextFunction | ContextFunction[];
+// A pass-through component. Props optionality mirrors `Component`: optional
+// only while `Props` has no required members.
+export type SimpleComponent<Props extends object = {}> = {} extends Props
+    ? (
+          props?: ComponentInputProps<Props>
+      ) => ContextFunction | ContextFunction[]
+    : (
+          props: ComponentInputProps<Props>
+      ) => ContextFunction | ContextFunction[];
 
 /* Life-cycles */
-export type LifeCycleHandler = (root?: TemplateRoot | TemplateRootArray) => any;
+// Handler returns are discarded by the runtime — `void` accepts any callback.
+export type LifeCycleHandler = (
+    root?: TemplateRoot | TemplateRootArray
+) => void;
 
 // Life-cycle handlers counterparts for caching the handlers.
 // The handler will never change once set for a component.
@@ -259,7 +268,7 @@ export type LifeCycleState = {
     value: keyof LifeCycleHandlerProps | null;
 };
 
-export interface ReactiveComponent<T = any, P = any> {
+export interface ReactiveComponent<T = unknown, P = TemplateTagValue> {
     (transform?: (props?: T) => P): ContextFunction;
 }
 
@@ -267,12 +276,6 @@ export interface RefContext
     extends Partial<LifeCycleHandlerProps>, LifeCycleHookProps {
     node?: ContextNodeGetter;
 }
-
-// @Deprecated
-export type RenderFunction = TemplateFunction;
-
-// @Deprecated
-export type RenderProps = ComponentOutputProps;
 
 /* Event */
 export type SyntheticRouteEvent<T extends EventTarget = Element> = Event & {
@@ -288,7 +291,7 @@ export type SyntheticRouteEventListener = <
 >(
     event: SyntheticRouteEvent<T> | null,
     options?: OnRouteOptions
-) => any;
+) => void;
 
 /* Activity */
 export type ActivityEffect<V> = (
@@ -427,19 +430,11 @@ export interface Config {
     tokenReGlobal: RegExp;
 }
 
-export type GlobalWindow = Window & typeof globalThis;
-
-export interface NodeFilter {
-    SHOW_ALL: -1;
-}
-
-export interface GlobalConfig {
-    config: Config;
-}
-
 /* Utilities */
+// The false branch is unreachable given the constraint — `never` surfaces
+// misuse instead of silently widening to `any`.
 export type GetProps<T extends (props: any) => any> = T extends (
     props: infer P
 ) => any
     ? P
-    : any;
+    : never;

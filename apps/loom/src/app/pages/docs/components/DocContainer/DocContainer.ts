@@ -1,4 +1,4 @@
-import { routeEffect, type SimpleComponent } from '@loom-js/core';
+import { routeEffect, simple } from '@loom-js/core';
 import {
     PinkActionBar,
     PinkButton,
@@ -19,37 +19,35 @@ export type DocContainerProps = PinkContainerProps;
  *
  * By default, it includes the `u-grid` and `u-overflow-hidden` utility classes.
  */
-export const DocContainer: SimpleComponent<DocContainerProps> = ({
-    children,
-    className,
-    ...props
-}) => {
-    const { update: toggleTopicToc } = topicTocToggle;
-    const newChildren = [
-        PinkActionBar({
-            className: 'u-width-full-line',
-            startContent: {
-                children: routeEffect(({ value: { pathname = '' } }) =>
-                    Breadcrumbs({ pathname })
-                )
-            },
-            endContent: {
-                children: PinkButton({
-                    buttonSize: '1.5rem',
-                    className: classNames('is-not-desktop'),
-                    icon: 'icon-list',
-                    isOnlyIcon: true,
-                    isText: true,
-                    onClick: () => toggleTopicToc(null)
-                })
-            }
-        }),
-        children
-    ];
+export const DocContainer = simple<DocContainerProps>(
+    ({ children, className, ...props }) => {
+        const { update: toggleTopicToc } = topicTocToggle;
+        const newChildren = [
+            PinkActionBar({
+                className: 'u-width-full-line',
+                startContent: {
+                    children: routeEffect(({ value: { pathname = '' } }) =>
+                        Breadcrumbs({ pathname })
+                    )
+                },
+                endContent: {
+                    children: PinkButton({
+                        buttonSize: '1.5rem',
+                        className: classNames('is-not-desktop'),
+                        icon: 'icon-list',
+                        isOnlyIcon: true,
+                        isText: true,
+                        onClick: () => toggleTopicToc(null)
+                    })
+                }
+            }),
+            children
+        ];
 
-    return PinkContainer({
-        ...props,
-        className: classNames('u-grid', className),
-        children: newChildren
-    });
-};
+        return PinkContainer({
+            ...props,
+            className: classNames('u-grid', className),
+            children: newChildren
+        });
+    }
+);

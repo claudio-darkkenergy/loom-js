@@ -1,5 +1,5 @@
 import { component } from '../component';
-import type { SimpleComponent } from '../types';
+import { simple } from '../simple';
 
 // The media components: Svg ports the tags sprite convention; Picture is a
 // chooser over two internal template components (a component's template has
@@ -90,7 +90,7 @@ const PictureEl = /* @__PURE__ */ component<PictureProps>(
     `
 );
 
-export const Picture: SimpleComponent<PictureProps> = ({
-    sources,
-    ...imgProps
-}) => (sources?.length ? PictureEl({ ...imgProps, sources }) : Img(imgProps));
+export const Picture = /* @__PURE__ */ simple<PictureProps>(
+    ({ sources, ...imgProps }) =>
+        sources?.length ? PictureEl({ ...imgProps, sources }) : Img(imgProps)
+);

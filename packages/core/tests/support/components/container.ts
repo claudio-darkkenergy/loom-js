@@ -3,7 +3,7 @@ import type {
     ActivityEffect,
     AttrsTemplateTagValue,
     Component,
-    ComponentOptionalProps,
+    ReservedProps,
     ReactiveComponent,
     SimpleComponent,
     TemplateTagValue
@@ -17,7 +17,7 @@ export interface TestComponentProps {
 
 export interface ContainerProps {
     asyncEffect?: boolean;
-    componentProps?: TestComponentProps & ComponentOptionalProps;
+    componentProps?: TestComponentProps & ReservedProps;
     effect?: ActivityEffect<TestComponentProps>;
     TestComponent?:
         Component<TestComponentProps> | SimpleComponent<TestComponentProps>;

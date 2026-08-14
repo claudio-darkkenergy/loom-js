@@ -2,9 +2,9 @@ import { activity } from './activity';
 import { lazyImport } from './lazy-import';
 import type {
     ActivityEffectAction,
-    ComponentOptionalProps,
     ContextFunction,
     OnRouteOptions,
+    ReservedProps,
     RouteValue,
     SyntheticRouteEvent,
     ValueProp
@@ -49,7 +49,7 @@ class Router {
             this.routeActivity.update(window.location)
         );
 
-        return (props: ComponentOptionalProps) => this.pageRouteEffect(props);
+        return (props: ReservedProps) => this.pageRouteEffect(props);
     }
 
     routeEffect(routeEffectCallback: ActivityEffectAction<RouteValue>) {
@@ -108,9 +108,7 @@ class Router {
     }
 
     // Sets up the activity effect to load a page based on the current route.
-    private pageRouteEffect(
-        props: ComponentOptionalProps
-    ): ContextFunction | undefined {
+    private pageRouteEffect(props: ReservedProps): ContextFunction | undefined {
         const { effect, update } = lazyImport<ContextFunction | undefined>(
             'page-route',
             this.fallback

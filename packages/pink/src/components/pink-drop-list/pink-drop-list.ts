@@ -1,9 +1,4 @@
-import {
-    component,
-    el,
-    type ComponentInputProps,
-    type SimpleComponent
-} from '@loom-js/core';
+import { component, el, type ComponentInputProps, simple } from '@loom-js/core';
 import classNames from 'classnames';
 
 import { WithIconProps, withIcon } from '../../modifiers';
@@ -108,20 +103,17 @@ const DropList = component<ComponentInputProps<DropListProps>>(
     `
 );
 
-const DropSection: SimpleComponent<ComponentInputProps<{ role?: string }>> = ({
-    attrs,
-    className,
-    role,
-    ...props
-}) =>
-    el('section')({
-        ...props,
-        attrs: {
-            ...attrs,
-            ...(role ? { role } : {})
-        },
-        className: classNames(className, 'drop-section')
-    });
+const DropSection = simple<ComponentInputProps<{ role?: string }>>(
+    ({ attrs, className, role, ...props }) =>
+        el('section')({
+            ...props,
+            attrs: {
+                ...attrs,
+                ...(role ? { role } : {})
+            },
+            className: classNames(className, 'drop-section')
+        })
+);
 
 export type PinkDropListProps = ComponentInputProps<DropListProps>;
 
