@@ -11,4 +11,5 @@ declare module '@appwrite.io/pink-icons';
 // declare const __LOCAL_DEV__: Boolean;
 declare let __API_URL__: string;
 declare let __CTF_IS_PREVIEW__: boolean;
+declare let __DEV__: boolean;
 declare let __USE_MOCKS__: boolean;

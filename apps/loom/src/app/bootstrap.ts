@@ -10,7 +10,22 @@ import {
 } from '@loom-js/core';
 import { usePinkTheming } from '@loom-js/pink';
 
-new EventSource('/esbuild').addEventListener('change', () => location.reload());
+if (__DEV__) {
+    // esbuild's live-reload hook — the define makes this dead code in prod,
+    // so the minifier drops it entirely.
+    new EventSource('/esbuild').addEventListener('change', () =>
+        location.reload()
+    );
+}
+
+if (!__DEV__) {
+    // MyFonts license count beacon — previously a render-blocking CSS
+    // `@import`; fired async so it never sits in the critical path, and only
+    // on production traffic.
+    fetch('https://hello.myfonts.net/count/40024c', { mode: 'no-cors' }).catch(
+        () => undefined
+    );
+}
 
 // Bootstrap the app.
 const bodyBgColor = '0, 0%, 93%';
@@ -47,7 +62,7 @@ export const Bootstrap = (
         }) as ContextFunction,
         // append: false,
         globalConfig: {
-            debug: true,
+            debug: __DEV__,
             debugScope: {
                 activity: false,
                 console: true,

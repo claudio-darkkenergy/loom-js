@@ -12,6 +12,8 @@ export interface ClientConfigOptions {
     vercelEnv?: NodeJS.ProcessEnv;
 }
 
+const routes = ['/', '/docs'];
+
 export const clientConfig = (options: ClientConfigOptions = {}) => {
     const { apiUrl = '', ctfIsPreview = false, isProd = false } = options;
 
@@ -20,7 +22,8 @@ export const clientConfig = (options: ClientConfigOptions = {}) => {
         bundle: true,
         define: {
             __API_URL__: `'${apiUrl}'`,
-            __CTF_IS_PREVIEW__: `${ctfIsPreview}`
+            __CTF_IS_PREVIEW__: `${ctfIsPreview}`,
+            __DEV__: `${!isProd}`
         },
         format: 'esm',
         entryPoints: {
@@ -42,11 +45,21 @@ export const clientConfig = (options: ClientConfigOptions = {}) => {
             htmlSplit({
                 define: {
                     apiUrl,
-                    getTitle: () => 'Home | Loomjs'
+                    getTitle: (scope: string) =>
+                        scope === '/docs' ? 'Docs | Loomjs' : 'Home | Loomjs',
+                    isProd,
+                    // The template drops another route's chunks from a shell
+                    // only when the resource's scope prefix is known here.
+                    routeScopes: routes.map((route) =>
+                        route === '/' ? '/pages' : route
+                    )
                 },
+                // With the entry points named, the plugin classifies dynamic
+                // route chunks as common resources instead of extra entries.
+                entryPoints: ['static/js/spa'],
                 isProd,
-                routes: ['/', '/docs'],
-                spa: 'static/js/index',
+                routes,
+                spa: 'static/js/spa',
                 template: htmlTemplate,
                 verbose: false
             }),

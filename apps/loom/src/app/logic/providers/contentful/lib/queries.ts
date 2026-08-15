@@ -1,35 +1,19 @@
-export const contentById = `
-    content(preview: $isPreview, id: $id) {
-        ...contentFields
-    }
-`;
+// The document-level default tracks the build-time preview flag, so a query
+// that omits the `isPreview` variable still follows the build's
+// delivery/preview mode instead of silently diverging from it.
+export const previewArg = `$isPreview: Boolean = ${__CTF_IS_PREVIEW__}`;
 
-export const contentBySlug = `
-    contentCollection(limit: 1, preview: $isPreview, where: {slug: $slug }) {
-        items {
-            ...contentFields
-        }
-    }
-`;
-
-export const pageBySlug = `
-    pageCollection(limit: 1, preview: $isPreview, where: { slug: $slug }) {
+// A page's listing (side nav) and topic body share one document so a page
+// navigation costs a single request.
+export const pageContentBySlugs = `
+    pageCollection(limit: 1, preview: $isPreview, where: { slug: $pageSlug }) {
         items {
             ...shortPageFields
         }
     }
-`;
-
-export const pageContentById = `
-    page(preview: $isPreview, id: $id) {
-        ...pageFields
-    }
-`;
-
-export const pageContentBySlug = `
-    pageCollection(limit: 1, preview: $isPreview, where: { slug: $slug }) {
+    contentCollection(limit: 1, preview: $isPreview, where: { slug: $topicSlug }) {
         items {
-            ...pageFields
+            ...contentFields
         }
     }
 `;

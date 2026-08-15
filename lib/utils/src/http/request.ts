@@ -53,7 +53,6 @@ export const request = async function makeRequest<D, T>(
     }
 
     const flight = (async (): Promise<ApiProviderResponse<D>> => {
-        let res: Response;
         let status = 0;
         const controller = new AbortController();
 
@@ -70,16 +69,34 @@ export const request = async function makeRequest<D, T>(
             );
 
         try {
-            res = await fetch(input, {
+            const res = await fetch(input, {
                 ...init,
                 headers: init.headers && new Headers(init.headers),
                 signal: controller.signal
             });
 
+            status = res.status;
+
             if (!res.ok) {
-                status = res.status;
                 throw new Error(res.statusText);
             }
+
+            // Body parsing and the adapter run inside the guard — an adapter
+            // may throw to reject a semantically-failed 2xx response (e.g. a
+            // GraphQL error envelope), producing an uncached error result.
+            const body: T = await res[init.type || 'json']();
+            const result: ApiProviderResponse<D> = {
+                data:
+                    typeof init?.adapter === 'function'
+                        ? init.adapter(body)
+                        : (body as unknown as D),
+                status: res.status
+            };
+
+            // Only successful responses are cached.
+            requestDataCache.set(reqSignature, { cacheKey, result });
+
+            return result;
         } catch (caught: unknown) {
             const error = caught as { message: string; status: number };
 
@@ -88,20 +105,6 @@ export const request = async function makeRequest<D, T>(
             // the next call retries.
             return { error: error.message, status: status || error.status };
         }
-
-        const body: T = await res[init.type || 'json']();
-        const result: ApiProviderResponse<D> = {
-            data:
-                typeof init?.adapter === 'function'
-                    ? init.adapter(body)
-                    : (body as unknown as D),
-            status: res.status
-        };
-
-        // Only successful responses are cached.
-        requestDataCache.set(reqSignature, { cacheKey, result });
-
-        return result;
     })();
 
     inflightRequests.set(

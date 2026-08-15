@@ -6,7 +6,8 @@ const runDev = async () => {
     const ctx = await context(
         clientConfig({
             apiUrl: process.env.API_URL,
-            ctfIsPreview: process.env.CTF_IS_PREVIEW !== 'false'
+            // Preview is an explicit opt-in (`.env.local` sets it for dev).
+            ctfIsPreview: process.env.CTF_IS_PREVIEW === 'true'
         })
     );
 

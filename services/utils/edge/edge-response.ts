@@ -27,24 +27,30 @@ export const edgeResponse = async (
                 // string-coerced to it by the Headers constructor anyway.
                 'Access-Control-Allow-Origin': allowedOrigin || 'null',
                 'Access-Control-Allow-Methods': allowedMethods || '*',
-                'Access-Control-Allow-Headers': allowedHeaders || '*'
+                'Access-Control-Allow-Headers': allowedHeaders || '*',
+                // Let browsers reuse this preflight instead of paying a full
+                // round trip ahead of every non-simple request.
+                'Access-Control-Max-Age': '86400'
             }
         });
     }
 
     // Continue w/ the request for any other allowed request method.
     const { data, error, success } = await makeRequest();
-    const resInit: ResponseInit = {
-        headers: new Headers({
-            'Content-Type': 'application/json',
-            ...resHeaders
-        })
-    };
+    const headers = new Headers({
+        'Content-Type': 'application/json',
+        ...resHeaders
+    });
+    const resInit: ResponseInit = { headers };
 
     if (!success && error) {
         resInit.status = error.code;
         resInit.statusText = error.message;
+        // Failures must never be CDN-cached, whatever the route's policy.
+        headers.set('Cache-Control', 'no-store');
     }
 
-    return new Response(JSON.stringify({ data: data?.data }), resInit);
+    // The upstream payload passes through whole — for GraphQL that means
+    // `errors` reaches the client instead of being silently dropped.
+    return new Response(JSON.stringify(data ?? null), resInit);
 };

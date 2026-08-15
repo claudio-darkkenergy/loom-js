@@ -36,13 +36,7 @@ export const HeroBanner = simple<HeroBannerProps>(
             ),
             is: el('section'),
             children: [
-                imgProps &&
-                    Picture({
-                        ...imgProps,
-                        // The retired tags Img always emitted these defaults.
-                        height: imgProps.height ?? 'auto',
-                        width: imgProps.width ?? 'auto'
-                    }),
+                imgProps && Picture(imgProps),
                 el('div')({
                     className: classNames(
                         'u-flex-vertical u-gap-24',
