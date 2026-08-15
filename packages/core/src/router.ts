@@ -1,5 +1,6 @@
 import { activity } from './activity';
 import { lazyImport } from './lazy-import';
+import { getWindow } from './lib/dom';
 import type {
     ActivityEffectAction,
     ContextFunction,
@@ -24,7 +25,7 @@ class Router {
 
     constructor() {
         this.routeActivity = activity<RouteValue, Location>(
-            this.getRouteValue(window.location),
+            this.getRouteValue(getWindow().location),
             {
                 transform: ({ input: location, update }) =>
                     this.transform(location, update)
@@ -42,11 +43,11 @@ class Router {
     }) {
         this.routesConfig = config;
         this.fallback = fallback;
-        this.routeActivity.update(window.location);
+        this.routeActivity.update(getWindow().location);
 
         // Hook into the History API onpopstate event when the browser history updates via back/forward controls.
-        window.addEventListener('popstate', () =>
-            this.routeActivity.update(window.location)
+        getWindow().addEventListener('popstate', () =>
+            this.routeActivity.update(getWindow().location)
         );
 
         return (props: ReservedProps) => this.pageRouteEffect(props);
@@ -79,17 +80,18 @@ class Router {
             return;
         }
 
+        const win = getWindow();
         const action = (options?.replace && 'replaceState') || 'pushState';
         const href =
             options?.href || (event?.currentTarget as HTMLAnchorElement).href;
-        const locationSnapshot = Object.assign({}, window.location);
+        const locationSnapshot = Object.assign({}, win.location);
 
         event?.preventDefault();
 
         // Update the browser url.
-        window.history[action]({}, 'route', href);
+        win.history[action]({}, 'route', href);
         didRouteChange(locationSnapshot) &&
-            this.routeActivity.update(window.location);
+            this.routeActivity.update(win.location);
     }
 
     watchRoute(action: (valueProp: ValueProp<RouteValue>) => any) {
@@ -244,11 +246,16 @@ const extractParams = (routePath: string, segmentValues: string[]) => {
  * @returns `true` if only the `Window.Location` has changed.
  */
 const didRouteChange = ({ origin, pathname, search }: Location) =>
-    origin !== window.location.origin ||
-    pathname !== window.location.pathname ||
-    search !== window.location.search;
+    origin !== getWindow().location.origin ||
+    pathname !== getWindow().location.pathname ||
+    search !== getWindow().location.search;
 
-const router = new Router();
+// Created lazily — the constructor reads the current location, and this module
+// is re-exported by the package index, so instantiating at module scope would
+// make bare imports require a DOM.
+let routerSingleton: Router | undefined;
+
+const getRouter = () => (routerSingleton ??= new Router());
 
 /**
  * Initializes the router with the provided routes.
@@ -258,18 +265,18 @@ const router = new Router();
  *      `fallback` - A fallback function to be called when no route matches.
  * @returns A component `ContextFunction`.
  */
-export const createRoutes = (arg: Parameters<typeof router.createRoutes>[0]) =>
-    router.createRoutes(arg);
+export const createRoutes = (arg: Parameters<Router['createRoutes']>[0]) =>
+    getRouter().createRoutes(arg);
 
 /**
  * Hooks into the framework's routing system.
  * @param routeEffectCallback An `ActivityHandler`.
  * @returns A new `Node`.
  */
-export const routeEffect = (arg: Parameters<typeof router.routeEffect>[0]) =>
-    router.routeEffect(arg);
-export const redirect = (arg: Parameters<typeof router.redirect>[0]) =>
-    router.redirect(arg);
+export const routeEffect = (arg: Parameters<Router['routeEffect']>[0]) =>
+    getRouter().routeEffect(arg);
+export const redirect = (arg: Parameters<Router['redirect']>[0]) =>
+    getRouter().redirect(arg);
 
 /**
  * Use this to artificially update the browser `History` causing a navigation to occur.
@@ -279,8 +286,8 @@ export const redirect = (arg: Parameters<typeof router.redirect>[0]) =>
  *          `href` - The href url to use - this overrides the href attribute of an `HTMLAnchorElement`.
  *          `replace` - If set to `true`, "replaceState" will be used instead of "pushState" as the `History` action.
  */
-export const route = (...arg: Parameters<typeof router.route>) =>
-    router.route(...arg);
+export const route = (...arg: Parameters<Router['route']>) =>
+    getRouter().route(...arg);
 
 /**
  * Accepts a handler which is called any time the route is updated
@@ -288,8 +295,8 @@ export const route = (...arg: Parameters<typeof router.route>) =>
  * @param handler A handler to be called whenever the route udpates.
  * @returns An unsubscriber method to perform handler cleanup.
  */
-export const watchRoute = (arg: Parameters<typeof router.watchRoute>[0]) =>
-    router.watchRoute(arg);
+export const watchRoute = (arg: Parameters<Router['watchRoute']>[0]) =>
+    getRouter().watchRoute(arg);
 
 /**
  * `export` DEPRECATED Automatically used within the router - will be removed as an export in the future.

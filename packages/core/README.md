@@ -13,6 +13,7 @@
 - **Tagged Templates** for performant processing of component templates.
 - **Client-side Routing** for dynamic rendering of components based on `Location` data.
 - **Support for Lazy-loading** of routes.
+- **Server rendering** (`@loom-js/core/server`) - render to an HTML string for SSR & SSG through the same code path the browser runs.
 - **0 Dependencies** (you're welcome)
 - **Typescript Types** included.
 
@@ -426,6 +427,46 @@ export const App = component<unknown>(
     `
 );
 ```
+
+### Server rendering (SSR & SSG)
+
+`renderToString` renders an app to an HTML string outside the browser — at request time (SSR) or build time (SSG/prerender). It runs the **exact same render path** the client does, against an injected DOM implementation, so server and client markup cannot drift. loom never imports the DOM implementation itself; you supply a window (we recommend [linkedom](https://github.com/WebReflection/linkedom) — small, fast, purpose-built for this).
+
+**API**
+
+- `renderToString(app: ContextFunction, options)` - Renders `app` against the injected DOM & returns the document body's `innerHTML`.
+    - `options`
+        - `window` - The DOM to render against, e.g. `parseHTML(...).window` from linkedom. Use a fresh window per render — never share one across concurrent renders.
+        - `url?: string` - The request URL. Installed as the window's `location`, so `router` & `createRoutes` match the requested path.
+
+**Inclusion** `import { renderToString } from '@loom-js/core/server';`
+
+**Quick Example**
+
+```ts
+import { renderToString } from '@loom-js/core/server';
+import { parseHTML } from 'linkedom';
+
+import { App } from '@app/app';
+
+// One window per render (per request, or per page when prerendering).
+const { window } = parseHTML('<html><body></body></html>');
+const markup = renderToString(App(), {
+    url: request.url,
+    window
+});
+
+// Inject the markup into your HTML shell however you like.
+const html = shellTemplate.replace('<!--app-->', markup);
+```
+
+**Semantics worth knowing**
+
+- The render is synchronous - whatever has rendered when the app's synchronous work completes is what serializes. Lazy-loaded routes & post-render async updates belong to the client (or a future hydration phase).
+- `onCreated`, `onBeforeRender` & `onRendered` fire as usual; `onMounted` & `onUnmounted` never fire on the server — they describe a live, observed browser document.
+- Custom elements registered via `defineElement` are applied to each injected window automatically.
+- Importing `@loom-js/core` off-browser is safe - browser-coupled state (router location, history listeners) initializes lazily on first use.
+- Nothing extra ships to the browser: the server entry is a separate export, & linkedom is your dependency, not loom's.
 
 ## Examples
 

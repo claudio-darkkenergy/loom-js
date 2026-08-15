@@ -4,6 +4,7 @@ import type {
     TemplateRoot,
     TemplateTagValue
 } from '../../types';
+import { getWindow } from '../dom';
 
 // Array-slot contexts live under a derived key so a slot changing kind
 // (component ⇄ array) can never hand one kind's context state to the other.
@@ -50,7 +51,7 @@ export const appendChildContext = (
         // An array also replaces whatever component held the plain key.
         parentCtx.children.delete(key);
         return getPersistentChildContext(parentCtx, arraySlotKey(key));
-    } else if (!(value instanceof Node)) {
+    } else if (!(value instanceof getWindow().Node)) {
         // A primitive value replaced a component or array in this slot, so
         // either child context is stale — drop both.
         //

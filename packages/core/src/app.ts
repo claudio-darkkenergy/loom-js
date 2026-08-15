@@ -1,5 +1,6 @@
 import { appendEvents, setDebug, setToken } from './config';
 import { _lifeCycles } from './lib/context/life-cycles';
+import { getDocument, getWindow } from './lib/dom';
 import { loomConsole } from './lib/globals/loom-console';
 import { mount } from './lib/mount';
 import type { AppGlobalConfig, AppInitProps, LoomGlobal } from './types';
@@ -9,13 +10,14 @@ export const init = ({
     append = null,
     globalConfig = {},
     onAppMounted,
-    root = document.body
+    root = getDocument().body
 }: AppInitProps) => {
     bootstrap();
     // First configure the app.
     configApp(globalConfig);
 
     const appCtx = app();
+    const { HTMLBodyElement, HTMLHeadElement } = getWindow();
 
     if (
         root === null ||
@@ -23,7 +25,7 @@ export const init = ({
         root instanceof HTMLBodyElement
     ) {
         // `root` cannot be the document HEAD or BODY.
-        root = document.createElement('div');
+        root = getDocument().createElement('div');
         root.id = 'loom-app';
 
         // Mount the detatched root to the document body.

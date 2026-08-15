@@ -1,4 +1,5 @@
 import { ComponentContext } from '../../types';
+import { getDocument, getWindow } from '../dom';
 import { memo } from '../memo';
 import { getAttrUpdate } from './get-attr-update';
 import { getDynamicElement } from './get-dynamic-element';
@@ -43,11 +44,11 @@ export const setUpdatesForPaths = (
             } else if (
                 // `Comment` could be enabled here, then handled in `getTextUpdate` if support
                 // becomes needed.
-                dynamicNode instanceof Text ||
+                dynamicNode instanceof getWindow().Text ||
                 dynamicNode === undefined
             ) {
                 // Text Node handling
-                const textFragment = document.createDocumentFragment();
+                const textFragment = getDocument().createDocumentFragment();
                 // The original live nodes at this moment, one for each dynamic slot token, will
                 // each contain the slot token as text, initially.
                 // Then, on future renders, each live node will be updated w/ a resolved value.

@@ -4,6 +4,7 @@ import type {
     TemplateTagValue,
     TemplateTagValueFunction
 } from '../../types';
+import { getWindow } from '../dom';
 
 export const resolveValue = (
     value: TemplateTagValue,
@@ -22,14 +23,14 @@ export const resolveValue = (
             templateTagValue = (value as TemplateTagValueFunction)();
         }
 
-        if (templateTagValue instanceof NodeList) {
-            return Array.from(templateTagValue);
+        if (templateTagValue instanceof getWindow().NodeList) {
+            return Array.from(templateTagValue as NodeList);
         } else {
             // Make sure the function returned a valid value, not another function.
             return sanitizeFnValue(templateTagValue);
         }
-    } else if (value instanceof NodeList) {
-        return Array.from(value);
+    } else if (value instanceof getWindow().NodeList) {
+        return Array.from(value as NodeList);
     } else {
         return value || value === 0 ? value : '';
     }

@@ -1,5 +1,6 @@
 import { canDebug, config } from './config';
 import { _lifeCycles, getShareableContext } from './lib/context';
+import { getDocument, getWindow } from './lib/dom';
 import { loomConsole } from './lib/globals/loom-console';
 import { deepDiffObject, isObject } from './lib/helpers';
 import { reactive } from './lib/reactive';
@@ -49,7 +50,7 @@ export function htmlParser(
         const plan = compileComponentTags(chunks);
         const statics = plan ? plan.chunks : (chunks as readonly string[]);
         // Creates a `DocumentFragment` using the component HTML template as its context (children.)
-        const fragment = document
+        const fragment = getDocument()
             .createRange()
             .createContextualFragment(statics.join(config.TOKEN));
 
@@ -62,9 +63,9 @@ export function htmlParser(
         }
 
         // Will be "walked" to obtain the dynamic paths mappings.
-        const treeWalker = document.createTreeWalker(
+        const treeWalker = getDocument().createTreeWalker(
             fragment,
-            window.NodeFilter.SHOW_ALL
+            getWindow().NodeFilter.SHOW_ALL
         );
 
         // Cache the template using the chunks identity.
@@ -86,7 +87,7 @@ export function htmlParser(
     if (
         ctx.chunks !== chunks ||
         !instanceContextStore.has(ctx) ||
-        !document.contains(
+        !getDocument().contains(
             (Array.isArray(ctx.root) ? ctx.root[0]?.parentElement : ctx.root) ??
                 null
         )
@@ -94,7 +95,12 @@ export function htmlParser(
         const { fragment, paths } = cacheEntry;
         // The live fragment - the `DocumentFragment`
         // which will contain all the live nodes which will exist in the DOM.
-        const liveFragment = fragment.cloneNode(true) as DocumentFragment;
+        // `importNode`, not `cloneNode` — the cached fragment belongs to the
+        // document that first rendered this template, and a server render with
+        // a fresh injected document must re-clone INTO its own document or
+        // custom elements in the template never upgrade there. In the browser
+        // (one document, ever) the two are equivalent.
+        const liveFragment = getDocument().importNode(fragment, true);
         // Convert `values[]` to object.
         const valueObj = values.reduce(
             (acc: { [key: number]: TemplateTagValue }, value, i) => {
@@ -113,7 +119,8 @@ export function htmlParser(
 
             switch (true) {
                 // Handle DOM Nodes.
-                case oldValue instanceof Node && newValue instanceof Node:
+                case oldValue instanceof getWindow().Node &&
+                    newValue instanceof getWindow().Node:
                     return !(oldValue as Node).isSameNode(newValue as Node);
                 // Handle `ContextFunction`s.
                 case isContextFunction(oldValue) && isContextFunction(newValue):

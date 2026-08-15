@@ -91,8 +91,10 @@ const defaultEvents: ConfigEvent[] = [
 ];
 let events: ConfigEvent[] & string[] = defaultEvents;
 const getConfig = () => ({ events, TOKEN, tokenRe, tokenReGlobal });
+// Bare `encodeURIComponent` (not `window.`) — this runs at module load, which
+// must not require a browser.
 const getTokenRe = (flags?: string) =>
-    new RegExp(`${TOKEN}|${window.encodeURIComponent(TOKEN)}`, flags);
+    new RegExp(`${TOKEN}|${encodeURIComponent(TOKEN)}`, flags);
 const syncConfig = () => Object.assign(config, getConfig());
 let TOKEN = '⚡';
 let tokenRe = getTokenRe();

@@ -1,4 +1,5 @@
 import { config } from '../../config';
+import { getDocument } from '../dom';
 import type { DynamicNode } from './types';
 
 export const getLiveTextNodes = (
@@ -12,11 +13,13 @@ export const getLiveTextNodes = (
                 if (part) {
                     // Fills in any connecting parts which contain 1 or more characters
                     // including newline, etc.
-                    textFragment.appendChild(document.createTextNode(part));
+                    textFragment.appendChild(
+                        getDocument().createTextNode(part)
+                    );
                 }
 
                 if (i < parts.length - 1) {
-                    const dynamicTextNode = document.createTextNode(
+                    const dynamicTextNode = getDocument().createTextNode(
                         config.TOKEN
                     );
 

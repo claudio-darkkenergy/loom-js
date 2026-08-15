@@ -1,14 +1,28 @@
 // @deprecated - use Route instead.
 
 import { activity } from './activity';
+import { getWindow } from './lib/dom';
 import type { ActivityEffectAction, OnRouteOptions } from './types';
 
-// Setup the activity for the History API
-const historyApiActivity = activity<Location>(window.location, { force: true });
-const { update, watch } = historyApiActivity;
+// The activity for the History API — created lazily so importing this module
+// (which the package index re-exports) never touches the DOM. Off-browser it
+// initializes against the render scope's injected window.
+let historyApiActivity: ReturnType<typeof activity<Location>> | undefined;
 
-// Hook into the History API onpopstate event when the browser history updates via back/forward controls.
-window.addEventListener('popstate', () => update(window.location));
+const getHistoryApiActivity = () => {
+    if (!historyApiActivity) {
+        const win = getWindow();
+
+        historyApiActivity = activity<Location>(win.location, { force: true });
+
+        // Hook into the History API onpopstate event when the browser history updates via back/forward controls.
+        win.addEventListener('popstate', () =>
+            historyApiActivity?.update(getWindow().location)
+        );
+    }
+
+    return historyApiActivity;
+};
 
 /**
  * Accepts a handler which is called any time the route is updated
@@ -16,7 +30,9 @@ window.addEventListener('popstate', () => update(window.location));
  * @param handler A handler to be called whenever the route udpates.
  * @returns An unsubscriber method to perform handler cleanup.
  */
-export const onRouteUpdate = watch;
+export const onRouteUpdate: ReturnType<typeof activity<Location>>['watch'] = (
+    handler
+) => getHistoryApiActivity().watch(handler);
 
 /**
  * Hooks into the framework's routing system.
@@ -24,7 +40,7 @@ export const onRouteUpdate = watch;
  * @returns A new `Node`.
  */
 export const router = (routeConfigCallback: ActivityEffectAction<Location>) => {
-    const { effect } = historyApiActivity;
+    const { effect } = getHistoryApiActivity();
     // Return the resolved route.
     return effect(routeConfigCallback);
 };
@@ -38,16 +54,18 @@ export const router = (routeConfigCallback: ActivityEffectAction<Location>) => {
  *          `replace` - If set to `true`, "replaceState" will be used instead of "pushState" as the `History` action.
  */
 export const onRoute = (event: Event, options?: OnRouteOptions) => {
+    const win = getWindow();
     const action = (options?.replace && 'replaceState') || 'pushState';
     const href =
         options?.href || (event?.currentTarget as HTMLAnchorElement).href;
-    const locationSnapshot = Object.assign({}, window.location);
+    const locationSnapshot = Object.assign({}, win.location);
 
     event?.preventDefault();
 
     // Update the browser url.
-    window.history[action]({}, 'onRoute', href);
-    didRouteChange(locationSnapshot) && update(window.location);
+    win.history[action]({}, 'onRoute', href);
+    didRouteChange(locationSnapshot) &&
+        getHistoryApiActivity().update(win.location);
 };
 
 /**
@@ -56,6 +74,6 @@ export const onRoute = (event: Event, options?: OnRouteOptions) => {
  * @returns `true` if only the `Window.Location` has changed.
  */
 const didRouteChange = ({ origin, pathname, search }: Location) =>
-    origin !== window.location.origin ||
-    pathname !== window.location.pathname ||
-    search !== window.location.search;
+    origin !== getWindow().location.origin ||
+    pathname !== getWindow().location.pathname ||
+    search !== getWindow().location.search;

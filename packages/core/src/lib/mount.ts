@@ -3,10 +3,11 @@ import type {
     TemplateRoot,
     TemplateRootArray
 } from '../types';
+import { getDocument } from './dom';
 
 // Mount the `componentNode`.
 export const mount = (
-    root: Element = document.body,
+    root: Element = getDocument().body,
     componentNode: ComponentContextPartial | TemplateRoot | TemplateRootArray,
     append: Boolean | null = null
 ) => {

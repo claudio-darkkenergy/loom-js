@@ -5,6 +5,7 @@ import type {
     TemplateTagValue
 } from '../../types';
 import { appendChildContext, getContextForValue } from '../context';
+import { getDocument, getWindow } from '../dom';
 import { resolveValue } from './resolve-value';
 import { updateLiveNode } from './update-live-node';
 
@@ -22,7 +23,7 @@ export const textUpdater = (
     // Update for each `LiveNode`.
     const value = resolveValue(newValue, valueCtx);
 
-    if (value instanceof Element) {
+    if (value instanceof getWindow().Element) {
         // Handle `Element` nodes.
         currentLiveNode = updateLiveNode([currentLiveNode, value]);
     } else if (Array.isArray(value)) {
@@ -39,7 +40,9 @@ export const textUpdater = (
 };
 
 const getNewTextValue = (value: Text | unknown) =>
-    value instanceof Text ? value : document.createTextNode(String(value));
+    value instanceof getWindow().Text
+        ? (value as Text)
+        : getDocument().createTextNode(String(value));
 
 const handleArrayValue = (
     [liveNode, valueArray]: [
@@ -59,7 +62,7 @@ const handleArrayValue = (
 
     if (!valueArray.length) {
         // Ensure a value array has at least one defined value.
-        valueArray.push(document.createTextNode(''));
+        valueArray.push(getDocument().createTextNode(''));
     }
 
     // Update the DOM  w/ the pending (new) nodes.
@@ -72,6 +75,7 @@ const handleArrayValue = (
         );
         // The resolved `TemplateTagValue`
         const resolvedValue = resolveValue(newVal, childCtx);
+        const { Comment, HTMLElement, SVGElement } = getWindow();
         const isHtmlOrSvgElement =
             resolvedValue instanceof HTMLElement ||
             resolvedValue instanceof SVGElement;
