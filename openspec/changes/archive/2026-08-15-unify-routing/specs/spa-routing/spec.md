@@ -21,15 +21,15 @@ The router SHALL expose zero-config subscriptions to raw `Location` changes — 
 
 All routing reactivity for a given window SHALL flow through a single layered pipeline — one history listener feeding a raw location activity, whose match transform feeds the route activity — with no parallel routing state.
 
-#### Scenario: Legacy and current subscribers observe the same navigation
+#### Scenario: Location and route subscribers observe the same navigation
 
-- **WHEN** a navigation occurs while both a deprecated-API subscriber (`router`/`onRouteUpdate`) and a current-API subscriber (`routeEffect`/`watchRoute`) are registered
-- **THEN** both observe it, sourced from the same pipeline
+- **WHEN** a navigation occurs while both a location-layer subscriber (`locationEffect`/`watchLocation`) and a route-layer subscriber (`routeEffect`/`watchRoute`) are registered
+- **THEN** both observe it, sourced from the same pipeline (the route layer contingent on a route-table match)
 
-#### Scenario: Deprecated exports are pure delegations
+#### Scenario: The legacy routing module is removed
 
-- **WHEN** `router`, `onRoute`, or `onRouteUpdate` is called
-- **THEN** it delegates to `locationEffect`, `route`, or `watchLocation` respectively with observably identical behavior
+- **WHEN** a consumer imports `router`, `onRoute`, or `onRouteUpdate` from the package
+- **THEN** the import fails — the exports were removed pre-1.0 without a deprecation bridge, replaced by `locationEffect`, `route`, and `watchLocation` respectively
 
 ### Requirement: The router instance is scoped to the rendering window
 

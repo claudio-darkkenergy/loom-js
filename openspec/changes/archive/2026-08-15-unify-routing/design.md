@@ -62,24 +62,26 @@ Rejected: `init({ routes })` — `init` shouldn't know where in the tree routes 
 
 Named symmetric with layer 2 (`routeEffect`/`watchRoute`). `locationEffect(cb)` is an activity effect over raw `Location` returning a renderable; `watchLocation(cb)` is the non-rendering watcher. Zero-config by design — they subscribe to the location activity, which needs no table. These are the blessed replacements for the deprecated `router()`/`onRouteUpdate`, and what core's server tests and README examples migrate to.
 
-### D5: `routing.ts` is a pure bridge, observably identical
+### D5: `routing.ts` is deleted — no bridge (revised at apply review, 2026-08-15)
 
-| Deprecated export      | Delegates to         | Parity notes                                                                                                                     |
-| ---------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `router(cb)`           | `locationEffect(cb)` | raw `Location` value; fires on every update (`force`)                                                                            |
-| `onRoute(event, opts)` | `route(event, opts)` | `route` additionally respects modified-click fall-through (`spa-routing` spec) — a strict improvement, acceptable and documented |
-| `onRouteUpdate(cb)`    | `watchLocation(cb)`  | watcher semantics unchanged                                                                                                      |
+Originally designed as a one-release delegating bridge; revised on review because the package is pre-1.0 (breaking minors are legitimate) and the legacy API's only verified consumers were core's own tests, README, and server tests — all migrated inside this change, so a migration window protected nobody. The mapping below now documents the **migration**, not a delegation:
 
-Each carries `@deprecated` JSDoc naming its replacement. `routing.spec.ts` is **retained against the deprecated names** as the parity guard until deletion; new specs cover the new names. Deletion ships in a later release as a one-liner.
+| Removed export         | Replacement          | Semantics notes                                                                                       |
+| ---------------------- | -------------------- | ----------------------------------------------------------------------------------------------------- |
+| `router(cb)`           | `locationEffect(cb)` | raw `Location` value; fires on every update (`force`)                                                 |
+| `onRoute(event, opts)` | `route(event, opts)` | `route` additionally respects modified-click fall-through (`spa-routing` spec) — a strict improvement |
+| `onRouteUpdate(cb)`    | `watchLocation(cb)`  | watcher semantics unchanged                                                                           |
+
+The delegating-bridge phase was implemented and verified first (all suites green against the bridge), then the bridge, its `routing.spec.ts` parity guard, and every deprecation notice were removed. `location.spec.ts` carries the equivalent behavioral coverage through the replacement names.
 
 ### D6: Parity risks, named
 
 - **`force: true`** — the old activity fired effects on every update, even same-location. The location activity keeps `force`; layer-2 dedupe stays where it is today (`didRouteChange` gates the update call; `pageRouteEffect` skips same-path).
 - **`didRouteChange` compares only origin/pathname/search** — hash-only navigation does not re-fire. Preserved as-is.
-- **Wiring timing** — deferring `popstate`/initial-read must not change first-render behavior in the browser: the guard is the existing `routing.spec` + `route-activation` + `lazy-import` suites passing unchanged, plus the wtr suite as a whole.
+- **Wiring timing** — deferring `popstate`/initial-read must not change first-render behavior in the browser: the guard is the `route-activation` + `lazy-import` suites plus the wtr suite as a whole (and, during the bridge phase, `routing.spec` passing unchanged — see D5).
 - **Server, post-scope updates** — a `popstate`-less server router never fires after `renderToString` returns; the synchronous-render contract from `server-rendering` is unchanged.
 
-## Open question: async route content vs synchronous serialize
+## Resolved question: async route content vs synchronous serialize
 
 Route pages load through async importers (`() => import(...)` via `lazyImport`), which settle in microtasks — after `renderToString`'s synchronous pass. Route _matching_ is synchronous; the matched _page content_ is not, so a `createRoutes` app serialized naively yields the shell/fallback, not the page. This must be resolved during apply, before the route-aware SSR tests are written. Options:
 
@@ -87,12 +89,17 @@ Route pages load through async importers (`() => import(...)` via `lazyImport`),
 2. **Preload path** — a server-side helper that resolves the matched importer first and feeds a settled component in; no core render changes, but pushes orchestration onto every caller.
 3. **Document the fallback** — matching is SSR-visible, page content is client-only until hydration-era work. Cheapest, but leaves SSG of real apps hollow.
 
-Leaning 1, with 2 as its internal mechanism. Decide + record before task section 4 executes.
+**Decided (2026-08-15, apply 0.1): option 1 — `renderToStringAsync(app, opts)`**, with 2's resolve-then-serialize idea as its internal mechanism. Confirmed by the user at apply start. Implementation notes discovered against the code:
+
+- Settled work (lazy importers) re-renders through `textUpdater`, which resolves the DOM through the provider seam — so the drain cannot happen after `withWindow` exits. `renderToStringAsync` enters the window scope across `await` boundaries (a scope-enter/exit pair in `lib/dom.ts`) and serializes concurrent async renders through an internal queue; nested synchronous `renderToString` calls remain safe because `withWindow` restores the outer scope.
+- The drain is a bounded macrotask loop (dynamic `import()` settles beyond the microtask queue) that stops early once the markup is quiet between two consecutive passes.
+- The synchronous render's contract is untouched: a route-table app serialized synchronously yields the shell/fallback, documented as such. This required a guard beyond D6's popstate reasoning: the page **importer** still settles after a synchronous server render returns, so the router's page-import transform drops the settled update unless the router's own window is the currently resolvable one (in a browser that is always true). Without the guard the post-scope settle would re-render into a dead scope and throw off-browser.
+- **Naming revision (apply review, 2026-08-15, user call)**: since the async render is the go-to for any route-table app and the server entry has never been published (both server changesets are still pending), the async render took the unmarked name — **`renderToString` is async**, and the synchronous primitive ships as **`renderToStringSync`** (Node's `readFile`/`readFileSync` convention). No published API was renamed; both changesets were amended to tell the final story.
 
 ## Verification
 
-- Existing suites unchanged and green: `routing.spec`, `route-activation.spec`, `lazy-import.spec`, full wtr run.
-- New browser specs: `locationEffect`/`watchLocation`; bridge delegation identity.
+- Existing suites green: `route-activation.spec`, `lazy-import.spec` (migrated to the new names), full wtr run. (`routing.spec` served as the bridge-parity guard during the bridge phase, then was deleted with the bridge — see D5.)
+- New browser specs: `locationEffect`/`watchLocation`; location/route layer separation.
 - New server-lane tests: module-scope `createRoutes` imports off-browser without throwing; `renderToString({ url })` renders the matched route of a `createRoutes` app; two windows/urls render independent routes (per-window isolation).
 - Benchmark not required — no hot-path structure changes beyond one lazy guard; wtr timing sanity is sufficient.
 
