@@ -15,6 +15,23 @@ export interface AppInitProps {
     root?: Element | null;
 }
 
+// `hydrate`'s contract — `init` minus `append` (the swap is always a full
+// replace), plus the settle gates.
+export interface AppHydrateProps extends Omit<AppInitProps, 'append'> {
+    /**
+     * Upper bound (ms) on how long the swap waits for settlement — on expiry
+     * the swap runs with whatever has rendered. `Infinity` disables the
+     * bound. Defaults to 4000.
+     */
+    maxWait?: number;
+    /**
+     * Optional caller-owned gate for async work the framework cannot track
+     * (raw `fetch`es, font loading) — the swap awaits it alongside the
+     * settled signal, still bounded by `maxWait`.
+     */
+    ready?: Promise<unknown>;
+}
+
 export interface Aria {
     label?: string;
     live?: 'assertive' | 'polite';

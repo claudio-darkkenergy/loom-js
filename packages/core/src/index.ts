@@ -5,8 +5,10 @@ export * from './component';
 export * from './config';
 export * from './define-element';
 export * from './elements';
+export * from './hydrate';
 export * from './lazy-import';
 export * from './router';
+export * from './settled';
 export * from './simple';
 export type {
     ActivityEffect,
@@ -14,6 +16,7 @@ export type {
     ActivityOptions,
     ActivityTransform,
     AppGlobalConfig,
+    AppHydrateProps,
     AppInitProps,
     // @deprecated - use `ReservedProps['attrs']`.
     Aria,

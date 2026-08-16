@@ -14,6 +14,7 @@
 - **Client-side Routing** for dynamic rendering of components based on `Location` data.
 - **Support for Lazy-loading** of routes.
 - **Server rendering** (`@loom-js/core/server`) - render to an HTML string for SSR & SSG through the same code path the browser runs.
+- **Client hydration** (`hydrate`) - invisible takeover of pre-rendered pages: one atomic swap once the app has settled, no content flashes.
 - **0 Dependencies** (you're welcome)
 - **Typescript Types** included.
 
@@ -509,11 +510,46 @@ const html = shellTemplate.replace('<!--app-->', markup);
 
 **Semantics worth knowing**
 
-- `renderToString` settles what the app itself scheduled (route pages, lazy imports) & then serializes; `renderToStringSync` serializes only what settled synchronously. Post-render async updates beyond that belong to the client (or a future hydration phase).
+- `renderToString` settles what the app itself scheduled (route pages, lazy imports) & then serializes; `renderToStringSync` serializes only what settled synchronously. Post-render async updates beyond that belong to the client — boot it with `hydrate` (see Client hydration) to make the takeover invisible.
 - `onCreated`, `onBeforeRender` & `onRendered` fire as usual; `onMounted` & `onUnmounted` never fire on the server — they describe a live, observed browser document.
 - Custom elements registered via `defineElement` are applied to each injected window automatically.
 - Importing `@loom-js/core` off-browser is safe - browser-coupled state (router location, history listeners) initializes lazily on first use.
 - Nothing extra ships to the browser: the server entry is a separate export, & linkedom is your dependency, not loom's.
+
+### Client hydration
+
+`renderToString` → `hydrate` is the pre-rendering story: the server (or build step) serializes the page, & `hydrate` boots the client on top of it **without ever showing a flash**. Where `init` wipes the root to the app shell immediately (then churns again as lazy routes & data land), `hydrate` leaves the pre-rendered DOM untouched while the app renders detached, & performs a **single atomic swap** once the app has _settled_ — lazy route content & async activity work included. Because server & client run the same render path, the swapped-in DOM matches the served markup & the takeover is invisible.
+
+**API**
+
+- `hydrate(props): Promise<void>` - `init`'s contract minus `append` (the swap is always a full replace); resolves after the swap & `onAppMounted`.
+    - `props`
+        - `app`, `root`, `globalConfig`, `onAppMounted` - As in `init`.
+        - `ready?: Promise<unknown>` - Optional caller-owned gate: the swap awaits it alongside settlement. Use it for async work the framework cannot track (see the tracking boundary below).
+        - `maxWait?: number` - Upper bound in ms (default `4000`) on how long the swap waits. On expiry the swap runs with whatever has rendered & a `loom.console` warning names the still-pending count. `Infinity` disables the bound.
+- `settled(): Promise<void>` - The signal `hydrate` gates on, exported on its own: resolves once no framework-mediated async work is pending for the current window, confirmed by one macrotask of continued quiet (so chained lazy work is awaited to quiescence). Useful as a test await point or anywhere "the app is done booting" matters.
+
+**Quick Example**
+
+```ts
+import { hydrate } from '@loom-js/core';
+
+import { App } from '@app/app';
+
+// The root already carries the server-rendered markup.
+hydrate({
+    app: App(),
+    root: document.querySelector('#page-content')
+});
+```
+
+**Semantics worth knowing**
+
+- **The tracking boundary:** settlement counts every thenable returned by an activity transform — lazy imports, `createRoutes` page imports, async data transforms. That's the idiomatic data path, & it's tracked end-to-end. Async work that never passes through a transform (a raw `fetch` inside a `watch` callback, a `setTimeout`) is invisible to the signal — hand it to `hydrate` via `ready`.
+- **Pre-swap inertness:** the server DOM receives no listeners before the swap. Native anchors still navigate (a full page load — graceful pre-interactive degradation); other interaction is inert for the short, bounded settle window.
+- **Lifecycle timing matches real attachment:** `onCreated` & `onRendered` fire during the detached render exactly as under `init`; `onMounted` fires at the swap, `onAppMounted` after it.
+- **An empty root degrades gracefully** (e.g. a dev server without pre-rendered markup): same deferred-swap path, just swapping into an empty root.
+- **Non-hydrating apps pay nothing:** `hydrate` tree-shakes out of an `init`-only bundle entirely.
 
 ## Examples
 

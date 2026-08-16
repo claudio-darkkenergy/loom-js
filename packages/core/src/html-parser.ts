@@ -3,6 +3,7 @@ import { _lifeCycles, getShareableContext } from './lib/context';
 import { getDocument, getWindow } from './lib/dom';
 import { loomConsole } from './lib/globals/loom-console';
 import { deepDiffObject, isObject } from './lib/helpers';
+import { isWithinHydratingRoot } from './lib/hydrating-roots';
 import { reactive } from './lib/reactive';
 import { getPaths, setUpdatesForPaths } from './lib/templating';
 // Imported by path — not via the templating barrel — to avoid a barrel cycle
@@ -83,13 +84,19 @@ export function htmlParser(
         (plan ? plan.chunks[0] : chunks[0])?.trim() ?? ''
     );
 
+    const instanceAnchor =
+        (Array.isArray(ctx.root) ? ctx.root[0]?.parentElement : ctx.root) ??
+        null;
+
     // Runs only once per component "instance", while its root node or node-list is "alive".
+    // "Alive" = attached to the document, or inside a pending hydrate
+    // render's deliberately detached tree.
     if (
         ctx.chunks !== chunks ||
         !instanceContextStore.has(ctx) ||
-        !getDocument().contains(
-            (Array.isArray(ctx.root) ? ctx.root[0]?.parentElement : ctx.root) ??
-                null
+        !(
+            getDocument().contains(instanceAnchor) ||
+            isWithinHydratingRoot(instanceAnchor)
         )
     ) {
         const { fragment, paths } = cacheEntry;
