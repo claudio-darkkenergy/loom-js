@@ -46,7 +46,12 @@ Trade-off: apps cannot reactively observe hash-only navigations (e.g. for TOC hi
 
 ### D3 — Deferred scroll = a single pending hash consumed after the routed content settles
 
-The Router records `pendingHash` when (a) a cross-page `route()` call carries a hash, or (b) at construction time when the initial location carries a hash (covers initial load; construction happens on first routing use inside a DOM scope). It is consumed — scroll attempted once, then cleared — after the page-import activity delivers rendered content, scheduled on the next animation frame so the mount has committed. If the target element doesn't exist by then, silently no-op; no retry loop, no timeout. A subsequent navigation overwrites any unconsumed pending hash.
+The Router records `pendingHash` when (a) a cross-page `route()` call carries a hash, or (b) at construction time when the initial location carries a hash (covers initial load; construction happens on first routing use inside a DOM scope). It is consumed — scroll attempted once, then cleared — after the routed content is delivered, on a microtask. If the target element doesn't exist by then, silently no-op; no retry loop, no timeout. A subsequent navigation overwrites any unconsumed pending hash.
+
+Two adjustments surfaced during implementation:
+
+- **Microtask, not animation frame.** Loom's mount is synchronous (the render pass never awaits), so scrolling needs no paint boundary — and unlike `requestAnimationFrame`, a microtask is neither throttled in background pages (which deadlocked the concurrent test run) nor absent in provider DOMs.
+- **Two consumption triggers, not one.** The page-import activity only fires when the _matched route_ changes, so a param-only navigation within the same matched route (`/docs/a` → `/docs/b#x`) would never consume. The skip branch in `pageRouteEffect` — where such navigations land — consumes as the second trigger, since the page content is already delivered there.
 
 Alternatives considered: retry/poll until the element appears (rejected: unbounded, and a page that renders its anchor late is an app-level concern); `MutationObserver` (rejected: machinery disproportionate to a docs anchor).
 
@@ -58,7 +63,7 @@ Server safety: the scroll paths run only inside `route()` (a click handler — n
 
 ### D5 — The zero fix mirrors the text path's predicate at both gates
 
-Both falsy gates change from `!Boolean(value)` to "remove unless `value || value === 0`" — the exact predicate `resolve-value.ts` already uses, so attribute and text semantics converge on one rule. `false`, `null`, `undefined`, `''`, and `NaN` still remove the attribute (boolean-attribute support intact); `0` falls through to the existing `switch`, where the default path stringifies it (`"0"`) and the `value` case sets the element's value prop. The three `@TODO` comments come out.
+The falsy gates change from `!Boolean(value)` to "remove unless `value || value === 0`" — the exact predicate `resolve-value.ts` already uses, so attribute and text semantics converge on one rule. Implementation surfaced a third gate beyond the two the proposal named: `defaultUpdaterFactory` (the `$`-prefixed passthrough path for non-custom elements) carries the same removal test and gets the same fix — the spec's "identically in every attribute-setting path" wording covers it. `false`, `null`, `undefined`, `''`, and `NaN` still remove the attribute (boolean-attribute support intact); `0` falls through to the existing `switch`, where the default path stringifies it (`"0"`) and the `value` case sets the element's value prop. The three `@TODO` comments come out.
 
 Alternative considered: an allowlist of numeric attributes (`tabindex`, `min`, …). Rejected — `0` is never a "please remove this attribute" signal for _any_ attribute; `false`/`undefined` express that.
 
@@ -67,7 +72,7 @@ Alternative considered: an allowlist of numeric attributes (`tabindex`, `min`, �
 - [Pending hash consumed before slow content renders its anchor] → Single-attempt, silent no-op is the documented contract; apps rendering anchors asynchronously after mount own their own scroll. Docs pages render anchors synchronously with content.
 - [Hash-only navs invisible to `watchLocation`] → Accepted per D2; documented as a future pipeline extension.
 - [`value={0}` behavior change could surprise an existing consumer relying on removal] → Removal-for-zero was flagged as a bug by the code's own TODOs; `false`/`undefined` remain the removal idiom. Changeset notes it.
-- [Animation-frame scheduling in provider DOMs] → Fall back to a microtask when `requestAnimationFrame` is absent; combined with the `scrollIntoView` guard, server renders no-op.
+- [Scheduling in provider DOMs] → The microtask scheduler is universal; combined with the `scrollIntoView`/`scrollTo` guards, server renders no-op (covered by a server test).
 
 ## Open Questions
 
