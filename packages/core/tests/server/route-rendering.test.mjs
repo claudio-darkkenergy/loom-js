@@ -85,6 +85,18 @@ describe('route-aware server rendering', () => {
         assert.match(markup, /about page at \/about/);
     });
 
+    it('stays inert for a fragment-carrying url (hash scrolling off-browser)', async () => {
+        // A `#fragment` in the request url arms the router's pending anchor
+        // scroll; a provider DOM without CSSOM view APIs (`scrollIntoView`,
+        // `requestAnimationFrame`) must consume it as a silent no-op.
+        const markup = await renderToString(App({}), {
+            url: 'https://example.com/about#section-anchor',
+            window: createWindow()
+        });
+
+        assert.match(markup, /about page at \/about/);
+    });
+
     it('keeps concurrent async renders isolated (queued scopes)', async () => {
         const [aboutMarkup, homeMarkup] = await Promise.all([
             renderToString(App({}), {

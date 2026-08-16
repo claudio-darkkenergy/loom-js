@@ -38,6 +38,10 @@ class Router {
     private params = {} as { [key: string]: string };
     private pathImporter?: () => Promise<any>;
     private pathname?: string;
+    // The URL fragment owed a scroll once routed content renders — set by
+    // fragment-carrying route-changing navigations & the initial location,
+    // consumed (or overwritten by the next navigation) exactly once.
+    private pendingFragment?: string;
     private routeActivity: ReturnType<typeof activity<RouteValue, Location>>;
 
     // Construction is DOM-lazy by design: instances only come from
@@ -46,6 +50,12 @@ class Router {
     // inside a DOM scope, never at module load.
     constructor(win: DomWindow) {
         this.ownerWindow = win;
+        // Initial-load anchor: the browser's native scroll fired before
+        // lazily-imported route content existed, so the fragment is still
+        // owed once that content renders.
+        this.pendingFragment = win.location.hash
+            ? win.location.hash.slice(1)
+            : undefined;
         this.locationActivity = activity<Location>(win.location, {
             // The raw location layer keeps the legacy activity's semantics:
             // it fires on every update, even a same-location one.
@@ -88,6 +98,10 @@ class Router {
         this.watchRoute(({ value: routeValue }) => {
             // Skip update for same path.
             if (currentPath === this.matchedRoute) {
+                // The page content is already delivered (a param-only
+                // navigation within the same matched route), so a pending
+                // fragment consumes now rather than on a page import.
+                this.consumePendingFragment();
                 return;
             }
 
@@ -145,14 +159,29 @@ class Router {
         const href =
             options?.href || (event?.currentTarget as HTMLAnchorElement).href;
         const locationSnapshot = Object.assign({}, win.location);
+        // The href's fragment: `''` for a bare trailing `#` (scroll-to-top),
+        // `undefined` when the href carries no fragment at all. Read from the
+        // href rather than `location.hash`, which can't represent a bare `#`.
+        const hashIndex = href.indexOf('#');
+        const fragment = hashIndex > -1 ? href.slice(hashIndex + 1) : undefined;
 
         event?.preventDefault();
 
         // Update the browser url. The location activity heads the pipeline,
         // so both location and route subscribers observe the navigation.
         win.history[action]({}, 'route', href);
-        didRouteChange(locationSnapshot) &&
+
+        if (didRouteChange(locationSnapshot)) {
+            // Defer any fragment until the routed content renders — and drop
+            // a stale unconsumed one when this navigation carries none.
+            this.pendingFragment = fragment;
             this.locationActivity.update(win.location);
+        } else if (fragment !== undefined) {
+            // Hash-only navigation: the activity pipeline stays quiet — the
+            // router owes only the native anchor jump its `preventDefault`
+            // suppressed.
+            scrollToFragment(win, fragment);
+        }
     }
 
     routeEffect(routeEffectCallback: ActivityEffectAction<RouteValue>) {
@@ -195,12 +224,37 @@ class Router {
                 // resolved window never changes, so this always passes.
                 if (hasWindow() && getWindow() === this.ownerWindow) {
                     update(contextFn);
+                    // Routed content delivered — a pending anchor fragment
+                    // (cross-page navigation, initial load) consumes against
+                    // it. The seeded default fallback resolves no content, so
+                    // it can't consume a fragment the real page still owes.
+                    contextFn && this.consumePendingFragment();
                 }
             });
             this.pageImportActivity.update(routeTable.fallback);
         }
 
         return this.pageImportActivity;
+    }
+
+    // Scrolls to the pending fragment's anchor target, once — cleared before
+    // the attempt, single attempt, silent no-op when the target is absent.
+    // A microtask puts the attempt after the routed content's synchronous
+    // mount settles; scrolling needs no paint, & unlike an animation frame a
+    // microtask is neither throttled in background pages nor absent in
+    // provider DOMs.
+    private consumePendingFragment() {
+        const fragment = this.pendingFragment;
+
+        if (fragment === undefined) {
+            return;
+        }
+
+        this.pendingFragment = undefined;
+
+        const win = this.ownerWindow;
+
+        queueMicrotask(() => scrollToFragment(win, fragment));
     }
 
     // Returns the route value for the current location.
@@ -308,6 +362,22 @@ const extractParams = (routePath: string, segmentValues: string[]) => {
     }
 
     return params;
+};
+
+// Scrolls to the anchor target named by a URL fragment — the native anchor
+// jump that `route()`'s `preventDefault` suppresses. A missing target is a
+// silent no-op, and the runtime guards keep provider DOMs without CSSOM view
+// APIs (server renders) inert.
+const scrollToFragment = (win: DomWindow, fragment: string) => {
+    if (!fragment) {
+        // A bare `#` — native behavior scrolls to the top.
+        typeof win.scrollTo === 'function' && win.scrollTo(0, 0);
+        return;
+    }
+
+    const target = win.document.getElementById(decodeURIComponent(fragment));
+
+    typeof target?.scrollIntoView === 'function' && target.scrollIntoView();
 };
 
 /**

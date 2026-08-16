@@ -98,10 +98,10 @@ const getStandardAttrUpdate = (
         const value = resolveValue(newValue);
         const element = dynamicNode as HTMLElement | SVGElement;
 
-        // Falsy value - remove the attribute from the element.
+        // Falsy value - remove the attribute from the element, except the number
+        // zero, which is a real attribute value (`tabindex=${0}`, `min=${0}`).
         // Removing the attribute also solves for boolean attributes, i.e. `disabled`.
-        // @TODO Handle number zero - 0?
-        if (!Boolean(value)) {
+        if (!(value || value === 0)) {
             element.removeAttribute(nodeName);
             return;
         }
@@ -300,11 +300,11 @@ const applyAttrsEntry = (
 ) => {
     const resolvedValue = resolveValue(value);
 
-    // Falsy value - remove the attribute from the element.
+    // Falsy value - remove the attribute from the element, except the number
+    // zero, which is a real attribute value.
     // Removing the attribute also solves for boolean attributes, i.e. `disabled`.
     // (Previously removed the literal `$attrs` node name — a latent bug.)
-    // @TODO Handle number zero - 0?
-    if (!Boolean(resolvedValue)) {
+    if (!(resolvedValue || resolvedValue === 0)) {
         element.removeAttribute(key === 'className' ? 'class' : key);
         return;
     }
@@ -378,7 +378,8 @@ const defaultUpdaterFactory: SpecialAttrUpdaterFactory = ({
             const element = dynamicNode as HTMLElement | SVGElement;
             const resolvedValue = resolveValue(newValue);
 
-            if (!Boolean(resolvedValue)) {
+            // Zero is a real attribute value — only other falsy values remove.
+            if (!(resolvedValue || resolvedValue === 0)) {
                 element.removeAttribute(nodeName);
             } else {
                 element.setAttribute(nodeName, String(resolvedValue));

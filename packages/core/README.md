@@ -116,6 +116,8 @@ export const Button = component<ButtonProps>(
 );
 ```
 
+**Attribute & text values.** An interpolated attribute value on a plain element is applied when truthy & **removed when falsy** — that one rule gives you boolean attributes (`disabled=${isDisabled}`) and conditional attributes (`aria-label=${labelOrUndefined}`) for free. The number `0` is the deliberate exception: it is a real value, so `tabindex=${0}`, `min=${0}`, and a `$attrs` entry of `0` render as `"0"` (and `value=${0}` sets the element's value property). Text slots follow the same shape — `${0}` renders `0`, while `undefined`/`null`/`false` render as empty text.
+
 ### Composing components (element syntax)
 
 Components compose inside templates as elements, with props written as attributes:
@@ -431,6 +433,14 @@ export const App = component(
 ```
 
 Pages receive the matched route as `routeProps` (a `RouteValue`) — e.g. `/docs/:slug` exposes `routeProps.params.slug`.
+
+**Hash / anchor navigation.** `route()` restores the native anchor jump its `preventDefault` suppresses, scrolling the element whose `id` matches the url's `#fragment` into view (a bare trailing `#` scrolls to the top):
+
+- **Same-page** (`#fragment`-only navigation): scrolls immediately. The activity pipeline stays quiet — no location or route emission, no page reload.
+- **Cross-page** (navigation with a fragment that changes the route): the fragment is held until the routed page content renders, then scrolled.
+- **Initial load** (app boots on a url carrying a fragment): the browser's native scroll fired before lazily-imported content existed, so the router scrolls after the first routed render.
+
+The deferred scroll is a **single attempt** — if the target `id` doesn't exist once the routed content has rendered (e.g. the page renders its anchors asynchronously after mount), nothing scrolls and the app owns its own scroll from there. A subsequent navigation drops any unconsumed fragment. Scrolling uses `scrollIntoView()`, so the page's `scroll-behavior` CSS controls smoothness.
 
 When you want to react to the url without a route table — a breadcrumb, an analytics hook, a tiny app that switches on `pathname` — use layer 1 directly:
 
