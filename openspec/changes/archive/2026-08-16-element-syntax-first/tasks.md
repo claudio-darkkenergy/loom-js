@@ -33,4 +33,4 @@
 
 ## 5. Enforcement package
 
-- [ ] 5.1 Lint-plugin package (eslint enforcer rules; GritQL patterns for Biome, lint-only); publish like the esbuild plugin.
+- [x] 5.1 Lint-plugin package (eslint enforcer rules; GritQL patterns for Biome, lint-only); publish like the esbuild plugin. → Delivered by the `add-lint-plugin` change: `@loom-js/eslint-plugin` at `packages/eslint/eslint-plugin` (`prefer-element-syntax` + `no-dollar-props-on-component-tags`, `recommended` flat config, lint-only GritQL mirror of the latter; changeset added). A `no-tags-import` rule was descoped during apply — `@loom-js/tags` has no external users and the owner-side `npm deprecate` is the native enforcement surface. The umbrella is now archive-ready — the conversion change's remaining 4.3 (`npm deprecate`) is owner-side.
