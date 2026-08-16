@@ -1,0 +1,43 @@
+{
+    "name": "@loom-js/eslint-plugin",
+    "private": true,
+    "version": "0.0.0",
+    "license": "MIT",
+    "description": "ESLint rules enforcing the loom-js element-syntax authoring convention.",
+    "keywords": [
+        "eslint",
+        "eslintplugin",
+        "eslint-plugin",
+        "loom-js"
+    ],
+    "type": "module",
+    "exports": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "files": [
+        "./dist",
+        "./grit"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/claudio-darkkenergy/loom-js.git",
+        "directory": "packages/eslint/eslint-plugin"
+    },
+    "scripts": {
+        "build-package": "tsc",
+        "test-ci": "pnpm build-package && node --test \"tests/*.test.mjs\"",
+        "type-check": "tsc --noEmit"
+    },
+    "peerDependencies": {
+        "eslint": ">=9"
+    },
+    "devDependencies": {
+        "@loom-js/typescript-config": "workspace:*",
+        "@types/estree": "^1.0.6",
+        "@types/node": "^26.1.2",
+        "eslint": "^9.0.0",
+        "typescript": "^7.0.2"
+    }
+}

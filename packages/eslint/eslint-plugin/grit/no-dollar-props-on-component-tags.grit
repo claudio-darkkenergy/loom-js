@@ -1,0 +1,12 @@
+language js
+
+// Lint-only mirror of the eslint rule `loom/no-dollar-props-on-component-tags`
+// — flags a template string in which a component tag open (`<${Component}`,
+// final name segment capitalized) is followed by a `$`-prefixed attribute
+// before the tag closes. Textual approximation: the eslint rule is the
+// full-fidelity surface (no parity promise), and `prefer-element-syntax`
+// has no GritQL mirror at all.
+// No rewrite: enforcement ships as reporting only.
+template_string() as $template where {
+    $template <: r"(?s).*<\$\{\s*(?:[A-Za-z_$][\w$]*\.)*[A-Z][\w$]*\s*\}[^>]*\s\$[A-Za-z][\w-]*=.*"
+}
