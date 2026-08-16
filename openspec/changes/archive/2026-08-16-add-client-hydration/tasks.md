@@ -27,5 +27,5 @@
 ## 5. Docs & release
 
 - [x] 5.1 `packages/core/README.md`: hydration section — `renderToString` → `hydrate` as the pre-rendering story; document the D2 tracking boundary (async transforms are tracked; raw fetch/timers need `ready`), `maxWait`, and pre-swap inertness (native anchors still navigate).
-- [ ] 5.2 Update `openspec/specs/server-rendering/spec.md` Purpose line at archive time (hydration no longer purely future) — archive-phase note, no requirement change.
+- [x] 5.2 Update `openspec/specs/server-rendering/spec.md` Purpose line at archive time (hydration no longer purely future) — archive-phase note, no requirement change.
 - [x] 5.3 Changeset: `@loom-js/core` minor. Check `.claude/skills/skill-config.md` — new public API (`hydrate`, `settled`) may warrant a convention note.

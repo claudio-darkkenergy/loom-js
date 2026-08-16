@@ -4,7 +4,7 @@
 
 Defines how `@loom-js/core` renders an app to an HTML string outside a browser: the `@loom-js/core/server` entries — `renderToString` (async, the go-to) and `renderToStringSync` (the synchronous primitive) — render through the same code path the client runs, against a per-render injected DOM provider (e.g. linkedom), covering SSR (request-time) and SSG/prerender (build-time). Covers off-browser import safety, per-render isolation, browser-path neutrality, server lifecycle semantics, and route-aware rendering.
 
-Established by the `add-server-rendering` change (2026-08-15). Route-aware rendering was added by the `unify-routing` change (2026-08-15). Edge/worker delivery and hydration are future extensions of this capability.
+Established by the `add-server-rendering` change (2026-08-15). Route-aware rendering was added by the `unify-routing` change (2026-08-15). Client hydration of pre-rendered markup is now covered by the `client-hydration` capability (`renderToString` → `hydrate`, added by `add-client-hydration`, 2026-08-16); edge/worker delivery remains a future extension of this capability.
 
 ## Requirements
 
