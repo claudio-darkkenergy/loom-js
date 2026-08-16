@@ -9,7 +9,7 @@ import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-const { component, router } = await import('../../dist/index.mjs');
+const { component, locationEffect } = await import('../../dist/index.mjs');
 const { renderToString } = await import('../../dist/server.mjs');
 
 const PAGES = [
@@ -23,7 +23,8 @@ const Page = component(
             <h1>${title}</h1>
             <p>${body}</p>
             <footer>
-                path: ${router(({ value: location }) => location.pathname)}
+                path:
+                ${locationEffect(({ value: location }) => location.pathname)}
             </footer>
         </main>
     `
@@ -47,7 +48,9 @@ describe('SSG smoke', () => {
 
         for (const { body, route, title } of PAGES) {
             const { window } = parseHTML('<html><body></body></html>');
-            const markup = renderToString(Page({ body, title }), {
+            // `renderToString` is async — the go-to for a build script, since
+            // it also settles lazily-imported route content before serializing.
+            const markup = await renderToString(Page({ body, title }), {
                 url: `https://example.com${route}`,
                 window
             });

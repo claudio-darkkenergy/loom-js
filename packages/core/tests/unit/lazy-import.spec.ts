@@ -1,6 +1,6 @@
 import { expect } from '@esm-bundle/chai';
 
-import { component, lazyImport, onRoute, onRouteUpdate } from '../../src';
+import { component, lazyImport, route, watchLocation } from '../../src';
 import type { Component } from '../../src/types';
 import { runSetup } from '../support/run-setup';
 
@@ -22,7 +22,7 @@ const Routes = () => {
         Component<{}>
     >('route', () => Promise.resolve(SimpleComponent1));
 
-    onRouteUpdate(({ value: { pathname } }) => {
+    watchLocation(({ value: { pathname } }) => {
         let component: Component;
 
         console.log({ pathname });
@@ -45,8 +45,8 @@ const Routes = () => {
 const TestComponent = component(
     (html) => html`
 <>
-    [<a $click=${onRoute} href="/simple1">Simple 1</a> |
-    <a $click=${onRoute} href="/simple2">Simple 2</a>]
+    [<a $click=${route} href="/simple1">Simple 1</a> |
+    <a $click=${route} href="/simple2">Simple 2</a>]
     <div>${Routes()}</div>
 </>
 `

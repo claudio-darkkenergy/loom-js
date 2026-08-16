@@ -1,4 +1,6 @@
-// Server-rendering tests (`renderToString` + off-browser import safety).
+// Server-rendering tests (`renderToStringSync`, the synchronous render
+// primitive, + off-browser import safety). The async `renderToString` — the
+// go-to for route-table apps — is covered in route-rendering.test.mjs.
 //
 // These run in Node — deliberately outside any browser — against the built
 // `dist/` entries, because that absence of browser globals is half of what is
@@ -11,10 +13,9 @@ import assert from 'node:assert/strict';
 
 // Importing the package index off-browser must not throw — this import IS an
 // assertion (routing/router/config previously crashed at module load).
-const { activity, component, defineElement } =
+const { activity, component, defineElement, locationEffect } =
     await import('../../dist/index.mjs');
-const { renderToString } = await import('../../dist/server.mjs');
-const { router } = await import('../../dist/index.mjs');
+const { renderToStringSync } = await import('../../dist/server.mjs');
 
 const createWindow = () =>
     parseHTML('<!doctype html><html><head></head><body></body></html>').window;
@@ -32,7 +33,7 @@ const List = component(
     `
 );
 
-describe('renderToString', () => {
+describe('renderToStringSync', () => {
     it('renders a representative component tree to markup', () => {
         const App = component(
             (html, { heading, items }) => html`
@@ -42,7 +43,7 @@ describe('renderToString', () => {
                 </main>
             `
         );
-        const markup = renderToString(
+        const markup = renderToStringSync(
             App({ heading: 'Hello SSR', items: ['alpha', 'beta', 'gamma'] }),
             { window: createWindow() }
         );
@@ -63,7 +64,9 @@ describe('renderToString', () => {
 
         count.update(42);
 
-        const markup = renderToString(Counter(), { window: createWindow() });
+        const markup = renderToStringSync(Counter(), {
+            window: createWindow()
+        });
 
         assert.match(markup, /count: 42/);
     });
@@ -74,10 +77,10 @@ describe('renderToString', () => {
                 <h1>${heading}</h1>
             `
         );
-        const markupA = renderToString(App({ heading: 'first render' }), {
+        const markupA = renderToStringSync(App({ heading: 'first render' }), {
             window: createWindow()
         });
-        const markupB = renderToString(App({ heading: 'second render' }), {
+        const markupB = renderToStringSync(App({ heading: 'second render' }), {
             window: createWindow()
         });
 
@@ -97,13 +100,17 @@ describe('renderToString', () => {
         // A component that kicks off a whole other render mid-render — the
         // worst-case interleaving a synchronous scope must survive.
         const Outer = component((html) => {
-            innerMarkup = renderToString(Inner(), { window: createWindow() });
+            innerMarkup = renderToStringSync(Inner(), {
+                window: createWindow()
+            });
             return html`
                 <section>outer content</section>
             `;
         });
 
-        const outerMarkup = renderToString(Outer(), { window: createWindow() });
+        const outerMarkup = renderToStringSync(Outer(), {
+            window: createWindow()
+        });
 
         assert.match(innerMarkup, /<em>inner<\/em>/);
         assert.match(outerMarkup, /outer content/);
@@ -121,7 +128,7 @@ describe('renderToString', () => {
             `;
         });
 
-        renderToString(App(), { window: createWindow() });
+        renderToStringSync(App(), { window: createWindow() });
 
         assert.equal(createdFired, 1);
         assert.equal(mountedFired, 0);
@@ -141,8 +148,8 @@ describe('renderToString', () => {
             `
         );
         // Two renders, two windows — each has its own registry to satisfy.
-        const first = renderToString(Host(), { window: createWindow() });
-        const second = renderToString(Host(), { window: createWindow() });
+        const first = renderToStringSync(Host(), { window: createWindow() });
+        const second = renderToStringSync(Host(), { window: createWindow() });
 
         assert.match(first, /<span class="badge">hi<\/span>/);
         assert.match(second, /<span class="badge">hi<\/span>/);
@@ -154,18 +161,18 @@ describe('renderToString', () => {
                 <p>path: ${pathname}</p>
             `
         );
-        // `router` (the location effect) reads the injected location lazily.
+        // `locationEffect` reads the injected location lazily.
         const App = component(
             (html) => html`
                 <div>
-                    ${router(({ value: location }) =>
+                    ${locationEffect(({ value: location }) =>
                         Pathname({ pathname: location.pathname })
                     )}
                 </div>
             `
         );
 
-        const markup = renderToString(App(), {
+        const markup = renderToStringSync(App(), {
             url: 'https://example.com/docs/intro?q=1',
             window: createWindow()
         });
@@ -181,5 +188,6 @@ describe('server entry packaging', () => {
         const cjs = require('../../dist/server.js');
 
         assert.equal(typeof cjs.renderToString, 'function');
+        assert.equal(typeof cjs.renderToStringSync, 'function');
     });
 });

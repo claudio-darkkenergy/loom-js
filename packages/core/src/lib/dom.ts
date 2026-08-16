@@ -39,6 +39,25 @@ export const getWindow = (): DomWindow => {
 export const getDocument = () => getWindow().document;
 
 /**
+ * Enters `win` as the resolvable window & returns the function that restores
+ * the previous one. `withWindow` is the right tool for synchronous scopes;
+ * this exists for the async server render, whose settled work (lazy route
+ * importers) must still resolve the injected window across `await`
+ * boundaries. Callers own the restore & must not overlap two open scopes —
+ * the async `renderToString` serializes its renders through a queue for
+ * exactly that reason.
+ */
+export const enterWindow = (win: DomWindow): (() => void) => {
+    const previousWindow = currentWindow;
+
+    currentWindow = win;
+
+    return () => {
+        currentWindow = previousWindow;
+    };
+};
+
+/**
  * Runs `fn` with `win` as the resolvable window, restoring the previous
  * window afterward. The scope is synchronous by design — work that settles
  * after `fn` returns resolves against whatever window is current then.

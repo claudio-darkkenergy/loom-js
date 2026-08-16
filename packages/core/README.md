@@ -377,29 +377,65 @@ See the Activity Example, below, for an `effect()` usage example.
 
 Routing is used specifically for single-page-apps (SPA). You can still set up server-side routes as you would for a multi-page app, and then let the client-side routing take over to achieve a snappy single-page-app experience. This approach would also work well when prerending a static site or JAMStack architecture.
 
-There are two main technologies leveraged in the routing system - the activity system is at its core, and the browser's native History API allows for SPA behavior and clean URL's.
+The routing system is one layered pipeline per window, built on the activity system and the browser's native History API. Every navigation flows through a raw **location** layer (always fires, no configuration needed), whose match transform feeds the **route** layer (fires when a registered route matches):
+
+- **Layer 1 — location**: zero-config reactivity to the raw `Location` — `locationEffect`, `watchLocation`.
+- **Layer 2 — routes**: route-table matching with lazy-loaded pages — `createRoutes`, `routeEffect`, `watchRoute`.
+
+In the browser there is exactly one router for the lifetime of the page; on a server each injected window resolves its own isolated instance (see Server rendering).
 
 **API**
 
-- `router(routeConfigCallback: ActivityHandler<Location>)` - Hooks up reactivity based on `Location` data & History API updates.
-    - `routeConfigCallback`
-        - Has the following function signature: `({ value }) => ContextFunction`
-        - The value of `value` will always be the current browser's `Location` object.
-        - A `ContextFunction` must always be returned - this the value which a component returns when you call it.
-- `onRoute(event: SyntheticMouseEvent<T>, options: OnRouteOptions)` - A `MouseEventListener` to hook up as an element's click-handler.
-    - `event`
-        - must be passed to the event handler.
-        - If `onRoute` is wrapped by another acting function, then `event` will have to be passed to the `onRoute` call, manually. Example: `(e) => onRoute(e);`
+- `createRoutes({ config, fallback })` - Registers the app's route table & returns the routes component to compose into your layout tree. Each `config` entry maps a route path (dynamic segments via `/:param`) to an importer of the page component — `() => import('@app/pages/about')`, matched on the module's default export.
+    - DOM-free at call time: calling it at module scope is safe in any runtime, including off-browser. History wiring defers to first use inside a DOM scope.
+    - Calling it again replaces the route table — last call wins.
+    - `fallback?: () => Promise<ContextFunction | undefined>` - Rendered while no page has loaded.
+- `route(event, options?)` - The click-handler for SPA navigation; wraps `history.pushState`. Modified activations (ctrl/cmd/shift/alt-click) & events another handler already consumed fall through to the browser.
+    - `event` - Pass the click event through (`route` directly as the handler, or `(e) => route(e, options)`); pass `null` when navigating programmatically via `options.href`.
     - `options`
-        - `href?: string`
-        - `replace?: boolean` - Will set the `replaceState` flag to true so that the url will update in the browser's address bar, but it will not add an entry to the history stack.
+        - `href?: string` - The target url - overrides the anchor's href attribute.
+        - `replace?: boolean` - Uses `replaceState` so the address bar updates without adding a history entry.
+- `routeEffect(routeEffectCallback)` - An effect over the matched route. The callback receives `{ value: RouteValue }` — `matchedRoute`, `params`, `pathname` & `raw` (the `Location`) — & must return a `ContextFunction`. Requires a registered route table.
+- `watchRoute(handler)` - The non-rendering watcher form of `routeEffect`; returns an unsubscriber.
+- `locationEffect(locationEffectCallback)` - An effect over the raw `Location`. Zero-config — no route table required — & re-runs on every navigation. The callback receives `{ value: Location }` & must return a `ContextFunction`.
+- `watchLocation(handler)` - The non-rendering watcher form of `locationEffect`; returns an unsubscriber.
+- `redirect(href)` - Programmatic replace-state navigation.
+- `RouteLink` - A pre-wired SPA anchor — see Element Components.
 
-**Inclusion** `import { router, onRoute } from '@loom-js/core';`
+**Inclusion** `import { createRoutes, locationEffect, route } from '@loom-js/core';`
 
 **Quick Example**
 
 ```ts
-import { component, onRoute, router } from '@loom-js/core';
+import { RouteLink, component, createRoutes } from '@loom-js/core';
+
+// Module scope is fine — registration is DOM-free.
+const Routes = createRoutes({
+    config: {
+        '/': () => import('@app/pages/home'),
+        '/docs/:slug': () => import('@app/pages/docs')
+    }
+});
+
+export const App = component(
+    (html, props) => html`
+        <div>
+            <nav>
+                ${RouteLink({ children: 'Home', href: '/' })}
+                ${RouteLink({ children: 'Docs', href: '/docs/intro' })}
+            </nav>
+            <main>${Routes(props)}</main>
+        </div>
+    `
+);
+```
+
+Pages receive the matched route as `routeProps` (a `RouteValue`) — e.g. `/docs/:slug` exposes `routeProps.params.slug`.
+
+When you want to react to the url without a route table — a breadcrumb, an analytics hook, a tiny app that switches on `pathname` — use layer 1 directly:
+
+```ts
+import { component, locationEffect, route } from '@loom-js/core';
 
 import { About, Home, NotFound } from '@app/component/pages';
 
@@ -407,12 +443,12 @@ export const App = component<unknown>(
     (html) => html`
         <div>
             <nav>
-                <a $click="${onRoute}" href="/">Home</a>
+                <a $click="${route}" href="/">Home</a>
                 |
-                <a $click="${onRoute}" href="/about">About</a>
+                <a $click="${route}" href="/about">About</a>
             </nav>
             <main>
-                ${router(({ value: { pathname } }) => {
+                ${locationEffect(({ value: { pathname } }) => {
                     switch (pathname) {
                         case '/':
                             return Home();
@@ -434,10 +470,11 @@ export const App = component<unknown>(
 
 **API**
 
-- `renderToString(app: ContextFunction, options)` - Renders `app` against the injected DOM & returns the document body's `innerHTML`.
+- `renderToString(app: ContextFunction, options)` - The go-to render (async). Renders `app` against the injected DOM, drains settled route/lazy-import work — so `createRoutes` route pages & `lazyImport` content serialize in place — & resolves the document body's `innerHTML`. Concurrent calls are safely serialized internally.
     - `options`
         - `window` - The DOM to render against, e.g. `parseHTML(...).window` from linkedom. Use a fresh window per render — never share one across concurrent renders.
-        - `url?: string` - The request URL. Installed as the window's `location`, so `router` & `createRoutes` match the requested path.
+        - `url?: string` - The request URL. Installed as the window's `location`, so `locationEffect` & `createRoutes` match the requested path.
+- `renderToStringSync(app: ContextFunction, options)` - The synchronous primitive: whatever has rendered when the app's synchronous work completes is what serializes (the naming follows Node's `readFile`/`readFileSync` pairing). Right for route-less renders — fragments, email/OG markup, component snapshot tests. A route-table app serializes only its shell/fallback here, since page importers cannot settle inside a synchronous pass. Same `options`.
 
 **Inclusion** `import { renderToString } from '@loom-js/core/server';`
 
@@ -451,7 +488,7 @@ import { App } from '@app/app';
 
 // One window per render (per request, or per page when prerendering).
 const { window } = parseHTML('<html><body></body></html>');
-const markup = renderToString(App(), {
+const markup = await renderToString(App(), {
     url: request.url,
     window
 });
@@ -462,7 +499,7 @@ const html = shellTemplate.replace('<!--app-->', markup);
 
 **Semantics worth knowing**
 
-- The render is synchronous - whatever has rendered when the app's synchronous work completes is what serializes. Lazy-loaded routes & post-render async updates belong to the client (or a future hydration phase).
+- `renderToString` settles what the app itself scheduled (route pages, lazy imports) & then serializes; `renderToStringSync` serializes only what settled synchronously. Post-render async updates beyond that belong to the client (or a future hydration phase).
 - `onCreated`, `onBeforeRender` & `onRendered` fire as usual; `onMounted` & `onUnmounted` never fire on the server — they describe a live, observed browser document.
 - Custom elements registered via `defineElement` are applied to each injected window automatically.
 - Importing `@loom-js/core` off-browser is safe - browser-coupled state (router location, history listeners) initializes lazily on first use.
@@ -635,31 +672,36 @@ export const Button = component(
 **Routing example**
 
 ```ts
-import { component, MouseEventListener, onRoute, router } from '@loom-js/core';
+import {
+    SyntheticRouteEvent,
+    component,
+    locationEffect,
+    route
+} from '@loom-js/core';
 import { About, Home, NotFound } from '@app/component/pages';
 
 export const App = component<unknown>(
     (html) => html`
         <div>
             <header>
-                ${/* Standard button example passing options to `onRoute` */}
+                ${/* Standard button example passing options to `route` */}
                 <button
-                    $click="${(e) =>
-                        onRoute(e, {
+                    $click="${(e: SyntheticRouteEvent) =>
+                        route(e, {
                             href: '/'
-                        })) as MouseEventListener})}"
+                        })}"
                     type="button"
                 >
                     loomjs
                 </button>
-                ${/* Anchor example demonstrating the simpler `onRoute` usage */}
+                ${/* Anchor example demonstrating the simpler `route` usage */}
                 <nav>
-                    <a $click="${onRoute}" href="/">Home</a> |
-                    <a $click="${onRoute}" href="/about">About</a>
+                    <a $click="${route}" href="/">Home</a> |
+                    <a $click="${route}" href="/about">About</a>
                 </nav>
             </header>
             <main>
-                ${router(({ value: { pathname } }) => {
+                ${locationEffect(({ value: { pathname } }) => {
                     switch (pathname) {
                         case '/':
                             return Home();
@@ -673,7 +715,6 @@ export const App = component<unknown>(
         </div>
     `
 );
-
 ```
 
 ## Recognition

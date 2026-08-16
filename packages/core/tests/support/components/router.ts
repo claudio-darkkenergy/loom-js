@@ -1,4 +1,5 @@
-import { component, onRoute, router } from '../../../src';
+import { component, locationEffect, route } from '../../../src';
+import type { SyntheticRouteEvent } from '../../../src';
 import { TestComponentProps } from './container';
 
 export interface RouterPropValue {
@@ -19,23 +20,26 @@ export const Router = component<
 
     return html`
         <main class=${className} disabled=${disabled} style=${style}>
-            <a $click=${onRoute} href=${value?.defaultRoute}>Default route</a>
+            <a $click=${route} href=${value?.defaultRoute}>Default route</a>
             <a
-                $click=${onRoute}
+                $click=${route}
                 class=${value?.pushRouteClassname}
                 href=${value?.testRoute}
             >
                 Test route
             </a>
             <a
-                $click=${(event: Event) => onRoute(event, { replace: true })}
+                $click=${(event: Event) =>
+                    route(event as SyntheticRouteEvent<HTMLAnchorElement>, {
+                        replace: true
+                    })}
                 class=${value?.replaceRouteClassname}
                 href=${value?.replaceRoute}
             >
                 Replace route
             </a>
             <div>
-                ${router(({ value: { hash, pathname } }) => {
+                ${locationEffect(({ value: { hash, pathname } }) => {
                     if (!value?.testRoute || !value?.replaceRoute) {
                         const msg =
                             'A test route was not provided - pass prop `value.testRoute`.';
