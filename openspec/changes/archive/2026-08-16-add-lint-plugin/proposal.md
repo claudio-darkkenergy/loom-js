@@ -8,10 +8,10 @@ Element syntax became loom's primary authoring surface (`element-syntax-first` /
 
 - **New workspace package** at `packages/eslint/eslint-plugin`, published as `@loom-js/eslint-plugin` following the `esbuild-plugin-html-split` model: `private: true` + `publishConfig.access: public`, source exports, versioned via changesets.
 - **An eslint 9 flat-config plugin** exporting the rules and a `recommended` config. v1 rules:
-    - `no-tags-import` — any import from `@loom-js/tags` (deprecated package) is reported, pointing to element syntax and the core survivors.
     - `prefer-element-syntax` — a direct `${Component({ … })}` call interpolation inside a loom `html` tagged template, where a component tag serves, is reported. Sanctioned value positions are spared: callback returns, `.map`/array items, `is=` props, props transformers — anywhere a component travels as a JS value.
     - `no-dollar-props-on-component-tags` — a `$`-prefixed attribute on a `<${Component}` tag (which throws at first render) is reported at lint time instead.
-- **GritQL patterns for Biome** shipped in the package as a lint-only courtesy, mirroring the textually-expressible rules, without parity promises (umbrella Decision 3).
+    - A `no-tags-import` rule was considered and descoped during apply: `@loom-js/tags` has no external users, so the owner-side `npm deprecate` is the native enforcement surface — a lint rule would guard against a package nobody consumes.
+- **A GritQL pattern for Biome** shipped in the package as a lint-only courtesy, mirroring the textually-expressible rule, without parity promises (umbrella Decision 3).
 - **Deferred, documented**: the two array-composition constraints (regions interpolate, never as array items; array-consumed components stay off component-tag roots) need cross-file/flow analysis that eslint rules can't do honestly in v1.
 - **Repo wiring**: `packages/eslint/*` workspace glob, `.prettierrc` `packageJSONFiles` entry (per the CLAUDE.md corollary — without it the new package's deps sort into the wrong import group), `skill-config.md` update, umbrella task 5.1 checked.
 - The repo does **not** adopt the plugin for its own sources — prettier-only stands.
@@ -28,7 +28,7 @@ _None — no existing main spec's requirements change._
 
 ## Impact
 
-- New: `packages/eslint/eslint-plugin/` (rules, flat config, GritQL patterns, tests, README).
+- New: `packages/eslint/eslint-plugin/` (rules, flat config, GritQL pattern, tests, README).
 - Modified: `pnpm-workspace.yaml`, `.prettierrc`, `.claude/skills/skill-config.md`, `openspec/changes/element-syntax-first/tasks.md` (5.1 checked).
 - Tests: `node --test` + eslint `RuleTester`, mirroring how core's server tests run.
 - Release: one changeset for the new package; the publish workflow picks it up via changesets as usual.

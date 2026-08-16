@@ -2,25 +2,6 @@
 
 ## ADDED Requirements
 
-### Requirement: Deprecated tags imports are reported
-
-The `no-tags-import` rule SHALL report any static import or re-export from `@loom-js/tags` (including subpaths), directing the author to element syntax and the core survivors.
-
-#### Scenario: a tags import is flagged
-
-- **WHEN** a linted file contains `import { Button } from '@loom-js/tags'`
-- **THEN** the rule reports the import declaration
-
-#### Scenario: a tags re-export is flagged
-
-- **WHEN** a linted file contains `export * from '@loom-js/tags'` or a subpath import such as `'@loom-js/tags/button'`
-- **THEN** the rule reports the declaration
-
-#### Scenario: other loom imports pass
-
-- **WHEN** a linted file imports from `@loom-js/core` or `@loom-js/pink`
-- **THEN** the rule reports nothing
-
 ### Requirement: Direct component-call interpolations in child positions are reported
 
 The `prefer-element-syntax` rule SHALL report a template interpolation inside a loom template (a tagged template whose tag matches the configured `tagNames`, default `['html']`) when the interpolation sits in child position and its expression is a direct call of a component-shaped callee (capitalized identifier or member ending in one, excluding configured `ignoreNames` and known global constructor-likes). Sanctioned value positions SHALL NOT be reported.
@@ -71,21 +52,21 @@ The `no-dollar-props-on-component-tags` rule SHALL report each `$`-prefixed attr
 
 ### Requirement: The plugin exposes an eslint 9 flat-config surface
 
-The package SHALL export an eslint 9 plugin object — `meta`, the three rules, and a self-contained `recommended` flat config registering the plugin under the `loom` namespace with all rules at `error`.
+The package SHALL export an eslint 9 plugin object — `meta`, the two rules, and a self-contained `recommended` flat config registering the plugin under the `loom` namespace with all rules at `error`.
 
 #### Scenario: recommended config activates the rules
 
 - **WHEN** a consumer spreads `loom.configs.recommended` into `eslint.config.js`
-- **THEN** `loom/no-tags-import`, `loom/prefer-element-syntax`, and `loom/no-dollar-props-on-component-tags` run at `error` with no further wiring
+- **THEN** `loom/prefer-element-syntax` and `loom/no-dollar-props-on-component-tags` run at `error` with no further wiring
 
 ### Requirement: A lint-only GritQL mirror ships with the package
 
-The package SHALL ship GritQL pattern files mirroring the textually-expressible rules (`no-tags-import`, `no-dollar-props-on-component-tags`) for Biome users, lint-only, with the mirror's scope (no `prefer-element-syntax`, no parity promise) documented.
+The package SHALL ship a GritQL pattern file mirroring the textually-expressible rule (`no-dollar-props-on-component-tags`) for Biome users, lint-only, with the mirror's scope (no `prefer-element-syntax`, no parity promise) documented.
 
-#### Scenario: patterns are present and rewrite-free
+#### Scenario: the pattern is present and rewrite-free
 
 - **WHEN** the published package is inspected
-- **THEN** `grit/` contains the two patterns, neither performing a rewrite
+- **THEN** `grit/` contains the pattern, performing no rewrite
 
 #### Scenario: the scope note is documented
 

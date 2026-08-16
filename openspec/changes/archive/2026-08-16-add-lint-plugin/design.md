@@ -11,8 +11,8 @@ Constraints: the repo's publish model (changesets; `private: true` + `publishCon
 **Goals:**
 
 - An installable `@loom-js/eslint-plugin` with eslint 9 flat-config support and a `recommended` config.
-- Three v1 rules that report the unambiguous convention violations: `no-tags-import`, `prefer-element-syntax`, `no-dollar-props-on-component-tags`.
-- A GritQL mirror of the textually-expressible rules.
+- Two v1 rules that report the unambiguous convention violations: `prefer-element-syntax`, `no-dollar-props-on-component-tags`.
+- A GritQL mirror of the textually-expressible rule.
 - Tests in the repo's existing style (`node --test` against built output, like core's server tests).
 
 **Non-Goals:**
@@ -21,6 +21,7 @@ Constraints: the repo's publish model (changesets; `private: true` + `publishCon
 - No enforcement of the two array-composition constraints (regions interpolate, never as array items; array-consumed components stay off component-tag roots) — both need flow/cross-file analysis a syntactic rule can't do honestly; deferred with the limitation documented in the README.
 - No self-wiring: the repo's own sources are not linted by this plugin — prettier-only stands.
 - No GritQL parity promise — patterns mirror what GritQL can express textually; gaps are documented, not papered over.
+- No `no-tags-import` rule (descoped during apply): `@loom-js/tags` has no external users and its remaining lifecycle step is the owner-side `npm deprecate` — npm's own deprecation warning is the native enforcement surface for a dead package, and a lint rule would enforce against a ghost. Descoping it also keeps the package's story clean: both shipped rules guard live runtime/authoring behavior.
 
 ## Decisions
 
@@ -30,7 +31,7 @@ Constraints: the repo's publish model (changesets; `private: true` + `publishCon
 
 ### D2 — Plugin namespace `loom`, flat config only
 
-The plugin object exports `{ meta, rules, configs: { recommended } }`. `recommended` is a self-contained flat-config entry — it carries `plugins: { loom }` itself, so consumers write `import loom from '@loom-js/eslint-plugin'` and spread `loom.configs.recommended` into `eslint.config.js`; rule IDs read `loom/no-tags-import`. All three rules at `error` in `recommended` — two of them mark things that are dead (`@loom-js/tags`) or throw at runtime (`$` props on component tags), and the third is the convention this package exists to enforce; teams downgrade individually if they want advisory mode. No legacy eslintrc shim: eslint 9 is the floor.
+The plugin object exports `{ meta, rules, configs: { recommended } }`. `recommended` is a self-contained flat-config entry — it carries `plugins: { loom }` itself, so consumers write `import loom from '@loom-js/eslint-plugin'` and spread `loom.configs.recommended` into `eslint.config.js`; rule IDs read `loom/prefer-element-syntax`. Both rules at `error` in `recommended` — one marks what throws at runtime (`$` props on component tags), the other is the convention this package exists to enforce; teams downgrade individually if they want advisory mode. No legacy eslintrc shim: eslint 9 is the floor.
 
 ### D3 — Loom-template detection: the `html` tag identifier, as a rule option
 
@@ -46,9 +47,9 @@ Everything else is spared _by construction_, which is exactly the sanctioned val
 
 A component tag opens where a quasi ends with `<` and the next interpolation expression is a component-shaped callee (per D4-c). From there, the rule scans the attribute region — quasi text (and across further interpolations) until the tag closes (`>`/`/>`) — for attribute names beginning with `$` (e.g. ` $click=`, ` $attrs=`). Each hit reports the attribute name and that `$` has element-only meaning (the runtime throws on first render; the lint catches it at dev time). Plain-element tags never enter the scan, so `$click` on `<button>` stays legal.
 
-### D6 — GritQL mirror: two patterns, shipped as files
+### D6 — GritQL mirror: one pattern, shipped as a file
 
-A `grit/` directory ships `.grit` patterns for the textually-expressible rules: `no-tags-import` (match `import ... from "@loom-js/tags"`) and `no-dollar-props-on-component-tags` (match `$`-attrs following a `<${`-style tag open). `prefer-element-syntax` needs the child-vs-attr-position distinction, which is beyond an honest textual pattern — documented as an eslint-only rule. Patterns are lint-only (no rewrites), matching the no-codemods policy.
+A `grit/` directory ships a `.grit` pattern for the textually-expressible rule: `no-dollar-props-on-component-tags` (match `$`-attrs following a `<${`-style tag open). `prefer-element-syntax` needs the child-vs-attr-position distinction, which is beyond an honest textual pattern — documented as an eslint-only rule. The pattern is lint-only (no rewrites), matching the no-codemods policy.
 
 ### D7 — Tests run `node --test` against the built output
 
