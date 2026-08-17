@@ -7,6 +7,7 @@ export * from './define-element';
 export * from './elements';
 export * from './hydrate';
 export * from './lazy-import';
+export * from './resource';
 export * from './router';
 export * from './settled';
 export * from './simple';

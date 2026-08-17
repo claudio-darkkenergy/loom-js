@@ -3,6 +3,8 @@
 // exact same code path the browser uses, and returns the serialized markup.
 // loom never imports the DOM implementation itself; the caller supplies it,
 // which keeps this entry dependency-free and the browser bundle untouched.
+export * from './dehydrate';
+
 import { _lifeCycles } from './lib/context/life-cycles';
 import { DomWindow, enterWindow, withWindow } from './lib/dom';
 import { mount } from './lib/mount';
