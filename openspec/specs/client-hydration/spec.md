@@ -4,7 +4,7 @@
 
 Defines the hydrating client boot for pre-rendered loom pages: `hydrate` defers takeover of a root's server-rendered children to a single atomic swap gated on the app-settled signal, so lazy route content and async activity work land before anything visibly changes. Covers the public `settled()` quiescence signal (per-window, over framework-tracked async work), the optional caller-supplied `ready` gate, the bounded `maxWait` worst case, lifecycle timing at real DOM attachment, and the zero-cost guarantee for non-hydrating apps.
 
-Established by the `add-client-hydration` change (2026-08-16). Adopt-in-place hydration (claiming server DOM node-by-node) and dehydrated state / request-cache priming remain future extensions.
+Established by the `add-client-hydration` change (2026-08-16). Adopt-in-place hydration (claiming server DOM node-by-node) remains a future extension; dehydrated state / resource-cache priming landed in `add-dehydrated-state` (see the `dehydrated-state` capability) without changing this capability's requirements.
 
 ## Requirements
 

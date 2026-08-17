@@ -74,3 +74,8 @@ A cached or primed value persists for the window's lifetime, exactly like `lazyI
 ## Open Questions
 
 - None blocking. Export names (`resource`, `primeResources`, `dehydrate`, the serialize helper) are finalize-at-apply against the public surface, per the `settled` precedent.
+
+## Findings (apply)
+
+- **Export names finalized:** `resource`, `primeResources` (index entry); `dehydrate`, `serializeState` (server entry, alongside `renderToString`). No collisions with the existing public surface.
+- **Byte cost (measured at apply, esbuild `--bundle --minify` over `dist/index.mjs`):** a non-adopting bundle (`component` + `init`) is byte-identical to pre-change — the `settled`-entry marker of the resource cache appears zero times, so `resource`/`primeResources` tree-shake out completely. An adopting bundle pays **+412 B min / +171 B min+gzip** — under the `hydrate` precedent (483 B gzip). `dehydrate`/`serializeState` are confined to the server entry (`dist/index.mjs` carries no trace of either).
