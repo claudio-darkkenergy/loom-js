@@ -169,7 +169,7 @@ Direct `document`, `window`, `MutationObserver`, `document.createTextNode`, etc.
 
 - pnpm `overrides` live in `pnpm-workspace.yaml`; each must be annotated inline with the GHSA id(s) it addresses, the parent that pins the vulnerable version, and its removal condition. No blanket overrides.
 - Advisories deliberately left open are recorded in `ACCEPTED-ADVISORIES.md` at the repo root with a reason (no patch / unacceptable break / not reachable). An advisory absent from that file is untriaged, not accepted.
-- `typescript` stays on 6.x until `@rollup/plugin-typescript` can load TS 7.
+- The workspace pins `typescript@^7.0.2`; tools that embed the legacy TS compiler API get a nested `typescript@^6.0.2` instead — four via the `readPackage` hook in `.pnpmfile.cjs`, plus `services/package.json`'s own devDep pin for `@vercel/node` (it resolves TS from the `services` workspace at deploy time). Drop each exception when the tool ships TS 7 support.
 
 ### Port map
 
