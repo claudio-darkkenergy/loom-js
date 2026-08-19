@@ -4,13 +4,13 @@
 
 Defines how `@loom-js/core` renders an app to an HTML string outside a browser: the `@loom-js/core/server` entries — `renderToString` (async, the go-to) and `renderToStringSync` (the synchronous primitive) — render through the same code path the client runs, against a per-render injected DOM provider (e.g. linkedom), covering SSR (request-time) and SSG/prerender (build-time). Covers off-browser import safety, per-render isolation, browser-path neutrality, server lifecycle semantics, and route-aware rendering.
 
-Established by the `add-server-rendering` change (2026-08-15). Route-aware rendering was added by the `unify-routing` change (2026-08-15). Client hydration of pre-rendered markup is now covered by the `client-hydration` capability (`renderToString` → `hydrate`, added by `add-client-hydration`, 2026-08-16); edge/worker delivery remains a future extension of this capability.
+Established by the `add-server-rendering` change (2026-08-15). Route-aware rendering was added by the `unify-routing` change (2026-08-15). Client hydration of pre-rendered markup is now covered by the `client-hydration` capability (`renderToString` → `hydrate`, added by `add-client-hydration`, 2026-08-16); edge/worker delivery remains a future extension of this capability. The `unify-server-drain-on-settled` change (2026-08-18) replaced the async render's quiet-markup drain with the settlement signal `settled()` and `hydrate` consume, bounded by a `maxWait` option.
 
 ## Requirements
 
 ### Requirement: Render a loom app to an HTML string outside a browser
 
-The framework SHALL provide two server render entries that render a loom app against an injected DOM provider and produce serialized HTML, without requiring a live browser: `renderToString` (async — the go-to; drains settled route/lazy-import work before serializing) and `renderToStringSync` (the synchronous primitive; serializes only what settled during the app's synchronous work).
+The framework SHALL provide two server render entries that render a loom app against an injected DOM provider and produce serialized HTML, without requiring a live browser: `renderToString` (async — the go-to; awaits the settlement signal so framework-tracked async work serializes before the markup is captured) and `renderToStringSync` (the synchronous primitive; serializes only what settled during the app's synchronous work).
 
 #### Scenario: renderToString resolves markup
 
@@ -86,5 +86,25 @@ An app whose routing is registered via `createRoutes` SHALL be importable and re
 #### Scenario: Lazily-imported page content resolves per the settle policy
 
 - **WHEN** the matched route's content comes from an async importer (`() => import(...)`)
-- **THEN** the async `renderToString` drains the settled route/lazy-import work (bounded, until the markup goes quiet) and serializes the page content in place
+- **THEN** the async `renderToString` awaits the settlement signal — the same per-window pending-work counter `settled()` and `hydrate` consume — and serializes the page content in place, regardless of how many macrotasks the import chain spans
 - **AND** `renderToStringSync` serializes the shell/fallback in its place, documented as the synchronous contract
+
+### Requirement: The async render's settlement wait is bounded
+
+`renderToString` SHALL bound its settlement wait with a `maxWait` option (milliseconds, default `4000`, `Infinity` to disable), symmetric with `hydrate`'s bound: framework-tracked async work that outlives the bound does not hang the render.
+
+#### Scenario: Slow tracked work serializes fully within the bound
+
+- **WHEN** an activity transform awaits async work that takes multiple macrotask hops to resolve (e.g. real I/O), and it settles within `maxWait`
+- **THEN** `renderToString` serializes the transform's landed content — not the fallback that was in the markup while the work was pending
+
+#### Scenario: Expiry serializes what has landed, with a warning
+
+- **WHEN** tracked async work is still pending when `maxWait` elapses
+- **THEN** `renderToString` resolves with the markup that has landed so far
+- **AND** warns via the framework console (debug-gated, as `hydrate`'s expiry warning is), naming the elapsed bound and the pending operation count
+
+#### Scenario: The bound can be disabled
+
+- **WHEN** `maxWait: Infinity` is passed
+- **THEN** the render waits for settlement indefinitely
