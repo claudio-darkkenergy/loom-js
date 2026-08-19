@@ -4,7 +4,7 @@
 
 Defines how `@loom-js/core` renders an app to an HTML string outside a browser: the `@loom-js/core/server` entries — `renderToString` (async, the go-to) and `renderToStringSync` (the synchronous primitive) — render through the same code path the client runs, against a per-render injected DOM provider (e.g. linkedom), covering SSR (request-time) and SSG/prerender (build-time). Covers off-browser import safety, per-render isolation, browser-path neutrality, server lifecycle semantics, and route-aware rendering.
 
-Established by the `add-server-rendering` change (2026-08-15). Route-aware rendering was added by the `unify-routing` change (2026-08-15). Client hydration of pre-rendered markup is now covered by the `client-hydration` capability (`renderToString` → `hydrate`, added by `add-client-hydration`, 2026-08-16); edge/worker delivery remains a future extension of this capability. The `unify-server-drain-on-settled` change (2026-08-18) replaced the async render's quiet-markup drain with the settlement signal `settled()` and `hydrate` consume, bounded by a `maxWait` option.
+Established by the `add-server-rendering` change (2026-08-15). Route-aware rendering was added by the `unify-routing` change (2026-08-15). Client hydration of pre-rendered markup is now covered by the `client-hydration` capability (`renderToString` → `hydrate`, added by `add-client-hydration`, 2026-08-16); edge/worker delivery remains a future extension of this capability. The `unify-server-drain-on-settled` change (2026-08-18) replaced the async render's quiet-markup drain with the settlement signal `settled()` and `hydrate` consume, bounded by a `maxWait` option. The `improve-loom-console` change (2026-08-18) made the `maxWait` expiry warning unconditional (no longer debug-gated), per the `diagnostic-logging` capability.
 
 ## Requirements
 
@@ -102,7 +102,7 @@ An app whose routing is registered via `createRoutes` SHALL be importable and re
 
 - **WHEN** tracked async work is still pending when `maxWait` elapses
 - **THEN** `renderToString` resolves with the markup that has landed so far
-- **AND** warns via the framework console (debug-gated, as `hydrate`'s expiry warning is), naming the elapsed bound and the pending operation count
+- **AND** warns via the framework console unconditionally — not debug-gated, per the diagnostic-logging capability — naming the elapsed bound and the pending operation count
 
 #### Scenario: The bound can be disabled
 
