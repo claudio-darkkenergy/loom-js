@@ -79,21 +79,14 @@ export const PinkButton = simple<PinkButtonProps>(
                     'is-secondary': isSecondary,
                     'is-text': isText
                 }),
-                // Omitted entirely when empty — a style value that resolves to
-                // nothing must not reach the root's style binding.
-                style:
-                    buttonSize === undefined &&
-                    fontSize === undefined &&
-                    padding === undefined
-                        ? style
-                        : [
-                              {
-                                  '--p-button-size': buttonSize,
-                                  '--p-font-size': fontSize,
-                                  '--padding-horizontal': padding
-                              },
-                              style
-                          ]
+                style: [
+                    {
+                        '--p-button-size': buttonSize,
+                        '--p-font-size': fontSize,
+                        '--padding-horizontal': padding
+                    },
+                    style
+                ]
             })
         )
 );

@@ -113,6 +113,128 @@ describe('attr value semantics', () => {
         });
     });
 
+    describe('style values apply by replacement', () => {
+        it('leaves no style attribute for empty-resolving object & array values', async () => {
+            const TestComponent = component(
+                (html) => html`
+                    <div data-style-empty-test>
+                        <p data-empty-object style=${{}}>empty object</p>
+                        <p data-empty-array style=${[]}>empty array</p>
+                        <p data-nullish-object style=${{ color: undefined }}>
+                            nullish object
+                        </p>
+                        <p
+                            data-nullish-array
+                            style=${[{ color: undefined }, undefined]}
+                        >
+                            nullish array
+                        </p>
+                    </div>
+                `
+            );
+            const $test = await runSetup({
+                containerProps: { TestComponent }
+            });
+            const $unit = $test.querySelector('[data-style-empty-test]');
+
+            [
+                'data-empty-object',
+                'data-empty-array',
+                'data-nullish-object',
+                'data-nullish-array'
+            ].forEach((attrName) => {
+                expect(
+                    $unit?.querySelector(`[${attrName}]`)?.hasAttribute('style')
+                ).to.equal(false);
+            });
+            expect($unit?.outerHTML).to.not.contain('⚡');
+        });
+
+        it('removes a property dropped by a re-applied style value', async () => {
+            const styleValue = activity<Record<string, string | undefined>>({
+                color: 'red',
+                margin: '4px'
+            });
+            const TestComponent = component(
+                (html) => html`
+                    <p data-style-drop-test style=${styleValue.bind()}>
+                        style drop
+                    </p>
+                `
+            );
+            const $test = await runSetup({
+                containerProps: { TestComponent }
+            });
+            const $unit = $test.querySelector<HTMLElement>(
+                '[data-style-drop-test]'
+            );
+
+            expect($unit?.style.color).to.equal('red');
+            expect($unit?.style.margin).to.equal('4px');
+
+            styleValue.update({ color: 'blue' });
+
+            expect($unit?.style.color).to.equal('blue');
+            expect($unit?.style.margin).to.equal('');
+        });
+
+        it('replaces identically through a $attrs style entry', async () => {
+            const styleValue = activity<Record<string, string | undefined>>({
+                color: 'red',
+                margin: '4px'
+            });
+            const TestComponent = component(
+                (html) => html`
+                    <p
+                        data-attrs-style-test
+                        $attrs=${{ style: styleValue.bind() }}
+                    >
+                        attrs style
+                    </p>
+                `
+            );
+            const $test = await runSetup({
+                containerProps: { TestComponent }
+            });
+            const $unit = $test.querySelector<HTMLElement>(
+                '[data-attrs-style-test]'
+            );
+
+            expect($unit?.style.color).to.equal('red');
+
+            styleValue.update({ color: 'blue' });
+
+            expect($unit?.style.color).to.equal('blue');
+            expect($unit?.style.margin).to.equal('');
+
+            styleValue.update({ color: undefined });
+
+            expect($unit?.hasAttribute('style')).to.equal(false);
+        });
+
+        it('merges array entries within one application', async () => {
+            const TestComponent = component(
+                (html) => html`
+                    <p
+                        data-style-merge-test
+                        style=${['color: red;', { margin: '4px' }]}
+                    >
+                        style merge
+                    </p>
+                `
+            );
+            const $test = await runSetup({
+                containerProps: { TestComponent }
+            });
+            const $unit = $test.querySelector<HTMLElement>(
+                '[data-style-merge-test]'
+            );
+
+            expect($unit?.style.color).to.equal('red');
+            expect($unit?.style.margin).to.equal('4px');
+        });
+    });
+
     describe('zero text values', () => {
         it('renders "0" in a text slot', async () => {
             const TestComponent = component(

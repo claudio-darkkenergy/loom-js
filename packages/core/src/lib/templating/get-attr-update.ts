@@ -130,13 +130,17 @@ const getStandardAttrUpdate = (
                 ).value = String(value);
                 break;
             case nodeName === 'style' && Array.isArray(value):
-                mergeAndSetStyleValues(element, value as TemplateTagValue[]);
+                replaceInlineStyle(element, () =>
+                    mergeAndSetStyleValues(element, value as TemplateTagValue[])
+                );
                 break;
             case nodeName === 'style' && isObject(value):
-                Object.entries(value).forEach(([propName, val]) => {
-                    (val || val === 0) &&
-                        element.style.setProperty(propName, String(val));
-                });
+                replaceInlineStyle(element, () =>
+                    Object.entries(value).forEach(([propName, val]) => {
+                        (val || val === 0) &&
+                            element.style.setProperty(propName, String(val));
+                    })
+                );
                 break;
             default:
                 element.setAttribute(nodeName, String(value));
@@ -159,6 +163,23 @@ const getStandardAttrUpdate = (
 
         applyValue(newValue);
     };
+};
+
+// Replacement semantics for object/array style values: the resolved value
+// fully determines the inline style, and an application yielding zero
+// properties leaves no `style` attribute behind — so the parsed placeholder
+// token never survives an empty-resolving value. The clear goes through the
+// CSSOM (`cssText`), not `removeAttribute`: Chrome serializes the style
+// attribute lazily after `setProperty`, and a pending flush can resurrect a
+// removed attribute as `style=""`. The prune's `getAttribute` read forces
+// that flush before deciding.
+const replaceInlineStyle = (
+    element: HTMLElement | SVGElement,
+    applyStyleProps: () => void
+) => {
+    element.style.cssText = '';
+    applyStyleProps();
+    element.getAttribute('style') || element.removeAttribute('style');
 };
 
 const mergeAndSetStyleValues = (
@@ -317,17 +338,21 @@ const applyAttrsEntry = (
         // Handle style as Array of possible style values,
         // ie. ['ruleName: value;', { ruleName: 'value' }, undefined, false].
         case key === 'style' && Array.isArray(resolvedValue):
-            mergeAndSetStyleValues(
-                element,
-                resolvedValue as TemplateTagValue[]
+            replaceInlineStyle(element, () =>
+                mergeAndSetStyleValues(
+                    element,
+                    resolvedValue as TemplateTagValue[]
+                )
             );
             break;
         // Handle style as `CSSStyleDeclaration` object notation.
         case key === 'style' && isObject(resolvedValue):
-            Object.entries(resolvedValue).forEach(([propName, value]) => {
-                (value || value === 0) &&
-                    element.style.setProperty(propName, String(value));
-            });
+            replaceInlineStyle(element, () =>
+                Object.entries(resolvedValue).forEach(([propName, value]) => {
+                    (value || value === 0) &&
+                        element.style.setProperty(propName, String(value));
+                })
+            );
             break;
         // Truthy value exists - add and/or set the attribute & its value.
         default:
