@@ -48,12 +48,9 @@ export const App = (
             debug: true,
             debugScope: {
                 activity: false,
-                console: true,
                 creation: false,
-                error: true,
                 mutations: false,
-                updates: false,
-                warn: true
+                updates: false
             }
         },
         root: $app

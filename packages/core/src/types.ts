@@ -360,11 +360,8 @@ export type ConfigDebug = false | ConfigDebugAllowable;
 export interface ConfigDebugAllowable {
     activity?: boolean;
     creation?: boolean;
-    console?: boolean;
-    error?: boolean;
     mutations?: boolean;
     updates?: boolean;
-    warn?: boolean;
 }
 
 export type ConfigEvent =

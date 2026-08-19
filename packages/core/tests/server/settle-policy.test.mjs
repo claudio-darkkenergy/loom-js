@@ -7,7 +7,7 @@ import { describe, it } from 'node:test';
 
 import assert from 'node:assert/strict';
 
-const { activity, component, setDebug } = await import('../../dist/index.mjs');
+const { activity, component } = await import('../../dist/index.mjs');
 const { renderToString } = await import('../../dist/server.mjs');
 
 const createWindow = () =>
@@ -48,12 +48,11 @@ describe('renderToString settle policy', () => {
     });
 
     it('serializes what has landed when maxWait expires, with a pending-count warning', async () => {
-        // The framework console is debug-gated (as for `hydrate`'s expiry
-        // warning) — enable debug and capture the warning.
+        // Framework warnings always surface — no `setDebug` call here, per
+        // the diagnostic-logging capability.
         const originalWarn = globalThis.console.warn;
         const warnings = [];
 
-        setDebug(true);
         globalThis.console.warn = (...args) => warnings.push(args.join(' '));
 
         try {
@@ -70,7 +69,6 @@ describe('renderToString settle policy', () => {
             );
         } finally {
             globalThis.console.warn = originalWarn;
-            setDebug(false);
         }
     });
 

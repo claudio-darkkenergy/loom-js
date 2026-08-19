@@ -1,4 +1,4 @@
-import { canDebug, config } from '../../config';
+import { config } from '../../config';
 import type {
     AttrsTemplateTagValue,
     ComponentContextPartial,
@@ -257,14 +257,13 @@ const overrideEventListener = ({
     // Falsy is okay - warn for anything else.
     // This is non-breaking, so just want to warn in case the provided value was a mistake.
     else if (override) {
-        canDebug('warn') &&
-            loomConsole.warn(
-                `[Template Update Warning] The provided special attribute ("${
-                    attr.nodeName
-                }") contains a value of ${JSON.stringify(
-                    override
-                )} which may not be the intended value. While this is non-breaking, a valid value would be falsy or an event-listener.`
-            );
+        loomConsole.warn(
+            `[Template Update Warning] The provided special attribute ("${
+                attr.nodeName
+            }") contains a value of ${JSON.stringify(
+                override
+            )} which may not be the intended value. While this is non-breaking, a valid value would be falsy or an event-listener.`
+        );
     }
 };
 
@@ -289,7 +288,6 @@ const setCustomElementProps = ({
         // `defineElement`, or its defining module had not been evaluated when
         // this template was parsed, so the element was not yet upgraded.
         newProps &&
-            canDebug('warn') &&
             loomConsole.warn(
                 `${attr?.nodeName} was set on <${(
                     dynamicNode as HTMLElement
@@ -300,7 +298,6 @@ const setCustomElementProps = ({
 
     if (!newProps || !isObject(newProps)) {
         newProps &&
-            canDebug('warn') &&
             loomConsole.warn(`${attr?.nodeName} must be an object literal.`);
         return;
     }
@@ -429,7 +426,6 @@ const specialAttrUpdaterFactories: {
             // The new value must be an object literal.
             if (!newValue || !isObject(newValue)) {
                 newValue &&
-                    canDebug('warn') &&
                     loomConsole.warn(
                         `${attr.nodeName} must be an object literal.`
                     );
@@ -476,7 +472,6 @@ const specialAttrUpdaterFactories: {
             // The new value must be an object literal.
             if (!newValue || !isObject(newValue)) {
                 newValue &&
-                    canDebug('warn') &&
                     loomConsole.warn(
                         `${attr.nodeName} must be an object literal.`
                     );

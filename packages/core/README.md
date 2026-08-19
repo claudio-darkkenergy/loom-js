@@ -564,7 +564,7 @@ The full story: `renderToString` → `dehydrate` → embed → `primeResources` 
 
 - `resource<T>(key: string, fetcher: () => Promise<T>): Promise<T>` - A keyed async memo, per window — the interception point capture & priming share. The first call per key invokes the fetcher, concurrent callers share the in-flight promise, & later calls resolve from cache without invoking the fetcher again. A rejected fetch rejects its sharing callers & is **not** cached — the next call retries. Call it inside an async activity transform (the idiomatic data path), where the returned promise is already tracked by the settlement signal `hydrate` gates on.
 - `primeResources(state: DehydratedState): void` - Seeds the current window's resource cache from a dehydrated state object: a primed key resolves with the primed value without ever invoking its fetcher; unprimed keys fetch exactly as before. Run it **before the boot call** — transforms run during first render — & ahead of any boot: `hydrate` & `init` benefit identically.
-- `dehydrate(window): DehydratedState` (server entry) - After `await renderToString(app, { window, url })`, returns that window's **settled** resource values as a plain JSON-serializable object. Pending entries (possible when `maxWait`-style drain bounds expire) are skipped; so are unserializable values, with a debug-gated `loom.console` warning — a skipped key is just a client-side cache miss.
+- `dehydrate(window): DehydratedState` (server entry) - After `await renderToString(app, { window, url })`, returns that window's **settled** resource values as a plain JSON-serializable object. Pending entries (possible when `maxWait`-style drain bounds expire) are skipped; so are unserializable values, with a `loom.console` warning — a skipped key is just a client-side cache miss.
 - `serializeState(state: DehydratedState): string` (server entry) - Serializes the state to a JSON string safe to inline inside an HTML script element: `<`, U+2028 & U+2029 are escaped, & `JSON.parse` reproduces the original state. Hand-rolling `JSON.stringify` into inline HTML is a known XSS footgun (`</script>` smuggled through content) — always embed through this helper.
 
 **Inclusion** `import { primeResources, resource } from '@loom-js/core';` · `import { dehydrate, serializeState } from '@loom-js/core/server';`
@@ -612,9 +612,23 @@ hydrate({ app: App(), root });
 
 - **Key namespacing:** all keys share one per-window map — namespace them `<domain>:<id>` (`page:docs/intro`, `cms:nav`). Collisions follow `Map` semantics (last write wins).
 - **Window-lifetime cache; freshness lives in the key:** a cached or primed value persists for the window's lifetime, exactly like `lazyImport` — SPA navigation away & back reuses it. Express freshness through keys (include a content version if needed); TTL/invalidation is deliberately not cache semantics loom owns.
-- **The serializability boundary:** only JSON-serializable values dehydrate. Anything else (functions, DOM nodes, circular structures, `undefined`) is skipped with a debug-gated warning — the client simply fetches that key.
+- **The serializability boundary:** only JSON-serializable values dehydrate. Anything else (functions, DOM nodes, circular structures, `undefined`) is skipped with a warning — the client simply fetches that key.
 - **Graceful everywhere:** a missing, unserializable, or failed entry degrades to a cache miss — the page still works, it just fetches. Fetches not routed through `resource` keep today's behavior exactly; adoption is opt-in & incremental.
 - **Bytes:** `resource` & `primeResources` tree-shake out of non-adopting bundles entirely (+171 B min+gzip when adopted); `dehydrate` & `serializeState` live only in the server entry.
+
+### Diagnostics (warnings & debug logging)
+
+Loom's console surface (`loom.console`, backed by the framework's `loomConsole`) has two lanes:
+
+- **Warnings & errors always surface** — in development & production alike, with no opt-in. Attr misuse, unregistered custom elements, & settlement `maxWait` expiries reach the native console unconditionally.
+- **Everything else is opt-in debug narration**, silent by default. Enable it with `setDebug(isOn, scopes)` (or `globalConfig.debug`/`globalConfig.debugScope` at boot) in a non-production build. Scopes: `activity`, `creation`, `mutations`, `updates` — each call site is gated by exactly one scope, & hot-path narration (render/mount/mutation/update cycles) folds into collapsed console groups.
+
+**Semantics worth knowing**
+
+- **Attribution is real:** accessing a `loom.console` method returns the native console method bound to the console (or a shared no-op when its gate is closed) — never a wrapper — so the browser attributes each message to the framework call site that produced it.
+- **The gate is read at property access:** `loom.console.info(…)` reflects the debug state at that access. Don't cache a method reference (`const log = loom.console.info`) — it freezes the gate state it was read under.
+
+**Inclusion** `import { setDebug } from '@loom-js/core';`
 
 ## Examples
 

@@ -7,12 +7,9 @@ import {
 
 const debugAllowable: ConfigDebugAllowable = {
     activity: true,
-    console: true,
     creation: true,
-    error: true,
     mutations: true,
-    updates: true,
-    warn: true
+    updates: true
 };
 let debug: ConfigDebug = false;
 // Accepted events: https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers
@@ -114,12 +111,19 @@ export const appendEvents = (eventsToAppend: string[]) => {
 };
 
 export const canDebug = (type: keyof ConfigDebugAllowable) =>
-    globalThis.process?.env.NODE_ENV !== 'production' && debug && debug[type];
+    debugIsOn() && debug && debug[type];
 
 /**
  * Contains the framework configuration.
  */
 export const config: Config = getConfig();
+
+/**
+ * Whether debug logging is on at all (any scope) in a non-production
+ * environment — the gate `loomConsole` reads for non-warning methods.
+ */
+export const debugIsOn = () =>
+    globalThis.process?.env.NODE_ENV !== 'production' && Boolean(debug);
 
 export const setDebug = (
     isOn = true,

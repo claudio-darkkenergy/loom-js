@@ -65,12 +65,9 @@ export const Bootstrap = (
             debug: __DEV__,
             debugScope: {
                 activity: false,
-                console: true,
                 creation: false,
-                error: true,
                 mutations: false,
-                updates: true,
-                warn: true
+                updates: true
             }
         },
         root: $app
