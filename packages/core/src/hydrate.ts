@@ -4,34 +4,9 @@ import { getDocument } from './lib/dom';
 import { loomConsole } from './lib/globals/loom-console';
 import { addHydratingRoot, removeHydratingRoot } from './lib/hydrating-roots';
 import { mount } from './lib/mount';
-import { getPendingCount } from './lib/settlement';
+import { boundedWait, getPendingCount } from './lib/settlement';
 import { settled } from './settled';
 import type { AppHydrateProps } from './types';
-
-// Waits out the settle gate up to `maxWait` ms; resolves `true` when the
-// bound expired before the gate settled.
-const boundedWait = async (
-    gate: Promise<unknown>,
-    maxWait: number
-): Promise<boolean> => {
-    if (maxWait === Infinity) {
-        await gate;
-
-        return false;
-    }
-
-    let expiryTimer: ReturnType<typeof setTimeout> | undefined;
-    const expired = await Promise.race([
-        gate.then(() => false),
-        new Promise<boolean>((resolve) => {
-            expiryTimer = setTimeout(() => resolve(true), maxWait);
-        })
-    ]);
-
-    clearTimeout(expiryTimer);
-
-    return expired;
-};
 
 /**
  * The hydrating client boot for pre-rendered pages: the root's server-rendered

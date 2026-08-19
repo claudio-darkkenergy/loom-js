@@ -63,6 +63,35 @@ export const getPendingCount = (): number =>
     hasWindow() ? (settlementStates.get(getWindow())?.pending ?? 0) : 0;
 
 /**
+ * Waits out a settle gate up to `maxWait` ms; resolves `true` when the bound
+ * expired before the gate settled, `false` when the gate won. `Infinity`
+ * disables the bound. Shared by every bounded settlement consumer (`hydrate`,
+ * `renderToString`) so the bound is one concept framework-wide.
+ */
+export const boundedWait = async (
+    gate: Promise<unknown>,
+    maxWait: number
+): Promise<boolean> => {
+    if (maxWait === Infinity) {
+        await gate;
+
+        return false;
+    }
+
+    let expiryTimer: ReturnType<typeof setTimeout> | undefined;
+    const expired = await Promise.race([
+        gate.then(() => false),
+        new Promise<boolean>((resolve) => {
+            expiryTimer = setTimeout(() => resolve(true), maxWait);
+        })
+    ]);
+
+    clearTimeout(expiryTimer);
+
+    return expired;
+};
+
+/**
  * Notifies once the current window's pending count reaches zero and stays
  * zero through one further macrotask — chains re-arm the count (a resolved
  * import whose render starts another import), and dynamic `import()` settles

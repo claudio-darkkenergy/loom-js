@@ -7,8 +7,11 @@ export * from './dehydrate';
 
 import { _lifeCycles } from './lib/context/life-cycles';
 import { DomWindow, enterWindow, withWindow } from './lib/dom';
+import { loomConsole } from './lib/globals/loom-console';
 import { mount } from './lib/mount';
+import { boundedWait, getPendingCount } from './lib/settlement';
 import { applyElementRegistrations } from './lib/templating/register-custom-element';
+import { settled } from './settled';
 import type { ContextFunction } from './types';
 
 export interface RenderToStringOptions {
@@ -25,6 +28,13 @@ export interface RenderToStringOptions {
      * installed.
      */
     url?: string;
+    /**
+     * Bounds the async render's settlement wait, in milliseconds (default
+     * 4000) — symmetric with `hydrate`'s `maxWait`. On expiry the render
+     * serializes what has landed and warns with the pending count; pass
+     * `Infinity` to disable the bound. Ignored by `renderToStringSync`.
+     */
+    maxWait?: number;
 }
 
 const DEFAULT_URL = 'http://localhost/';
@@ -170,12 +180,6 @@ export const renderToStringSync = (
     });
 };
 
-// The drain bound for `renderToString`. Each pass yields a macrotask —
-// dynamic `import()` settles beyond the microtask queue — and passes stop
-// early once the markup goes quiet between two consecutive passes, so chains
-// of lazy content (a page that lazy-loads its own content) each get a turn.
-const MAX_DRAIN_PASSES = 10;
-
 // Serializes concurrent async renders: settled work must resolve the injected
 // window across `await` boundaries, so exactly one async render scope may be
 // open at a time. `renderToStringSync` calls interleave safely — `withWindow`
@@ -184,7 +188,7 @@ let asyncRenderQueue: Promise<void> = Promise.resolve();
 
 const renderSettled = async (
     app: ContextFunction,
-    { url, window: win }: RenderToStringOptions
+    { maxWait = 4000, url, window: win }: RenderToStringOptions
 ): Promise<string> => {
     const domWindow = win as DomWindow;
 
@@ -200,23 +204,19 @@ const renderSettled = async (
 
         mount(body, appCtx, null);
 
-        // Drain settled route/lazy-import work: yield until pending importers
-        // land and the markup goes quiet (bounded).
-        let settledMarkup = body.innerHTML;
+        // Gate on the settlement signal — the same per-window pending-work
+        // counter `hydrate` consumes — captured while this render's window
+        // scope is open, so the wait binds to the injected window.
+        const expired = await boundedWait(settled(), maxWait);
 
-        for (let pass = 0; pass < MAX_DRAIN_PASSES; pass++) {
-            await new Promise((resolve) => setTimeout(resolve));
+        // A wedged settle must not hang the render — serialize what has
+        // landed, but say so.
+        expired &&
+            loomConsole.warn(
+                `[loom] renderToString: settlement did not complete within ${maxWait}ms — serializing with ${getPendingCount()} operation(s) still pending. Pass \`maxWait: Infinity\` to disable the bound.`
+            );
 
-            const currentMarkup = body.innerHTML;
-
-            if (currentMarkup === settledMarkup) {
-                break;
-            }
-
-            settledMarkup = currentMarkup;
-        }
-
-        return settledMarkup;
+        return body.innerHTML;
     } finally {
         exitWindow();
         _lifeCycles.release(domWindow.document);
@@ -226,10 +226,16 @@ const renderSettled = async (
 /**
  * The go-to server render: renders a loom app to an HTML string — SSR at
  * request time, SSG/prerender at build time — through the exact render path
- * the browser runs, against an injected DOM. Content that arrives through
- * async importers (`createRoutes` route pages, `lazyImport`) is drained until
- * the markup goes quiet (bounded) before serializing, so the matched page
- * content — not the shell/fallback — is what serializes.
+ * the browser runs, against an injected DOM. The render waits on the
+ * settlement signal (`settled()`) before serializing: content that arrives
+ * through framework-tracked async work — async activity transforms,
+ * `createRoutes` route pages, `lazyImport` — lands first, however many
+ * macrotasks it spans, so the matched page content — not the shell/fallback —
+ * is what serializes. The wait is bounded by the `maxWait` option (default
+ * 4000ms; `Infinity` disables it); on expiry the render serializes what has
+ * landed and warns with the pending count. Async work that never passes
+ * through an activity transform (a raw `fetch` in a `watch` callback, a
+ * `setTimeout`) is invisible to the signal — as documented for `hydrate`.
  *
  * ```ts
  * import { parseHTML } from 'linkedom';

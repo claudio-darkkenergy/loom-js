@@ -52,8 +52,9 @@ describe('dehydrate', () => {
         const App = component((html, { onCreated }) => {
             onCreated(() => {
                 resource('pending:settled', async () => 'ready');
-                // Never settles — stands in for a fetch the render's drain
-                // bound gave up on.
+                // Never settles — stands in for a fetch the render's
+                // `maxWait` bound gave up on. (Called outside a transform, so
+                // the settlement signal never sees it either way.)
                 resource('pending:stuck', () => new Promise(() => {}));
             });
 

@@ -482,10 +482,11 @@ export const App = component<unknown>(
 
 **API**
 
-- `renderToString(app: ContextFunction, options)` - The go-to render (async). Renders `app` against the injected DOM, drains settled route/lazy-import work — so `createRoutes` route pages & `lazyImport` content serialize in place — & resolves the document body's `innerHTML`. Concurrent calls are safely serialized internally.
+- `renderToString(app: ContextFunction, options)` - The go-to render (async). Renders `app` against the injected DOM, waits on the settlement signal (`settled()`) — so `createRoutes` route pages, `lazyImport` content & async activity data serialize in place, however long they take — & resolves the document body's `innerHTML`. Concurrent calls are safely serialized internally.
     - `options`
         - `window` - The DOM to render against, e.g. `parseHTML(...).window` from linkedom. Use a fresh window per render — never share one across concurrent renders.
         - `url?: string` - The request URL. Installed as the window's `location`, so `locationEffect` & `createRoutes` match the requested path.
+        - `maxWait?: number` - Upper bound in ms (default `4000`) on the settlement wait — symmetric with `hydrate`'s `maxWait`. On expiry the render serializes whatever has landed & a `loom.console` warning names the still-pending count. `Infinity` disables the bound. Ignored by `renderToStringSync`.
 - `renderToStringSync(app: ContextFunction, options)` - The synchronous primitive: whatever has rendered when the app's synchronous work completes is what serializes (the naming follows Node's `readFile`/`readFileSync` pairing). Right for route-less renders — fragments, email/OG markup, component snapshot tests. A route-table app serializes only its shell/fallback here, since page importers cannot settle inside a synchronous pass. Same `options`.
 
 **Inclusion** `import { renderToString } from '@loom-js/core/server';`
@@ -511,7 +512,7 @@ const html = shellTemplate.replace('<!--app-->', markup);
 
 **Semantics worth knowing**
 
-- `renderToString` settles what the app itself scheduled (route pages, lazy imports) & then serializes; `renderToStringSync` serializes only what settled synchronously. Post-render async updates beyond that belong to the client — boot it with `hydrate` (see Client hydration) to make the takeover invisible.
+- `renderToString` gates on the same settlement signal `hydrate` does: framework-tracked async work (async activity transforms, route pages, lazy imports) serializes; async work outside a transform (a raw `fetch` in a `watch` callback, a `setTimeout`) is invisible to the signal & belongs to the client — boot it with `hydrate` (see Client hydration) to make the takeover invisible.
 - `onCreated`, `onBeforeRender` & `onRendered` fire as usual; `onMounted` & `onUnmounted` never fire on the server — they describe a live, observed browser document.
 - Custom elements registered via `defineElement` are applied to each injected window automatically.
 - Importing `@loom-js/core` off-browser is safe - browser-coupled state (router location, history listeners) initializes lazily on first use.
