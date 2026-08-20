@@ -8,11 +8,12 @@
 ## Feature Highlights
 
 - **Micro-updates** on rerenders - updates are made at the attribute & node-levels.
-- **Self-cleanup** leveraging native JS garbage collection & `Weakmap` to release dead nodes from memory.
+- **Self-cleanup** leveraging native JS garbage collection & `WeakMap` to release dead nodes from memory.
 - **Reactivity** to rerender any number of components used within a component template.
 - **Tagged Templates** for performant processing of component templates.
+- **Custom elements** (`defineElement`) - consume loom components from any page as `<some-element>`.
 - **Client-side Routing** for dynamic rendering of components based on `Location` data.
-- **Support for Lazy-loading** of routes.
+- **Lazy-loading** of routes & content (`lazyImport`), tracked by the settlement signal.
 - **Server rendering** (`@loom-js/core/server`) - render to an HTML string for SSR & SSG through the same code path the browser runs.
 - **Client hydration** (`hydrate`) - invisible takeover of pre-rendered pages: one atomic swap once the app has settled, no content flashes.
 - **Dehydrated state** (`resource` → `dehydrate` → `primeResources`) - hand the server's fetched data to the client, so a primed hydration never refetches.
@@ -22,7 +23,7 @@
 ## Install
 
 ```bash
-npm i @loom-js/core -S
+npm i @loom-js/core
 ```
 
 ```bash
@@ -47,28 +48,56 @@ The app is where you first introduce your component ecosystem (one or more compo
 
 **Arguments**
 
-- interface `AppInitProps` = `{ app: (ctx?: ComponentContext) => Node; onAppMounted?: (mountedApp: Node) => any; root: HTMLElement; }`
+- interface `AppInitProps` = `{ app: ContextFunction; append?: boolean | null; globalConfig?: AppGlobalConfig; onAppMounted?: (mountedApp: Element) => void; root?: Element | null; }`
 
     - `app` - A `ContextFunction` which returns a single node (the app node) that will contain all other nodes from your app's component ecosystem, and it will eventually be appended to the app's root node once the initial render is complete.
 
+    - `append` - [Default: `null`] Where the app node lands relative to the root's existing children: `null` replaces them, `true` appends after them, `false` prepends before them.
+
+    - `globalConfig` - [Default: `{}`] Boot-time framework configuration — see Framework configuration.
+
     - `onAppMounted` - A callback function which gets called once the app node is appended to the desired DOM root node.
 
-    - `root` - A DOM node which the app node is appended to once the initial render is complete.
+    - `root` - [Default: `document.body`] A DOM node which the app node is appended to once the initial render is complete. The document `<head>` & `<body>` can't serve as the root directly — when the root is omitted, `null`, or one of those, a fresh `<div id="loom-app">` is prepended to the body & used instead.
 
 **Quick Example**
 
 ```ts
 import { init } from '@loom-js/core';
+
 import { App } from './app';
+
 init({
     app: App(),
     onAppMounted: (app) => {
         console.log(document.contains(app));
         // => true
-    }
+    },
     root: document.body
 });
 ```
+
+### Framework configuration
+
+Boot-time configuration rides in on `init`'s (& `hydrate`'s) `globalConfig`:
+
+- interface `AppGlobalConfig` = `{ debug?: boolean; debugScope?: ConfigDebugAllowable; events?: string[]; token?: string; }`
+
+    - `debug` & `debugScope` - Opt-in debug narration switches — see Diagnostics.
+
+    - `events` - Extra event names appended to the defaults the template renderer recognizes for `$event` bindings (equivalent to calling `appendEvents`, below).
+
+    - `token` - [Default: `'⚡'`] The placeholder token the template renderer uses during dynamic value resolution. Change it only if the default could collide with your content.
+
+**`appendEvents(eventsToAppend)`** - The template renderer recognizes `$event` bindings for the standard [`GlobalEventHandlers`](https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers) set (`click`, `input`, `change`, …). If an event you bind isn't in that list — a custom event, or a newer DOM event — append it before the binding template renders:
+
+```ts
+import { appendEvents } from '@loom-js/core';
+
+appendEvents(['my-custom-event']);
+```
+
+**Inclusion** `import { appendEvents } from '@loom-js/core';`
 
 ### Components
 
@@ -76,17 +105,17 @@ A component uses a "tagged template" (w/ [template literal](https://developer.mo
 
 Use `component` to register a template render function. It takes a render function as its argument, passing Loom's template renderer to the render function along with some props, and a getter for the component's rendered node. A template context is bound to the renderer to achieve optimal rerenders.
 
-When using `component`, the tagged template's template string must contain only one element opening & closing tag at the start & end of the template string and must belong to the same element.
+When using `component`, the tagged template's template string typically contains a single top-level element (one opening & closing tag pair wrapping the whole template). Fragment-rooted templates — starting with `<>`, or whose top level is only component elements — are the exception (see Composing components).
 
-**API** `component<T>(template)`
+**API** `component<Props>(templateFunction)`
 
 **Inclusion** `import { component } from '@loom-js/core';`
 
 **Arguments**
 
-- interface `RenderFunction` = `{ (render, props) => Node }`
+- interface `TemplateFunction` = `(html, props) => <the rendered template>`
 
-    - `render` (can be named anything) - the template render function ("tagged template") with the bound context.
+    - `html` (can be named anything) - the template render function ("tagged template") with the bound context.
 
         - Initializes a component template.
         - Once initialized, it efficiently handles updates to the same component using the bound context.
@@ -94,11 +123,23 @@ When using `component`, the tagged template's template string must contain only 
         **Arguments**
 
         - type `TemplateLiteral` = `` `my template literal` ``
-            - **Note** - The template literal must contain only one top-level node, of the `Element` type.
+            - **Note** - The template literal typically contains a single top-level `Element` (see above for the fragment-rooted exception).
 
-        **Returns** `Node`
+        **Returns** The rendered template — return it straight from the template function.
 
-    - `props` (can be named anything or destructured) - an object literal containing dynamic property values for enriching your component, along with a getter, `node()`, which returns the component's rendered node, and two life-cycle methods: `onCreated(handler)` & `onRendered(handler)` - all life-cycle methods take a handler callback, and that handler receives the component's rendered node as an argument (see the section "Life Cycles" under "Examples" > "Components".)
+    - `props` (can be named anything or destructured) - an object literal containing dynamic property values for enriching your component, along with a getter, `node()`, which returns the component's rendered node, and the five life-cycle hooks below - each hook takes a handler callback, and that handler receives the component's rendered node as an argument (see the section "Life Cycles" under "Examples" > "Components".)
+
+**Life-cycle hooks**
+
+| Hook             | Fires                                                                                                                           |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `onCreated`      | Once — on the first render, as soon as the component's root node exists (before it's in the document).                          |
+| `onBeforeRender` | On every render — after `onCreated` on the first render, before the template's dynamic values are applied.                      |
+| `onRendered`     | On every render — after the template's dynamic values are applied.                                                              |
+| `onMounted`      | When the component's node is attached to the live document (at boot's mount sweep, `hydrate`'s swap, or a later DOM insertion). |
+| `onUnmounted`    | When the component's node is removed from the live document.                                                                    |
+
+`onMounted` & `onUnmounted` describe a live, observed browser document — they never fire on the server (see Server rendering).
 
 **Returns** `Component` The callable component function.
 
@@ -119,6 +160,31 @@ export const Button = component<ButtonProps>(
 ```
 
 **Attribute & text values.** An interpolated attribute value on a plain element is applied when truthy & **removed when falsy** — that one rule gives you boolean attributes (`disabled=${isDisabled}`) and conditional attributes (`aria-label=${labelOrUndefined}`) for free. The number `0` is the deliberate exception: it is a real value, so `tabindex=${0}`, `min=${0}`, and a `$attrs` entry of `0` render as `"0"` (and `value=${0}` sets the element's value property). Text slots follow the same shape — `${0}` renders `0`, while `undefined`/`null`/`false` render as empty text.
+
+### Simple components (pass-through)
+
+`simple` is the pass-through counterpart to `component()`: it wraps a render function that composes _other_ components — no template, no component context of its own. Reach for it when a component's output is entirely another component's output: choosers, prop-mapping wrappers, convenience façades (core's own `Picture` is one — a `<picture>` component when `sources` is present, a bare `<img>` component when not).
+
+**API** `simple<Props>(render)`
+
+**Inclusion** `import { simple } from '@loom-js/core';`
+
+**Arguments**
+
+- `render` - Receives the caller's props (always an object, even on propless calls — destructure freely) & returns one or more `ContextFunction`s from other components.
+
+**Returns** `SimpleComponent` — callable exactly like a `Component`, including as a component element (`<${Button} … />`); props stay optional only while `Props` has no required members. Because a simple component renders no template of its own, it receives no life-cycle hooks & no `node()` getter — those belong to the `component()`s it composes.
+
+```ts
+import { simple } from '@loom-js/core';
+
+import { IconButton, TextButton } from './buttons';
+import type { ButtonProps } from './buttons';
+
+export const Button = simple<ButtonProps>(({ icon, ...props }) =>
+    icon ? IconButton({ icon, ...props }) : TextButton(props)
+);
+```
 
 ### Composing components (element syntax)
 
@@ -306,38 +372,76 @@ export const PinkButton = defineElement<ButtonProps>(
 
 An activity uses a pub/sub pattern at its core. This concept directly supports reactive behavior within your component ecosystem.
 
-When creating a new activity, you may provide a default value. One or more effects may be queued within your component ecosystem for any given activity. Then, by hooking an activity update to some event, all subscribed effects will be called in order of "first-in, first-out".
+When creating a new activity, you provide an initial value — & optionally a transform and/or options. One or more effects may be queued within your component ecosystem for any given activity. Then, by hooking an activity update to some event, all subscribed effects will be called in order of "first-in, first-out".
 
-**API** `activity<T>(initialValue)`
+**API** `activity<V, I = V>(initialValue, transformOrOptions?, options?)`
+
+`V` is the stored value type; `I` is the `update()` input type, which only differs from `V` when a transform maps one to the other.
 
 **Inclusion** `import { activity } from '@loom-js/core';`
 
 **Arguments**
 
-- `initialValue` - any type of value which is unchanged throughout the life of the activity.
+- `initialValue: V` - The starting value. `reset()` returns to it, & it stays available as the frozen `initialValue` property, so the baseline can't drift.
+- `transformOrOptions?: ActivityTransform<V, I> | ActivityOptions<V, I>` - Either the transform function, or the options object when no transform is needed.
+- `options?: ActivityOptions<V, I>` - The options object, when the second argument is a transform.
 
-**Returns** `{ effect: ActivityEffect<T = any>; update(newValue: T): void; value(): T; }`
+#### Transforms (the async-data path)
+
+A transform sits between `update()` & the stored value: every `update(input)` call routes through it, & only the transform's own `update` calls commit values. It receives one context object:
+
+- `input: I` - Whatever the caller passed to `update()` — may be a different type than the stored `V`.
+- `update(next: V)` - Commits a value; call it as many times as needed (e.g. a loading state first, then the data).
+- `value: V` - The current value at the moment the update was dispatched.
+
+**An async transform's returned promise is tracked by the settlement signal** — `settled()`, the signal `renderToString` & `hydrate` gate on — which is what lets server renders & hydration swaps wait for activity data to land. This makes transforms the framework's idiomatic path for async data (see Server rendering, Client hydration & Dehydrated state):
+
+```ts
+import { activity } from '@loom-js/core';
+
+const page = activity<PageData | undefined, string>(
+    undefined,
+    async ({ input: slug, update }) => {
+        update(await fetchPage(slug));
+    }
+);
+
+// Callers pass the transform's input type — here, the slug string.
+page.update('docs/intro');
+```
+
+#### Options (`ActivityOptions`)
+
+- `deep?: boolean` - [Default: `false`] Compare plain objects property-by-property & arrays element-by-element (a shallow diff) instead of by reference, so a same-content update doesn't cascade to subscribed effects.
+- `force?: boolean` - [Default: `false`] Treat every update as a change, skipping comparison entirely.
+- `transform?: ActivityTransform<V, I>` - The transform, for when options ride in the second argument.
+
+#### Returns
 
 - **Interface**
 
     _Properties_
 
     - `initialValue`
-        - Any type of value which is unchanged throughout the life of the activity.
+        - The value the activity started with. Frozen (`Object.freeze`) when it's an object, so the reset baseline can't be mutated.
 
     _Methods_
 
-    - `effect(({ value }) => (ctx?: ComponentContext) => Node)`
-        - An effect is called at least once per use, when it's first introducted during the component render process. Additionally, it's called once per activity update.
+    - `effect(({ value }) => TemplateTagValue)`
+        - An effect is called at least once per use, when it's first introduced during the component render process. Additionally, it's called once per activity update.
         - `value` - the initial activity value, or the new value on updates.
+        - The action returns what renders in the effect's slot — idiomatically a called component (a `ContextFunction`), though any interpolatable `TemplateTagValue` is accepted.
     - `bind(select?)`
         - Creates a reactive attribute binding for template attr slots — the bound attribute applies `select` of the current value immediately and stays in sync with every update, **without re-rendering the component**. Cleanup is automatic: the binding is disposed when a re-render replaces the slot's value and on unmount.
         - `select` - projects the activity value to the attribute value; defaults to identity.
         - Prefer `bind` over an `effect` boundary when only an attribute depends on the activity; prefer `effect` when content or structure changes.
-    - `update(newValue)`
-        - Calling this method will trigger all subscribed effects from the related activity, passing the new value to each effect.
+    - `reset()`
+        - Shorthand for `update(initialValue)` — returns the activity to its starting value (subject to the same change comparison as any update).
+    - `update(input, forceUpdate?)`
+        - Calling this method will trigger all subscribed effects from the related activity, passing the new value to each effect. With a transform, `input` is handed to the transform (which commits through its own `update`); without one, `input` is stored directly.
+        - `forceUpdate` - [Default: the `force` option] Treat this one update as a change regardless of comparison.
     - `value()`
-        - A getter which always returns the current value, which is initially `initialValue`.
+        - A getter which returns the current value, initially `initialValue`. Plain objects & arrays come back as a shallow copy, so mutating the returned value can't defeat change detection — commit changes through `update()`.
     - `watch(action)`
         - Subscribes a caller-managed handler: `action` runs immediately with the current value, then on every update.
         - Returns an `Unsubscriber` — cleanup is the caller's responsibility (e.g. pair it with `onUnmounted`), unlike `effect` (context-managed) and `bind` (template-managed).
@@ -379,7 +483,7 @@ See the Activity Example, below, for an `effect()` usage example.
 
 ### Routing
 
-Routing is used specifically for single-page-apps (SPA). You can still set up server-side routes as you would for a multi-page app, and then let the client-side routing take over to achieve a snappy single-page-app experience. This approach would also work well when prerending a static site or JAMStack architecture.
+Routing is used specifically for single-page-apps (SPA). You can still set up server-side routes as you would for a multi-page app, and then let the client-side routing take over to achieve a snappy single-page-app experience. This approach would also work well when prerendering a static site or JAMStack architecture.
 
 The routing system is one layered pipeline per window, built on the activity system and the browser's native History API. Every navigation flows through a raw **location** layer (always fires, no configuration needed), whose match transform feeds the **route** layer (fires when a registered route matches):
 
@@ -451,7 +555,7 @@ import { component, locationEffect, route } from '@loom-js/core';
 
 import { About, Home, NotFound } from '@app/component/pages';
 
-export const App = component<unknown>(
+export const App = component(
     (html) => html`
         <div>
             <nav>
@@ -475,6 +579,41 @@ export const App = component<unknown>(
     `
 );
 ```
+
+### Lazy imports
+
+`lazyImport` wraps a dynamic `import()` in an activity, so lazily-loaded content composes like any other async data: subscribe with `effect`, & the import's promise is [tracked by the settlement signal](#transforms-the-async-data-path) — `renderToString` & `hydrate` wait for it. The result is cached per key for the life of the page: repeat calls with the same key return the same activity without re-importing (`createRoutes` loads its route pages through this same machinery).
+
+**API** `lazyImport<ImportType>(key, importer)`
+
+**Inclusion** `import { lazyImport } from '@loom-js/core';`
+
+**Arguments**
+
+- `key: string | Symbol` - The cache key.
+- `importer: () => Promise<ImportType>` - The import function — e.g. `async () => (await import('./chart')).Chart`.
+
+**Returns** The import's activity. `value()` is `undefined` until the import resolves, then whatever the importer's promise resolved to.
+
+```ts
+import { component, lazyImport } from '@loom-js/core';
+
+import { Loading } from './loading';
+
+const chart = lazyImport('chart', async () => (await import('./chart')).Chart);
+
+export const Dashboard = component(
+    (html) => html`
+        <section>
+            ${chart.effect(({ value: Chart }) =>
+                typeof Chart === 'function' ? Chart() : Loading()
+            )}
+        </section>
+    `
+);
+```
+
+**`importLazy(path, importer?)`** - A convenience over `lazyImport` typed for renderable content: the importer resolves a `ContextFunction | undefined` (defaulting to `undefined`), & the path doubles as the cache key.
 
 ### Server rendering (SSR & SSG)
 
@@ -512,7 +651,7 @@ const html = shellTemplate.replace('<!--app-->', markup);
 
 **Semantics worth knowing**
 
-- `renderToString` gates on the same settlement signal `hydrate` does: framework-tracked async work (async activity transforms, route pages, lazy imports) serializes; async work outside a transform (a raw `fetch` in a `watch` callback, a `setTimeout`) is invisible to the signal & belongs to the client — boot it with `hydrate` (see Client hydration) to make the takeover invisible.
+- `renderToString` gates on the same settlement signal `hydrate` does: framework-tracked async work ([async activity transforms](#transforms-the-async-data-path), route pages, lazy imports) serializes; async work outside a transform (a raw `fetch` in a `watch` callback, a `setTimeout`) is invisible to the signal & belongs to the client — boot it with `hydrate` (see Client hydration) to make the takeover invisible.
 - `onCreated`, `onBeforeRender` & `onRendered` fire as usual; `onMounted` & `onUnmounted` never fire on the server — they describe a live, observed browser document.
 - Custom elements registered via `defineElement` are applied to each injected window automatically.
 - Importing `@loom-js/core` off-browser is safe - browser-coupled state (router location, history listeners) initializes lazily on first use.
@@ -547,7 +686,7 @@ hydrate({
 
 **Semantics worth knowing**
 
-- **The tracking boundary:** settlement counts every thenable returned by an activity transform — lazy imports, `createRoutes` page imports, async data transforms. That's the idiomatic data path, & it's tracked end-to-end. Async work that never passes through a transform (a raw `fetch` inside a `watch` callback, a `setTimeout`) is invisible to the signal — hand it to `hydrate` via `ready`.
+- **The tracking boundary:** settlement counts every thenable returned by an [activity transform](#transforms-the-async-data-path) — lazy imports, `createRoutes` page imports, async data transforms. That's the idiomatic data path, & it's tracked end-to-end. Async work that never passes through a transform (a raw `fetch` inside a `watch` callback, a `setTimeout`) is invisible to the signal — hand it to `hydrate` via `ready`.
 - **Pre-swap inertness:** the server DOM receives no listeners before the swap. Native anchors still navigate (a full page load — graceful pre-interactive degradation); other interaction is inert for the short, bounded settle window.
 - **Lifecycle timing matches real attachment:** `onCreated` & `onRendered` fire during the detached render exactly as under `init`; `onMounted` fires at the swap, `onAppMounted` after it.
 - **An empty root degrades gracefully** (e.g. a dev server without pre-rendered markup): same deferred-swap path, just swapping into an empty root.
@@ -562,7 +701,7 @@ The full story: `renderToString` → `dehydrate` → embed → `primeResources` 
 
 **API**
 
-- `resource<T>(key: string, fetcher: () => Promise<T>): Promise<T>` - A keyed async memo, per window — the interception point capture & priming share. The first call per key invokes the fetcher, concurrent callers share the in-flight promise, & later calls resolve from cache without invoking the fetcher again. A rejected fetch rejects its sharing callers & is **not** cached — the next call retries. Call it inside an async activity transform (the idiomatic data path), where the returned promise is already tracked by the settlement signal `hydrate` gates on.
+- `resource<T>(key: string, fetcher: () => Promise<T>): Promise<T>` - A keyed async memo, per window — the interception point capture & priming share. The first call per key invokes the fetcher, concurrent callers share the in-flight promise, & later calls resolve from cache without invoking the fetcher again. A rejected fetch rejects its sharing callers & is **not** cached — the next call retries. Call it inside an [async activity transform](#transforms-the-async-data-path) (the idiomatic data path), where the returned promise is already tracked by the settlement signal `hydrate` gates on.
 - `primeResources(state: DehydratedState): void` - Seeds the current window's resource cache from a dehydrated state object: a primed key resolves with the primed value without ever invoking its fetcher; unprimed keys fetch exactly as before. Run it **before the boot call** — transforms run during first render — & ahead of any boot: `hydrate` & `init` benefit identically.
 - `dehydrate(window): DehydratedState` (server entry) - After `await renderToString(app, { window, url })`, returns that window's **settled** resource values as a plain JSON-serializable object. Pending entries (possible when `maxWait`-style drain bounds expire) are skipped; so are unserializable values, with a `loom.console` warning — a skipped key is just a client-side cache miss.
 - `serializeState(state: DehydratedState): string` (server entry) - Serializes the state to a JSON string safe to inline inside an HTML script element: `<`, U+2028 & U+2029 are escaped, & `JSON.parse` reproduces the original state. Hand-rolling `JSON.stringify` into inline HTML is a known XSS footgun (`</script>` smuggled through content) — always embed through this helper.
@@ -641,23 +780,32 @@ import content from './content.json';
 import { Page } from './page';
 
 const rootNode = document.querySelector('#page-content');
+
 init({
     app: Page(content),
-    onAppMounted: () => {
-        /*
-        Used for manual trigger of `PrerenderSsgWebpackPlugin` static-site-generation.
-        This method of prerendering is meant to be called after some async operation
-        to allow for fetching content & saturating the DOM before capturing the page content.
-        Here, the setTimeout is mimicking this scenario - there are other more appropriate methods
-        which may used for async or syncronous rendering use cases.
-        */ setTimeout(() => {
-            if ((window as any).snapshot) {
-                (window as any).snapshot();
-            }
-        }, 500);
+    onAppMounted: (app) => {
+        // The app node - all component descendants included - is in the DOM.
+        console.log(document.contains(app)); // => true
     },
     root: rootNode
 });
+```
+
+Prerendering the same app at build time (SSG) runs through `renderToString` — one render per page, against a fresh injected window:
+
+```ts
+import { renderToString } from '@loom-js/core/server';
+import { parseHTML } from 'linkedom';
+
+import content from './content.json';
+import { Page } from './page';
+
+const { window } = parseHTML('<html><body></body></html>');
+const markup = await renderToString(Page(content), {
+    url: 'https://example.com/docs/intro',
+    window
+});
+// Write `markup` into your HTML shell & emit the file — see Server rendering.
 ```
 
 ### Components
@@ -680,13 +828,13 @@ Props passed into a component can be accessed via the second argument of the `co
 Interpolation is achieved using the JS ES6 standard [template literal](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) syntax
 
 ```ts
-import { component, MouseEventListener } from '@loom-js/core';
+import { component } from '@loom-js/core';
 
 export interface ButtonProps {
     className: string;
     label: string;
-    onClick?: MouseEventListener;
-    type: string;
+    onClick?: EventListener;
+    type?: string;
 }
 export const Button = component<ButtonProps>(
     (html, { className, label, onClick, type = 'button' }) => html`
@@ -722,9 +870,12 @@ Warning: be careful when accessing the node that you're not messing with things 
 i.e dynamic nodes or attributes within the template.
 */
 export const Button = component((html, { node }) => {
-    const onClick = () => console.log(document.contains(node()));
-    / => true
-    return html`<button $click="${onClick}" type="button">Click me!</button>`;
+    // A single-rooted template, so `node()` is the one `<button>` element.
+    const onClick = () => console.log(document.contains(node() as Element));
+    // => true
+    return html`
+        <button $click="${onClick}" type="button">Click me!</button>
+    `;
 });
 ```
 
@@ -733,24 +884,35 @@ export const Button = component((html, { node }) => {
 ```ts
 import { component, LifeCycleHandler } from '@loom-js/core';
 
-/ There are two component life-cycle methods - `onCreated` & `onRendered`.
-/ Each will take life-cycle handler as its argument, and each handler will receive the rendered component node.
-/ `onCreated` is called only the first time the component is rendered, firing just before `onRendered`.
-/ `onRendered` is called each time the component is rerendered.
-export const Button = component((html, { onCreated, onRendered }) => {
-    const lifeCycleHandler: LifeCycleHandler = (node) => {
-        console.log(node instanceof Node);
-        // => true
-        console.log(document.contains(node));
-        // => false (on creation & 1st render);
-        // => true (on rerenders)
-    };
+// There are five component life-cycle hooks - `onBeforeRender`, `onCreated`, `onMounted`, `onRendered` & `onUnmounted`
+// (see "Life-cycle hooks" under the Components concept for their timing).
+// Each takes a life-cycle handler as its argument, and each handler receives the rendered component node.
+// `onCreated` is called only the first time the component is rendered, firing just before the first `onRendered`.
+// `onRendered` is called each time the component is rendered.
+export const Button = component(
+    (html, { onCreated, onMounted, onRendered }) => {
+        const lifeCycleHandler: LifeCycleHandler = (node) => {
+            console.log(node instanceof Node);
+            // => true
+            console.log(node instanceof Node && document.contains(node));
+            // => false (on creation & 1st render);
+            // => true (on rerenders)
+        };
 
-    onCreated(lifeCycleHandler); /* Called only once - on creation. */
-    onRendered(lifeCycleHandler); /* Called on every render - onCreated will always be called first. */
+        onCreated(lifeCycleHandler); /* Called only once - on creation. */
+        onRendered(
+            lifeCycleHandler
+        ); /* Called on every render - onCreated will always be called first. */
+        onMounted((node) => {
+            /* Called when the node is attached to the live document. */
+            console.log(node instanceof Node && document.contains(node)); // => true
+        });
 
-    return html`<button type="button">Click me!</button>`;
-});
+        return html`
+            <button type="button">Click me!</button>
+        `;
+    }
+);
 ```
 
 **Activity example**
@@ -769,59 +931,56 @@ export interface BlueLabelProps {
 // We'll update this label, reactively, as an effect of the activity.
 export const BlueLabel = component<BlueLabelProps>(
     (html, { label }) => html`
-        <span class="label blue">${ label }<span>
+        <span class="label blue">${label}</span>
     `
 );
 
-export const Button = component(
-    html => {
-        const { effect, update, value } = buttonClickActivity;
-        const onClick = () => {
-            update(value() + 1);
-            console.log(value()); // increments by 1 for every button click
-        };
+export const Button = component((html) => {
+    const { effect, update, value } = buttonClickActivity;
+    const onClick = () => {
+        update(value() + 1);
+        console.log(value()); // increments by 1 for every button click
+    };
 
-        // The effect is run immediately on first render and runs every time thereafter when the related activity is updated.
-        // The effect must always return the output of a Component, which is a `ContextFunction`.
-        // `value` holds the current value of the activity.
-        return html`
-            <button $click="${onClick}" type="button">
-                ${effect(({ value }) =>
-                    BlueLabel({ label: `Clicked count: ${value}` })
-                )}
-            </button>
-        `
-);
+    // The effect is run immediately on first render and runs every time thereafter when the related activity is updated.
+    // The effect returns what renders in its slot - idiomatically the output of a component (a `ContextFunction`).
+    // `value` holds the current value of the activity.
+    return html`
+        <button $click="${onClick}" type="button">
+            ${effect(({ value }) =>
+                BlueLabel({ label: `Clicked count: ${value}` })
+            )}
+        </button>
+    `;
+});
 ```
 
 **Routing example**
 
 ```ts
 import {
-    SyntheticRouteEvent,
+    SyntheticRouteEventListener,
     component,
     locationEffect,
     route
 } from '@loom-js/core';
+
 import { About, Home, NotFound } from '@app/component/pages';
 
-export const App = component<unknown>(
+// A handler passing options to `route` — typed with the exported listener type.
+const routeHome: SyntheticRouteEventListener = (event) =>
+    route(event, { href: '/' });
+
+export const App = component(
     (html) => html`
         <div>
             <header>
-                ${/* Standard button example passing options to `route` */}
-                <button
-                    $click="${(e: SyntheticRouteEvent) =>
-                        route(e, {
-                            href: '/'
-                        })}"
-                    type="button"
-                >
-                    loomjs
-                </button>
-                ${/* Anchor example demonstrating the simpler `route` usage */}
+                ${'' /* Standard button example passing options to `route` */}
+                <button $click="${routeHome}" type="button">loomjs</button>
+                ${'' /* Anchor example demonstrating the simpler `route` usage */}
                 <nav>
-                    <a $click="${route}" href="/">Home</a> |
+                    <a $click="${route}" href="/">Home</a>
+                    |
                     <a $click="${route}" href="/about">About</a>
                 </nav>
             </header>
