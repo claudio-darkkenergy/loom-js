@@ -6,17 +6,19 @@ const runDev = async () => {
     const ctx = await context(
         clientConfig({
             apiUrl: process.env.API_URL,
-            ctfIsPreview: process.env.CTF_IS_PREVIEW !== 'false'
+            // Preview is an explicit opt-in (`.env.local` sets it for dev).
+            ctfIsPreview: process.env.CTF_IS_PREVIEW === 'true'
         })
     );
 
     await ctx.watch();
 
-    let { host, port } = await ctx.serve({
+    const { hosts, port } = await ctx.serve({
         port: 9092,
         servedir: './build',
         fallback: './build/index.html'
     });
+    const host = hosts[0] ?? 'localhost';
 
     console.info(
         `esbuild is running the app on ~ ${

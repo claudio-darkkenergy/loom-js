@@ -1,7 +1,7 @@
 import { expect } from '@esm-bundle/chai';
 import sinon from 'sinon';
 
-import { ComponentOptionalProps, component } from '../../src';
+import { ReservedProps, component } from '../../src';
 import { activity } from '../../src/activity';
 import {
     ContainerProps,
@@ -109,7 +109,7 @@ describe('activity', () => {
             it('should append to the classname', async () => {
                 let updatedClassName: string;
                 const { effect, update, value } = activity<
-                    TestComponentProps & ComponentOptionalProps
+                    TestComponentProps & ReservedProps
                 >({ className: componentClassName });
 
                 $test = await testRunSetup({ effect });
@@ -139,7 +139,7 @@ describe('activity', () => {
 
         describe('w/ transform', () => {
             const { effect, update, value } = activity<
-                TestComponentProps & ComponentOptionalProps
+                TestComponentProps & ReservedProps
             >({ className: componentClassName }, ({ input, update, value }) =>
                 update({
                     className: `${value?.className} ${input.className}`

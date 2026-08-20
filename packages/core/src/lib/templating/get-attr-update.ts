@@ -1,4 +1,4 @@
-import { canDebug, config } from '../../config';
+import { config } from '../../config';
 import type {
     AttrsTemplateTagValue,
     ComponentContextPartial,
@@ -16,21 +16,22 @@ import { isObject, toCamelCase } from '../helpers';
 import { resolveValue } from './resolve-value';
 import type { DynamicNode } from './types';
 
-type BoundSpecialAttrTemplateNodeUpdate = (
-    ctx: {
-        attr?: Attr;
-        // Active binding unsubscribers per attr key, for re-render swap
-        // disposal (`add-reactive-attr-bindings` design D3).
-        bindingRegistry?: Map<string, Unsubscriber>;
-        dynamicNode: DynamicNode;
-        // The component context owning this template — the teardown root
-        // where binding subscriptions register (design D2).
-        hostCtx?: ComponentContextPartial;
-        listenerCtx?: ListenerCtx | ListenerCtxCollection;
-        nodeName: string;
-    },
-    newValue: TemplateTagValue
-) => void;
+// Bind-time inputs shared by every special-attr updater factory. Each factory
+// closes over whatever per-attribute state it needs (a binding registry, a
+// listener context) and returns the update function for that attribute.
+interface SpecialAttrUpdaterArgs {
+    attr: Attr;
+    dynamicNode: DynamicNode;
+    // The component context owning this template — the teardown root
+    // where binding subscriptions register (`add-reactive-attr-bindings`
+    // design D2).
+    hostCtx?: ComponentContextPartial;
+    nodeName: string;
+}
+
+type SpecialAttrUpdaterFactory = (
+    args: SpecialAttrUpdaterArgs
+) => TemplateNodeUpdate;
 
 interface ListenerCtx {
     eventListener?: EventListenerOrEventListenerObject;
@@ -60,68 +61,17 @@ const getSpecialAttrUpdate = (
     attr: Attr,
     hostCtx?: ComponentContextPartial
 ) => {
-    let updater: TemplateNodeUpdate;
     // Removes the prefix "$".
     const nodeName = attr.nodeName.slice(1);
-    const listenerCtx: ListenerCtx = {};
-
-    switch (true) {
-        case nodeName === 'attrs':
-            // Handle special attritbute, `$attrs`, to spread them out onto the dynamic node.
-            updater = (
-                specialAttrUpdaters.attrs as BoundSpecialAttrTemplateNodeUpdate
-            ).bind(null, {
-                attr,
-                bindingRegistry: new Map<string, Unsubscriber>(),
-                dynamicNode,
-                hostCtx,
-                nodeName
-            });
-            break;
-        case nodeName === 'on':
-            // Handle special attribute, `$on`, to assign multiple dom-event attributes at once.
-            updater = (
-                specialAttrUpdaters.on as BoundSpecialAttrTemplateNodeUpdate
-            ).bind(null, {
-                attr,
-                dynamicNode,
-                listenerCtx,
-                nodeName
-            });
-            break;
-        case nodeName === 'props':
-            // Handle special attribute, `$props`, to provide them to the dynamic node,
-            // used for custom elements, otherwise ignored.
-            updater = (
-                specialAttrUpdaters.props as BoundSpecialAttrTemplateNodeUpdate
-            ).bind(null, {
-                attr,
-                dynamicNode,
-                nodeName
-            });
-            break;
-        case config.events.includes(nodeName as ConfigEvent):
-            // Handle special dom-event attributes.
-            listenerCtx.eventListener = undefined;
-            updater = (
-                specialAttrUpdaters.event as BoundSpecialAttrTemplateNodeUpdate
-            ).bind(null, {
-                attr,
-                dynamicNode,
-                listenerCtx,
-                nodeName
-            });
-            break;
-        default:
-            // Safely handle other standard attrs or those which are not known dom-event attrs.
-            updater = (
-                specialAttrUpdaters.default as BoundSpecialAttrTemplateNodeUpdate
-            ).bind(null, {
-                attr,
-                dynamicNode,
-                nodeName
-            });
-    }
+    // Precedence: named special attributes, then known dom-event attributes
+    // (dynamic via `config.events`, so they can't be static map keys), then
+    // the safe default.
+    const updaterFactory =
+        specialAttrUpdaterFactories[nodeName] ??
+        (config.events.includes(nodeName as ConfigEvent)
+            ? eventUpdaterFactory
+            : defaultUpdaterFactory);
+    const updater = updaterFactory({ attr, dynamicNode, hostCtx, nodeName });
 
     // Do cleanup - remove the special attribute from the node since it's been processed.
     if ((dynamicNode as HTMLElement | SVGElement).hasAttribute(attr.name)) {
@@ -148,10 +98,10 @@ const getStandardAttrUpdate = (
         const value = resolveValue(newValue);
         const element = dynamicNode as HTMLElement | SVGElement;
 
-        // Falsy value - remove the attribute from the element.
+        // Falsy value - remove the attribute from the element, except the number
+        // zero, which is a real attribute value (`tabindex=${0}`, `min=${0}`).
         // Removing the attribute also solves for boolean attributes, i.e. `disabled`.
-        // @TODO Handle number zero - 0?
-        if (!Boolean(value)) {
+        if (!(value || value === 0)) {
             element.removeAttribute(nodeName);
             return;
         }
@@ -180,13 +130,17 @@ const getStandardAttrUpdate = (
                 ).value = String(value);
                 break;
             case nodeName === 'style' && Array.isArray(value):
-                mergeAndSetStyleValues(element, value as TemplateTagValue[]);
+                replaceInlineStyle(element, () =>
+                    mergeAndSetStyleValues(element, value as TemplateTagValue[])
+                );
                 break;
             case nodeName === 'style' && isObject(value):
-                Object.entries(value).forEach(([propName, val]) => {
-                    (val || val === 0) &&
-                        element.style.setProperty(propName, String(val));
-                });
+                replaceInlineStyle(element, () =>
+                    Object.entries(value).forEach(([propName, val]) => {
+                        (val || val === 0) &&
+                            element.style.setProperty(propName, String(val));
+                    })
+                );
                 break;
             default:
                 element.setAttribute(nodeName, String(value));
@@ -209,6 +163,23 @@ const getStandardAttrUpdate = (
 
         applyValue(newValue);
     };
+};
+
+// Replacement semantics for object/array style values: the resolved value
+// fully determines the inline style, and an application yielding zero
+// properties leaves no `style` attribute behind — so the parsed placeholder
+// token never survives an empty-resolving value. The clear goes through the
+// CSSOM (`cssText`), not `removeAttribute`: Chrome serializes the style
+// attribute lazily after `setProperty`, and a pending flush can resurrect a
+// removed attribute as `style=""`. The prune's `getAttribute` read forces
+// that flush before deciding.
+const replaceInlineStyle = (
+    element: HTMLElement | SVGElement,
+    applyStyleProps: () => void
+) => {
+    element.style.cssText = '';
+    applyStyleProps();
+    element.getAttribute('style') || element.removeAttribute('style');
 };
 
 const mergeAndSetStyleValues = (
@@ -286,14 +257,13 @@ const overrideEventListener = ({
     // Falsy is okay - warn for anything else.
     // This is non-breaking, so just want to warn in case the provided value was a mistake.
     else if (override) {
-        canDebug('warn') &&
-            loomConsole.warn(
-                `[Template Update Warning] The provided special attribute ("${
-                    attr.nodeName
-                }") contains a value of ${JSON.stringify(
-                    override
-                )} which may not be the intended value. While this is non-breaking, a valid value would be falsy or an event-listener.`
-            );
+        loomConsole.warn(
+            `[Template Update Warning] The provided special attribute ("${
+                attr.nodeName
+            }") contains a value of ${JSON.stringify(
+                override
+            )} which may not be the intended value. While this is non-breaking, a valid value would be falsy or an event-listener.`
+        );
     }
 };
 
@@ -318,7 +288,6 @@ const setCustomElementProps = ({
         // `defineElement`, or its defining module had not been evaluated when
         // this template was parsed, so the element was not yet upgraded.
         newProps &&
-            canDebug('warn') &&
             loomConsole.warn(
                 `${attr?.nodeName} was set on <${(
                     dynamicNode as HTMLElement
@@ -329,7 +298,6 @@ const setCustomElementProps = ({
 
     if (!newProps || !isObject(newProps)) {
         newProps &&
-            canDebug('warn') &&
             loomConsole.warn(`${attr?.nodeName} must be an object literal.`);
         return;
     }
@@ -350,11 +318,11 @@ const applyAttrsEntry = (
 ) => {
     const resolvedValue = resolveValue(value);
 
-    // Falsy value - remove the attribute from the element.
+    // Falsy value - remove the attribute from the element, except the number
+    // zero, which is a real attribute value.
     // Removing the attribute also solves for boolean attributes, i.e. `disabled`.
     // (Previously removed the literal `$attrs` node name — a latent bug.)
-    // @TODO Handle number zero - 0?
-    if (!Boolean(resolvedValue)) {
+    if (!(resolvedValue || resolvedValue === 0)) {
         element.removeAttribute(key === 'className' ? 'class' : key);
         return;
     }
@@ -367,17 +335,21 @@ const applyAttrsEntry = (
         // Handle style as Array of possible style values,
         // ie. ['ruleName: value;', { ruleName: 'value' }, undefined, false].
         case key === 'style' && Array.isArray(resolvedValue):
-            mergeAndSetStyleValues(
-                element,
-                resolvedValue as TemplateTagValue[]
+            replaceInlineStyle(element, () =>
+                mergeAndSetStyleValues(
+                    element,
+                    resolvedValue as TemplateTagValue[]
+                )
             );
             break;
         // Handle style as `CSSStyleDeclaration` object notation.
         case key === 'style' && isObject(resolvedValue):
-            Object.entries(resolvedValue).forEach(([propName, value]) => {
-                (value || value === 0) &&
-                    element.style.setProperty(propName, String(value));
-            });
+            replaceInlineStyle(element, () =>
+                Object.entries(resolvedValue).forEach(([propName, value]) => {
+                    (value || value === 0) &&
+                        element.style.setProperty(propName, String(value));
+                })
+            );
             break;
         // Truthy value exists - add and/or set the attribute & its value.
         default:
@@ -386,51 +358,32 @@ const applyAttrsEntry = (
     }
 };
 
-const specialAttrUpdaters: {
-    [key: string]: BoundSpecialAttrTemplateNodeUpdate;
-} = {
-    attrs: ({ attr, bindingRegistry, dynamicNode, hostCtx }, newValue) => {
-        // The new value must be an object literal.
-        if (!newValue || !isObject(newValue)) {
-            newValue &&
-                canDebug('warn') &&
-                loomConsole.warn(
-                    `${attr?.nodeName} must be an object literal.`
-                );
-            return;
-        }
+// Handles the special dom-event attributes, i.e. `$click`.
+const eventUpdaterFactory: SpecialAttrUpdaterFactory = ({
+    attr,
+    dynamicNode,
+    nodeName
+}) => {
+    const listenerCtx: ListenerCtx = { eventListener: undefined };
 
-        const element = dynamicNode as HTMLElement | SVGElement;
+    return (newValue: TemplateTagValue) => {
+        overrideEventListener({
+            attr,
+            dynamicNode,
+            listenerCtx,
+            nodeName,
+            override: newValue
+        });
+    };
+};
 
-        // Loop to set the attrs.
-        Object.entries(newValue as AttrsTemplateTagValue).forEach(
-            ([key, value]) => {
-                const previousUnsubscribe = bindingRegistry?.get(key);
-
-                if (previousUnsubscribe) {
-                    // A re-render replaced this entry — dispose the previous
-                    // binding subscription and deregister its teardown first.
-                    previousUnsubscribe();
-                    hostCtx?.teardowns?.delete(previousUnsubscribe);
-                    bindingRegistry?.delete(key);
-                }
-
-                if (isAttrBinding(value)) {
-                    const unsubscribe = bindAttr(
-                        (attrValue) => applyAttrsEntry(element, key, attrValue),
-                        value,
-                        hostCtx
-                    );
-
-                    bindingRegistry?.set(key, unsubscribe);
-                    return;
-                }
-
-                applyAttrsEntry(element, key, value);
-            }
-        );
-    },
-    default: ({ attr, dynamicNode, nodeName }, newValue) => {
+// Safely handles other standard attrs or those which are not known dom-event attrs.
+const defaultUpdaterFactory: SpecialAttrUpdaterFactory = ({
+    attr,
+    dynamicNode,
+    nodeName
+}) => {
+    return (newValue: TemplateTagValue) => {
         const isCustomElement = (
             dynamicNode as unknown as {
                 isWebComponent: boolean;
@@ -439,7 +392,7 @@ const specialAttrUpdaters: {
 
         if (isCustomElement) {
             setCustomElementProps({
-                attr: attr as Attr,
+                attr,
                 dynamicNode,
                 newProps: { [toCamelCase(nodeName)]: newValue }
             });
@@ -447,68 +400,115 @@ const specialAttrUpdaters: {
             const element = dynamicNode as HTMLElement | SVGElement;
             const resolvedValue = resolveValue(newValue);
 
-            if (!Boolean(resolvedValue)) {
+            // Zero is a real attribute value — only other falsy values remove.
+            if (!(resolvedValue || resolvedValue === 0)) {
                 element.removeAttribute(nodeName);
             } else {
                 element.setAttribute(nodeName, String(resolvedValue));
             }
         }
-    },
-    event: (
-        { attr, dynamicNode, listenerCtx, nodeName },
-        newValue: TemplateTagValue
-    ) => {
-        overrideEventListener({
-            attr: attr as Attr,
-            dynamicNode,
-            listenerCtx,
-            nodeName,
-            override: newValue
-        });
-    },
-    on: (
-        { attr, dynamicNode, listenerCtx: listenerCtxCollection },
-        newValue: TemplateTagValue
-    ) => {
-        // The new value must be an object literal.
-        if (!newValue || !isObject(newValue)) {
-            newValue &&
-                canDebug('warn') &&
-                loomConsole.warn(
-                    `${attr?.nodeName} must be an object literal.`
-                );
-            return;
-        }
+    };
+};
 
-        Object.entries(newValue as OnTemplateTagValue).forEach(
-            ([key, value]) => {
-                const listeners =
-                    listenerCtxCollection as ListenerCtxCollection;
+// Named special attributes (`$attrs`, `$on`, `$props`) dispatch through this
+// map — a new special attribute type is one new entry here, with no edit to
+// the dispatch in `getSpecialAttrUpdate`.
+const specialAttrUpdaterFactories: {
+    [key: string]: SpecialAttrUpdaterFactory;
+} = {
+    // `$attrs` — spreads the given attrs out onto the dynamic node.
+    attrs: ({ attr, dynamicNode, hostCtx }) => {
+        // Active binding unsubscribers per attr key, for re-render swap
+        // disposal (`add-reactive-attr-bindings` design D3).
+        const bindingRegistry = new Map<string, Unsubscriber>();
 
-                if (config.events.includes(key as ConfigEvent)) {
-                    if (listeners[key]?.eventListener !== value) {
-                        listeners[key] = listeners[key] || {
-                            eventListener: value
-                        };
+        return (newValue: TemplateTagValue) => {
+            // The new value must be an object literal.
+            if (!newValue || !isObject(newValue)) {
+                newValue &&
+                    loomConsole.warn(
+                        `${attr.nodeName} must be an object literal.`
+                    );
+                return;
+            }
+
+            const element = dynamicNode as HTMLElement | SVGElement;
+
+            // Loop to set the attrs.
+            Object.entries(newValue as AttrsTemplateTagValue).forEach(
+                ([key, value]) => {
+                    const previousUnsubscribe = bindingRegistry.get(key);
+
+                    if (previousUnsubscribe) {
+                        // A re-render replaced this entry — dispose the previous
+                        // binding subscription and deregister its teardown first.
+                        previousUnsubscribe();
+                        hostCtx?.teardowns?.delete(previousUnsubscribe);
+                        bindingRegistry.delete(key);
                     }
 
-                    overrideEventListener({
-                        attr: attr as Attr,
-                        dynamicNode,
-                        listenerCtx: listeners[key],
-                        nodeName: key,
-                        override: value
-                    });
+                    if (isAttrBinding(value)) {
+                        const unsubscribe = bindAttr(
+                            (attrValue) =>
+                                applyAttrsEntry(element, key, attrValue),
+                            value,
+                            hostCtx
+                        );
+
+                        bindingRegistry.set(key, unsubscribe);
+                        return;
+                    }
+
+                    applyAttrsEntry(element, key, value);
                 }
-            }
-        );
+            );
+        };
     },
-    props: ({ attr, dynamicNode }, newValue) => {
-        setCustomElementProps({
-            appendProps: false,
-            attr: attr as Attr,
-            dynamicNode,
-            newProps: newValue as object
-        });
+    // `$on` — assigns multiple dom-event attributes at once.
+    on: ({ attr, dynamicNode }) => {
+        const listeners: ListenerCtxCollection = {};
+
+        return (newValue: TemplateTagValue) => {
+            // The new value must be an object literal.
+            if (!newValue || !isObject(newValue)) {
+                newValue &&
+                    loomConsole.warn(
+                        `${attr.nodeName} must be an object literal.`
+                    );
+                return;
+            }
+
+            Object.entries(newValue as OnTemplateTagValue).forEach(
+                ([key, value]) => {
+                    if (config.events.includes(key as ConfigEvent)) {
+                        if (listeners[key]?.eventListener !== value) {
+                            listeners[key] = listeners[key] || {
+                                eventListener: value
+                            };
+                        }
+
+                        overrideEventListener({
+                            attr,
+                            dynamicNode,
+                            listenerCtx: listeners[key],
+                            nodeName: key,
+                            override: value
+                        });
+                    }
+                }
+            );
+        };
+    },
+    // `$props` — provides the given props to the dynamic node, used for
+    // custom elements, otherwise ignored.
+    props: ({ attr, dynamicNode }) => {
+        return (newValue: TemplateTagValue) => {
+            setCustomElementProps({
+                appendProps: false,
+                attr,
+                dynamicNode,
+                newProps: newValue as object
+            });
+        };
     }
 };

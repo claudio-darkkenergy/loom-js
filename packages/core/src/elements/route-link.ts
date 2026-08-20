@@ -1,4 +1,5 @@
 import { component } from '../component';
+import { getWindow } from '../lib/dom';
 import { route } from '../router';
 import type { SyntheticRouteEvent } from '../types';
 
@@ -14,7 +15,7 @@ const routeOnClick = (event: Event) => {
     const anchor = event.currentTarget as HTMLAnchorElement;
 
     if (
-        anchor.origin === window.location.origin &&
+        anchor.origin === getWindow().location.origin &&
         anchor.target !== '_blank'
     ) {
         route(event as SyntheticRouteEvent<HTMLAnchorElement>);

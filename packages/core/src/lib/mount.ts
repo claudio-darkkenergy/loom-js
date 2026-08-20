@@ -1,32 +1,32 @@
 import type {
     ComponentContextPartial,
+    Placement,
     TemplateRoot,
     TemplateRootArray
 } from '../types';
+import { getDocument } from './dom';
 
 // Mount the `componentNode`.
 export const mount = (
-    root: Element = document.body,
+    root: Element = getDocument().body,
     componentNode: ComponentContextPartial | TemplateRoot | TemplateRootArray,
-    append: Boolean | null = null
+    placement: Placement = 'replace'
 ) => {
     const doMount = (nodeOrNodes: TemplateRoot | TemplateRootArray) => {
         const templateRootArray = Array.isArray(nodeOrNodes)
             ? nodeOrNodes
             : [nodeOrNodes];
 
-        switch (append) {
-            case null:
-                // Ensure the root element is empty.
-                root.replaceChildren(...templateRootArray);
+        switch (placement) {
+            case 'append':
+                root.append(...templateRootArray);
                 break;
-            case false:
-                // Prepend to the root element.
+            case 'prepend':
                 root.prepend(...templateRootArray);
                 break;
             default:
-                // Append to the root element.
-                root.append(...templateRootArray);
+                // Ensure the root element is empty.
+                root.replaceChildren(...templateRootArray);
         }
     };
 

@@ -1,6 +1,8 @@
 import { config } from '../../config';
+import { getWindow } from '../dom';
 
 export const getPaths = (treeWalker: TreeWalker) => {
+    const { Comment, HTMLElement, SVGElement, Text } = getWindow();
     const getNewPath = (node: Node) => {
         // Includes all path-points to the node except the document fragment.
         const path: number[] = [];

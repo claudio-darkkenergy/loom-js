@@ -1,9 +1,9 @@
-import { AppInitProps, ComponentOptionalProps, init } from '../../src';
+import { AppInitProps, ReservedProps, init } from '../../src';
 import { Container, ContainerProps } from './components/container';
 
 export interface SetupOptions {
     appInitProps?: {} | AppInitProps;
-    containerProps: ContainerProps & ComponentOptionalProps;
+    containerProps: ContainerProps & ReservedProps;
 }
 
 export const runSetup = ({
@@ -17,7 +17,7 @@ export const runSetup = ({
                 ...containerProps,
                 className
             }),
-            append: false,
+            placement: 'prepend',
             onAppMounted: (app) => {
                 // console.log('contains app?', document.contains(app));
                 // console.log('document.body', document.body);

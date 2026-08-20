@@ -2,6 +2,7 @@ import { ATTR_BINDING, AttrBinding } from './lib/attr-binding';
 import { appendChildContext } from './lib/context';
 import { isObject, shallowDiffArray, shallowDiffObject } from './lib/helpers';
 import { reactive, reactiveEffect } from './lib/reactive';
+import { trackTransformResult } from './lib/settlement';
 import { textUpdater } from './lib/templating/get-text-update';
 import type {
     ActivityEffectAction,
@@ -175,11 +176,15 @@ export const activity = <V, I = V>(
         update(valueInput: I, forceUpdate = forceAtThisMoment) {
             forceAtThisMoment = forceUpdate;
             typeof transform === 'function'
-                ? transform({
-                      input: valueInput,
-                      update,
-                      value: value()
-                  })
+                ? // An async transform's promise is pending framework work —
+                  // tracked for the `settled()` signal.
+                  trackTransformResult(
+                      transform({
+                          input: valueInput,
+                          update,
+                          value: value()
+                      })
+                  )
                 : update(valueInput as unknown as V);
             forceAtThisMoment = force;
         },

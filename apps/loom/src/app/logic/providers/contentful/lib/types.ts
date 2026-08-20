@@ -29,6 +29,18 @@ export interface Site {
 
 export type TopicProps = ContentProps<unknown>;
 
+// Marks a failed content load in the content activities so views can render
+// an error state instead of an indefinite skeleton.
+export interface ContentLoadFailure {
+    contentError: string;
+}
+
+// The combined payload behind a page navigation — side-nav listing + topic.
+export interface PageContent {
+    page?: PageSummary;
+    topic?: TopicProps;
+}
+
 // Content Structure Types
 
 interface ContentProps<T = ContentProps<unknown>> {

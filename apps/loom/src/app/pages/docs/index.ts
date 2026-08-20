@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import { ScreenWidthPx } from '../constants';
 import DocsLayout from './layout';
 import styles from './styles.module.css';
+import { ContentLoadError } from '@/app/components/content/content-load-error';
 import {
     Bones,
     SkeletonLoader
@@ -25,7 +26,7 @@ const Docs: SimpleComponent = (props) => {
         // 2a. Same node
         children: [
             topicEffect(({ value: topicData }) => {
-                if (!topicData) {
+                if (!topicData || 'contentError' in topicData) {
                     // @TODO Option 1: Add a skeleton loader for the topic toc by returning an array of skeletons, or a Div w/ an array of skeletons as `children`.
                     //      Option 2: Update the skeleton loader to accept configured bones to allow for classes to be applied, or create a new bone which "floats" right.
                     //      Option 3: Create a "layout" property that accepts bones as values to any of predefined keyed layouts, like "main", "left", "right", etc.
@@ -61,6 +62,13 @@ const Docs: SimpleComponent = (props) => {
                 });
             }),
             topicEffect(({ value: topicData }) => {
+                if (topicData && 'contentError' in topicData) {
+                    return ContentLoadError({
+                        className: 'u-margin-block-start-40',
+                        message: topicData.contentError
+                    });
+                }
+
                 if (!topicData) {
                     // @TODO Option 1: Add a skeleton loader for the topic toc by returning an array of skeletons, or a Div w/ an array of skeletons as `children`.
                     //      Option 2: Update the skeleton loader to accept configured bones to allow for classes to be applied, or create a new bone which "floats" right.

@@ -6,6 +6,7 @@ packages:
     - 'lib/*'
     - 'packages/*'
     - 'packages/esbuild/*'
+    - 'packages/eslint/*'
     - 'services'
     - '!packages/ui-kit'
 allowBuilds:

@@ -25,7 +25,12 @@ const Home: SimpleComponent = (props) => {
         HeroBanner({
             className: 'u-flex-vertical u-gap-16 u-padding-32 u-text-center',
             imgProps: {
+                // The LCP element — real intrinsic dimensions reserve its box
+                // (no layout shift) and high priority pulls it forward.
+                attrs: { fetchpriority: 'high' },
                 className: classNames('u-margin-auto', styles.homeHeroGraphic),
+                height: '320',
+                loading: 'eager',
                 src: getImageUrl({
                     assetId: '2mcJf1ltOD5A4UNR97kqrs',
                     filename: 'home-hero-graphic.png',
@@ -33,7 +38,8 @@ const Home: SimpleComponent = (props) => {
                     spaceId: '2x238mu87414',
                     uid: '05d126eff598d16e9020a6fc7d22d403',
                     width: 320
-                })
+                }),
+                width: '320'
             } as any,
             title: 'Lightweight. Component-Driven. Reactive.',
             description:

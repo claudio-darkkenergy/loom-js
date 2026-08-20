@@ -3,7 +3,7 @@ import {
     Picture,
     type ComponentInputProps,
     type PictureProps,
-    type SimpleComponent,
+    simple,
     type TemplateTagValue
 } from '@loom-js/core';
 import {
@@ -25,48 +25,38 @@ type HeroBannerProps = ComponentInputProps<{
 // Functional form: page layouts consume HeroBanner as a children-array item,
 // and a component-tag-rooted template would render as a fragment — the
 // documented forbidden shape for array items.
-export const HeroBanner: SimpleComponent<HeroBannerProps> = ({
-    ctas,
-    description,
-    imgProps,
-    title,
-    ...props
-}) =>
-    PinkContainer({
-        ...props,
-        attrs: { role: 'banner' },
-        className: classNames(
-            'u-gap-32 u-grid u-text-center',
-            styles.heroBanner
-        ),
-        is: el('section'),
-        children: [
-            imgProps &&
-                Picture({
-                    ...imgProps,
-                    // The retired tags Img always emitted these defaults.
-                    height: imgProps.height ?? 'auto',
-                    width: imgProps.width ?? 'auto'
-                }),
-            el('div')({
-                className: classNames(
-                    'u-flex-vertical u-gap-24',
-                    styles.content
-                ),
-                children: [
-                    el('h1')({
-                        children: title,
-                        className: 'heading-level-3'
-                    }),
-                    el('p')({
-                        children: description
-                    }),
-                    ctas &&
-                        PinkButtonsList({
-                            className: 'u-main-center',
-                            itemProps: ctas
-                        })
-                ]
-            })
-        ]
-    });
+export const HeroBanner = simple<HeroBannerProps>(
+    ({ ctas, description, imgProps, title, ...props }) =>
+        PinkContainer({
+            ...props,
+            attrs: { role: 'banner' },
+            className: classNames(
+                'u-gap-32 u-grid u-text-center',
+                styles.heroBanner
+            ),
+            is: el('section'),
+            children: [
+                imgProps && Picture(imgProps),
+                el('div')({
+                    className: classNames(
+                        'u-flex-vertical u-gap-24',
+                        styles.content
+                    ),
+                    children: [
+                        el('h1')({
+                            children: title,
+                            className: 'heading-level-3'
+                        }),
+                        el('p')({
+                            children: description
+                        }),
+                        ctas &&
+                            PinkButtonsList({
+                                className: 'u-main-center',
+                                itemProps: ctas
+                            })
+                    ]
+                })
+            ]
+        })
+);

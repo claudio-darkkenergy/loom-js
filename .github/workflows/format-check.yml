@@ -22,11 +22,15 @@ jobs:
               # https://github.com/pnpm/action-setup
               uses: pnpm/action-setup@v3
 
-            - name: Install Node.js 20.x
+            - name: Install Node.js 24.x
               # https://github.com/actions/setup-node
+              # 24.x, not 20.x: prettier-plugin-sort-imports groups prefix-only
+              # builtins (node:test) by the running Node's builtin list, so the
+              # CI Node major must match the local dev baseline or --check
+              # disagrees on files that import node:test.
               uses: actions/setup-node@v4
               with:
-                  node-version: 20.x
+                  node-version: 24.x
                   cache: 'pnpm'
 
             - name: Install Dependencies

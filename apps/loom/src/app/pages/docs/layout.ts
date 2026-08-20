@@ -33,6 +33,12 @@ const DocsLayout = component((html, { children, className }) => {
                     return DocsLayoutSkeleton();
                 }
 
+                if ('contentError' in pageData) {
+                    // No side nav when the content load failed — the main
+                    // column carries the error state.
+                    return;
+                }
+
                 return routeEffect(({ value: routeValue }) => {
                     const sideNavItems = pageData.contentCollection?.items.map(
                         ({ title, slug }) => ({

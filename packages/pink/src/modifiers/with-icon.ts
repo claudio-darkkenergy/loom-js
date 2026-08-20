@@ -1,17 +1,14 @@
-import {
-    el,
-    type ComponentInputProps,
-    type SimpleComponent
-} from '@loom-js/core';
+import { el, type ComponentInputProps, simple } from '@loom-js/core';
 import classNames from 'classnames';
 
-const Icon: SimpleComponent = ({ attrs, ...iconProps }) =>
+const Icon = simple(({ attrs, ...iconProps }) =>
     el('span')({
         ...iconProps,
         attrs: Object.assign(attrs || {}, {
             'aria-hidden': true
         })
-    });
+    })
+);
 
 export interface WithIconProps {
     [key: string]: unknown;

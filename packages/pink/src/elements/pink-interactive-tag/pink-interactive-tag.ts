@@ -1,4 +1,4 @@
-import { el, type SimpleComponent } from '@loom-js/core';
+import { el, simple } from '@loom-js/core';
 
 import { PinkTag, type PinkTagProps } from '../pink-tag';
 
@@ -10,20 +10,17 @@ export type PinkInteractiveTagProps = PinkTagProps & {
     href?: string;
 };
 
-export const PinkInteractiveTag: SimpleComponent<PinkInteractiveTagProps> = ({
-    attrs,
-    disabled,
-    href,
-    ...props
-}) =>
-    PinkTag.Tag({
-        ...props,
-        attrs: {
-            ...(href === undefined
-                ? { type: 'button' }
-                : { href, target: '_self' }),
-            ...attrs,
-            ...(disabled === undefined ? {} : { disabled })
-        },
-        is: href === undefined ? el('button') : el('a')
-    });
+export const PinkInteractiveTag = simple<PinkInteractiveTagProps>(
+    ({ attrs, disabled, href, ...props }) =>
+        PinkTag.Tag({
+            ...props,
+            attrs: {
+                ...(href === undefined
+                    ? { type: 'button' }
+                    : { href, target: '_self' }),
+                ...attrs,
+                ...(disabled === undefined ? {} : { disabled })
+            },
+            is: href === undefined ? el('button') : el('a')
+        })
+);

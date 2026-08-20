@@ -1,5 +1,5 @@
 import { ContentfulDocument, RichText } from '@loom-js/contentful';
-import { SimpleComponent } from '@loom-js/core';
+import { simple } from '@loom-js/core';
 import { toKebabCase } from '@loom-js/utils';
 
 import { Toc } from '../toc';
@@ -8,10 +8,7 @@ export type TopicTocProps = {
     json?: ContentfulDocument;
 };
 
-export const TopicToc: SimpleComponent<TopicTocProps> = ({
-    json,
-    ...props
-}) => {
+export const TopicToc = simple<TopicTocProps>(({ json, ...props }) => {
     const getTocItems = () => {
         if (!json) {
             return [];
@@ -35,4 +32,4 @@ export const TopicToc: SimpleComponent<TopicTocProps> = ({
             url: `#${toKebabCase(title)}`
         }))
     });
-};
+});

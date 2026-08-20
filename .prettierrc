@@ -25,6 +25,7 @@
         "lib/utils/package.json",
         "packages/core/package.json",
         "packages/esbuild/esbuild-plugin-html-split/package.json",
+        "packages/eslint/eslint-plugin/package.json",
         "packages/pink/package.json",
         "services/package.json"
     ],

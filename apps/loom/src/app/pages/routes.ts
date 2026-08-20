@@ -1,4 +1,4 @@
-import { createRoutes, type SimpleComponent } from '@loom-js/core';
+import { createRoutes, simple } from '@loom-js/core';
 
 import { RoutePath } from './constants';
 import PageLayout from './layout';
@@ -11,11 +11,12 @@ const Routes = createRoutes({
     }
 });
 
-const App: SimpleComponent = ({ className, style, ...props }) =>
+const App = simple(({ className, style, ...props }) =>
     PageLayout({
         children: Routes(props),
         className,
         style
-    });
+    })
+);
 
 export default Bootstrap(App);

@@ -13,6 +13,7 @@ export type GraphQlRequestInit<D, T> = RequestInit &
     GraphQlRequestPayload;
 
 export interface GraphQlRequestPayload {
+    method?: 'GET' | 'POST';
     query: string;
     variables?: { isPreview?: boolean; [key: string]: any };
 }

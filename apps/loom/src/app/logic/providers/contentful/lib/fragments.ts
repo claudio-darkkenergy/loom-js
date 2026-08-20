@@ -14,28 +14,10 @@ fragment contentFields on Content {
 }
 `;
 
-export const shortContentFields = `
-fragment shortContentFields on Content {
-    ...baseContentFields
-    _id
-}
-`;
-
 export const basePageFields = `
 fragment basePageFields on Page {
     title
     slug
-}
-`;
-
-export const pageFields = `
-fragment pageFields on Page {
-    ...basePageFields
-    contentCollection(limit: 20) {
-        items {
-            ...contentFields
-        }
-    }
 }
 `;
 

@@ -1,4 +1,4 @@
-import { el, type SimpleComponent } from '@loom-js/core';
+import { el, simple } from '@loom-js/core';
 import classNames from 'classnames';
 
 import {
@@ -14,20 +14,17 @@ export interface PinkTooltipProps extends WithTooltipProps, WithIconProps {
 
 // Pure delegation over the props transformers — the root `<button>` comes
 // from `el()`; the transformers stay props-in/props-out.
-export const PinkTooltip: SimpleComponent<PinkTooltipProps> = ({
-    attrs,
-    className,
-    isTag,
-    ...props
-}) =>
-    el('button')(
-        withIcon(
-            withTooltip({
-                ...props,
-                attrs: { ...attrs, type: 'button' },
-                className: classNames(className, {
-                    tag: isTag
+export const PinkTooltip = simple<PinkTooltipProps>(
+    ({ attrs, className, isTag, ...props }) =>
+        el('button')(
+            withIcon(
+                withTooltip({
+                    ...props,
+                    attrs: { ...attrs, type: 'button' },
+                    className: classNames(className, {
+                        tag: isTag
+                    })
                 })
-            })
+            )
         )
-    );
+);

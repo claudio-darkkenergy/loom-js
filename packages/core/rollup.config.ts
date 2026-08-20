@@ -10,48 +10,73 @@ import dts from 'rollup-plugin-dts';
 const pkg = require('./package.json');
 
 // Delete old typings to avoid issues
-unlink('dist/index.d.ts', (err) => {
-    if (err) {
-        console.error(err);
-        return;
-    }
+for (const typings of ['dist/index.d.ts', 'dist/server.d.ts']) {
+    unlink(typings, (err) => {
+        if (err) {
+            console.error(err);
+            return;
+        }
 
-    console.info('dist/index.d.ts was deleted');
-});
+        console.info(`${typings} was deleted`);
+    });
+}
+
+// Shared by the browser (`.`) and server (`./server`) entries.
+const jsPlugins = () => [
+    // so Rollup can convert TypeScript to JavaScript.
+
+    // Must use its own nested typescript 6 (see .pnpmfile.cjs) — do not pass
+
+    // the workspace's typescript@7 here; it lacks the legacy compiler API.
+    typescriptRollupPlugin({
+        tsconfig: './tsconfig.json'
+    }),
+    terser({
+        format: { preserve_annotations: true },
+        keep_fnames: true
+    })
+];
 
 const rollupConfig = [
     // CommonJS (for Node) and ES module (for bundlers) build.
-    // (We could have three entries in the configuration array
-    // instead of two, but it's quicker to generate multiple
-    // builds from a single configuration where possible, using
-    // an array for the `output` option, where we can specify
-    // `file` and `format` for each target)
+    // Both package entries build from ONE config so rollup code-splits their
+    // shared modules into a common chunk. That is load-bearing, not an
+    // optimization: `lib/dom`'s render-scoped window (and the lifecycle/
+    // element-registration stores) must be the same module instance whether
+    // reached via `.` or `./server` — separate bundles would give the server
+    // entry its own dead copy of that state.
     {
-        input: './src/index.ts',
-        plugins: [
-            // so Rollup can convert TypeScript to JavaScript.
-
-            // Must use its own nested typescript 6 (see .pnpmfile.cjs) — do not pass
-
-            // the workspace's typescript@7 here; it lacks the legacy compiler API.
-            typescriptRollupPlugin({
-                tsconfig: './tsconfig.json'
-            }),
-            terser({
-                format: { preserve_annotations: true },
-                keep_fnames: true
-            })
-        ],
+        input: { index: './src/index.ts', server: './src/server.ts' },
+        plugins: jsPlugins(),
         output: [
-            { file: pkg.exports.module, format: 'es', sourcemap: true },
-            { file: pkg.exports.default, format: 'cjs', sourcemap: true }
+            {
+                chunkFileNames: 'chunks/[name]-[hash].mjs',
+                dir: 'dist',
+                entryFileNames: '[name].mjs',
+                format: 'es',
+                sourcemap: true
+            },
+            {
+                chunkFileNames: 'chunks/[name]-[hash].js',
+                dir: 'dist',
+                entryFileNames: '[name].js',
+                format: 'cjs',
+                sourcemap: true
+            }
         ]
     },
-    // Consolidates all the type defintion files into 1,
+    // Consolidates all the type defintion files into 1 per entry,
     // & then deletes the root typings folder & defintion files.
     {
         input: './dist/typings/index.d.ts',
-        output: { file: pkg.types, format: 'es' },
+        output: { file: pkg.exports['.'].types, format: 'es' },
+        plugins: [dts()]
+    },
+    {
+        input: './dist/typings/server.d.ts',
+        output: { file: pkg.exports['./server'].types, format: 'es' },
+        // The delete must ride the LAST dts config — earlier configs still
+        // read from dist/typings.
         plugins: [dts(), del({ hook: 'buildEnd', targets: 'dist/typings' })]
     }
 ];

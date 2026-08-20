@@ -2,10 +2,9 @@ import { createQuery } from '@loom-js/utils';
 import { ContentfulCollection } from 'contentful';
 
 import { contentfulRequest } from './lib/contentful-request';
-import { siteCollection } from './lib/queries';
+import { previewArg, siteCollection } from './lib/queries';
 import { Site } from './lib/types';
 
-const previewArg = '$isPreview: Boolean = true';
 const siteIdArg = '$siteId: String!';
 
 export const getSite = async (siteId: string) =>
@@ -21,7 +20,7 @@ export const getSite = async (siteId: string) =>
             queries: [siteCollection]
         }),
         variables: {
-            isPreview: __CTF_IS_PREVIEW__ ?? true,
+            isPreview: __CTF_IS_PREVIEW__,
             siteId
         }
     });

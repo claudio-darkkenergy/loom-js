@@ -6,6 +6,7 @@ import type {
     LifeCycleHookProps,
     LifeCycleState
 } from '../../types';
+import { getDocument, getWindow } from '../dom';
 import { loomConsole } from '../globals/loom-console';
 import { reactive, reactiveEffect } from '../reactive';
 import { getContextRootAnchor, getShareableContext } from './helpers';
@@ -51,7 +52,7 @@ export const _lifeCycles = {
      */
     observe(observableNode: Element) {
         const canDebugMutations = canDebug('mutations');
-        const observer = new MutationObserver(domChanged);
+        const observer = new (getWindow().MutationObserver)(domChanged);
 
         canDebugMutations && loomConsole.groupCollapsed('loom (Mounting...)');
 
@@ -61,7 +62,7 @@ export const _lifeCycles = {
         lifeCycleNodes.forEach((ctx, node) => {
             const root = getContextRootAnchor(ctx);
 
-            if (root && document.contains(root) && ctx.lifeCycleState) {
+            if (root && getDocument().contains(root) && ctx.lifeCycleState) {
                 ctx.lifeCycleState.value = 'mounted';
                 canDebugMutations &&
                     loomConsole.info(
@@ -75,6 +76,19 @@ export const _lifeCycles = {
         });
 
         canDebugMutations && loomConsole.groupEnd();
+    },
+    /**
+     * Releases every registration whose node belongs to `doc`. Server renders
+     * never reach `observe`/`MutationObserver` cleanup, so without this each
+     * `renderToString` call would leave its contexts in the registry forever.
+     * @param doc The (injected) document whose render has completed.
+     */
+    release(doc: Document) {
+        lifeCycleNodes.forEach((_ctx, node) => {
+            if (node.ownerDocument === doc) {
+                lifeCycleNodes.delete(node);
+            }
+        });
     },
     preRender(ctx: ComponentContextPartial) {
         // Before-rendered life-cycle handler - called on every render.
@@ -116,9 +130,9 @@ const domChanged: MutationCallback = (diffNodes) => {
                     };
 
                     removedNodes.forEach((node) => {
-                        const treeWalker = document.createTreeWalker(
+                        const treeWalker = getDocument().createTreeWalker(
                             node,
-                            window.NodeFilter.SHOW_ELEMENT
+                            getWindow().NodeFilter.SHOW_ELEMENT
                         );
 
                         // Collect this node...
@@ -152,9 +166,9 @@ const domChanged: MutationCallback = (diffNodes) => {
 
                     // Calls the `onMounted` life-cycle handler for each added node if defined.
                     addedNodes.forEach((node) => {
-                        const treeWalker = document.createTreeWalker(
+                        const treeWalker = getDocument().createTreeWalker(
                             node,
-                            window.NodeFilter.SHOW_ELEMENT
+                            getWindow().NodeFilter.SHOW_ELEMENT
                         );
 
                         // Handle the mount of this node...
@@ -174,7 +188,7 @@ const domChanged: MutationCallback = (diffNodes) => {
     // tear down — moved-but-still-attached nodes keep their registration
     // and subscriptions.
     removalCandidates.forEach((ctx, node) => {
-        if (document.contains(node)) {
+        if (getDocument().contains(node)) {
             return;
         }
 
@@ -268,7 +282,10 @@ const createLifeCycleHook = (
     const event = ctx.ref?.[eventName];
     ctx[eventName] =
         typeof event === 'function'
-            ? (root) => handler(root) & event(root)
+            ? (root) => {
+                  handler(root);
+                  event(root);
+              }
             : handler;
 };
 

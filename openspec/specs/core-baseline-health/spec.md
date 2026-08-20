@@ -1,4 +1,8 @@
-## ADDED Requirements
+## Purpose
+
+Defines the project's baseline-health obligations for the `@loom-js/core` package: the source tree compiles cleanly under the strict TypeScript configuration, the test suite's spec modules all load and type-check against real exports, and no development debug logging ships in core source. These are floor guarantees — they keep new type errors, stale imports, and leftover instrumentation from hiding behind pre-existing noise.
+
+## Requirements
 
 ### Requirement: Core package type-checks cleanly
 

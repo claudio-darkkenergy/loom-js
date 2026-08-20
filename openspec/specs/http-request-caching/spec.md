@@ -20,6 +20,20 @@ This capability covers `lib/utils/src/http/request.ts` and everything layered on
 - **WHEN** a call fails (non-ok response) and the same request is issued again
 - **THEN** the second call fetches again rather than serving the failure from cache
 
+### Requirement: Adapter failures produce uncached error results
+
+`request` SHALL run body parsing and the caller-supplied `adapter` inside its error guard: an adapter that throws (e.g. rejecting a semantically-failed 2xx response such as a GraphQL error envelope) SHALL yield an error result carrying the response's HTTP status, and that result SHALL NOT be cached — the next identical call retries.
+
+#### Scenario: Adapter throw is returned as an error result
+
+- **WHEN** the response is 200 but the adapter throws while adapting the body
+- **THEN** `request` resolves (does not reject) with `{ error, status: 200 }` and no cache entry is written
+
+#### Scenario: Retry after adapter failure
+
+- **WHEN** the same request is issued again after an adapter failure
+- **THEN** the underlying fetch executes again rather than serving a cached result
+
 ### Requirement: A changed cacheKey busts the cached entry
 
 When a caller supplies `cacheKey`, `request` SHALL compare it element-wise against the stored key for that signature and re-fetch when any element differs (or the length changed); an unchanged `cacheKey` SHALL serve from cache.

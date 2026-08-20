@@ -5,29 +5,28 @@ export * from './component';
 export * from './config';
 export * from './define-element';
 export * from './elements';
+export * from './hydrate';
 export * from './lazy-import';
+export * from './resource';
 export * from './router';
-export * from './routing';
+export * from './settled';
+export * from './simple';
 export type {
     ActivityEffect,
     ActivityEffectAction,
     ActivityOptions,
     ActivityTransform,
     AppGlobalConfig,
+    AppHydrateProps,
     AppInitProps,
     // @deprecated - use `ReservedProps['attrs']`.
     Aria,
     AttrsTemplateTagValue,
     AnyComponent,
     Component,
-    // @deprecated - use `ComponentOutputProps`.
-    ComponentArgs,
     ComponentContext,
     ComponentInputProps,
-    // @deprecated - use `ReservedProps`.
-    ComponentOptionalProps,
     ComponentOutputProps,
-    ComponentProps,
     ContextFunction,
     DefineElementOptions,
     GetProps,
@@ -35,11 +34,10 @@ export type {
     LoomGlobal,
     OnRouteOptions,
     OnTemplateTagValue,
+    Placement,
     PlainObject,
     ReactiveComponent,
     RefContext,
-    RenderFunction,
-    RenderProps,
     ReservedProps,
     RouteValue,
     SimpleComponent,
