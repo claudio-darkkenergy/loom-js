@@ -6,9 +6,9 @@ import type { AppInitProps } from './types';
 
 export const init = ({
     app,
-    append = null,
     globalConfig = {},
     onAppMounted,
+    placement,
     root = getDocument().body
 }: AppInitProps) => {
     bootstrap();
@@ -18,7 +18,7 @@ export const init = ({
     const appCtx = app();
     const appRoot = resolveAppRoot(root);
 
-    mount(appRoot, appCtx, append);
+    mount(appRoot, appCtx, placement);
     // Observe DOM changes for some component life-cycle events.
     _lifeCycles.observe(appRoot);
 

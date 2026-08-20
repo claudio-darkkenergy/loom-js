@@ -34,6 +34,7 @@ export type {
     LoomGlobal,
     OnRouteOptions,
     OnTemplateTagValue,
+    Placement,
     PlainObject,
     ReactiveComponent,
     RefContext,

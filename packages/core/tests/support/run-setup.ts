@@ -17,7 +17,7 @@ export const runSetup = ({
                 ...containerProps,
                 className
             }),
-            append: false,
+            placement: 'prepend',
             onAppMounted: (app) => {
                 // console.log('contains app?', document.contains(app));
                 // console.log('document.body', document.body);

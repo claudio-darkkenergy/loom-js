@@ -22,6 +22,7 @@ const defaultFallback = () => Promise.resolve(undefined);
 // call replaces the table — last call wins.
 const routeTable: {
     fallback: () => Promise<ContextFunction | undefined>;
+    guard?: (routeValue: RouteValue) => boolean;
     routesConfig?: RoutesConfig;
 } = { fallback: defaultFallback };
 
@@ -290,14 +291,31 @@ class Router {
             return;
         }
 
-        // A route was matched & is valid - update the route value properties & then the activity.
+        // A route was matched & is valid — build the candidate route value &
+        // let a registered guard veto the emission before any instance state
+        // commits.
+        const params = extractParams(matchedRoute, segmentValues);
+        const routeValue: RouteValue = {
+            raw: location,
+            matchedRoute,
+            params,
+            pathname
+        };
+
+        if (routeTable.guard && !routeTable.guard(routeValue)) {
+            // Suppressed — route subscribers stay silent & page content keeps
+            // its current delivery. The raw location layer already fired
+            // upstream, & the URL keeps the navigation.
+            return;
+        }
+
         this.matchedRoute = matchedRoute;
         this.pathImporter = pathImporter;
         this.pathname = pathname;
         // @TODO this.parseQuery();
-        this.params = extractParams(matchedRoute, segmentValues);
+        this.params = params;
 
-        update(this.getRouteValue(location));
+        update(routeValue);
     }
 
     // Verifies that an importer for the exists & handles the result appropriately.
@@ -420,17 +438,22 @@ const getRouter = () => {
  * @param options
  *      `config` - A mapping of route paths to importers of the content to be rendered.
  *      `fallback` - A fallback function to be called when no route matches.
+ *      `guard` - A predicate over every valid match's candidate `RouteValue`;
+ *      returning `false` suppresses the route emission (the raw location
+ *      layer still fires & the URL keeps the navigation).
  * @returns A component `ContextFunction`.
  */
 export const createRoutes = ({
     config = {},
-    fallback = defaultFallback
+    fallback = defaultFallback,
+    guard
 }: {
     config?: RoutesConfig;
     fallback?: () => Promise<ContextFunction | undefined>;
     guard?: (routeValue: RouteValue) => boolean;
 }) => {
     routeTable.fallback = fallback;
+    routeTable.guard = guard;
     routeTable.routesConfig = config;
 
     // A router already constructed for the current window observes the

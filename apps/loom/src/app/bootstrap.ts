@@ -60,7 +60,7 @@ export const Bootstrap = (
                 style
             ]
         }) as ContextFunction,
-        // append: false,
+        // placement: 'prepend',
         globalConfig: {
             debug: __DEV__,
             debugScope: {

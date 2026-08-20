@@ -41,7 +41,7 @@ export const resolveAppRoot = (root: Element | null): Element => {
 
         appRoot.id = 'loom-app';
         // Mount the detatched root to the document body.
-        mount(undefined, appRoot, false);
+        mount(undefined, appRoot, 'prepend');
 
         return appRoot;
     }

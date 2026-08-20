@@ -120,9 +120,9 @@ const buildElementClass = (
                     shadowRoot.adoptedStyleSheets = styles;
                 }
 
-                mount(shadowRoot as unknown as Element, ctx, null);
+                mount(shadowRoot as unknown as Element, ctx);
             } else {
-                mount(this, ctx, null);
+                mount(this, ctx);
             }
         }
     };

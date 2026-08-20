@@ -55,7 +55,7 @@ export const hydrate = async ({
             );
 
         // The single atomic swap.
-        mount(appRoot, appCtx, null);
+        mount(appRoot, appCtx);
     } finally {
         removeHydratingRoot(detachedAppRoot);
     }

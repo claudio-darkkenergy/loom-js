@@ -48,11 +48,11 @@ The app is where you first introduce your component ecosystem (one or more compo
 
 **Arguments**
 
-- interface `AppInitProps` = `{ app: ContextFunction; append?: boolean | null; globalConfig?: AppGlobalConfig; onAppMounted?: (mountedApp: Element) => void; root?: Element | null; }`
+- interface `AppInitProps` = `{ app: ContextFunction; globalConfig?: AppGlobalConfig; onAppMounted?: (mountedApp: Element) => void; placement?: Placement; root?: Element | null; }`
 
     - `app` - A `ContextFunction` which returns a single node (the app node) that will contain all other nodes from your app's component ecosystem, and it will eventually be appended to the app's root node once the initial render is complete.
 
-    - `append` - [Default: `null`] Where the app node lands relative to the root's existing children: `null` replaces them, `true` appends after them, `false` prepends before them.
+    - `placement` - [Default: `'replace'`] Where the app node lands relative to the root's existing children — type `Placement` = `'replace' | 'append' | 'prepend'`: `'replace'` replaces them, `'append'` inserts after them, `'prepend'` inserts before them.
 
     - `globalConfig` - [Default: `{}`] Boot-time framework configuration — see Framework configuration.
 
@@ -494,10 +494,11 @@ In the browser there is exactly one router for the lifetime of the page; on a se
 
 **API**
 
-- `createRoutes({ config, fallback })` - Registers the app's route table & returns the routes component to compose into your layout tree. Each `config` entry maps a route path (dynamic segments via `/:param`) to an importer of the page component — `() => import('@app/pages/about')`, matched on the module's default export.
+- `createRoutes({ config, fallback, guard })` - Registers the app's route table & returns the routes component to compose into your layout tree. Each `config` entry maps a route path (dynamic segments via `/:param`) to an importer of the page component — `() => import('@app/pages/about')`, matched on the module's default export.
     - DOM-free at call time: calling it at module scope is safe in any runtime, including off-browser. History wiring defers to first use inside a DOM scope.
-    - Calling it again replaces the route table — last call wins.
+    - Calling it again replaces the route table — last call wins (a call without `guard` clears any registered one).
     - `fallback?: () => Promise<ContextFunction | undefined>` - Rendered while no page has loaded.
+    - `guard?: (routeValue: RouteValue) => boolean` - A synchronous predicate run on every valid match with the candidate `RouteValue` (`matchedRoute`, `params`, `pathname`, `raw`), before the route emission. Returning `false` suppresses the emission — route effects & watchers don't fire & the page content stays put (the `fallback` on first load) — while the raw location layer (layer 1) still observes the navigation. See the guard semantics below.
 - `route(event, options?)` - The click-handler for SPA navigation; wraps `history.pushState`. Modified activations (ctrl/cmd/shift/alt-click) & events another handler already consumed fall through to the browser.
     - `event` - Pass the click event through (`route` directly as the handler, or `(e) => route(e, options)`); pass `null` when navigating programmatically via `options.href`.
     - `options`
@@ -539,6 +540,32 @@ export const App = component(
 ```
 
 Pages receive the matched route as `routeProps` (a `RouteValue`) — e.g. `/docs/:slug` exposes `routeProps.params.slug`.
+
+**Route guard.** A guarded-out navigation still moves the URL: `route()` pushes history before the match transform runs, so the guard suppresses content, not the address bar. An auth-style flow handles that by redirecting inside the guard — `redirect()` replace-states over the suppressed entry:
+
+```ts
+import { createRoutes, redirect } from '@loom-js/core';
+
+import { isAuthenticated } from '@app/auth';
+
+const Routes = createRoutes({
+    config: {
+        '/': () => import('@app/pages/home'),
+        '/login': () => import('@app/pages/login'),
+        '/account': () => import('@app/pages/account')
+    },
+    guard: ({ pathname }) => {
+        if (pathname === '/account' && !isAuthenticated()) {
+            redirect('/login');
+            return false;
+        }
+
+        return true;
+    }
+});
+```
+
+Loop avoidance is caller-owned: the guard must pass its own redirect target (here `/login` returns `true`), or every navigation suppresses & redirects forever.
 
 **Hash / anchor navigation.** `route()` restores the native anchor jump its `preventDefault` suppresses, scrolling the element whose `id` matches the url's `#fragment` into view (a bare trailing `#` scrolls to the top):
 
@@ -593,7 +620,7 @@ export const App = component(
 - `key: string | Symbol` - The cache key.
 - `importer: () => Promise<ImportType>` - The import function — e.g. `async () => (await import('./chart')).Chart`.
 
-**Returns** The import's activity. `value()` is `undefined` until the import resolves, then whatever the importer's promise resolved to.
+**Returns** The import's activity — a `LazyImportActivity<ImportType>`, so `effect`, `watch` & `value()` carry `ImportType | undefined`: `undefined` until the import resolves, then whatever the importer's promise resolved to.
 
 ```ts
 import { component, lazyImport } from '@loom-js/core';
@@ -605,9 +632,7 @@ const chart = lazyImport('chart', async () => (await import('./chart')).Chart);
 export const Dashboard = component(
     (html) => html`
         <section>
-            ${chart.effect(({ value: Chart }) =>
-                typeof Chart === 'function' ? Chart() : Loading()
-            )}
+            ${chart.effect(({ value: Chart }) => (Chart ? Chart() : Loading()))}
         </section>
     `
 );
@@ -663,7 +688,7 @@ const html = shellTemplate.replace('<!--app-->', markup);
 
 **API**
 
-- `hydrate(props): Promise<void>` - `init`'s contract minus `append` (the swap is always a full replace); resolves after the swap & `onAppMounted`.
+- `hydrate(props): Promise<void>` - `init`'s contract minus `placement` (the swap is always a full replace); resolves after the swap & `onAppMounted`.
     - `props`
         - `app`, `root`, `globalConfig`, `onAppMounted` - As in `init`.
         - `ready?: Promise<unknown>` - Optional caller-owned gate: the swap awaits it alongside settlement. Use it for async work the framework cannot track (see the tracking boundary below).

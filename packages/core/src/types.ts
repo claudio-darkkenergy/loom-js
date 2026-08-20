@@ -9,15 +9,18 @@ export interface AppGlobalConfig {
 
 export interface AppInitProps {
     app: ContextFunction;
-    append?: boolean | null;
     globalConfig?: AppGlobalConfig;
     onAppMounted?: (mountedApp: Element) => void;
+    placement?: Placement;
     root?: Element | null;
 }
 
-// `hydrate`'s contract — `init` minus `append` (the swap is always a full
+// Where the app node lands relative to the root's existing children.
+export type Placement = 'replace' | 'append' | 'prepend';
+
+// `hydrate`'s contract — `init` minus `placement` (the swap is always a full
 // replace), plus the settle gates.
-export interface AppHydrateProps extends Omit<AppInitProps, 'append'> {
+export interface AppHydrateProps extends Omit<AppInitProps, 'placement'> {
     /**
      * Upper bound (ms) on how long the swap waits for settlement — on expiry
      * the swap runs with whatever has rendered. `Infinity` disables the

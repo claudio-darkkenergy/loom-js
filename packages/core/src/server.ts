@@ -171,7 +171,7 @@ export const renderToStringSync = (
             const appCtx = app();
             const { body } = domWindow.document;
 
-            mount(body, appCtx, null);
+            mount(body, appCtx);
 
             return body.innerHTML;
         } finally {
@@ -202,7 +202,7 @@ const renderSettled = async (
         const appCtx = app();
         const { body } = domWindow.document;
 
-        mount(body, appCtx, null);
+        mount(body, appCtx);
 
         // Gate on the settlement signal — the same per-window pending-work
         // counter `hydrate` consumes — captured while this render's window
