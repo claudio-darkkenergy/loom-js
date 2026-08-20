@@ -1,6 +1,6 @@
 ## Purpose
 
-Defines the project's obligations for the SPA router. It began as a deliberately narrow spec covering only the link-activation policy: which activations the router may claim for in-place History-API navigation, and which must fall through to the browser untouched because they carry a native intent (new tab, new window, download) or were already consumed by another handler. The `unify-routing` change (2026-08-15) widened it to the unified routing pipeline: zero-config location reactivity, a single history pipeline per window, window-scoped router instances, and DOM-free route registration. The `docs-readiness` change (2026-08-16) added hash/anchor navigation: fragment-carrying navigations scroll their anchor target while the activity pipeline stays quiet.
+Defines the project's obligations for the SPA router. It began as a deliberately narrow spec covering only the link-activation policy: which activations the router may claim for in-place History-API navigation, and which must fall through to the browser untouched because they carry a native intent (new tab, new window, download) or were already consumed by another handler. The `unify-routing` change (2026-08-15) widened it to the unified routing pipeline: zero-config location reactivity, a single history pipeline per window, window-scoped router instances, and DOM-free route registration. The `docs-readiness` change (2026-08-16) added hash/anchor navigation: fragment-carrying navigations scroll their anchor target while the activity pipeline stays quiet. The `core-api-follow-ups` change (2026-08-19) added the route guard: a table-level predicate that can suppress a valid match's route emission without silencing the raw location layer.
 
 ## Requirements
 
@@ -124,3 +124,32 @@ The router SHALL scroll the anchor target identified by the location's `#fragmen
 
 - **WHEN** route content settles under a server render whose provider DOM lacks CSSOM view APIs (`scrollIntoView`)
 - **THEN** the pending-hash consumption no-ops without throwing
+
+### Requirement: Route guard gates route emissions
+
+`createRoutes` SHALL read its `guard` option (`guard?: (routeValue: RouteValue) => boolean`) into the route table with the same last-call-wins replacement semantics as `fallback`. On every navigation that produces a valid route match, the router SHALL invoke the guard with the candidate `RouteValue` before emitting it; a `false` verdict SHALL suppress the emission — route effects and watchers do not fire and page content does not change — while the raw location layer (layer 1) still observes the navigation. With no guard registered, matching SHALL behave exactly as before.
+
+#### Scenario: guard passes a match
+
+- **WHEN** a navigation matches a configured route and the registered guard returns `true` for its `RouteValue`
+- **THEN** the route emission proceeds — route effects fire and the matched page loads as if no guard existed
+
+#### Scenario: guard suppresses a match
+
+- **WHEN** a navigation matches a configured route and the registered guard returns `false`
+- **THEN** no route value is emitted — route effects and watchers do not fire and the rendered page content is unchanged (the fallback on first load)
+
+#### Scenario: location layer is unaffected by suppression
+
+- **WHEN** the registered guard returns `false` for a navigation
+- **THEN** `locationEffect` and `watchLocation` subscribers still observe that navigation's `Location`
+
+#### Scenario: guard sees the candidate route value
+
+- **WHEN** the guard runs for a navigation matching a parameterized route
+- **THEN** its argument carries the candidate `matchedRoute`, `params`, `pathname` and `raw` location for that navigation
+
+#### Scenario: no guard means no gating
+
+- **WHEN** `createRoutes` is called without a `guard`
+- **THEN** every valid match emits exactly as it did before this capability
