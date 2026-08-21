@@ -1,5 +1,0 @@
----
-'@loom-js/core': minor
----
-
-Add dehydrated state — the server-to-client data handoff for pre-rendered pages, so a primed hydration never refetches. `resource(key, fetcher)` is a per-window keyed async memo apps route data loads through (concurrent callers share the in-flight fetch; rejections are never cached, so a later call retries). After a server render, `dehydrate(window)` (server entry) captures that window's settled resource values as a plain JSON-serializable object — pending or unserializable entries degrade to a client-side cache miss — and `serializeState(state)` (server entry) makes it safe to inline in an HTML script element (`<`, U+2028, U+2029 escaped). On the client, `primeResources(state)` seeds the resource cache before boot — ahead of `hydrate` and `init` alike — so primed keys resolve without ever invoking their fetcher and hydration settles from local data instead of the network. `renderToString` → `dehydrate` → embed → `primeResources` → `hydrate` is the full story; non-adopting apps pay no bytes.
