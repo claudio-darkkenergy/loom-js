@@ -1,5 +1,29 @@
 # @loom-js/loom
 
+## 0.0.12
+
+### Patch Changes
+
+- Updated dependencies [9e78b34]
+- Updated dependencies [b0d0d35]
+- Updated dependencies [542dd65]
+- Updated dependencies [d032619]
+- Updated dependencies [2f3f84c]
+- Updated dependencies [b547065]
+- Updated dependencies [b547065]
+- Updated dependencies [406c309]
+- Updated dependencies [9def3e9]
+- Updated dependencies [b8f994b]
+- Updated dependencies [d032619]
+- Updated dependencies [00a0855]
+- Updated dependencies [64c8ea2]
+- Updated dependencies [9cc3552]
+- Updated dependencies [4d3625c]
+    - @loom-js/core@0.7.0
+    - @loom-js/pink@0.2.1
+    - @loom-js/contentful@0.0.6
+    - @loom-js/utils@0.0.4
+
 ## 0.0.11
 
 ### Patch Changes

@@ -1,5 +1,26 @@
 # @loom-js/pink
 
+## 0.2.1
+
+### Patch Changes
+
+- b547065: `PinkButton` drops its conditional style-omission workaround and passes its custom-property style array through unconditionally — `@loom-js/core` now guarantees an empty-resolving style value leaves no `style` attribute behind. No API change.
+- d032619: Migrate off `@loom-js/core`'s removed deprecated aliases (`ComponentProps` → `ComponentOutputProps`) and convert all pass-through components to core's new `simple()` factory, which guarantees implementations a props object under the new conditional props typing (all-optional-props components now accept propless calls). `PinkTag` keeps its `.Tag` property via `Object.assign`. No behavior change for existing callers.
+- Updated dependencies [9e78b34]
+- Updated dependencies [b0d0d35]
+- Updated dependencies [542dd65]
+- Updated dependencies [d032619]
+- Updated dependencies [2f3f84c]
+- Updated dependencies [b547065]
+- Updated dependencies [406c309]
+- Updated dependencies [9def3e9]
+- Updated dependencies [b8f994b]
+- Updated dependencies [00a0855]
+- Updated dependencies [64c8ea2]
+- Updated dependencies [9cc3552]
+- Updated dependencies [4d3625c]
+    - @loom-js/core@0.7.0
+
 ## 0.2.0
 
 ### Minor Changes

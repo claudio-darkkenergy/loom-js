@@ -1,7 +1,7 @@
 {
     "name": "@loom-js/eslint-plugin",
     "private": true,
-    "version": "0.0.0",
+    "version": "0.1.0",
     "license": "MIT",
     "description": "ESLint rules enforcing the loom-js element-syntax authoring convention.",
     "keywords": [
