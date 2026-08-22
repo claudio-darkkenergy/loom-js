@@ -66,3 +66,8 @@ Spun out of `element-syntax-first` (its design Decisions 4–6); the pink/app co
 
 - **WHEN** `el('img')` or another void tag component renders
 - **THEN** the element renders without a closing tag or children slot
+
+#### Scenario: table-part tags render their named element
+
+- **WHEN** `el('tr')`, `el('td')`, `el('th')`, `el('thead')`, `el('tbody')`, `el('tfoot')`, `el('caption')`, `el('colgroup')`, or `el('col')` renders — including with dynamic children (e.g. `el('table')({ children: rows })`)
+- **THEN** the named table-part element renders with its children in place, exactly as non-table tags do (per `table-template-parsing`)

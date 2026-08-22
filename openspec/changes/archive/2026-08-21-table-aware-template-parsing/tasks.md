@@ -39,7 +39,7 @@
 - [x] 4.1 Refactor pass: scanner and parser additions follow templating module conventions;
       `pnpm -F @loom-js/core type-check` and `type-check-tests` green; `pnpm format` over
       touched files
-- [ ] 4.2 Manually verify the healed consumer path: a Contentful rich-text table (via
+- [x] 4.2 Manually verify the healed consumer path: a Contentful rich-text table (via
       `lib/contentful` default renderers) renders as a real table in the docs app
 - [x] 4.3 Patch changeset for `@loom-js/core`; update `.claude/skills/skill-config.md`
       (templating notes) per the Skill Config Rule
