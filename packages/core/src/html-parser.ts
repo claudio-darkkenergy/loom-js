@@ -9,6 +9,7 @@ import { getPaths, setUpdatesForPaths } from './lib/templating';
 // Imported by path — not via the templating barrel — to avoid a barrel cycle
 // (`compile-component-tags` imports `component`, which imports this module).
 import { compileComponentTags } from './lib/templating/compile-component-tags';
+import { scanTableScope } from './lib/templating/table-scope';
 import type {
     ComponentContext,
     ComponentContextPartial,
@@ -50,10 +51,34 @@ export function htmlParser(
         // the template passes through byte-identical.
         const plan = compileComponentTags(chunks);
         const statics = plan ? plan.chunks : (chunks as readonly string[]);
-        // Creates a `DocumentFragment` using the component HTML template as its context (children.)
-        const fragment = getDocument()
-            .createRange()
-            .createContextualFragment(statics.join(config.TOKEN));
+        const tableScope = scanTableScope(statics);
+        let fragment: DocumentFragment;
+
+        if (tableScope.hasTableMarkup) {
+            // Template-element parsing preserves table-part roots, and
+            // table-content tokens become comment markers (safe from foster
+            // parenting) that `setUpdatesForPaths` swaps back at wire time.
+            const templateElement = getDocument().createElement(
+                'template'
+            ) as HTMLTemplateElement;
+
+            templateElement.innerHTML = statics
+                .map((chunk, chunkIndex) =>
+                    chunkIndex < statics.length - 1
+                        ? chunk +
+                          (tableScope.tableContentTokens.has(chunkIndex)
+                              ? `<!--${config.TOKEN}-->`
+                              : config.TOKEN)
+                        : chunk
+                )
+                .join('');
+            fragment = templateElement.content;
+        } else {
+            // Creates a `DocumentFragment` using the component HTML template as its context (children.)
+            fragment = getDocument()
+                .createRange()
+                .createContextualFragment(statics.join(config.TOKEN));
+        }
 
         // Check for a "rootless" component template.
         // This will inherit its connected parent element as its root.
