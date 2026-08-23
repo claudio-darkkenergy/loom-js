@@ -14,6 +14,14 @@
         opacity: 0;
         transition: opacity 0.15s;
         will-change: opacity;
+
+        /* The shared docs link accent, defined on the docs layout root. The
+           variable covers `.text`-wrapped children; the color covers
+           plain-text links. */
+        a {
+            --p-drop-text-color: var(--docs-link-color);
+            color: hsl(var(--docs-link-color));
+        }
     }
 
     &._open {

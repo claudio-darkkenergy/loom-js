@@ -1,3 +1,9 @@
+/* The docs layout root — the single knob for docs link accents (TOC,
+   side nav, topic pagination). */
+.docsLayout {
+    --docs-link-color: var(--color-warning-10);
+}
+
 .docContainer {
     --grid-template-areas-row-1: header header;
     --grid-template-areas-row-2: main main;
@@ -37,7 +43,7 @@
             }
 
             a {
-                color: hsl(var(--color-warning-10));
+                color: hsl(var(--docs-link-color));
 
                 &:hover {
                     text-decoration: underline;
