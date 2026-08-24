@@ -3,9 +3,11 @@ import { HtmlTemplateArgs } from 'esbuild-plugin-html-split';
 export const htmlTemplate = (args: HtmlTemplateArgs) => {
     const routeScopes: string[] = args.define.routeScopes ?? [];
     // Prod shells are route-scoped — each HTML references only its own route
-    // chunk/CSS plus the shared resources. Dev keeps the superset shell: the
+    // chunk plus the shared resources. Dev keeps the superset shell: the
     // dev server serves a single SPA fallback file, so every route's chunks
-    // must be reachable from it.
+    // must be reachable from it. Scoping applies to JS only: CSS arrives
+    // pre-deduped from the html-split plugin (route CSS chunks are never
+    // linked; their rules live in the entry stylesheet).
     const isScoped = Boolean(args.define.isProd);
     const includeResource = (resource: string) => {
         const owner = routeScopes.find((scope) =>
@@ -14,7 +16,7 @@ export const htmlTemplate = (args: HtmlTemplateArgs) => {
 
         return !isScoped || !owner || owner === args.scope;
     };
-    const css = args.common.css.filter(includeResource).concat(args.css);
+    const css = args.common.css.concat(args.css);
     const js = args.common.js.filter(includeResource).concat(args.js);
 
     return `
