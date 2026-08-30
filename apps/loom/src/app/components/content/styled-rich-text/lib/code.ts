@@ -50,7 +50,12 @@ export const asCodeBlock = (
 export const CodeSample = ({ code, language }: CodeBlock) =>
     PinkCodePanel({
         children: [
-            ...(language ? [PinkCodePanel.Header({ children: language })] : []),
+            PinkCodePanel.Header({
+                children: [
+                    language ?? '',
+                    PinkCodePanel.CopyButton({ text: code })
+                ]
+            }),
             PinkCodePanel.Content({
                 children: code,
                 useLineNumbers: code.includes('\n')

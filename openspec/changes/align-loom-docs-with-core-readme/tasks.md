@@ -23,10 +23,16 @@
 - [ ] 3.6 Verify side nav renders the new topic set in map order with correct selected state (adjust `DocsSideNav` only if the listing shape changed) — structural review done (listing order + `isSelected` unchanged); needs the phase-4 entries live to verify against the map
 - [x] 3.7 Route docs/home content loads through core's `resource(key, fetcher)` inside their activity transforms with stable keys (e.g. `page-content:<pageSlug>:<topicSlug>`, `site`), per D8 — new `pageContent` activity (`logic/activity/page-content.ts`) owns the fetch in its transform via `resource('page-content:<pageSlug>:<topicSlug>')`, fanning out to `page`/`topic`; failures throw so `resource` retries. Home is static today and `site` is unfetched — the `site` key stays reserved
 
+- [x] 3.8 Copy code: `PinkCopyToClipboard` behavior (`packages/pink/src/behaviors/`), `PinkCopyButton`, `PinkCodePanel.CopyButton`; `withIcon`/`PinkButton` accept an `AttrBinding` icon; core exports `isAttrBinding` — minor changesets (pink, core). Verified: same icon node across the copy cycle (class-only mutation), tooltip label in place, 2s revert
+- [x] 3.9 Heading link anchors: `AnchoredHeading` + `headingAnchorId` (one kebab helper shared with the TOC convention); `<a href="#id">` via `route()`, copies the absolute URL; ids match TOC hrefs on all headings (verified on element-syntax)
+- [x] 3.10 Rich-text fixes: `PinkInlineCode` template whitespace (patch changeset); block rhythm for code panels/callouts/tables; reference tables wrap; `i` back to italic; hover underline scoped to text links; smooth anchor scroll (reduced-motion aware); the legacy `.richText code` background override removed (it had been masking upstream pink's undefined dark panel background)
+- [x] 3.11 Sample conventions: 2-space re-indent at push time (`md2rich.py`), `*` block comments, result annotations never below their line, HTML comments instead of `${'' /* … */}` — README + topic sources + drafts re-pushed
+- [x] 3.12 Default topic → `/docs/getting-started` (`use-docs-layout.ts`, home CTA); `get-started` retired without a redirect (map updated)
+
 ## 4. Contentful entry
 
-- [ ] 4.1 If (and only if) the map demands a field the model lacks and no rich-text convention covers it, make the minimal content-model change and record it in the map
-- [ ] 4.2 Author/update the 13 topic entries in Contentful per the map — learning-path order, outlines, code samples, cross-links (defer the three D7-flagged topics until `core-api-follow-ups` lands, or enter as-is and keep the flag)
+- [x] 4.1 If (and only if) the map demands a field the model lacks and no rich-text convention covers it, make the minimal content-model change and record it in the map
+- [ ] 4.2 Author/update the 13 topic entries in Contentful per the map — learning-path order, outlines, code samples, cross-links (defer the three D7-flagged topics until `core-api-follow-ups` lands, or enter as-is and keep the flag) — entered 2026-08-28 as **drafts** via `contentful-sync/` (10 created, 3 updated in place); model needed no change (4.1). Pending maintainer review, then listing reorder + publish
 - [ ] 4.3 Retire or re-home stale pre-scrub topics so the listing contains exactly the mapped set
 
 ## 5. Verification

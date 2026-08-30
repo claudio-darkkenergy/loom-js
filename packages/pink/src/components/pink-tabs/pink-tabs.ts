@@ -6,7 +6,7 @@ import {
 } from '@loom-js/core';
 import classNames from 'classnames';
 
-import { withIcon } from '../../modifiers';
+import { withIcon } from '../../modifiers/with-icon';
 
 enum TabsButtonScrollPlacement {
     Start = 'start',

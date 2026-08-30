@@ -70,8 +70,7 @@ import { App } from './app';
 init({
     app: App(),
     onAppMounted: (app) => {
-        console.log(document.contains(app));
-        // => true
+        console.log(document.contains(app)); // => true
     },
     root: document.body
 });
@@ -152,6 +151,7 @@ interface ButtonProps {
     label: string;
     type: string;
 }
+
 export const Button = component<ButtonProps>(
     (html, props) => html`
         <button type="${props.type}">${props.label}</button>
@@ -216,6 +216,23 @@ This is **sugar over the functional form** — the template above compiles to `$
 **Spread props** apply with object-literal semantics: spreads and named props land in authored order with last-wins duplicates, so `<${Header} ...${headerProps} className=${x}>` behaves exactly like `Header({ ...headerProps, className: x })`. Nullish and primitive spread values are a render-time no-op, matching `{ ...null }` in JS. A `slot` key inside a spread object arrives as an ordinary prop, never as a slot label (labels are resolved at transform time), and markup-derived `children`/`slots` still win over spread-supplied ones.
 
 **No `$` sigil on component tags.** Every attribute of a component element is a prop, so the sigil carries no information — `$` keeps its element-only meaning (`$click`, `$attrs`, `$on`, `$props` on real elements), and a `$`-prefixed prop on a component tag throws. Write `onClick=${fn}`, not `$onClick=${fn}`.
+
+```ts
+// Component tag: every attribute is a prop — no sigil.
+html`
+    <${PinkButton} onClick=${toggleMenu} label="Menu" />
+`;
+
+// Real element: `$` marks loom's element bindings.
+html`
+    <button $click=${toggleMenu} class="button">Menu</button>
+`;
+
+// Throws on first render — `$` carries no meaning on a component tag.
+html`
+    <${PinkButton} $onClick=${toggleMenu} label="Menu" />
+`;
+```
 
 **Children** go between the opening tag and the single closing form, `</>`:
 
@@ -861,6 +878,7 @@ export interface ButtonProps {
     onClick?: EventListener;
     type?: string;
 }
+
 export const Button = component<ButtonProps>(
     (html, { className, label, onClick, type = 'button' }) => html`
         <button $click="${onClick}" class="${className}" type="${type}">
@@ -870,11 +888,11 @@ export const Button = component<ButtonProps>(
 );
 
 /*
-A component can be a simple function without using the framework `component` method,
-and is considered as such so long as it returns a `ContextFunction`.
-Since `Button` is created using the `component` method, it will return a `ContextFunction` when called.
-Below, `SuperButton` will return the `ContextFunction` of the `Button` output when called - so we're good here.
-*/
+ * A component can be a simple function without using the framework `component` method,
+ * and is considered as such so long as it returns a `ContextFunction`.
+ * Since `Button` is created using the `component` method, it will return a `ContextFunction` when called.
+ * Below, `SuperButton` will return the `ContextFunction` of the `Button` output when called - so we're good here.
+ */
 export const SuperButton = ({ label }: { label: string }) =>
     Button({
         className: 'super-button',
@@ -888,16 +906,16 @@ export const SuperButton = ({ label }: { label: string }) =>
 import { component } from '@loom-js/core';
 
 /*
-`node` is a getter method which all components receive in the props argument,
-and will return the rendered node of the component.
-The component node will be undefined until the initial render is complete.
-Warning: be careful when accessing the node that you're not messing with things which are expected to be intact for each rerender process,
-i.e dynamic nodes or attributes within the template.
-*/
+ * `node` is a getter method which all components receive in the props argument,
+ * and will return the rendered node of the component.
+ * The component node will be undefined until the initial render is complete.
+ * Warning: be careful when accessing the node that you're not messing with things which are expected to be intact for each rerender process,
+ * i.e dynamic nodes or attributes within the template.
+ */
 export const Button = component((html, { node }) => {
     // A single-rooted template, so `node()` is the one `<button>` element.
-    const onClick = () => console.log(document.contains(node() as Element));
-    // => true
+    const onClick = () => console.log(document.contains(node() as Element)); // => true
+
     return html`
         <button $click="${onClick}" type="button">Click me!</button>
     `;
@@ -917,11 +935,9 @@ import { component, LifeCycleHandler } from '@loom-js/core';
 export const Button = component(
     (html, { onCreated, onMounted, onRendered }) => {
         const lifeCycleHandler: LifeCycleHandler = (node) => {
-            console.log(node instanceof Node);
-            // => true
+            console.log(node instanceof Node); // => true
+            // => false on creation & 1st render, true on rerenders
             console.log(node instanceof Node && document.contains(node));
-            // => false (on creation & 1st render);
-            // => true (on rerenders)
         };
 
         onCreated(lifeCycleHandler); /* Called only once - on creation. */
@@ -1000,9 +1016,9 @@ export const App = component(
     (html) => html`
         <div>
             <header>
-                ${'' /* Standard button example passing options to `route` */}
+                <!-- Standard button example passing options to `route` -->
                 <button $click="${routeHome}" type="button">loomjs</button>
-                ${'' /* Anchor example demonstrating the simpler `route` usage */}
+                <!-- Anchor example demonstrating the simpler `route` usage -->
                 <nav>
                     <a $click="${route}" href="/">Home</a>
                     |

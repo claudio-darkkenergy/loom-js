@@ -1,3 +1,4 @@
+export * from './behaviors/pink-copy-to-clipboard';
 export * from './components/pink-action-bar';
 export * from './components/pink-avatar';
 export * from './components/pink-avatar-group';
@@ -12,6 +13,7 @@ export * from './elements/pink-boxes';
 export * from './elements/pink-button';
 export * from './elements/pink-buttons-list';
 export * from './elements/pink-card';
+export * from './elements/pink-copy-button';
 export * from './elements/pink-inline-code';
 export * from './elements/pink-inline-tag';
 export * from './elements/pink-interactive-tag';

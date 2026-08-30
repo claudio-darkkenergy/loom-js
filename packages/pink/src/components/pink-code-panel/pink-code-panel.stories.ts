@@ -19,23 +19,39 @@ export default meta;
 
 type Story = StoryObj<PinkCodePanelProps>;
 
+const preformattedCode = [
+    'PinkCodePanel({',
+    '   children: [',
+    '       PinkCodePanel.Header({}),',
+    '       PinkCodePanel.Content({',
+    '           children: preformattedCode',
+    '       })',
+    '   ]',
+    '})'
+].join('\n');
+
 const codePanelContent = PinkCodePanel.Content({
-    children: [
-        'PinkCodePanel({',
-        '   children: [',
-        '       PinkCodePanel.Header({}),',
-        '       PinkCodePanel.Content({',
-        '           children: preformattedCode',
-        '       })',
-        '   ]',
-        '})'
-    ].join('\n')
+    children: preformattedCode
 });
 
 export const WithHeader: Story = {
     args: {
         children: [
             PinkCodePanel.Header({ children: 'Code Panel' }),
+            codePanelContent
+        ]
+    }
+};
+
+export const WithCopyButton: Story = {
+    args: {
+        children: [
+            PinkCodePanel.Header({
+                children: [
+                    'Code Panel',
+                    PinkCodePanel.CopyButton({ text: preformattedCode })
+                ]
+            }),
             codePanelContent
         ]
     }

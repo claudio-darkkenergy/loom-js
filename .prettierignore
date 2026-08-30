@@ -16,3 +16,7 @@ CHANGELOG.md
 # LLM-generated codegen output — not guaranteed to be valid source
 # (lib/codegen/src/components/UserProfile.js is prose in a .js file)
 lib/codegen/src/components/
+
+# Contentful topic sources are converted verbatim by md2rich.py — never reflowed.
+openspec/changes/**/contentful-sync/topics/
+openspec/changes/**/contentful-sync/ids.json

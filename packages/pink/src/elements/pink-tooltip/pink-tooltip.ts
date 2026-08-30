@@ -1,12 +1,11 @@
 import { el, simple } from '@loom-js/core';
 import classNames from 'classnames';
 
+import { type WithIconProps, withIcon } from '../../modifiers/with-icon';
 import {
-    type WithIconProps,
-    withIcon,
     type WithTooltipProps,
     withTooltip
-} from '../../modifiers';
+} from '../../modifiers/with-tooltip';
 
 export interface PinkTooltipProps extends WithTooltipProps, WithIconProps {
     isTag?: boolean;

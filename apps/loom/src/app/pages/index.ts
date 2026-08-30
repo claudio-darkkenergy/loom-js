@@ -47,7 +47,7 @@ const Home: SimpleComponent = (props) => {
             ctas: [
                 {
                     children: 'Get Started',
-                    href: '/docs/get-started',
+                    href: '/docs/getting-started',
                     isBig: true,
                     onClick: route
                 }

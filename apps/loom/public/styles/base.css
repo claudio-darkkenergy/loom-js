@@ -24,6 +24,14 @@ $color-8 / $color-1 AAA
 $color-8 / $color-6 AA
 */
 
+/* Anchor jumps (the router's `scrollIntoView`) animate for those who
+   haven't asked for reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+    html {
+        scroll-behavior: smooth;
+    }
+}
+
 :root {
     --break-small: 767px;
     /* bright orange */

@@ -1,7 +1,6 @@
 import { BLOCKS, INLINES, MARKS } from '@contentful/rich-text-types';
 import { el, RouteLink, simple } from '@loom-js/core';
 import { PinkCard, PinkInlineCode } from '@loom-js/pink';
-import { toKebabCase } from '@loom-js/utils';
 import classNames from 'classnames';
 
 import {
@@ -10,6 +9,7 @@ import {
 } from '../contentful-rich-text';
 import styles from './StyledRichText.module.css';
 import { asCodeBlock, CodeSample } from './lib/code';
+import { AnchoredHeading, headingAnchorId } from './lib/heading';
 import { tableRenderers } from './lib/table';
 
 export type StyledRichTextProps = ContentfulRichTextProps;
@@ -56,13 +56,14 @@ export const StyledRichText = simple<StyledRichTextProps>(
                             className: 'heading-level-3 u-capitalize'
                         }),
                     [BLOCKS.HEADING_2]: (_, children) =>
-                        el('h2')({
+                        AnchoredHeading({
+                            anchorClassName: styles.headingAnchor,
+                            anchorId: headingAnchorId(String(children)),
                             children,
-                            className: 'heading-level-4 u-capitalize',
-                            id:
-                                typeof String(children) === 'string'
-                                    ? toKebabCase(String(children))
-                                    : undefined
+                            className: classNames(
+                                'heading-level-4 u-capitalize',
+                                styles.anchoredHeading
+                            )
                         }),
                     [BLOCKS.HEADING_3]: (_, children) =>
                         el('h3')({ children, className: 'heading-level-5' }),

@@ -7,10 +7,10 @@ future drift-checks read this file, not the Contentful space. Source of truth fo
 **Slugs are immutable identifiers** (per `docs-prerender-readiness`): prerendering turns each
 `/docs/<slug>` into a physical static path. A rename requires a redirect recorded here.
 
-**Redirects:** the pre-scrub published slug `get-started` is superseded by `getting-started` —
-`/docs/get-started` → `/docs/getting-started` must keep resolving (SPA redirect now; a physical
-redirect once prerendering lands). The default-topic redirect target in `use-docs-layout.ts`
-(`/docs/get-started`) updates to `/docs/getting-started` alongside the phase-4 entry work.
+**Redirects:** none. The pre-scrub published slug `get-started` is superseded by `getting-started`
+and is simply retired — the maintainer decided (2026-08-28) the old pathname needn't keep resolving.
+The default-topic redirect target in `use-docs-layout.ts` and the home-page CTA now point at
+`/docs/getting-started`.
 
 ## D7 status — resolved
 
@@ -29,17 +29,17 @@ interprets them. They are invisible in Contentful's editor, so authors must know
    h2 text is kebab-cased into the anchor `id` (existing `StyledRichText` behavior) and feeds the
    on-page TOC — so **h2 text must be unique within a topic**, and renaming an h2 changes its
    anchor (treat h2 text as semi-permanent).
-2. **Block code samples.** A paragraph whose *entire* content carries `MARKS.CODE` is a code
+2. **Block code samples.** A paragraph whose _entire_ content carries `MARKS.CODE` is a code
    block → `PinkCodePanel` with line numbers when multi-line. **Language label:** the block's
    first line is a directive comment, `// @lang ts` (or `bash`, `html`), stripped by the renderer
-   and shown as the panel's header label; no directive → no label. *(Ratified at map review.)*
+   and shown as the panel's header label; no directive → no label. _(Ratified at map review.)_
    **Single-line rule** (added during 3.1): a single-line sole-code paragraph renders as a code
    block **only with the directive** — without it, it renders inline. This keeps code-marked
    table cells and one-word paragraphs from becoming panels; single-line commands (e.g. the
    install lines) must carry `// @lang bash`.
-3. **Inline code.** `MARKS.CODE` on a span *inside* a mixed-content paragraph renders as inline
-   `<code>`, **not** a code panel. *(Renderer change — current behavior panels everything; part
-   of task 3.1.)*
+3. **Inline code.** `MARKS.CODE` on a span _inside_ a mixed-content paragraph renders as inline
+   `<code>`, **not** a code panel. _(Renderer change — current behavior panels everything; part
+   of task 3.1.)_
 4. **Callouts.** `BLOCKS.QUOTE` → callout rendering (task 3.2). Used for the README's advisory
    asides (e.g. "Why light DOM is the default").
 5. **Tables.** Rich-text table blocks → the approved table treatment (task 3.3). Used for the
@@ -56,21 +56,21 @@ interprets them. They are invisible in Contentful's editor, so authors must know
 Side-nav order is the table order (the learning path). "Source" cites README headings; line
 numbers refer to the pinned commit above.
 
-| # | Slug | Title |
-|---|------|-------|
-| 1 | `getting-started` | Getting Started |
-| 2 | `bootstrapping` | Bootstrapping |
-| 3 | `configuration` | Configuration |
-| 4 | `components` | Components |
-| 5 | `element-syntax` | Element Syntax |
-| 6 | `custom-elements` | Custom Elements |
-| 7 | `activities` | Activities |
-| 8 | `routing` | Routing |
-| 9 | `lazy-imports` | Lazy Imports |
-| 10 | `server-rendering` | Server Rendering |
-| 11 | `hydration` | Client Hydration |
-| 12 | `dehydrated-state` | Dehydrated State |
-| 13 | `diagnostics` | Diagnostics |
+| #   | Slug               | Title            |
+| --- | ------------------ | ---------------- |
+| 1   | `getting-started`  | Getting Started  |
+| 2   | `bootstrapping`    | Bootstrapping    |
+| 3   | `configuration`    | Configuration    |
+| 4   | `components`       | Components       |
+| 5   | `element-syntax`   | Element Syntax   |
+| 6   | `custom-elements`  | Custom Elements  |
+| 7   | `activities`       | Activities       |
+| 8   | `routing`          | Routing          |
+| 9   | `lazy-imports`     | Lazy Imports     |
+| 10  | `server-rendering` | Server Rendering |
+| 11  | `hydration`        | Client Hydration |
+| 12  | `dehydrated-state` | Dehydrated State |
+| 13  | `diagnostics`      | Diagnostics      |
 
 The README's trailing **Examples** section is not a topic — each example folds into its concept's
 topic (noted per topic below).

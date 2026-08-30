@@ -1,5 +1,7 @@
-import { el, TemplateTagValue, type ComponentInputProps } from '@loom-js/core';
+import { TemplateTagValue, type ComponentInputProps } from '@loom-js/core';
 import classNames from 'classnames';
+
+import { PinkTooltipPopup } from '../elements/pink-tooltip/pink-tooltip-popup';
 
 export interface WithTooltipProps {
     isBottom?: boolean;
@@ -21,20 +23,12 @@ export const withTooltip = ({
 }: ComponentInputProps<WithTooltipProps>) => {
     const childrenWithTooltip = [].concat(
         children as any,
-        el('span')({
-            attrs: {
-                role: 'tooltip'
-            },
+        PinkTooltipPopup({
             children: popupMessage,
-            className: classNames(
-                popupClassName,
-                {
-                    'is-bottom': isBottom,
-                    'is-center': isCenter,
-                    'is-end': isEnd
-                },
-                'tooltip-popup'
-            )
+            className: popupClassName,
+            isBottom,
+            isCenter,
+            isEnd
         }) as any
     );
 

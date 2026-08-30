@@ -35,31 +35,31 @@ Constraints:
 
 One topic per top-level concept, splitting only where the README itself carries enough weight (Components' element-syntax material is its own topic; custom elements is its own topic):
 
-| # | Slug | README source sections |
-|---|------|------------------------|
-| 1 | `getting-started` | Feature Highlights, Install, Inclusion |
-| 2 | `bootstrapping` | Bootstrapping your application (+ App Initialization example) |
-| 3 | `configuration` | Framework configuration |
-| 4 | `components` | Components, Simple components (+ Components examples) |
-| 5 | `element-syntax` | Composing components (element syntax), Element components |
-| 6 | `custom-elements` | Custom elements (props, light vs. shadow DOM, known limitations) |
-| 7 | `activities` | Activities (transforms, options, returns) |
-| 8 | `routing` | Routing |
-| 9 | `lazy-imports` | Lazy imports |
-| 10 | `server-rendering` | Server rendering (SSR & SSG) |
-| 11 | `hydration` | Client hydration |
-| 12 | `dehydrated-state` | Dehydrated state |
-| 13 | `diagnostics` | Diagnostics (warnings & debug logging) |
+| #   | Slug               | README source sections                                           |
+| --- | ------------------ | ---------------------------------------------------------------- |
+| 1   | `getting-started`  | Feature Highlights, Install, Inclusion                           |
+| 2   | `bootstrapping`    | Bootstrapping your application (+ App Initialization example)    |
+| 3   | `configuration`    | Framework configuration                                          |
+| 4   | `components`       | Components, Simple components (+ Components examples)            |
+| 5   | `element-syntax`   | Composing components (element syntax), Element components        |
+| 6   | `custom-elements`  | Custom elements (props, light vs. shadow DOM, known limitations) |
+| 7   | `activities`       | Activities (transforms, options, returns)                        |
+| 8   | `routing`          | Routing                                                          |
+| 9   | `lazy-imports`     | Lazy imports                                                     |
+| 10  | `server-rendering` | Server rendering (SSR & SSG)                                     |
+| 11  | `hydration`        | Client hydration                                                 |
+| 12  | `dehydrated-state` | Dehydrated state                                                 |
+| 13  | `diagnostics`      | Diagnostics (warnings & debug logging)                           |
 
 The README's trailing Examples section is not a topic — each example is folded into its concept's topic (the multi-page win: examples live next to the concept they illustrate). Sub-sections within a topic map to h2/h3 rich-text headings, which the existing `TopicToc` + heading-anchor rendering already turn into an on-page TOC.
 
-*Alternative considered:* one giant "concepts" topic mirroring the README — rejected; that re-creates the single-page limitation the change exists to remove.
+_Alternative considered:_ one giant "concepts" topic mirroring the README — rejected; that re-creates the single-page limitation the change exists to remove.
 
 ### D2 — Content map is a checked-in artifact of this change
 
 `openspec/changes/align-loom-docs-with-core-readme/content-map.md` records, per topic: slug, title, side-nav order, source README line-range/headings, per-topic outline (h2/h3 structure), code samples to carry over, and cross-topic links. Contentful entry work follows the map; the map — not the Contentful space — is what review and future drift-checks read. The maintainer reviews the map before any Contentful entry happens.
 
-*Alternative considered:* scripting entries via the Contentful Management API — rejected for now; there's no management-API infrastructure in the repo, and 13 topics is hand-enterable. The map keeps the door open for automation later.
+_Alternative considered:_ scripting entries via the Contentful Management API — rejected for now; there's no management-API infrastructure in the repo, and 13 topics is hand-enterable. The map keeps the door open for automation later.
 
 ### D3 — Contentful model reuse; model changes only if forced
 
@@ -94,7 +94,19 @@ The rendering pipeline itself — SSG prerender at build time, `hydrate` + `prim
 - **Data through `resource()`.** Docs/home content loads wrap in core's keyed resource cache inside activity transforms, so the settlement signal tracks them and `dehydrate()` can capture them. Done here because this change already touches the data layer; the sibling change then finds the data capturable.
 - **Slugs are permanent static paths.** Prerendering turns `/docs/<slug>` into physical `index.html` files; a slug rename after that is a broken URL unless paired with a redirect. The content map treats slugs as immutable identifiers from day one.
 
-*Alternative considered:* folding the pipeline into this change — rejected as two changes in a trenchcoat; the pipeline touches bootstrap, build scripts, `vercel.json`, and deploy hooks, none of which is docs-content work.
+_Alternative considered:_ folding the pipeline into this change — rejected as two changes in a trenchcoat; the pipeline touches bootstrap, build scripts, `vercel.json`, and deploy hooks, none of which is docs-content work.
+
+### D9 — Copy affordances are a behavior, composed (added 2026-08-29)
+
+Copy-to-clipboard is one behavior with many hosts (code panel, heading link, inline code), so pink ships it as `PinkCopyToClipboard`: a polymorphic host around static `children` or a state-aware `render(copied)` where `copied` is the activity's read surface (`bind`/`effect`/`value`/`watch`) — a child binds an attribute and keeps its node, or effects a text node in place. `PinkCopyButton` composes it over `PinkButton` (icon bound to the copied state; `href` makes it an anchor with native link semantics intact), and `PinkCodePanel.CopyButton` sizes it into the header. Binding the icon required `withIcon`/`PinkButton` to pass an `AttrBinding` through and core to export `isAttrBinding` (a `Symbol`-keyed guard pink can't duck-type). A render-function `children` was rejected only because core's `ReservedProps.children` type already contains function types; `render` is the honest pink-side shape until core widens it.
+
+### D10 — Heading link anchors route through loom (added 2026-08-29)
+
+Each h2 gets a `<a href="#id">` copy-link (status bar, right-click, modified clicks all native) whose click goes through `route()`: a native hash jump fires `popstate`, the location layer re-renders the docs content, and the copied feedback dies mid-swap. The retired `get-started` pathname is not redirected (maintainer decision; map updated). The remaining scroll-on-click is `route-scroll-option`'s job.
+
+### D11 — Docs code style: 2-space samples, comment conventions (added 2026-08-29)
+
+The README stays at prettier's 4 spaces (repo convention); `contentful-sync/md2rich.py` re-indents fenced code 4→2 at push time (whole levels scale, remainder such as the ` *` comment-alignment space is kept) because the ~680px panel clips 4-space samples. Block comments use `*` lines; result annotations sit on their line's end (`…; // => true`) or above it, never below.
 
 ## Risks / Trade-offs
 

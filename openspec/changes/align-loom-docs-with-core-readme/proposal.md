@@ -13,6 +13,15 @@
 - No `@loom-js/core` API changes. Content must match the README as it stands after the in-flight `core-api-follow-ups` change lands (`placement`, route `guard`, `lazyImport` typing all touch README sections).
 - Everything this change builds is **prerender-ready**: components render under `renderToString` (no bare-global DOM access outside `onMounted`/event handlers), docs content loads through core's keyed `resource()` cache, and topic slugs are treated as permanent static paths. The server-first pipeline itself (SSG, hydration boot, edge caching) is the sibling change `server-first-loom-app`; this change guarantees nothing it ships will block that one.
 
+### Rendering polish from entry review (added 2026-08-28/29)
+
+Reviewing the entered topics in the preview app surfaced readability gaps the map's conventions didn't anticipate. Folded in here rather than opened separately — they are phase-3 docs-rendering upgrades and ride the same component-sourcing gate:
+
+- Code samples: a copy-to-clipboard control on every panel header; samples ship at 2-space indent (re-indented from the README's 4 at push time); block-comment and result-annotation conventions normalized in the README samples.
+- Headings: every h2 carries a link-copy anchor (native `<a href="#id">` routed through `route()`, copies the absolute URL) matching the on-page TOC ids.
+- Rich text: inline code renders inline (pink `PinkInlineCode` whitespace fix), block-level nodes (code panels, callouts, tables) keep paragraph rhythm, reference tables wrap instead of scrolling, italics are plain italics, text-link hover underline excludes control/media anchors, anchor jumps scroll smoothly.
+- Pink gains the reusable pieces: a `PinkCopyToClipboard` behavior (state-aware `render` prop), `PinkCopyButton` (button or anchor over `PinkButton`), `PinkCodePanel.CopyButton`; `withIcon`/`PinkButton` accept an `AttrBinding` icon; core exports `isAttrBinding` to make that possible.
+
 ## Capabilities
 
 ### New Capabilities
@@ -30,6 +39,6 @@
 
 - `apps/loom/src/app/pages/docs/**` — navigation, layout, topic rendering for the new IA.
 - `apps/loom/src/app/components/**` — new content components (composed from pink).
-- `packages/pink/**` — only if component ports are approved; each approved port is a pink change (minor changeset, per `pink-stays-pre-1-0` convention).
+- `packages/pink/**` — approved ports and additions, each a pink change (minor changeset, per `pink-stays-pre-1-0` convention): `PinkInlineCode`, `PinkTable`, `PinkCopyToClipboard`/`PinkCopyButton`/`PinkCodePanel.CopyButton`, binding-capable `withIcon`/`PinkButton`; `PinkInlineCode` whitespace fix (patch).
 - Contentful space — topic entries per the content map; content-model changes only if the outline demands a field the model lacks.
-- No changes to `@loom-js/core` or `services/api`.
+- `@loom-js/core` — one additive export, `isAttrBinding` (minor changeset), so pink can pass bindings through; the README's code samples get comment/blank-line conventions fixed (content only). No changes to `services/api`.
