@@ -87,6 +87,16 @@ export const htmlSplit: (pluginOptions: HtmlSplitPluginOptions) => Plugin = ({
                         return acc;
                     }
 
+                    // Dynamic-import targets load on demand from their
+                    // importer; surfaced separately so templates can choose
+                    // to preload route chunks without eagerly evaluating
+                    // everything that is `import()`ed (e.g. grammar modules
+                    // that depend on an importer-sequenced global).
+                    if (isJs && dynamicChunkPaths.has(outputPath)) {
+                        acc.dynamic.js.push(resourcePath);
+                        return acc;
+                    }
+
                     if (isEntryPoint && isJs) {
                         acc.js.push(resourcePath);
                     } else if (isEntryPoint && isCss) {

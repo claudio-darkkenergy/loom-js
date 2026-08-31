@@ -2,7 +2,6 @@
     --m-block-start-heading: 2.5rem;
     --m-block-start-block: 1.25rem;
     --m-block-start-next: 1rem;
-    --code-background-color: hsl(var(--color-neutral-90));
 
     display: flex;
     flex-direction: column;
@@ -63,10 +62,6 @@
         + * {
             margin-block-start: var(--m-block-start-next);
         }
-    }
-
-    code {
-        background-color: var(--code-background-color);
     }
 
     /* Pink's tables are data tables — non-first columns clip to one line

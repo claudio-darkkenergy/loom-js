@@ -68,6 +68,9 @@ importers:
       '@loom-js/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@loom-js/highlight':
+        specifier: workspace:*
+        version: link:../../packages/highlight
       '@loom-js/pink':
         specifier: workspace:*
         version: link:../../packages/pink
@@ -338,6 +341,49 @@ importers:
       eslint:
         specifier: ^9.0.0
         version: 9.39.5
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+
+  packages/highlight:
+    dependencies:
+      prismjs:
+        specifier: ^1.30.0
+        version: 1.30.0
+    devDependencies:
+      '@loom-js/core':
+        specifier: workspace:*
+        version: link:../core
+      '@loom-js/typescript-config':
+        specifier: workspace:*
+        version: link:../../lib/typescript-config
+      '@rollup/plugin-terser':
+        specifier: ^1.0.0
+        version: 1.0.0(rollup@4.62.4)
+      '@rollup/plugin-typescript':
+        specifier: ^12.3.0
+        version: 12.3.0(rollup@4.62.4)(tslib@2.8.1)
+      '@types/node':
+        specifier: ^26.1.2
+        version: 26.1.2
+      '@types/prismjs':
+        specifier: ^1.26.6
+        version: 1.26.6
+      rollup:
+        specifier: ^4.62.4
+        version: 4.62.4
+      rollup-plugin-delete:
+        specifier: ^3.0.2
+        version: 3.0.2(rollup@4.62.4)
+      rollup-plugin-dts:
+        specifier: ^6.4.1
+        version: 6.4.1(rollup@4.62.4)
+      rollup-plugin-esbuild:
+        specifier: ^6.2.1
+        version: 6.2.1(esbuild@0.28.1)(rollup@4.62.4)
+      tslib:
+        specifier: ^2.8.1
+        version: 2.8.1
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
@@ -2247,6 +2293,9 @@ packages:
 
   '@types/parse5@6.0.3':
     resolution: {integrity: sha512-SuT16Q1K51EAVPz1K29DJ/sXjhSQ0zjvsypYJ6tlwVsRV9jwW5Adq2ch8Dq8kDBCkYnELS7N7VNCSB5nC56t/g==}
+
+  '@types/prismjs@1.26.6':
+    resolution: {integrity: sha512-vqlvI7qlMvcCBbVe0AKAb4f97//Hy0EBTaiW8AalRnG/xAN5zOiWWyrNqNXeq8+KAuvRewjCVY1+IPxk4RdNYw==}
 
   '@types/qs@6.15.1':
     resolution: {integrity: sha512-GZHUBZR9hckSUhrxmp1nG6NwdpM9fCunJwyThLW1X3AyHgd9IlHb6VANpQQqDr2o/qQp6McZ3y/IA2rVzKzSbw==}
@@ -4455,6 +4504,10 @@ packages:
   pretty-ms@7.0.1:
     resolution: {integrity: sha512-973driJZvxiGOQ5ONsFhOF/DtzPMOMtgC11kCpUrPGMTgqp2q/1gwzCquocrN33is0VZ5GFHXZYMM9l6h67v2Q==}
     engines: {node: '>=10'}
+
+  prismjs@1.30.0:
+    resolution: {integrity: sha512-DEvV2ZF2r2/63V+tK8hQvrR2ZGn10srHbXviTlcv7Kpzw8jWiNTqbVgjO3IY8RxrrOUF8VPMQQFysYYYv0YZxw==}
+    engines: {node: '>=6'}
 
   process@0.11.10:
     resolution: {integrity: sha512-cdGef/drWFoydD1JsMzuFf8100nZl+GT+yacc2bEced5f9Rjk4z+WtFUTBu9PhOi9j/jfmBPu0mMEY4wIdAF8A==}
@@ -6795,6 +6848,8 @@ snapshots:
       undici-types: 8.3.0
 
   '@types/parse5@6.0.3': {}
+
+  '@types/prismjs@1.26.6': {}
 
   '@types/qs@6.15.1': {}
 
@@ -9245,6 +9300,8 @@ snapshots:
   pretty-ms@7.0.1:
     dependencies:
       parse-ms: 2.1.0
+
+  prismjs@1.30.0: {}
 
   process@0.11.10: {}
 

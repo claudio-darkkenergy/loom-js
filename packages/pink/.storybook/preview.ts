@@ -2,6 +2,8 @@ import '@appwrite.io/pink';
 import '@appwrite.io/pink-icons';
 import { LoomJsStorybookDecorator, type Preview } from '@loom-js/storybook';
 
+import '../src/styles/code-tokens.css';
+
 const { parameters } = (window as any).storybook;
 
 const preview: Preview = {

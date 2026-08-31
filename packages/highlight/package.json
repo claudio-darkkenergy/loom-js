@@ -1,19 +1,20 @@
 {
-    "name": "@loom-js/pink",
-    "version": "0.2.1",
+    "name": "@loom-js/highlight",
+    "version": "0.0.0",
     "author": "Claudio Nunez Jr",
     "license": "ISC",
-    "description": "A design system based on Pink Design & made for loomjs.",
+    "description": "Syntax highlighting for loom UI libraries: a pure text→tokens tokenizer (Prism) behind a lazy-import activity, with a UI-library-agnostic token vocabulary.",
     "keywords": [
-        "loomjs design system",
-        "pink design"
+        "loomjs",
+        "syntax highlighting",
+        "prism",
+        "code tokens"
     ],
     "exports": {
         ".": {
             "import": "./src/index.ts",
             "require": "./src/index.js"
-        },
-        "./styles/*": "./src/styles/*"
+        }
     },
     "type": "module",
     "main": "./dist/index.js",
@@ -25,45 +26,31 @@
     "repository": {
         "type": "git",
         "url": "git+https://github.com/claudio-darkkenergy/loom-js.git",
-        "directory": "packages/pink"
+        "directory": "packages/highlight"
     },
     "scripts": {
-        "build": "pnpm build-storybook",
         "build-package": "rollup -c rollup.config.ts --configPlugin esbuild",
-        "build-storybook": "storybook build",
-        "build-storybook-docs": "storybook build --docs",
         "format": "prettier",
-        "storybook": "storybook dev --no-open -p 6006",
         "type-check": "tsc --noEmit"
     },
     "dependencies": {
-        "@appwrite.io/pink": "1.0.0",
-        "@appwrite.io/pink-icons": "1.0.0",
-        "@loom-js/core": "workspace:*",
-        "classnames": "^2.5.1"
+        "prismjs": "^1.30.0"
     },
     "devDependencies": {
-        "@chromatic-com/storybook": "^5.2.1",
-        "@loom-js/storybook": "workspace:*",
+        "@loom-js/core": "workspace:*",
         "@loom-js/typescript-config": "workspace:*",
         "@rollup/plugin-terser": "^1.0.0",
         "@rollup/plugin-typescript": "^12.3.0",
-        "@storybook/addon-links": "^10.5.5",
-        "@storybook/html": "^10.5.5",
-        "@storybook/html-vite": "^10.5.5",
         "@types/node": "^26.1.2",
-        "esbuild": "^0.28.1",
-        "esbuild-node-externals": "^1.23.1",
+        "@types/prismjs": "^1.26.6",
         "rollup": "^4.62.4",
         "rollup-plugin-delete": "^3.0.2",
         "rollup-plugin-dts": "^6.4.1",
         "rollup-plugin-esbuild": "^6.2.1",
-        "storybook": "^10.5.5",
         "tslib": "^2.8.1",
-        "typescript": "^7.0.2",
-        "vite": "^8.2.0"
+        "typescript": "^7.0.2"
     },
     "peerDependencies": {
-        "@loom-js/core": ">=0.6.0 <1.0.0"
+        "@loom-js/core": ">=0.7.0 <1.0.0"
     }
 }

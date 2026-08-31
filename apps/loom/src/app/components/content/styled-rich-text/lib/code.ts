@@ -4,6 +4,7 @@ import {
     type Inline,
     MARKS
 } from '@contentful/rich-text-types';
+import { codeTokenizer } from '@loom-js/highlight';
 import { PinkCodePanel } from '@loom-js/pink';
 
 export interface CodeBlock {
@@ -58,6 +59,8 @@ export const CodeSample = ({ code, language }: CodeBlock) =>
             }),
             PinkCodePanel.Content({
                 children: code,
+                language,
+                tokenize: codeTokenizer(),
                 useLineNumbers: code.includes('\n')
             })
         ]

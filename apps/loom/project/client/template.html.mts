@@ -16,8 +16,22 @@ export const htmlTemplate = (args: HtmlTemplateArgs) => {
 
         return !isScoped || !owner || owner === args.scope;
     };
+    // Dynamic chunks are only script-tagged when they are route page chunks
+    // (a preload of the shell's own page module); anything else reached by
+    // `import()` — e.g. syntax-highlighting grammars sequenced by their
+    // importer — must not be evaluated eagerly.
+    const isRouteChunk = (resource: string) =>
+        routeScopes.some((scope) => resource.startsWith(`${scope}-`));
     const css = args.common.css.concat(args.css);
-    const js = args.common.js.filter(includeResource).concat(args.js);
+    const js = args.common.js
+        .filter(includeResource)
+        .concat(
+            args.dynamic.js.filter(
+                (resource) =>
+                    isRouteChunk(resource) && includeResource(resource)
+            )
+        )
+        .concat(args.js);
 
     return `
 <!DOCTYPE html>
