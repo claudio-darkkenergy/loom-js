@@ -19,6 +19,17 @@ route `guard`, and typed `lazyImport`; the README edits merged with it). The `bo
 `routing`, and `lazy-imports` topics below are authored from the **current** README with no
 deferral and no parity follow-up flag.
 
+## Post-review amendments (2026-08-30)
+
+The four unlinked pre-scrub topics were re-adjudicated at draft review:
+
+- `introduction` — retired (superseded: `getting-started` owns orientation). Unpublish at phase-4 publish.
+- `roadmap` — retired (the roadmap is being implemented; issues/changesets serve better). Unpublish.
+- `build-tools` — kept, deferred: rewritten post-`server-first-loom-app` as the `build-tool` topic (own change, `docs-build-tool-topic`). Stays unpublished until then.
+- `feedback` — kept, deferred: real body + trailing-nav placement via its own change (`docs-feedback-topic`).
+
+The listing rule amends from "exactly the mapped set" to "the mapped set, then trailing utility topics" (IA delta rides `docs-feedback-topic`).
+
 ## Rich-text conventions
 
 These conventions are how README constructs are entered in Contentful and how the renderer
