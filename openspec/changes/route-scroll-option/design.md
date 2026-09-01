@@ -12,6 +12,7 @@ The first consumer is an in-page "copy link" anchor beside each docs heading (un
 
 - Let a `route()` caller keep the History update and quiet pipeline of a fragment navigation while declining the scroll.
 - Define the fragmentless contract: forward SPA navigation lands at top; history traversal restores.
+- Deferred fragment scrolls fire when tracked content exists, not before.
 - Zero behavior change for existing callers (default `true`).
 - Cover the opt-out in both scroll paths (immediate and deferred) and the bare-`#` case.
 
@@ -35,6 +36,11 @@ An option on the existing options object, beside `href`/`replace`, rather than a
 
 A `route()` that changes the route and carries no fragment scrolls the window to the top once the routed content renders (the same deferred point as `consumePendingFragment`, so the scroll lands on the new page, not the old one). Instant (`scrollTo` with explicit non-smooth behavior): page-to-page motion mimics a fresh document load; the app's `scroll-behavior: smooth` CSS keeps animating _anchor_ jumps only. `popstate`/history traversal is untouched — `pushState` entries participate in the browser's automatic scroll restoration, and fighting it produces the classic jumpy back-button. `scroll: false` suppresses this scroll exactly as it suppresses fragment scrolls (D2: one switch, "this navigation does not move the viewport").
 _Alternative considered:_ smooth top-scroll — rejected: watching the page fly up on every pagination click reads as motion for its own sake, and native navigations don't animate.
+
+### D2c — The deferred fragment scroll gates on `settled()` (added 2026-08-31)
+
+`consumePendingFragment` currently queues one microtask after the first routed render — which predates data-driven anchors: a page whose headings render after a tracked fetch (the docs site) has no target when the attempt fires, so the documented single-attempt no-op swallows every initial-load and cross-page hash (fresh loads only worked when a warm cache won the race). The signal that means "tracked async content has landed" already exists: `settled()` — the same gate `renderToString` and `hydrate` use. The pending-fragment consumption becomes its third consumer: still a single attempt, still a silent no-op on a missing target, fired once settlement resolves (bounded like the other consumers, so an unsettled page can't hold the scroll hostage). Async work outside the tracking boundary keeps today's contract — the app owns its scroll from there.
+_Alternative considered:_ an app-level "scroll when content lands" hook — rejected: every data-driven consumer would re-write it, and core already owns both the pending fragment and the settlement signal (general-product rule: build the primitive where the state lives).
 
 ### D3 — Thread the option, don't widen `scrollToFragment`
 

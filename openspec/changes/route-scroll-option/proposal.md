@@ -1,6 +1,6 @@
 # Route Scroll Option
 
-> Amended 2026-08-31: scope widened from the fragment-scroll opt-out alone to the router's full navigation-scroll contract — fragmentless SPA navigations now scroll to top by default (a previously undefined behavior: the viewport kept its old offset).
+> Amended 2026-08-31 (twice): scope widened from the fragment-scroll opt-out alone to the router's full navigation-scroll contract — fragmentless SPA navigations scroll to top by default (previously the viewport kept its old offset), and the deferred fragment scroll now gates on the settlement signal (previously a single microtask after the first routed render, which fires before data-driven anchors exist — observed as hash URLs not scrolling on the docs site).
 
 ## Why
 
@@ -8,6 +8,7 @@
 
 ## What Changes
 
+- **The deferred fragment scroll waits for settlement**: cross-page and initial-load fragment scrolls consume after `settled()` (bounded, `maxWait`-style) instead of one microtask after the first routed render — so anchors produced by tracked async work (route chunks, data fetched through activity transforms) exist when the single attempt fires. Same-page hash scrolls stay immediate.
 - **Fragmentless route-changing navigations scroll to top** after the routed content renders — instantly (bypassing `scroll-behavior` CSS; page-to-page shouldn't animate), fixing the SPA gap where a navigation from a scrolled position rendered the next page at the old offset. Same-page hash navigation and history traversal (`popstate` — the browser's own scroll restoration owns it) are unaffected.
 - `OnRouteOptions` gains `scroll?: boolean` (default `true`), now covering _every_ scroll the navigation would perform: fragment scrolls and the new top scroll alike. With `scroll: false`, `route(event, options)` still updates history (`pushState`/`replaceState`), keeps the location/route layers quiet for a same-page fragment, and applies the native-intent fallthrough policy unchanged — but performs no fragment scroll: not the same-page immediate scroll, not the cross-page deferred scroll, and not the bare-`#` scroll-to-top.
 - `redirect(href)` is unaffected (it takes no options).
@@ -22,7 +23,7 @@ _None._
 
 ### Modified Capabilities
 
-- `spa-routing`: the "Hash navigations scroll to their anchor target" requirement gains an explicit opt-out, and a new requirement pins the fragmentless contract — route-changing navigations land at the top by default, `popstate` defers to browser restoration, `scroll: false` suppresses both.
+- `spa-routing`: the "Hash navigations scroll to their anchor target" requirement gains an explicit opt-out and re-times the deferred scroll to settlement, and a new requirement pins the fragmentless contract — route-changing navigations land at the top by default, `popstate` defers to browser restoration, `scroll: false` suppresses both.
 
 ## Impact
 
