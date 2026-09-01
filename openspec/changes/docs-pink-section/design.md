@@ -24,6 +24,10 @@ Core topics diff against the core README; pink has no such document, so the map 
 
 Topics author as `contentful-sync/`-style markdown, convert and push with the same tooling (converter gains nothing new), review as drafts, publish with the listing. The code-sample conventions (2-space, `@lang`, transitional copy, generic-vs-named components rule inverted: pink topics _should_ use pink components by name) carry over, recorded in the pink map.
 
+### D4 — Pink's README is an npm card, not an anchor (added 2026-09-01)
+
+Pink ships a short package README — one paragraph of purpose/layering, install, one example, links to the pink docs home and Storybook — so npm/GitHub aren't dead ends. It is deliberately _not_ a documentation source: the content map stays the drift anchor (D2), and the README carries no API reference to keep honest. The coverage spec's drift obligation does not extend to it beyond the links staying alive.
+
 ## Risks / Trade-offs
 
 - [Docs duplicate Storybook and both drift] → the split is concepts/reference vs. playground; stories are linked, not transcribed; the map records which stories each topic leans on.

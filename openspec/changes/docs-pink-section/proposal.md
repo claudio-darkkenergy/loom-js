@@ -8,6 +8,7 @@
 
 - The docs site gains a pink section — its own nav group under the grouped side nav (`docs-grouped-side-nav`'s Reference tail, or a sibling group; grouping review decides): an overview topic (what pink is, its relationship to `@appwrite.io/pink`, install/inclusion, theming basics) plus reference topics scoped at review (candidates: elements, components, behaviors + modifiers, code panels & highlighting wiring with `@loom-js/highlight`).
 - Content is authored from pink's source and stories the way core topics are authored from the README — with a recorded source-of-truth convention so drift is checkable (pink has no README equivalent today; the map-style outline this change produces becomes that anchor).
+- Pink gains a minimal package README (purpose, install, one example, links to the docs home + Storybook) — an npm card, not a second documentation source; the content map remains the drift anchor.
 - Storybook remains the component playground; the docs section owns concepts, install, and API reference, linking into Storybook rather than duplicating every story.
 - **Sequenced after:** `docs-feedback-topic` (trailing-topics IA allowance) and ideally `docs-grouped-side-nav` (a pink group beats loose trailing topics); content authoring gates on a maintainer-reviewed outline, mirroring the align change's map review.
 

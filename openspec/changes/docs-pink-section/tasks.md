@@ -14,6 +14,10 @@
 - [ ] 3.1 Author topics in `contentful-sync/`-style sources; push as drafts; maintainer reviews
 - [ ] 3.2 Create the group/listing entries per the nav shape from 1.1 (drafts)
 
+## 3b. Package card
+
+- [ ] 3b.1 Write `packages/pink/README.md` as the npm card (purpose/layering paragraph, install, one example, docs-home + Storybook links); no API reference
+
 ## 4. Publish & verify
 
 - [ ] 4.1 Publish with the listing; verify nav placement, topic rendering, Storybook links
