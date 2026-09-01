@@ -53,3 +53,24 @@ The router SHALL scroll the anchor target identified by the location's `#fragmen
 
 - **WHEN** `route(event, options)` handles a hash navigation and `options.scroll` is omitted
 - **THEN** the navigation scrolls exactly as it does without any options
+
+## ADDED Requirements
+
+### Requirement: Fragmentless navigations land at the top
+
+A route-changing navigation performed via `route()` whose href carries no `#fragment` SHALL scroll the window to the top after the routed content renders, without animation regardless of the page's `scroll-behavior` CSS. History traversal (`popstate`) SHALL NOT be scrolled by the router — the browser's own scroll restoration owns it. `route(event, { scroll: false })` SHALL suppress the top scroll exactly as it suppresses fragment scrolls.
+
+#### Scenario: pagination from a scrolled position lands at the top
+
+- **WHEN** the user activates a fragmentless route navigation while scrolled partway down the current page
+- **THEN** the new route's content renders and the viewport sits at the top, instantly
+
+#### Scenario: back/forward keeps browser restoration
+
+- **WHEN** the user traverses history to a previously visited route
+- **THEN** the router performs no scroll of its own and the browser's scroll restoration applies
+
+#### Scenario: the opt-out covers the top scroll
+
+- **WHEN** `route(event, { scroll: false })` performs a fragmentless route navigation
+- **THEN** the viewport keeps its position

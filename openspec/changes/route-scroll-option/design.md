@@ -11,6 +11,7 @@ The first consumer is an in-page "copy link" anchor beside each docs heading (un
 **Goals:**
 
 - Let a `route()` caller keep the History update and quiet pipeline of a fragment navigation while declining the scroll.
+- Define the fragmentless contract: forward SPA navigation lands at top; history traversal restores.
 - Zero behavior change for existing callers (default `true`).
 - Cover the opt-out in both scroll paths (immediate and deferred) and the bare-`#` case.
 
@@ -29,6 +30,11 @@ An option on the existing options object, beside `href`/`replace`, rather than a
 ### D2 — The opt-out suppresses every fragment scroll the navigation would trigger
 
 `scroll: false` skips the same-page `scrollToFragment`, and for a route-changing navigation it stores no `pendingFragment` (a stale one is still dropped, as today). The bare-`#` top-scroll is a fragment scroll too and is suppressed alike. One switch, one meaning: "this navigation does not move the viewport". _Alternative considered:_ suppress only the same-page case — rejected: the option's meaning would depend on whether the href happens to change the route, which the caller can't always know.
+
+### D2b — Fragmentless navigations scroll to top, instantly, after render (added 2026-08-31)
+
+A `route()` that changes the route and carries no fragment scrolls the window to the top once the routed content renders (the same deferred point as `consumePendingFragment`, so the scroll lands on the new page, not the old one). Instant (`scrollTo` with explicit non-smooth behavior): page-to-page motion mimics a fresh document load; the app's `scroll-behavior: smooth` CSS keeps animating _anchor_ jumps only. `popstate`/history traversal is untouched — `pushState` entries participate in the browser's automatic scroll restoration, and fighting it produces the classic jumpy back-button. `scroll: false` suppresses this scroll exactly as it suppresses fragment scrolls (D2: one switch, "this navigation does not move the viewport").
+_Alternative considered:_ smooth top-scroll — rejected: watching the page fly up on every pagination click reads as motion for its own sake, and native navigations don't animate.
 
 ### D3 — Thread the option, don't widen `scrollToFragment`
 
