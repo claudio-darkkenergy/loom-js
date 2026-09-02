@@ -30,6 +30,13 @@ The four unlinked pre-scrub topics were re-adjudicated at draft review:
 
 The listing rule amends from "exactly the mapped set" to "the mapped set, then trailing utility topics" (IA delta rides `docs-feedback-topic`).
 
+## Deferred restructures (noted 2026-09-02, not in this change)
+
+Maintainer notes from draft review — now owned by the `docs-ia-discoverability` proposal (2026-09-02), which also carries the systematic sweep:
+
+1. **"Functional components" topic or Components section** — gathers `simple` components and plain functional components (the `SuperButton` pattern) under one discoverable heading, instead of the pass-through living as a Components subsection and the plain-function contract living in an example comment.
+2. **"Fragments" topic or section** — the fragment material is currently spread across Components (root forms, `node()` arrays), Element Syntax (lone-tag inference, `<>` prefix, rootless values in children arrays), and slots; one home would carry the root rules, the `<>` token, reconciliation-as-a-group, and the interpolation nuance.
+
 ## Rich-text conventions
 
 These conventions are how README constructs are entered in Contentful and how the renderer
@@ -37,7 +44,7 @@ interprets them. They are invisible in Contentful's editor, so authors must know
 
 1. **Headings.** The topic title is the entry's title field — the body never uses h1. Body
    headings start at h2 (README h4/h5 sub-sections flatten to h3 where noted per topic).
-   h2 text is kebab-cased into the anchor `id` (existing `StyledRichText` behavior) and feeds the
+   h2 text is kebab-cased with punctuation stripped into the anchor `id` (GitHub-slugger parity — fixed at draft review 2026-08-31; `headingAnchorId` is the one helper) and feeds the
    on-page TOC — so **h2 text must be unique within a topic**, and renaming an h2 changes its
    anchor (treat h2 text as semi-permanent).
 2. **Block code samples.** A paragraph whose _entire_ content carries `MARKS.CODE` is a code
@@ -63,6 +70,13 @@ interprets them. They are invisible in Contentful's editor, so authors must know
    inline code for identifiers — no content-model change needed.
 
 ## Topics
+
+Every topic opens with an unheaded lead paragraph (one to three sentences) that
+orients the reader — what the topic covers and where it fits — before the first h2
+(added at draft review, 2026-08-31; topic 1's lead doubles as the site pitch).
+Selected examples and section-ending code blocks close with a line of transitional
+copy that lands the takeaway and hands off to the next section or topic —
+selective, not mechanical (also 2026-08-31).
 
 Side-nav order is the table order (the learning path). "Source" cites README headings; line
 numbers refer to the pinned commit above.
@@ -92,11 +106,12 @@ topic (noted per topic below).
 
 - **Source:** intro blurb, Feature Highlights, Install, Inclusion (README 1–37).
 - **Outline:**
-    - h2 What is loom — the one-line pitch + feature highlights (rendered as a list, not a table).
+    - Lead paragraph (unheaded) — the one-line pitch answers "what is loom".
+    - h2 Feature highlights — the highlights list (rendered as a list, not a table).
     - h2 Install — npm/yarn commands.
     - h2 Inclusion — the import line.
-    - h2 Where next — short guided pointer into the learning path.
-- **Code samples:** `npm i @loom-js/core` / `yarn add @loom-js/core` (bash), `import * as Loom`
+    - h2 Where next — the nav is ordered as a learning path: bootstrapping first, components + activities as the foundations, configuration/diagnostics called out as reference stops.
+- **Code samples:** one bash block with the npm/yarn/pnpm install commands (one per line), `import * as Loom`
   (ts).
 - **Cross-links:** feature-highlight bullets link to their topics (custom-elements, routing,
   lazy-imports, server-rendering, hydration, dehydrated-state); "Where next" → `bootstrapping`.
@@ -110,7 +125,7 @@ topic (noted per topic below).
     - h2 `AppInitProps` — `app`, `placement` (the `'replace' | 'append' | 'prepend'` union),
       `globalConfig`, `onAppMounted`, `root` (incl. the head/body → `#loom-app` fallback).
     - h2 Example — the fuller App Initialization example.
-- **Code samples:** quick example (README 65–78), App Initialization `init` example (801–817).
+- **Code samples:** quick example (README 65–78), App Initialization `init` example — extended at draft review (2026-08-31) to exercise every `AppInitProps` member (`placement: 'append'`, scoped `globalConfig` debug, served-shell `html` snippet).
   The example's SSG prerender variant (819–834) moves to `server-rendering`, cross-linked here.
 - **Cross-links:** `configuration` (globalConfig), `hydration` (the pre-rendered boot
   alternative), `server-rendering` (prerendering the same app).
@@ -128,16 +143,18 @@ topic (noted per topic below).
 ### 4. `components` — Components
 
 - **Source:** Components (README 102–162), Simple components (164–187) + Examples › Components:
-  simple example, props & interpolation, node access, life cycles (836–941).
+  basic example, props & interpolation, node access, life cycles (836–941).
 - **Outline:**
     - h2 Defining a component — tagged template, single top-level element, fragment exception.
     - h2 The template function — `html` and `props`, `node()` getter.
     - h2 Life-cycle hooks — the five-hook table; server caveat for `onMounted`/`onUnmounted`.
     - h2 Attribute and text values — truthy/falsy application, the `0` exception.
     - h2 Simple components — `simple()` pass-through, when to reach for it.
-    - h2 Examples — h3 Props and interpolation; h3 Accessing the rendered node; h3 Life cycles.
-- **Code samples:** Button quick example (148–160), `simple` Button (178–187), simple example
+    - h2 Using components — both forms shown (call + markup) plus calls as plain values; renders in any value slot (added at draft review 2026-09-01).
+    - h2 Examples — h3 Basic example; h3 Props and interpolation; h3 Accessing the rendered node; h3 Life cycles.
+- **Code samples:** Button quick example (148–160), `simple` Button (178–187), basic example (renamed from "Simple example" at draft review, to avoid clashing with the `simple` API)
   (840–848), props & interpolation (855–883), node access (887–905), life cycles (909–941).
+- Added at draft review (2026-08-31): an attr/text application example under "Attribute and text values" (README + topic) and a topic-only `effect`/`bind` counter after its activities bridge.
 - **Tables:** life-cycle hooks (134–140).
 - **Cross-links:** `element-syntax` (composing), `custom-elements` (`defineElement` contrast),
   `activities` (effects inside templates), `server-rendering` (hook timing off-browser).
@@ -156,7 +173,7 @@ topic (noted per topic below).
     - h2 Keys — `key` as ordinary prop, keyed reconciliation.
     - h2 Errors — first-render throws for malformed syntax.
     - h2 Element components — h3 `RouteLink`; h3 `Svg`; h3 `Picture`; h3 `el(tagName)`.
-- **Code samples:** PinkButton composition (193–201), Panel children (222–229), Card named slots
+- **Code samples:** IconButton composition (pink swept out 2026-09-01; opener now pairs with its compiled-call form; `.map`, effect-return, and `is=`/`el` value-position examples follow — added at draft review), Panel children (222–229), Card named slots
   (235–253), RouteLink (271–275).
 - **Tables:** prop forms (209–215).
 - **Cross-links:** `components` (functional form), `routing` (`RouteLink` behavior),
