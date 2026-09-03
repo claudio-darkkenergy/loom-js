@@ -6,7 +6,7 @@
 
 ## 2. Sweep (review gate)
 
-- [ ] 2.1 Sweep all 13 topics for discoverability failures (prose-only concepts, mechanism-titled headings, split material); write `sweep.md` with per-candidate verdicts, seeding the known set (functional components, fragments, settlement signal, `el()`)
+- [ ] 2.1 Sweep all 13 topics for discoverability failures (prose-only concepts, mechanism-titled headings, split material); write `sweep.md` with per-candidate verdicts, seeding the known set (element bindings — heading _and_ coverage gap, functional components, fragments, settlement signal, `el()`)
 - [ ] 2.2 Maintainer reviews sweep verdicts — no restructuring before sign-off
 
 ## 3. Restructure
