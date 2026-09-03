@@ -3,7 +3,7 @@
 ## 1. README
 
 - [ ] 1.1 Write the `#### Refs` subsection under Components: `createRef()`/`RefContext`, the `ref` reserved prop, what the creator gets (child `node()` + hooks), `ctxRefs()` creation-order iteration, when refs beat `node()`; example mirroring the tested pattern (D3)
-- [ ] 1.2 Write the **Built-in props** section per D2: one prose entry per reserved prop and utility getter (definitions here, depth pointed to; `children` defined here with Element Syntax keeping authoring mechanics); shrink the template-function `props` bullet to a pointer
+- [ ] 1.2 Write the **Built-in props** section per D2: one prose entry per reserved prop and utility getter (definitions here, depth pointed to; `children` defined here with Element Syntax keeping authoring mechanics); shrink the template-function `props` bullet to a pointer; close the section with its See also block (manually seeded per D2)
 - [ ] 1.3 Extract-and-type-check the new example (accuracy spec's compile scenario); `pnpm format` over the README
 
 ## 2. Docs parity
