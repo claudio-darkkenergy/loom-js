@@ -12,13 +12,13 @@ The render function's props are `ComponentOutputProps` = the five life-cycle hoo
 
 ## Decisions
 
-### D1 — Refs are a Components subsection, not a topic
+### D1 — Refs are a Components subsection (inside Built-in props), not a topic
 
 README: a `#### Refs` block under Components (the section already reads as one concept's reference; `####` matches how Custom elements and Activities structure sub-concerns). Docs: the components topic gains the matching section per the map's flattening conventions, ordered after Life-cycle hooks (a ref is "a child's node + hooks, from the outside") and before Attribute and text values.
 
-### D2 — One prop-surface table, pointers not prose
+### D2 — A Built-in props section: per-prop prose, owned depth pointed to (upgraded 2026-09-03)
 
-The `props` bullet gains a compact table of the reserved props with one-line meanings and pointers to their owning sections. The table's job is completeness-at-a-glance; depth stays where it lives today. `routeProps` and `ref` get their pointers into Routing and the new Refs block respectively.
+A named **Built-in props** section under Components (heading = discoverability, per the IA principle) with one entry per member of the surface — `children`, `slots`, `key`, `ref`, `attrs`, `on`, `onClick`, `className`, `id`, `style`, `routeProps`, and the utility getters `node()`, `createRef()`, `ctxRefs()` — each a few sentences of what it does, not a table row. Where depth already has a home, the entry defines the prop and points: `children` is _defined_ here (the prop every component receives) while Element Syntax keeps the _authoring_ mechanics (how markup fills it, `</>`, slot labels); `routeProps` points to Routing; `attrs`/`on`/`onClick` note the element-binding relationship (coordinating with the sweep's element-bindings candidate rather than duplicating it). The Refs material (D1/D3) nests as this section's `ref`-adjacent subsection. The `props` bullet in the template-function docs shrinks to one sentence pointing at the section.
 
 ### D3 — The example is the tested pattern
 
