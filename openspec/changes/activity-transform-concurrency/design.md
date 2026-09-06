@@ -8,7 +8,7 @@
 
 **Goals:** deterministic commit semantics for concurrent dispatches; the sync mental model ("value reflects the last `update()`") preserved by default; an ordered mode for accumulation; settlement correctness in both modes.
 
-**Non-Goals:** cancellation of in-flight work (superseded runs complete; their commits are ignored — an abort seam is future work if fetch cancellation earns it); debouncing/throttling (caller-land); changing effect/watch notification order (FIFO per commit, as today).
+**Non-Goals:** forcible termination of transform execution (impossible in JS — cancellation is cooperative via the signal, and a transform that ignores it simply runs to a silenced completion); debouncing/throttling (caller-land); changing effect/watch notification order (FIFO per commit, as today).
 
 ## Decisions
 
@@ -16,9 +16,11 @@
 
 Fetch-and-display is the overwhelming transform shape, and rapid re-dispatch means "the user changed their mind" — newest intent wins, one paint. The alternative default (sequenced) would _guarantee_ the stale paint the race only sometimes produces, and stacks queue latency under dispatch spam. Making latest opt-in instead would leave the documented idiomatic path nondeterministic by default — rejected outright (maintainer direction). Behavior-change note rides the changeset: any code relying on merge-y racing was relying on nondeterminism.
 
-### D2 — Supersession mechanics: dispatch id, dead-run commits dropped
+### D2 — Supersession mechanics: dispatch id, dead-run commits dropped, signal aborted
 
-Each `update()` increments a dispatch counter; the `update` closure handed to that run captures its id, and commits check it against the latest — a superseded run's commits no-op. The run's promise remains settlement-tracked (SSR still waits; work isn't cancelled, just silenced). `reset()` is an ordinary dispatch. `value` handed at dispatch time is unchanged (point-in-time read, as documented).
+Each `update()` increments a dispatch counter; the `update` closure handed to that run captures its id, and commits check it against the latest — a superseded run's commits no-op. The run's promise remains settlement-tracked. `reset()` is an ordinary dispatch. `value` handed at dispatch time is unchanged (point-in-time read, as documented).
+
+Each dispatch under `'latest'` also owns an `AbortController`; its `signal` rides the transform context, and supersession aborts it. This is the waste/latency half of the fix (maintainer, 2026-09-06): without it a retired run's slow fetch burns bandwidth _and_ holds `settled()` open — delaying hydration's swap and `renderToString` — while with it the aborted work rejects at once and settlement drains sooner (`trackTransformResult` already treats rejection as settling). The signal is present in every mode for a uniform context shape but only ever fires under `'latest'` (nothing is superseded in the ordered modes); wiring it is optional, correctness never depends on it.
 
 ### D3 — Sequenced mode serializes execution, not just commits
 

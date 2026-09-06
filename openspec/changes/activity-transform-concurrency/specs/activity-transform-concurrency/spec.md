@@ -19,6 +19,20 @@ For an activity with an asynchronous transform, a newer `update()` SHALL superse
 - **WHEN** a superseded run's promise is still pending
 - **THEN** `settled()` does not resolve until it settles, even though its commits are dropped
 
+### Requirement: Supersession aborts the retired run's signal
+
+The transform context SHALL carry an `AbortSignal`; under the default mode, superseding a dispatch SHALL abort the superseded run's signal, so cooperative work (e.g. `fetch(url, { signal })`) cancels and the run settles promptly. A transform that ignores the signal SHALL remain correct — its late commits are dropped as usual. The signal SHALL NOT fire in the ordered modes, where no dispatch is superseded.
+
+#### Scenario: a wired fetch cancels and settlement drains
+
+- **WHEN** a superseded run passed its `signal` to its async work and that work aborts
+- **THEN** the run settles immediately and `settled()` no longer waits on it
+
+#### Scenario: ignoring the signal stays safe
+
+- **WHEN** a superseded run ignores its `signal` and later commits
+- **THEN** the commit is dropped and the value reflects the latest dispatch
+
 ### Requirement: Ordered mode runs in parallel and commits in dispatch order
 
 With `concurrency: 'ordered'`, every dispatch's transform SHALL start immediately, and commits SHALL apply strictly in dispatch order: a run's commits are held until all earlier dispatches have settled and flushed, then apply in order; no commit SHALL be dropped, and a rejection SHALL release the turn to the next dispatch.
