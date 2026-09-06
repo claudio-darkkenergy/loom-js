@@ -6,7 +6,7 @@
 
 ## 2. Green
 
-- [ ] 2.1 Dispatch-id supersession + per-dispatch AbortController (D2) + ordered commit-buffer and serial queue (D3), behind the `concurrency` enum (D4), plus `timeout` retirement with raced settlement tracking (D2b) in `activity.ts`; dropped-commit debug line (activity scope); settle option naming (D4) against the specs
+- [ ] 2.1 Dispatch-id supersession + per-dispatch AbortController (D2) + ordered commit-buffer and serial queue (D3), behind the `concurrency` enum (D4), plus `timeout` retirement with raced settlement tracking and the debug-lane long-pending notice (D2b) in `activity.ts`; dropped-commit debug line (activity scope)
 - [ ] 2.2 Full suite + `type-check`/`type-check-tests` green; bundle delta noted
 
 ## 3. Docs & release

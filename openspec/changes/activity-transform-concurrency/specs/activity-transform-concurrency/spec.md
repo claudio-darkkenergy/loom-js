@@ -88,3 +88,8 @@ With `timeout` set, a run exceeding it SHALL be retired exactly as supersession 
 
 - **WHEN** an activity sets no `timeout`
 - **THEN** long-running transforms behave exactly as before
+
+#### Scenario: the missing bound is pointed at, not invented
+
+- **WHEN** debug narration (activity scope) is enabled and a run on a timeout-less activity stays pending past the notice threshold
+- **THEN** a debug-lane message flags the long-pending run, and no timeout is applied
