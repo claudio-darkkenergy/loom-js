@@ -19,19 +19,33 @@ For an activity with an asynchronous transform, a newer `update()` SHALL superse
 - **WHEN** a superseded run's promise is still pending
 - **THEN** `settled()` does not resolve until it settles, even though its commits are dropped
 
-### Requirement: Sequenced mode queues dispatches in order
+### Requirement: Ordered mode runs in parallel and commits in dispatch order
 
-With the sequenced option enabled, dispatches SHALL apply strictly in dispatch order: a dispatch's transform SHALL NOT be invoked until the prior dispatch's run settles (rejection included), each run's `value` context SHALL reflect its predecessor's committed result, and no commit SHALL be dropped.
+With `concurrency: 'ordered'`, every dispatch's transform SHALL start immediately, and commits SHALL apply strictly in dispatch order: a run's commits are held until all earlier dispatches have settled and flushed, then apply in order; no commit SHALL be dropped, and a rejection SHALL release the turn to the next dispatch.
 
-#### Scenario: commits land in dispatch order despite resolution speed
+#### Scenario: parallel speed, ordered arrival
 
-- **WHEN** two sequenced dispatches are issued and the second's async work would resolve faster
+- **WHEN** three ordered dispatches run concurrently and the third resolves first
+- **THEN** all three transforms ran without waiting on each other, and the commits apply in dispatch order 1, 2, 3
+
+#### Scenario: a rejected run releases the turn
+
+- **WHEN** an ordered run rejects while later runs hold buffered commits
+- **THEN** the later runs' commits flush in order
+
+### Requirement: Serial mode queues execution itself
+
+With `concurrency: 'serial'`, a dispatch's transform SHALL NOT be invoked until the prior dispatch's run settles (rejection included), each run's `value` context SHALL reflect its predecessor's committed result, and no commit SHALL be dropped.
+
+#### Scenario: execution waits its turn
+
+- **WHEN** two serial dispatches are issued and the second's async work would resolve faster
 - **THEN** the second transform starts only after the first settles, and the final value reflects both, in order
 
-#### Scenario: a rejection releases the queue
+#### Scenario: each run sees its predecessor's value
 
-- **WHEN** a sequenced run's transform rejects
-- **THEN** the next queued dispatch runs
+- **WHEN** serial transforms read `value` to accumulate
+- **THEN** every run observes the committed result of the run before it
 
 ### Requirement: Untransformed and synchronous paths are unchanged
 

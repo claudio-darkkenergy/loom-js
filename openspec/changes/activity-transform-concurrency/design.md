@@ -34,14 +34,14 @@ The Transforms section states latest-wins explicitly ("a newer `update()` retire
 
 ## Risks / Trade-offs
 
-- [Silent behavior change for merge-racers] → changeset note; such code depended on timing nondeterminism, and sequenced mode is the deliberate replacement.
-- [Sequenced queue never drains if a transform hangs] → same exposure `settled()` already has for any pending transform; bounded waits (`maxWait`) remain the framework-wide answer.
+- [Silent behavior change for merge-racers] → changeset note; such code depended on timing nondeterminism, and the ordered modes are the deliberate replacements.
+- [An ordered/serial queue never drains if a transform hangs] → same exposure `settled()` already has for any pending transform; bounded waits (`maxWait`) remain the framework-wide answer.
 - [Dropped-commit debugging confusion] → a `loom.console` debug-lane line (activity scope) when a superseded run's commit is dropped.
 
 ## Migration Plan
 
-Minor core release. Default-affected consumers: none known in-repo relying on merge racing; the docs app's `pageContent` race is _fixed_ by the default. Accumulation users opt into `sequenced`.
+Minor core release. Default-affected consumers: none known in-repo relying on merge racing; the docs app's `pageContent` race is _fixed_ by the default. Order-dependent users opt into `'ordered'` or `'serial'`.
 
 ## Open Questions
 
-None — option naming (D4) settles at review of the red specs.
+None.
