@@ -93,3 +93,17 @@ With `timeout` set, a run exceeding it SHALL be retired exactly as supersession 
 
 - **WHEN** debug narration (activity scope) is enabled and a run on a timeout-less activity stays pending past the notice threshold
 - **THEN** a debug-lane message flags the long-pending run, and no timeout is applied
+
+### Requirement: The transform input is a read-only contract, not a runtime mutation
+
+The transform context SHALL expose `input` typed `Readonly<I>`, handed through by reference with no runtime copying or freezing — the caller's object is never altered by core.
+
+#### Scenario: mutating transforms fail to compile
+
+- **WHEN** a transform assigns to a property of `input`
+- **THEN** type-checking rejects it
+
+#### Scenario: the caller's object is untouched
+
+- **WHEN** a caller dispatches an object and continues using it after `update()`
+- **THEN** the object is neither frozen nor copied — the caller's later writes behave exactly as before
