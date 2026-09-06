@@ -69,3 +69,22 @@ Activities without a transform, and transforms that commit synchronously, SHALL 
 
 - **WHEN** an activity without a transform receives two `update()` calls
 - **THEN** the value is the second call's input, as today
+
+### Requirement: A timeout retires a run by clock
+
+With `timeout` set, a run exceeding it SHALL be retired exactly as supersession retires a run — signal aborted, subsequent commits dropped, any serial queue or ordered turn released — and SHALL count as settled for the settlement signal even if its promise never resolves. Expiry SHALL surface on the always-on console lane. Without `timeout`, runs are unbounded, as today.
+
+#### Scenario: a hung serial run stops blocking the queue
+
+- **WHEN** a `'serial'` dispatch's transform hangs past the activity's `timeout`
+- **THEN** the next queued dispatch runs, the hung run's later commits (if any) are dropped, and `settled()` does not wait on it
+
+#### Scenario: expiry aborts cooperative work
+
+- **WHEN** a run wired its `signal` into its async work and the timeout expires
+- **THEN** the signal aborts and the work cancels
+
+#### Scenario: no timeout means no bound
+
+- **WHEN** an activity sets no `timeout`
+- **THEN** long-running transforms behave exactly as before

@@ -37,7 +37,7 @@ The Transforms section states latest-wins explicitly ("a newer `update()` retire
 ## Risks / Trade-offs
 
 - [Silent behavior change for merge-racers] → changeset note; such code depended on timing nondeterminism, and the ordered modes are the deliberate replacements.
-- [An ordered/serial queue never drains if a transform hangs] → same exposure `settled()` already has for any pending transform; bounded waits (`maxWait`) remain the framework-wide answer.
+- [An ordered/serial queue never drains if a transform hangs] → `timeout` (D2b) is the direct answer; without one set, the exposure is the caller's explicit choice and consumers' `maxWait` still bounds the waiting.
 - [Dropped-commit debugging confusion] → a `loom.console` debug-lane line (activity scope) when a superseded run's commit is dropped.
 
 ## Migration Plan

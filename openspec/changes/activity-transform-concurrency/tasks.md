@@ -2,11 +2,11 @@
 
 ## 1. Red (TDD)
 
-- [ ] 1.1 Concurrency specs with deferred-promise fixtures: out-of-order stale commit dropped (latest default); multi-commit within current run; settlement waits on superseded runs; ordered mode (parallel starts, commits flush 1-2-3 despite reverse resolution, rejection releases the turn), serial mode (fast second waits, predecessor-visible `value`, rejection releases queue); signal aborted on supersession (wired fetch settles fast; ignored signal still safe; no fire in ordered modes); sync/untransformed unchanged — confirmed failing on today's behavior where applicable
+- [ ] 1.1 Concurrency specs with deferred-promise fixtures: out-of-order stale commit dropped (latest default); multi-commit within current run; settlement waits on superseded runs; ordered mode (parallel starts, commits flush 1-2-3 despite reverse resolution, rejection releases the turn), serial mode (fast second waits, predecessor-visible `value`, rejection releases queue); signal aborted on supersession (wired fetch settles fast; ignored signal still safe; no fire in ordered modes); timeout retirement (hung serial run releases the queue + settlement via raced tracking; expiry aborts the signal; unset = unbounded; always-on warn); sync/untransformed unchanged — confirmed failing on today's behavior where applicable
 
 ## 2. Green
 
-- [ ] 2.1 Dispatch-id supersession + per-dispatch AbortController (D2) + ordered commit-buffer and serial queue (D3), behind the `concurrency` enum (D4) in `activity.ts`; dropped-commit debug line (activity scope); settle option naming (D4) against the specs
+- [ ] 2.1 Dispatch-id supersession + per-dispatch AbortController (D2) + ordered commit-buffer and serial queue (D3), behind the `concurrency` enum (D4), plus `timeout` retirement with raced settlement tracking (D2b) in `activity.ts`; dropped-commit debug line (activity scope); settle option naming (D4) against the specs
 - [ ] 2.2 Full suite + `type-check`/`type-check-tests` green; bundle delta noted
 
 ## 3. Docs & release
