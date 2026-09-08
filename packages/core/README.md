@@ -1430,8 +1430,6 @@ const page = activity<PageData | undefined, string>(
 On the server, capture after the render & embed alongside the markup. The transport is explicit — loom never writes or discovers page structure; the documented convention is a JSON script tag. Extending the handler from the server-rendering section above:
 
 ```ts
-import { readFile } from 'node:fs/promises';
-
 import {
     dehydrate,
     renderToString,
@@ -1440,6 +1438,7 @@ import {
 import { parseHTML } from 'linkedom';
 
 import { App } from '@app/app';
+import { readFile } from 'node:fs/promises';
 
 export const handleRequest = async (request: Request) => {
     // One window per render, as always.
