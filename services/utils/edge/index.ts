@@ -1,2 +1,2 @@
-export * from './edge-request';
-export * from './edge-response';
+export * from './edge-request.js';
+export * from './edge-response.js';

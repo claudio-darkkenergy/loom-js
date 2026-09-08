@@ -1,4 +1,4 @@
-import { EdgeResponsePayload } from './edge-request';
+import { EdgeResponsePayload } from './edge-request.js';
 
 export const edgeResponse = async (
     req: Request,

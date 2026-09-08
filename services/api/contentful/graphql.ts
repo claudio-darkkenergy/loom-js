@@ -1,4 +1,4 @@
-import { edgeRequest, edgeResponse } from '../../utils/edge';
+import { edgeRequest, edgeResponse } from '../../utils/edge/index.js';
 
 export const config = {
     runtime: 'edge'
