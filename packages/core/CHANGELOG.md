@@ -1,5 +1,17 @@
 # @loom-js/core
 
+## 0.8.0
+
+### Minor Changes
+
+- 4dbd615: Export `isAttrBinding` — the runtime guard for `activity.bind()` values — so consumers (design systems, props transformers) can pass a binding through to an attribute slot instead of stringifying it.
+- 4a43f75: The router now owns the full navigation-scroll contract, with an opt-out. `route(event, options)` accepts `scroll?: boolean` (default `true`): `{ scroll: false }` keeps the viewport still — no same-page fragment scroll, no deferred cross-page fragment scroll, no bare-`#` top scroll — while history, the quiet pipeline & the activation policy behave exactly as before. Fragmentless route-changing navigations now scroll to the top after the new page renders (instantly, bypassing `scroll-behavior` CSS; `popstate` traversal stays with the browser's own scroll restoration), and the deferred fragment scroll now fires once the settlement signal resolves (bounded) instead of a post-render microtask — so anchors produced by tracked async work (lazy route chunks, data fetched through activity transforms) exist when the single attempt fires.
+
+### Patch Changes
+
+- 4a43f75: Fix `RouteLink` rendering its template's newline as a trailing space inside the anchor, which showed as a gap between the link text and any following punctuation.
+- 32c3a87: Table-aware template parsing — templates rooted at a table-part tag (`tr`, `td`, `th`, `thead`, `tbody`, `tfoot`, `caption`, `colgroup`, `col`) keep their authored root instead of being stripped by body-context parsing, and interpolations directly inside `table`/sections/`tr`/`colgroup` render in place instead of being foster-parented out of the table. Heals `el('tr')`/`el('td')`-style components, dynamic row lists, and Contentful rich-text tables; browser and server (linkedom) renders now agree on table markup. Table-free templates parse exactly as before.
+
 ## 0.7.0
 
 ### Minor Changes
