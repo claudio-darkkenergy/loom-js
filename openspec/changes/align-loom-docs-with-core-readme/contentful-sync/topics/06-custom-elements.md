@@ -2,6 +2,8 @@
 slug: custom-elements
 title: Custom Elements
 ---
+`defineElement` registers a component as a real custom element, so any page — loom or not — can consume it as `<some-element>`. This topic covers registration, passing props in from the consuming page, the light-vs-shadow DOM decision, and the current limitations.
+
 ## defineElement
 
 `component()` defines a component for use inside loom templates (see [Components](/docs/components)). It does **not** define a custom element. When you want a component to be consumable from a non-loom page as `<some-element>`, define it with `defineElement()` instead — it is `component()` plus registration, and returns the same callable `Component`.
@@ -10,7 +12,7 @@ title: Custom Elements
 
 | Argument | Type | Description |
 | --- | --- | --- |
-| `name` | `string` | The custom element name. Must contain a hyphen and use no uppercase characters. |
+| `name` | `string` | The custom element name. Must start with a lowercase letter, contain a hyphen, and use no uppercase characters. |
 | `templateFunction` | `TemplateFunction<Props>` | The render function, exactly as you would pass to `component()`. |
 | `options.shadow` | `ShadowRootInit \| false` | Render into a shadow root. Defaults to `false` (light DOM). |
 | `options.styles` | `CSSStyleSheet[]` | Stylesheets adopted by the shadow root. Ignored without `shadow`. |
@@ -27,9 +29,9 @@ export const Card = component(
     `
 );
 
-// Also available to any page as <pink-button>.
-export const PinkButton = defineElement<ButtonProps>(
-    'pink-button',
+// Also available to any page as <fancy-button>.
+export const FancyButton = defineElement<ButtonProps>(
+    'fancy-button',
     (html, props) => html`
         <button type="${props.type}">${props.label}</button>
     `
@@ -43,15 +45,20 @@ Use one or the other for a given component, never both. An invalid or already-ta
 Consumers pass props as `$`-prefixed attributes, which map to camelCase props:
 
 ```html
-<pink-button $label="Save" $type="submit"></pink-button>
+<fancy-button $label="Save" $type="submit"></fancy-button>
 ```
 
 From inside a loom template, a `$`-prefixed **interpolated** value is set as a real JS property rather than an attribute, so objects, arrays, and functions arrive uncoerced:
 
 ```ts
-html`
-    <pink-button $label=${label} $onClick=${handleClick}></pink-button>
-`;
+const SaveControls = component(
+    (html, { handleClick, label }) => html`
+        <fancy-button
+            $label=${label}
+            $onClick=${handleClick}
+        ></fancy-button>
+    `
+);
 ```
 
 Child nodes of the host element arrive as the `children` prop.
@@ -72,8 +79,8 @@ buttonStyles.replaceSync(`
     button { padding: var(--p-space-4); color: var(--p-color-text); }
 `);
 
-export const PinkButton = defineElement<ButtonProps>(
-    'pink-button',
+export const FancyButton = defineElement<ButtonProps>(
+    'fancy-button',
     (html, props) => html`
         <button>${props.label}</button>
     `,
@@ -83,7 +90,7 @@ export const PinkButton = defineElement<ButtonProps>(
 
 `mode` should stay `'open'`. `'closed'` provides no additional style encapsulation — it only makes `element.shadowRoot` unreachable, which breaks tests, devtools, and external queries.
 
-> **Why light DOM is the default.** This is a deliberate call for the current release, not a rejection of encapsulation. Loom ships no styling machinery for shadow content beyond `options.styles`, so a shadow-by-default element would render completely unstyled the first time anyone reached for `defineElement`. The orthodox web-components position is the opposite — with shadow, a consuming page's CSS cannot break your component and your CSS cannot leak into their page — and it becomes the better trade once loom elements are genuinely consumed by third parties. Expect this default to be revisited then.
+> **Why light DOM is the default.** This is a deliberate call, not a rejection of encapsulation. Loom ships no styling machinery for shadow content beyond `options.styles`, so a shadow-by-default element would render completely unstyled the first time anyone reached for `defineElement`. The orthodox web-components position is the opposite — with shadow, a consuming page's CSS cannot break your component and your CSS cannot leak into their page — and when that trade fits, encapsulation is one option away: pass `shadow`. Light DOM stays the default.
 
 ## Known limitations
 

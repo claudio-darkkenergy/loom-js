@@ -4,7 +4,7 @@ title: Getting Started
 ---
 loom is a reactive, components-first JavaScript framework. Components are tagged templates, reactivity is a small pub/sub primitive called an activity, and the same render path runs in the browser, on a server, and at build time.
 
-## What is loom
+## Feature highlights
 
 - **Micro-updates** on rerenders - updates are made at the attribute & node-levels.
 - **Self-cleanup** leveraging native JS garbage collection & `WeakMap` to release dead nodes from memory.
@@ -23,10 +23,8 @@ loom is a reactive, components-first JavaScript framework. Components are tagged
 
 ```bash
 npm i @loom-js/core
-```
-
-```bash
 yarn add @loom-js/core
+pnpm add @loom-js/core
 ```
 
 ## Inclusion
@@ -37,4 +35,4 @@ import * as Loom from '@loom-js/core';
 
 ## Where next
 
-The topics in the side navigation form a learning path. Start with [Bootstrapping](/docs/bootstrapping) to mount your first app, then work through [Components](/docs/components) and [Activities](/docs/activities) - everything else builds on those two.
+The side navigation is ordered as a learning path. Start with [Bootstrapping](/docs/bootstrapping) to mount your first app, then work through [Components](/docs/components) and [Activities](/docs/activities) — the foundations the later concepts build on. [Configuration](/docs/configuration) and [Diagnostics](/docs/diagnostics) are reference stops you can return to any time.

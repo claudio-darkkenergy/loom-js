@@ -76,7 +76,11 @@ orients the reader — what the topic covers and where it fits — before the fi
 (added at draft review, 2026-08-31; topic 1's lead doubles as the site pitch).
 Selected examples and section-ending code blocks close with a line of transitional
 copy that lands the takeaway and hands off to the next section or topic —
-selective, not mechanical (also 2026-08-31).
+selective, not mechanical (also 2026-08-31). Backticks inside template-literal
+samples (HTML comments included) are escaped `\``, never bare (2026-09-05).
+Code samples never float a bare
+`html`tag —`html`exists only as a template function's argument, so every template
+example shows its`component((html) => …)` wrapper (2026-09-05).
 
 Side-nav order is the table order (the learning path). "Source" cites README headings; line
 numbers refer to the pinned commit above.
@@ -164,14 +168,19 @@ topic (noted per topic below).
 - **Source:** Composing components (element syntax) (README 189–263), Element components
   (265–282).
 - **Outline:**
-    - h2 Composing in markup — sugar-over-functional-form framing; primary authoring surface,
-      functional form as the value-position escape hatch.
+    - h2 Composing in markup — sugar-over-functional-form framing, both compiled forms shown.
+    - h2 Markup vs. the functional form — primary authoring surface; value positions with examples
+      (split out at draft review 2026-09-02 to deliver the hand-off's promise by name).
     - h2 Props — the four forms (table); h3 Spread props; h3 No `$` sigil on component tags.
     - h2 Children — `</>` closing form.
     - h2 Named slots — labels, per-region contexts, static-label rules, native `<slot>`
       non-competition.
-    - h2 Keys — `key` as ordinary prop, keyed reconciliation.
+    - h3 The `key` prop (under Props; moved + expanded at draft review 2026-09-04) — keyed
+      `.map` example, move-not-rebuild identity, fragment groups; deep reconciliation
+      mechanics deferred to the future fragments topic.
     - h2 Errors — first-render throws for malformed syntax.
+    - h2 Template comments — HTML comments vs. the `${'' /* … */}` no-trace idiom
+      (added at draft review 2026-09-05).
     - h2 Element components — h3 `RouteLink`; h3 `Svg`; h3 `Picture`; h3 `el(tagName)`.
 - **Code samples:** IconButton composition (pink swept out 2026-09-01; opener now pairs with its compiled-call form; `.map`, effect-return, and `is=`/`el` value-position examples follow — added at draft review), Panel children (222–229), Card named slots
   (235–253), RouteLink (271–275).
@@ -207,7 +216,9 @@ topic (noted per topic below).
     - h2 Options — `deep`, `force`, `transform`.
     - h2 The returned interface — `initialValue`; h3 `effect`; h3 `bind`; h3 `reset`;
       h3 `update`; h3 `value`; h3 `watch`.
-    - h2 Examples — h3 Attribute binding; h3 Counter (quick example + effect example).
+    - h2 Examples — h3 Attribute binding; h3 Counter (quick example + effect example);
+      h3 Component-scoped state (local activity + the parent-re-render boundary, added
+      at draft review 2026-09-07).
 - **Code samples:** transform example (399–411), attribute binding (451–465), quick example
   (469–480), activity effect example (945–981).
 - **Cross-links:** `components` (effects in templates), `server-rendering` / `hydration` /
@@ -252,8 +263,11 @@ topic (noted per topic below).
     - h2 `renderToStringSync` — the synchronous primitive and when it's right.
     - h2 Semantics worth knowing — tracking boundary, lifecycle hooks off-browser, custom
       elements per window, safe off-browser import, separate server entry.
-    - h2 Prerendering (SSG) — one render per page against a fresh window.
-- **Code samples:** quick example (660–675), SSG prerender example (821–834).
+    - h2 Prerendering (SSG) — the complete enumerate/loop/emit build script (router-driven;
+      router-less variant + hydrate/dehydrate pairing noted) — rebuilt at draft review
+      2026-09-07; README gains the matching subsection.
+- **Code samples:** quick example (SSR handler + shell/hydrate wiring, expanded at draft
+  review), the prerender build script, jsdom delta snippet.
 - **Cross-links:** `hydration` (the client half), `dehydrated-state` (capturing fetched data),
   `activities` (transforms are what settle), `components` (hook timing).
 

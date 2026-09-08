@@ -2,6 +2,8 @@
 slug: configuration
 title: Configuration
 ---
+Some behavior is decided at boot: debug narration, the `$event` names the renderer recognizes, its placeholder token. This topic covers the one object that carries those switches — and the helper that extends events at runtime.
+
 ## AppGlobalConfig
 
 Boot-time configuration rides in on `init`'s (& `hydrate`'s) `globalConfig` — see [Bootstrapping](/docs/bootstrapping) and [Client Hydration](/docs/hydration):

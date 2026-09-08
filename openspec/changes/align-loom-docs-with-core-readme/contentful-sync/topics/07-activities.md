@@ -2,9 +2,11 @@
 slug: activities
 title: Activities
 ---
+The activity is loom's reactive primitive: a small pub/sub with an initial value, an optional transform, and subscription styles for content, attributes, and plain handlers. Everything reactive in loom — routing included — is built on it.
+
 ## The activity
 
-An activity uses a pub/sub pattern at its core. This concept directly supports reactive behavior within your component ecosystem.
+At its core, an activity is a pub/sub around a single value.
 
 When creating a new activity, you provide an initial value — & optionally a transform and/or options. One or more effects may be queued within your component ecosystem for any given activity. Then, by hooking an activity update to some event, all subscribed effects will be called in order of "first-in, first-out".
 
@@ -22,11 +24,11 @@ When creating a new activity, you provide an initial value — & optionally a tr
 
 ## Transforms (the async-data path)
 
-A transform sits between `update()` & the stored value: every `update(input)` call routes through it, & only the transform's own `update` calls commit values. It receives one context object:
+A transform sits between `update()` & the stored value: every `update(input)` call routes through it, & only the transform's own `update` calls commit values. The initial value doesn't take this path — it's stored as-is at creation, untransformed; the transform first runs on the first dispatch. It receives one context object:
 
 - `input: I` - Whatever the caller passed to `update()` — may be a different type than the stored `V`.
-- `update(next: V)` - Commits a value; call it as many times as needed (e.g. a loading state first, then the data).
-- `value: V` - The current value at the moment the update was dispatched.
+- `update(next: V)` - Commits a value; call it as many times as needed. It deliberately shadows the activity's own `update`: inside a transform, updating *is* committing — dispatching the activity from within its own transform would loop infinitely.
+- `value: V` - The current value at the moment the update was dispatched — a shallow copy for plain objects & arrays (not frozen), so it is a safe base to build on. It is bound once per run: it does not move across `await`s, and it does not reflect the run's own commits.
 
 **An async transform's returned promise is tracked by the settlement signal** — `settled()`, the signal `renderToString` & `hydrate` gate on — which is what lets server renders & hydration swaps wait for activity data to land. This makes transforms the framework's idiomatic path for async data (see [Server Rendering](/docs/server-rendering), [Client Hydration](/docs/hydration) & [Dehydrated State](/docs/dehydrated-state)):
 
@@ -43,6 +45,46 @@ const page = activity<PageData | undefined, string>(
 // Callers pass the transform's input type — here, the slug string.
 page.update('docs/intro');
 ```
+
+A transform may commit more than once per run — each commit notifies effects, so intermediate states paint:
+
+```ts
+import { activity } from '@loom-js/core';
+
+type SearchState =
+    | { status: 'loading' }
+    | { status: 'ready'; results: Result[] };
+
+const search = activity<SearchState, string>(
+    { status: 'loading' },
+    async ({ input: query, update }) => {
+        // First commit: effects render the loading state immediately.
+        update({ status: 'loading' });
+        // Second commit: effects re-render with the data.
+        update({ status: 'ready', results: await searchDocs(query) });
+    }
+);
+```
+
+Accumulating within a run seeds from `value` once, then builds locally — `value` is a dispatch-time snapshot, so re-reading it per commit would drop the run's earlier commits:
+
+```ts
+const feed = activity<Result[], string>(
+    [],
+    async ({ input: query, update, value }) => {
+        // Seed from the committed value at dispatch, accumulate locally.
+        let results = [...value];
+
+        for await (const batch of searchPages(query)) {
+            results = [...results, ...batch];
+            // Each commit paints everything gathered so far.
+            update(results);
+        }
+    }
+);
+```
+
+Transforms decide *how* a value changes; the options tune *when* a change counts.
 
 ## Options
 
@@ -177,4 +219,33 @@ export const Button = component((html) => {
 });
 ```
 
-[Lazy Imports](/docs/lazy-imports) are built on this same primitive — a dynamic `import()` wrapped in an activity.
+Note the component is *called* inside the effect — an effect's return is a value position, the canonical home of the functional form: see [when each form fits](/docs/element-syntax#markup-vs-the-functional-form).
+
+### Component-scoped state
+
+An activity created inside the render function is scoped to that component — each rendered instance owns its own state:
+
+```ts
+import { activity, component } from '@loom-js/core';
+
+export const Disclosure = component((html, { children, label }) => {
+    const isOpen = activity(false);
+
+    return html`
+        <section>
+            <button
+                $click=${() => isOpen.update(!isOpen.value())}
+                aria-expanded=${isOpen.bind((open) => String(open))}
+                type="button"
+            >
+                ${label}
+            </button>
+            ${isOpen.effect(({ value }) => (value ? children : undefined))}
+        </section>
+    `;
+});
+```
+
+The boundary: internal reactivity — the component's own effects and binds — re-renders content without re-running the render function, so the activity persists. A *parent* re-rendering this component re-runs the render function and recreates the activity, resetting it to its initial value. State that must survive parent-driven re-renders (or be shared between instances) belongs at module scope.
+
+The next two topics are built directly on this primitive: [Routing](/docs/routing) — its location and route layers are activities over the History API — and [Lazy Imports](/docs/lazy-imports), a dynamic `import()` wrapped in an activity.

@@ -2,9 +2,11 @@
 slug: bootstrapping
 title: Bootstrapping
 ---
+Every loom app starts with a single call: `init` takes your app's root component and mounts it into the document. This topic covers that boot call — its options, their defaults, and a fuller example.
+
 ## The app and init
 
-The app is where you first introduce your component ecosystem (one or more components that will drive your application). Bootstrapping is the process where you create and configure your app.
+Your app is your component ecosystem — one or more components that drive the application. Bootstrapping creates and configures it.
 
 **API** `init(options)`
 
@@ -39,7 +41,14 @@ init({
 
 ## Example
 
-A fuller bootstrap: the app takes content, mounts into a specific root, and confirms the mount.
+A fuller bootstrap exercising every option: content-driven app, scoped debug config, and an `append` mount that keeps the root's existing children — confirmed once mounted.
+
+```html
+<!-- The served shell: the root already holds a static banner. -->
+<div id="page-content">
+    <header>…static banner…</header>
+</div>
+```
 
 ```ts
 import { init } from '@loom-js/core';
@@ -47,16 +56,32 @@ import { init } from '@loom-js/core';
 import content from './content.json';
 import { Page } from './page';
 
-const rootNode = document.querySelector('#page-content');
-
+// `placement: 'append'` mounts the app after the banner instead of
+// replacing it.
 init({
     app: Page(content),
+    globalConfig: {
+        // Opt-in debug narration, scoped to activity updates (see Diagnostics).
+        debug: true,
+        debugScope: { activity: true }
+    },
     onAppMounted: (app) => {
         // The app node - all component descendants included - is in the DOM.
         console.log(document.contains(app)); // => true
     },
-    root: rootNode
+    placement: 'append',
+    root: document.querySelector('#page-content')
 });
 ```
 
-`init` wipes the root to the app shell immediately. When the page arrives pre-rendered, boot with `hydrate` instead — it leaves the served markup in place and swaps once the app has settled: see [Client Hydration](/docs/hydration). Prerendering the same app at build time runs through `renderToString` — see [Server Rendering](/docs/server-rendering).
+```html
+<!-- After mount: `append` kept the banner; the app node follows it. -->
+<div id="page-content">
+    <header>…static banner…</header>
+    <main>…the rendered `Page` app…</main>
+</div>
+```
+
+The banner survived because `append` respects what the root already holds — a small taste of a bigger idea.
+
+`init` mounts the app shell immediately, replacing the root's children by default. When the whole page arrives pre-rendered, boot with `hydrate` instead — it leaves the served markup in place and swaps once the app has settled: see [Client Hydration](/docs/hydration). Prerendering the same app at build time runs through `renderToString` — see [Server Rendering](/docs/server-rendering).

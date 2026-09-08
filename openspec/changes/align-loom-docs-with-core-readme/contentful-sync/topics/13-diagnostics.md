@@ -2,6 +2,8 @@
 slug: diagnostics
 title: Diagnostics
 ---
+When loom has something to say, it says it through one console surface with predictable rules. This topic covers what always surfaces, what's opt-in, and the switches controlling it.
+
 ## Two lanes
 
 Loom's console surface (`loom.console`, backed by the framework's `loomConsole`) has two lanes:
