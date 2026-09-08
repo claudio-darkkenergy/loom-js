@@ -26,7 +26,8 @@ import type {
  * stylesheets across the shadow boundary — nothing about a shadow root inherits
  * document styles.
  *
- * @param name - The custom element name. Must contain a hyphen.
+ * @param name - The custom element name. Must start with a lowercase letter,
+ * contain a hyphen, and use no uppercase characters.
  * @param templateFunction - The component's render function.
  * @param options - Shadow root and stylesheet options.
  * @returns The `Component`, directly callable in loom templates as usual.

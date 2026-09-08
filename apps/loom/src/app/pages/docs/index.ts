@@ -1,4 +1,4 @@
-import { el, type SimpleComponent } from '@loom-js/core';
+import { el, routeEffect, type SimpleComponent } from '@loom-js/core';
 import classNames from 'classnames';
 
 import { ScreenWidthPx } from '../constants';
@@ -10,8 +10,9 @@ import {
     SkeletonLoader
 } from '@/app/components/content/skeleton-loader';
 import { TopicContent } from '@/app/components/content/topic-content.ts';
+import { TopicPagination } from '@/app/components/content/topic-pagination';
 import { TopicToc } from '@/app/components/content/topic-toc';
-import { topic } from '@/app/logic/activity/selected-content';
+import { page, topic } from '@/app/logic/activity/selected-content';
 
 /**
  * The Docs component is a high-level component which renders documentation pages.
@@ -61,39 +62,61 @@ const Docs: SimpleComponent = (props) => {
                     })
                 });
             }),
-            topicEffect(({ value: topicData }) => {
-                if (topicData && 'contentError' in topicData) {
-                    return ContentLoadError({
-                        className: 'u-margin-block-start-40',
-                        message: topicData.contentError
-                    });
-                }
+            // One wrapper for the main column — the docs grid assigns
+            // `grid-area: main` to the container's last child, so the topic
+            // content and the trailing pagination must land as one element.
+            el('div')({
+                children: [
+                    topicEffect(({ value: topicData }) => {
+                        if (topicData && 'contentError' in topicData) {
+                            return ContentLoadError({
+                                className: 'u-margin-block-start-40',
+                                message: topicData.contentError
+                            });
+                        }
 
-                if (!topicData) {
-                    // @TODO Option 1: Add a skeleton loader for the topic toc by returning an array of skeletons, or a Div w/ an array of skeletons as `children`.
-                    //      Option 2: Update the skeleton loader to accept configured bones to allow for classes to be applied, or create a new bone which "floats" right.
-                    //      Option 3: Create a "layout" property that accepts bones as values to any of predefined keyed layouts, like "main", "left", "right", etc.
-                    return SkeletonLoader({
-                        className: 'u-margin-block-start-40',
-                        bones: [
-                            Bones.mainHeading,
-                            Bones.detailsDouble,
-                            Bones.heading,
-                            Bones.details,
-                            Bones.box,
-                            Bones.headingLong,
-                            Bones.details,
-                            Bones.boxTall,
-                            Bones.detailsSingle
-                        ]
-                    });
-                }
+                        if (!topicData) {
+                            // @TODO Option 1: Add a skeleton loader for the topic toc by returning an array of skeletons, or a Div w/ an array of skeletons as `children`.
+                            //      Option 2: Update the skeleton loader to accept configured bones to allow for classes to be applied, or create a new bone which "floats" right.
+                            //      Option 3: Create a "layout" property that accepts bones as values to any of predefined keyed layouts, like "main", "left", "right", etc.
+                            return SkeletonLoader({
+                                className: 'u-margin-block-start-40',
+                                bones: [
+                                    Bones.mainHeading,
+                                    Bones.detailsDouble,
+                                    Bones.heading,
+                                    Bones.details,
+                                    Bones.box,
+                                    Bones.headingLong,
+                                    Bones.details,
+                                    Bones.boxTall,
+                                    Bones.detailsSingle
+                                ]
+                            });
+                        }
 
-                return TopicContent({
-                    className: 'u-margin-block-start-40',
-                    json: topicData.description?.json,
-                    title: topicData.title
-                });
+                        return TopicContent({
+                            className: 'u-margin-block-start-40',
+                            json: topicData.description?.json,
+                            title: topicData.title
+                        });
+                    }),
+                    // Prev/next topic navigation, derived from the page
+                    // listing + current topic (D5) — renders nothing while
+                    // the listing loads or when the load failed.
+                    page.effect(({ value: pageData }) => {
+                        if (!pageData || 'contentError' in pageData) {
+                            return;
+                        }
+
+                        return routeEffect(({ value: routeValue }) =>
+                            TopicPagination({
+                                currentSlug: routeValue.params.topic,
+                                items: pageData.contentCollection?.items
+                            })
+                        );
+                    })
+                ]
             })
         ]
     });

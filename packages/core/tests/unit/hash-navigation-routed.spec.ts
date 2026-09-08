@@ -1,23 +1,52 @@
 import { expect } from '@esm-bundle/chai';
 import sinon from 'sinon';
 
-import { component, createRoutes, route } from '../../src';
+import { activity, component, createRoutes, route } from '../../src';
 import type { ContextFunction } from '../../src/types';
 import { runSetup } from '../support/run-setup';
 
-// Specs for deferred hash/anchor scrolling (`docs-readiness` design D3):
-// navigations that change the route consume their fragment after the routed
-// page content renders — including the initial load, whose native anchor
-// scroll fires before lazily-imported content exists — and a subsequent
-// navigation overwrites any unconsumed pending fragment.
+// Specs for the router's navigation-scroll contract (`route-scroll-option`):
+// navigations that change the route consume their scroll — the fragment's
+// anchor, or the top for a fragmentless navigation — once the settlement
+// signal resolves, so anchors produced by tracked async work (route chunks,
+// data fetched through activity transforms) exist for the single attempt.
+// `{ scroll: false }` suppresses every scroll of the navigation; history
+// traversal (`popstate`) is left to the browser's own scroll restoration.
 //
 // Test order matters: the router singleton is constructed on first routing
 // use, so the initial-load spec must own that first use — with the boot
-// fragment already in the URL.
+// fragment already in the URL — and the never-settling fixture must run last
+// (it pins the window's pending count above zero for good).
+
+// Mimics a data-driven page: the anchor target renders from a tracked async
+// transform, kicked off by the route's importer — so the target exists only
+// after settlement, never at first-render time.
+const makeAsyncAnchorActivity = () =>
+    activity<string | undefined, string>(
+        undefined,
+        async ({ input, update }) => {
+            await new Promise((resolve) => setTimeout(resolve, 40));
+            update(input);
+        }
+    );
+
+const bootAnchorActivity = makeAsyncAnchorActivity();
+const lateAnchorActivity = makeAsyncAnchorActivity();
+// Never settles — pins the pending count so only the bounded wait can fire.
+const stuckActivity = activity<string>(
+    'initial',
+    () => new Promise<void>(() => {})
+);
 
 const HomePage = component(
     (html) => html`
-        <div id="boot-anchor">home content</div>
+        <div>
+            ${bootAnchorActivity.effect(({ value: anchorId }) =>
+                anchorId
+                    ? AnchorTarget({ anchorId })
+                    : 'home content loading...'
+            )}
+        </div>
     `
 );
 const DocsPage = component(
@@ -28,6 +57,27 @@ const DocsPage = component(
 const SectionPage = component(
     (html) => html`
         <div id="section-anchor">section content</div>
+    `
+);
+const LatePage = component(
+    (html) => html`
+        <div>
+            ${lateAnchorActivity.effect(({ value: anchorId }) =>
+                anchorId
+                    ? AnchorTarget({ anchorId })
+                    : 'late content loading...'
+            )}
+        </div>
+    `
+);
+const StuckPage = component(
+    (html) => html`
+        <div id="stuck-anchor">stuck content</div>
+    `
+);
+const AnchorTarget = component<{ anchorId: string }>(
+    (html, { anchorId }) => html`
+        <div id=${anchorId}>tracked async content</div>
     `
 );
 
@@ -50,6 +100,7 @@ describe('hash navigation (routed, deferred scroll)', () => {
     const homePathname = window.location.pathname;
     const homeSearch = window.location.search;
     let scrollIntoViewFake: sinon.SinonSpy;
+    let scrollToFake: sinon.SinonSpy;
 
     before(() => {
         scrollIntoViewFake = sinon.replace(
@@ -57,6 +108,7 @@ describe('hash navigation (routed, deferred scroll)', () => {
             'scrollIntoView',
             sinon.fake()
         );
+        scrollToFake = sinon.replace(window, 'scrollTo', sinon.fake());
 
         // The boot fragment must be in the URL before the router singleton is
         // constructed (first routing use, inside the first spec's render).
@@ -72,13 +124,24 @@ describe('hash navigation (routed, deferred scroll)', () => {
         window.history.replaceState({}, '', originalHref);
     });
 
-    it('scrolls to the boot fragment after the first routed render', async () => {
+    it('scrolls to a tracked-async boot fragment once settled on the initial load', async () => {
         const Routes = createRoutes({
             config: {
-                [homePathname]: () => Promise.resolve({ default: HomePage }),
+                [homePathname]: () => {
+                    bootAnchorActivity.update('boot-anchor');
+                    return Promise.resolve({ default: HomePage });
+                },
                 '/hash-docs': () => Promise.resolve({ default: DocsPage }),
+                '/hash-late': () => {
+                    lateAnchorActivity.update('late-anchor');
+                    return Promise.resolve({ default: LatePage });
+                },
                 '/hash-section/:name': () =>
-                    Promise.resolve({ default: SectionPage })
+                    Promise.resolve({ default: SectionPage }),
+                '/hash-stuck': () => {
+                    stuckActivity.update('never-lands');
+                    return Promise.resolve({ default: StuckPage });
+                }
             }
         });
 
@@ -89,11 +152,14 @@ describe('hash navigation (routed, deferred scroll)', () => {
                 TestComponent: () => Routes({}) as ContextFunction
             }
         });
+        // The anchor does not exist at first-render time — only the settled
+        // attempt can find it.
+        expect(document.getElementById('boot-anchor')).to.be.null;
         await waitFor(() => scrollIntoViewFake.called);
 
         expect(
             scrollIntoViewFake.calledOn(document.getElementById('boot-anchor')),
-            'scrolled the lazily-rendered boot anchor'
+            'scrolled the tracked-async boot anchor'
         ).to.be.true;
     });
 
@@ -109,8 +175,39 @@ describe('hash navigation (routed, deferred scroll)', () => {
         ).to.be.true;
     });
 
+    it('scrolls a tracked-async anchor once settled on a cross-page navigation', async () => {
+        scrollIntoViewFake.resetHistory();
+
+        route(null, { href: '/hash-late#late-anchor' });
+        await waitFor(() => scrollIntoViewFake.called);
+
+        expect(
+            scrollIntoViewFake.calledOn(document.getElementById('late-anchor')),
+            'scrolled the tracked-async late anchor'
+        ).to.be.true;
+    });
+
+    it('no-ops silently when the target never appears, staying single-attempt', async () => {
+        scrollIntoViewFake.resetHistory();
+
+        route(null, { href: '/hash-docs#nowhere' });
+        await waitFor(() => document.getElementById('docs-anchor') !== null);
+        await settle();
+
+        expect(scrollIntoViewFake.called, 'no scroll attempted').to.be.false;
+
+        // A later navigation is unaffected by the missed attempt.
+        route(null, { href: '/hash-section/alpha#section-anchor' });
+        await waitFor(() => scrollIntoViewFake.called);
+
+        expect(
+            scrollIntoViewFake.calledOn(
+                document.getElementById('section-anchor')
+            )
+        ).to.be.true;
+    });
+
     it('scrolls after a same-matched-route (param) navigation with a hash', async () => {
-        route(null, { href: '/hash-section/alpha' });
         await waitFor(() => document.getElementById('section-anchor') !== null);
         scrollIntoViewFake.resetHistory();
 
@@ -136,5 +233,82 @@ describe('hash navigation (routed, deferred scroll)', () => {
         await settle();
 
         expect(scrollIntoViewFake.called, 'stale fragment dropped').to.be.false;
+    });
+
+    it('scrolls a fragmentless navigation to the top, instantly, after render', async () => {
+        scrollToFake.resetHistory();
+        scrollIntoViewFake.resetHistory();
+
+        route(null, { href: '/hash-docs' });
+        await waitFor(() => scrollToFake.called);
+
+        expect(
+            scrollToFake.calledWithMatch({
+                behavior: 'instant',
+                left: 0,
+                top: 0
+            }),
+            'scrolled to the top without animation'
+        ).to.be.true;
+        expect(scrollIntoViewFake.called, 'no anchor scroll').to.be.false;
+    });
+
+    it('keeps the viewport still on an opted-out fragmentless navigation', async () => {
+        scrollToFake.resetHistory();
+
+        route(null, { href: `${homePathname}${homeSearch}`, scroll: false });
+        await settle();
+
+        expect(scrollToFake.called, 'no top scroll').to.be.false;
+    });
+
+    it('performs no scroll of its own on a popstate traversal', async () => {
+        scrollToFake.resetHistory();
+        scrollIntoViewFake.resetHistory();
+
+        await new Promise((resolve) => {
+            window.addEventListener('popstate', resolve, { once: true });
+            window.history.back();
+        });
+        await settle();
+
+        expect(scrollToFake.called, 'no top scroll').to.be.false;
+        expect(scrollIntoViewFake.called, 'no anchor scroll').to.be.false;
+    });
+
+    it('renders a cross-page navigation with a hash but no scroll when opted out', async () => {
+        route(null, { href: `${homePathname}${homeSearch}` });
+        await settle();
+        scrollToFake.resetHistory();
+        scrollIntoViewFake.resetHistory();
+
+        route(null, {
+            href: '/hash-section/opt#section-anchor',
+            scroll: false
+        });
+        await waitFor(() => document.getElementById('section-anchor') !== null);
+        await settle();
+
+        expect(scrollIntoViewFake.called, 'no deferred anchor scroll').to.be
+            .false;
+        expect(scrollToFake.called, 'no top scroll').to.be.false;
+    });
+
+    it('fires the deferred scroll at the settlement bound when a page never settles', async function () {
+        this.timeout(10000);
+        scrollIntoViewFake.resetHistory();
+
+        // The stuck route's importer pins the pending count above zero, so
+        // settlement never resolves — only the bounded wait can release the
+        // single scroll attempt.
+        route(null, { href: '/hash-stuck#stuck-anchor' });
+        await waitFor(() => scrollIntoViewFake.called, 6000);
+
+        expect(
+            scrollIntoViewFake.calledOn(
+                document.getElementById('stuck-anchor')
+            ),
+            'scrolled once the bound expired'
+        ).to.be.true;
     });
 });

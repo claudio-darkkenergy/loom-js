@@ -1,0 +1,109 @@
+/*
+ * Code panel token theme — the `--p-code-token-<kind>` contract. Values are
+ * HSL triplets (pink's convention). Base = light theme (Ayu Light's hues,
+ * darkened to clear WCAG AA on the white panel — Ayu Light itself does not);
+ * `.theme-dark` = the bundled preset, Ayu Dark with two brand-tinted kinds:
+ * `keyword` on the brand orange (32°) and `constant`/`number`/`variable` on
+ * the brand pink (325°) in place of Ayu's purple. Redefine any variable on
+ * `.code-panel` or an ancestor to re-theme; nothing else references colors.
+ */
+.code-panel {
+    --p-code-token-attr-name: 36 87% 34%;
+    --p-code-token-attr-value: 75 100% 23%;
+    --p-code-token-class-name: 205 77% 36%;
+    --p-code-token-comment: 210 8% 44%;
+    --p-code-token-constant: 325 100% 34%;
+    --p-code-token-function: 36 87% 34%;
+    --p-code-token-keyword: 32 92% 36%;
+    --p-code-token-number: 325 100% 34%;
+    --p-code-token-operator: 20 79% 40%;
+    --p-code-token-property: 36 87% 34%;
+    --p-code-token-punctuation: 210 5% 38%;
+    --p-code-token-regex: 160 48% 29%;
+    --p-code-token-string: 75 100% 23%;
+    --p-code-token-tag: 195 60% 34%;
+    --p-code-token-variable: 325 100% 34%;
+}
+
+.theme-dark .code-panel {
+    /* Upstream pink 1.0 points the dark content background at an undefined
+       `--color-neutral-200`, leaving it transparent; anchor it to a neutral
+       that exists so tokens sit on a stable ground. */
+    --p-code-panel-content: var(--color-neutral-90);
+    --p-code-token-attr-name: 34 100% 67%;
+    --p-code-token-attr-value: 80 65% 57%;
+    --p-code-token-class-name: 202 100% 67%;
+    --p-code-token-comment: 210 11% 56%;
+    --p-code-token-constant: 325 100% 74%;
+    --p-code-token-function: 34 100% 67%;
+    --p-code-token-keyword: 32 92% 60%;
+    --p-code-token-number: 325 100% 74%;
+    --p-code-token-operator: 21 77% 71%;
+    --p-code-token-property: 41 75% 61%;
+    --p-code-token-punctuation: 43 7% 73%;
+    --p-code-token-regex: 160 62% 74%;
+    --p-code-token-string: 80 65% 57%;
+    --p-code-token-tag: 195 77% 56%;
+    --p-code-token-variable: 325 100% 74%;
+}
+
+.code-token.is-attr-name {
+    color: hsl(var(--p-code-token-attr-name));
+}
+
+.code-token.is-attr-value {
+    color: hsl(var(--p-code-token-attr-value));
+}
+
+.code-token.is-class-name {
+    color: hsl(var(--p-code-token-class-name));
+}
+
+.code-token.is-comment {
+    color: hsl(var(--p-code-token-comment));
+    font-style: italic;
+}
+
+.code-token.is-constant {
+    color: hsl(var(--p-code-token-constant));
+}
+
+.code-token.is-function {
+    color: hsl(var(--p-code-token-function));
+}
+
+.code-token.is-keyword {
+    color: hsl(var(--p-code-token-keyword));
+}
+
+.code-token.is-number {
+    color: hsl(var(--p-code-token-number));
+}
+
+.code-token.is-operator {
+    color: hsl(var(--p-code-token-operator));
+}
+
+.code-token.is-property {
+    color: hsl(var(--p-code-token-property));
+}
+
+.code-token.is-punctuation {
+    color: hsl(var(--p-code-token-punctuation));
+}
+
+.code-token.is-regex {
+    color: hsl(var(--p-code-token-regex));
+}
+
+.code-token.is-string {
+    color: hsl(var(--p-code-token-string));
+}
+
+.code-token.is-tag {
+    color: hsl(var(--p-code-token-tag));
+}
+
+.code-token.is-variable {
+    color: hsl(var(--p-code-token-variable));
+}

@@ -43,6 +43,27 @@ export const htmlSplit: (pluginOptions: HtmlSplitPluginOptions) => Plugin = ({
             const cacheKey = JSON.stringify(outputs);
             const isInitial = !cache.has(cacheKey);
 
+            // CSS bundles belonging to dynamically-imported JS chunks — their
+            // content is already contained in the importing entry's CSS
+            // bundle, since esbuild does not code-split CSS. They must not be
+            // linked. (Dynamic chunks can't be told apart by `entryPoint` —
+            // esbuild marks them as sub-entry points too — so detect them as
+            // targets of a `dynamic-import` edge from another output.)
+            const dynamicChunkPaths = new Set(
+                Object.values(outputs).flatMap((meta) =>
+                    meta.imports
+                        .filter(({ kind }) => kind === 'dynamic-import')
+                        .map(({ path: importPath }) => importPath)
+                )
+            );
+            const dynamicChunkCssBundles = new Set(
+                Object.entries(outputs).flatMap(([outputPath, meta]) =>
+                    dynamicChunkPaths.has(outputPath) && meta.cssBundle
+                        ? [getResourcePath({ outdir, path: meta.cssBundle })]
+                        : []
+                )
+            );
+
             // Fetched from cache if possible.
             const templateArgs =
                 cache.get(cacheKey) ||
@@ -61,6 +82,20 @@ export const htmlSplit: (pluginOptions: HtmlSplitPluginOptions) => Plugin = ({
                     });
                     const isCss = /\.css$/.test(outputPath);
                     const isJs = /\.js$/.test(outputPath);
+
+                    if (isCss && dynamicChunkCssBundles.has(resourcePath)) {
+                        return acc;
+                    }
+
+                    // Dynamic-import targets load on demand from their
+                    // importer; surfaced separately so templates can choose
+                    // to preload route chunks without eagerly evaluating
+                    // everything that is `import()`ed (e.g. grammar modules
+                    // that depend on an importer-sequenced global).
+                    if (isJs && dynamicChunkPaths.has(outputPath)) {
+                        acc.dynamic.js.push(resourcePath);
+                        return acc;
+                    }
 
                     if (isEntryPoint && isJs) {
                         acc.js.push(resourcePath);

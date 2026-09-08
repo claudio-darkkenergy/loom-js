@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 pnpm + turborepo monorepo published under the `@loom-js/*` scope. Workspaces are defined in `pnpm-workspace.yaml`:
 
-- `packages/*` — published framework packages (`core`, `pink`).
+- `packages/*` — published framework packages (`core`, `pink`, `highlight` — syntax highlighting inverted out of the UI libraries: Prism adapter + token vocabulary + `codeTokenizer()` lazy-import activity; UI libraries take a `tokenize` activity, never the tokenizer dependency).
 - `packages/esbuild/*` — published esbuild plugins (`esbuild-plugin-html-split`).
 - `lib/*` — internal utilities (`utils`, `contentful`, `storybook`, `typescript-config`, plus untracked `codegen`, `monitor`, `open-ai`).
 - `apps/*` — runnable apps. **Note:** `apps/docs` and `apps/sandbox` are explicitly excluded from the pnpm workspace (`!apps/docs`, `!apps/sandbox`) — only `apps/loom` (and any future siblings) are part of the install graph. Both excluded apps still exist on disk and have `package.json` files; they are not installed or built by `pnpm install` / `turbo`.

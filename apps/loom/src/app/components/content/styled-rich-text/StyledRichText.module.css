@@ -2,7 +2,6 @@
     --m-block-start-heading: 2.5rem;
     --m-block-start-block: 1.25rem;
     --m-block-start-next: 1rem;
-    --code-background-color: hsl(var(--color-neutral-90));
 
     display: flex;
     flex-direction: column;
@@ -10,7 +9,9 @@
     a {
         color: hsl(var(--brand-color-1));
 
-        &:hover {
+        /* Text links underline on hover; anchors that are controls or media
+           (icon buttons, images) carry their own affordance. */
+        &:hover:not(:global(.button)):not(:has(> img, > picture, > svg)) {
             text-decoration: underline;
         }
     }
@@ -34,10 +35,17 @@
         padding-left: revert;
     }
 
+    /* Block-level rich-text nodes: paragraphs, lists, code panels, callouts
+       & tables all keep the same rhythm against whatever precedes them. The
+       pink classes are global — CSS modules would otherwise hash them. */
     * {
         + p,
         + ol,
-        + ul {
+        + ul,
+        + blockquote,
+        + :global(.code-panel),
+        + :global(.table-wrapper),
+        + :global(.table-with-scroll) {
             margin-block-start: var(--m-block-start-block);
         }
     }
@@ -56,16 +64,33 @@
         }
     }
 
-    code {
-        background-color: var(--code-background-color);
+    /* Pink's tables are data tables — non-first columns clip to one line
+       with an ellipsis. Reference tables in docs content wrap instead, so
+       the table never outgrows its wrapper. */
+    :global(.table) :global(.table-thead-col),
+    :global(.table) :global(.table-col) {
+        overflow: visible;
+        text-overflow: clip;
+        white-space: normal;
     }
+}
 
-    i {
-        background-color: var(--code-background-color);
-        border-radius: 0.25em;
-        font-family: var(--code-font);
-        padding: 0.1em 0.2em;
-    }
+/* An h2 with its link-copy button. Flex so the template's whitespace text
+   nodes between the heading text and the button collapse away; `gap` is the
+   only spacing between them. */
+.anchoredHeading {
+    align-items: center;
+    display: flex;
+    gap: 0.375rem;
+}
+
+/* The button's tooltip must read as body copy, not as heading text, so the
+   heading's font, weight, and capitalization stop here. */
+.headingAnchor {
+    font-family: var(--content-font);
+    font-weight: 400;
+    letter-spacing: normal;
+    text-transform: none;
 }
 
 * + .richText {

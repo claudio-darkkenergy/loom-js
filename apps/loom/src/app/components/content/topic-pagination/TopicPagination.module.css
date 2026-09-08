@@ -1,0 +1,6 @@
+.topicPagination {
+    .topicLink {
+        /* The shared docs link accent, defined on the docs layout root. */
+        --p-text-color-default: var(--docs-link-color);
+    }
+}

@@ -6,6 +6,7 @@ export const getDynamicElement = (
     liveFragment: DocumentFragment
 ) =>
     nodePath.reduce<DynamicNode>(
-        (parent, i) => parent.childNodes[i] as HTMLElement | SVGElement | Text,
+        (parent, i) =>
+            parent.childNodes[i] as Comment | HTMLElement | SVGElement | Text,
         liveFragment
     );

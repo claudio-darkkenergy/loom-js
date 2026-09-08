@@ -1,1 +1,2 @@
-export type DynamicNode = DocumentFragment | HTMLElement | SVGElement | Text;
+export type DynamicNode =
+    Comment | DocumentFragment | HTMLElement | SVGElement | Text;

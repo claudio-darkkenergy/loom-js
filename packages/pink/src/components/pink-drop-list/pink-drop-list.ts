@@ -1,7 +1,7 @@
 import { component, el, type ComponentInputProps, simple } from '@loom-js/core';
 import classNames from 'classnames';
 
-import { WithIconProps, withIcon } from '../../modifiers';
+import { WithIconProps, withIcon } from '../../modifiers/with-icon';
 
 export enum DropListArrow {
     Start = '',

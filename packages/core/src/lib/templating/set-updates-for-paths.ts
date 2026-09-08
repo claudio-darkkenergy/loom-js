@@ -42,9 +42,11 @@ export const setUpdatesForPaths = (
                 // Setup effect udpate.
                 setReactiveUpdates(update, i, ctx);
             } else if (
-                // `Comment` could be enabled here, then handled in `getTextUpdate` if support
-                // becomes needed.
                 dynamicNode instanceof getWindow().Text ||
+                // A comment marker stands in for a slot token in table content
+                // — `replaceWith` below swaps the marker clone for its token text
+                // node post-parse, and the live-text machinery proceeds unchanged.
+                dynamicNode instanceof getWindow().Comment ||
                 dynamicNode === undefined
             ) {
                 // Text Node handling

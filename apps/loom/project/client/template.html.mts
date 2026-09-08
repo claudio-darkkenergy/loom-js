@@ -3,9 +3,11 @@ import { HtmlTemplateArgs } from 'esbuild-plugin-html-split';
 export const htmlTemplate = (args: HtmlTemplateArgs) => {
     const routeScopes: string[] = args.define.routeScopes ?? [];
     // Prod shells are route-scoped — each HTML references only its own route
-    // chunk/CSS plus the shared resources. Dev keeps the superset shell: the
+    // chunk plus the shared resources. Dev keeps the superset shell: the
     // dev server serves a single SPA fallback file, so every route's chunks
-    // must be reachable from it.
+    // must be reachable from it. Scoping applies to JS only: CSS arrives
+    // pre-deduped from the html-split plugin (route CSS chunks are never
+    // linked; their rules live in the entry stylesheet).
     const isScoped = Boolean(args.define.isProd);
     const includeResource = (resource: string) => {
         const owner = routeScopes.find((scope) =>
@@ -14,8 +16,22 @@ export const htmlTemplate = (args: HtmlTemplateArgs) => {
 
         return !isScoped || !owner || owner === args.scope;
     };
-    const css = args.common.css.filter(includeResource).concat(args.css);
-    const js = args.common.js.filter(includeResource).concat(args.js);
+    // Dynamic chunks are only script-tagged when they are route page chunks
+    // (a preload of the shell's own page module); anything else reached by
+    // `import()` — e.g. syntax-highlighting grammars sequenced by their
+    // importer — must not be evaluated eagerly.
+    const isRouteChunk = (resource: string) =>
+        routeScopes.some((scope) => resource.startsWith(`${scope}-`));
+    const css = args.common.css.concat(args.css);
+    const js = args.common.js
+        .filter(includeResource)
+        .concat(
+            args.dynamic.js.filter(
+                (resource) =>
+                    isRouteChunk(resource) && includeResource(resource)
+            )
+        )
+        .concat(args.js);
 
     return `
 <!DOCTYPE html>

@@ -3,6 +3,7 @@ import classNames from 'classnames';
 
 import type { PinkDynamicProps } from '../../types';
 import { PinkCodePanelContent } from './pink-code-panel-content';
+import { PinkCodePanelCopyButton } from './pink-code-panel-copy-button';
 import { PinkCodePanelHeader } from './pink-code-panel-header';
 
 export type PinkCodePanelProps = PinkDynamicProps & {
@@ -40,3 +41,4 @@ export const PinkCodePanel = ({
 
 PinkCodePanel.Header = PinkCodePanelHeader;
 PinkCodePanel.Content = PinkCodePanelContent;
+PinkCodePanel.CopyButton = PinkCodePanelCopyButton;

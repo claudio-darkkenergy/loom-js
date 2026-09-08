@@ -1,7 +1,6 @@
-import { BLOCKS, MARKS } from '@contentful/rich-text-types';
-import { el, simple } from '@loom-js/core';
-import { PinkCodePanel } from '@loom-js/pink';
-import { toKebabCase } from '@loom-js/utils';
+import { BLOCKS, INLINES, MARKS } from '@contentful/rich-text-types';
+import { el, RouteLink, simple } from '@loom-js/core';
+import { PinkCard, PinkInlineCode } from '@loom-js/pink';
 import classNames from 'classnames';
 
 import {
@@ -9,6 +8,9 @@ import {
     ContentfulRichTextProps
 } from '../contentful-rich-text';
 import styles from './StyledRichText.module.css';
+import { asCodeBlock, CodeSample } from './lib/code';
+import { AnchoredHeading, headingAnchorId } from './lib/heading';
+import { tableRenderers } from './lib/table';
 
 export type StyledRichTextProps = ContentfulRichTextProps;
 
@@ -19,31 +21,49 @@ export const StyledRichText = simple<StyledRichTextProps>(
             className: classNames(styles.richText, className),
             options: {
                 renderMark: {
-                    [MARKS.CODE]: (children) =>
-                        typeof children === 'string' &&
-                        PinkCodePanel({
-                            children: [
-                                PinkCodePanel.Content({
-                                    children: String(children),
-                                    useLineNumbers: false
-                                })
-                            ]
-                        })
+                    // Code in a mixed-content paragraph renders inline; a
+                    // sole-code paragraph becomes a code panel via the
+                    // paragraph renderer below.
+                    [MARKS.CODE]: (children) => PinkInlineCode({ children })
                 },
                 renderNode: {
+                    ...tableRenderers,
+                    [BLOCKS.PARAGRAPH]: (node, children) => {
+                        const codeBlock = asCodeBlock(node);
+
+                        return codeBlock
+                            ? CodeSample(codeBlock)
+                            : el('p')({ children });
+                    },
+                    // The callout treatment — blockquote-rooted card per the
+                    // component inventory (`PinkAlert` port deferred).
+                    [BLOCKS.QUOTE]: (_node, children) =>
+                        PinkCard({ is: el('blockquote'), children }),
+                    [INLINES.HYPERLINK]: (node, children) => {
+                        const href = String(node.data.uri ?? '');
+
+                        // Internal links navigate client-side.
+                        return href.startsWith('/')
+                            ? RouteLink({ children, href })
+                            : el('a')({
+                                  children,
+                                  attrs: { href, target: '_self' }
+                              });
+                    },
                     [BLOCKS.HEADING_1]: (_, children) =>
                         el('h1')({
                             children,
                             className: 'heading-level-3 u-capitalize'
                         }),
                     [BLOCKS.HEADING_2]: (_, children) =>
-                        el('h2')({
+                        AnchoredHeading({
+                            anchorClassName: styles.headingAnchor,
+                            anchorId: headingAnchorId(String(children)),
                             children,
-                            className: 'heading-level-4 u-capitalize',
-                            id:
-                                typeof String(children) === 'string'
-                                    ? toKebabCase(String(children))
-                                    : undefined
+                            className: classNames(
+                                'heading-level-4 u-capitalize',
+                                styles.anchoredHeading
+                            )
                         }),
                     [BLOCKS.HEADING_3]: (_, children) =>
                         el('h3')({ children, className: 'heading-level-5' }),

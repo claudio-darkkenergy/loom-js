@@ -1,7 +1,7 @@
 import { el, type Aria, simple } from '@loom-js/core';
 import classNames from 'classnames';
 
-import { type WithIconProps, withIcon } from '../../modifiers';
+import { type WithIconProps, withIcon } from '../../modifiers/with-icon';
 
 export interface PinkButtonProps extends WithIconProps {
     aria?: Aria;
@@ -17,8 +17,9 @@ export interface PinkButtonProps extends WithIconProps {
     // `title`, and `aria`). Callers opt into the switch by supplying
     // `href` — query/test against the root accordingly.
     href?: string;
-    // The classname for the icon - renders only when provided.
-    icon?: string;
+    // The classname for the icon - renders only when provided. A binding
+    // (`activity.bind(...)`) drives the class live on the same node.
+    icon?: WithIconProps['icon'];
     // A Pink preset for a larger button size - updates height, horizonal padding, & font-size.
     isBig?: boolean;
     // Updates the button to fit only an icon.

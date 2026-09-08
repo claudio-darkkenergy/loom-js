@@ -23,16 +23,21 @@ const routeOnClick = (event: Event) => {
 };
 
 export const RouteLink = /* @__PURE__ */ component<RouteLinkProps>(
-    (html, { attrs, children, className, href, on, target }) => html`
-        <a
-            $attrs=${attrs}
-            $click=${routeOnClick}
-            $on=${on}
-            class=${className}
-            href=${href}
-            target=${target}
-        >
-            ${children}
-        </a>
-    `
+    (html, { attrs, children, className, href, on, target }) => {
+        // The tag hugs its children: an anchor is inline content, and the
+        // template's own newline would render as a trailing space inside the
+        // link (visible before any following punctuation). Remove the
+        // prettier-ignore once `collapse-template-whitespace` lands.
+        // prettier-ignore
+        return html`
+            <a
+                $attrs=${attrs}
+                $click=${routeOnClick}
+                $on=${on}
+                class=${className}
+                href=${href}
+                target=${target}
+            >${children}</a>
+        `;
+    }
 );

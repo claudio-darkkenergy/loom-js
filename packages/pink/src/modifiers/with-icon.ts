@@ -1,4 +1,10 @@
-import { el, type ComponentInputProps, simple } from '@loom-js/core';
+import {
+    type AttrBinding,
+    el,
+    type ComponentInputProps,
+    isAttrBinding,
+    simple
+} from '@loom-js/core';
 import classNames from 'classnames';
 
 const Icon = simple(({ attrs, ...iconProps }) =>
@@ -14,8 +20,9 @@ export interface WithIconProps {
     [key: string]: unknown;
     // Appends the icon when provided vs. prepend placement.
     appendIcon?: boolean;
-    // The classname for the icon - renders only when provided.
-    icon?: string;
+    // The classname for the icon - renders only when provided. A binding
+    // (`activity.bind(...)`) drives the class live on the same node.
+    icon?: string | AttrBinding;
     // The classname for the icon element.
     iconProps?: ComponentInputProps;
 }
@@ -30,7 +37,13 @@ export const withIcon = <T>({
     const { className, ...iconPropsRest } = iconProps;
     const resolvedIconProps = {
         ...iconPropsRest,
-        className: classNames(className, icon)
+        // A binding owns the whole class value: the templating layer applies
+        // it to the `class` slot live, so it must reach the element untouched
+        // (typed `string` on the prop; the attr slot accepts bindings at
+        // runtime).
+        className: isAttrBinding(icon)
+            ? (icon as unknown as string)
+            : classNames(className, icon)
     };
     const childrenWithIcon = icon
         ? appendIcon && children

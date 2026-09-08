@@ -87,6 +87,7 @@ export const checkIsEntryPoint = ({
 export const getDefaultTemplateArgs = (): Omit<HtmlTemplateArgs, 'define'> => ({
     common: { css: [], js: [] },
     css: [],
+    dynamic: { js: [] },
     js: [],
     scope: ''
 });

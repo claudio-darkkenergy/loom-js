@@ -9,8 +9,11 @@
         "pink design"
     ],
     "exports": {
-        "import": "./src/index.ts",
-        "require": "./src/index.js"
+        ".": {
+            "import": "./src/index.ts",
+            "require": "./src/index.js"
+        },
+        "./styles/*": "./src/styles/*"
     },
     "type": "module",
     "main": "./dist/index.js",

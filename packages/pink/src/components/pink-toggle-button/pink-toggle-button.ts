@@ -1,7 +1,7 @@
 import { component, type Aria, type ComponentInputProps } from '@loom-js/core';
 import classNames from 'classnames';
 
-import { type WithIconProps, withIcon } from '../../modifiers';
+import { type WithIconProps, withIcon } from '../../modifiers/with-icon';
 
 type ToggleButtonItemProps = ComponentInputProps<{
     aria?: Aria;

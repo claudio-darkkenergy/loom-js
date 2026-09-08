@@ -9,6 +9,7 @@ import {
     ReservedProps
 } from '@loom-js/core';
 import { usePinkTheming } from '@loom-js/pink';
+import '@loom-js/pink/styles/code-tokens.css';
 
 if (__DEV__) {
     // esbuild's live-reload hook — the define makes this dead code in prod,

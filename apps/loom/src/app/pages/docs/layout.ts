@@ -23,7 +23,7 @@ const DocsLayout = component((html, { children, className }) => {
     return html`
         <div
             class=${topicTocToggle.bind((isToggledOpen) =>
-                classNames(className, 'u-flex', {
+                classNames(className, styles.docsLayout, 'u-flex', {
                     [styles._open]: isToggledOpen
                 })
             )}

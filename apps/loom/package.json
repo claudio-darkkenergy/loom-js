@@ -18,6 +18,7 @@
         "@contentful/rich-text-types": "^17.2.7",
         "@loom-js/contentful": "workspace:*",
         "@loom-js/core": "workspace:*",
+        "@loom-js/highlight": "workspace:*",
         "@loom-js/pink": "workspace:*",
         "@loom-js/utils": "workspace:*",
         "classnames": "^2.5.1",

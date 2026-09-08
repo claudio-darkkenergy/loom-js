@@ -28,7 +28,7 @@ export const useDocsLayout = () => {
 
     useSideNavToggle(`(width >= ${ScreenWidthPx.TabletStart}px)`);
     useTopicTocToggle(`(width >= ${ScreenWidthPx.DesktopStart}px)`);
-    useDefaultTopicRedirect('/docs/get-started', RoutePath.Docs);
+    useDefaultTopicRedirect('/docs/getting-started', RoutePath.Docs);
     // Page + topic data — one request per docs navigation, scoped to the
     // docs route so navigation elsewhere never triggers a content fetch.
     watchRoute(({ value: routeValue }) => {
