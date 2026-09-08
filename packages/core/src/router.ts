@@ -1,5 +1,7 @@
 import { activity } from './activity';
 import { DomWindow, getWindow, hasWindow } from './lib/dom';
+import { boundedWait } from './lib/settlement';
+import { settled } from './settled';
 import type {
     ActivityEffectAction,
     ContextFunction,
@@ -12,6 +14,16 @@ import type {
 } from './types';
 
 export type RoutesConfig = Record<string, () => Promise<any>>;
+
+// The scroll a route-changing navigation owes once its content settles: the
+// fragment's anchor scroll, or the instant top scroll of a fragmentless
+// navigation.
+type PendingScroll = { fragment: string } | { top: true };
+
+// Bound on the settlement wait before a deferred scroll fires anyway —
+// mirrors `hydrate`'s default `maxWait` so an unsettled page can't hold the
+// scroll hostage.
+const SCROLL_SETTLE_MAX_WAIT = 4000;
 
 const defaultFallback = () => Promise.resolve(undefined);
 
@@ -39,10 +51,10 @@ class Router {
     private params = {} as { [key: string]: string };
     private pathImporter?: () => Promise<any>;
     private pathname?: string;
-    // The URL fragment owed a scroll once routed content renders — set by
-    // fragment-carrying route-changing navigations & the initial location,
-    // consumed (or overwritten by the next navigation) exactly once.
-    private pendingFragment?: string;
+    // The scroll owed once routed content renders — set by route-changing
+    // navigations & the initial location, consumed (or overwritten by the
+    // next navigation) exactly once.
+    private pendingScroll?: PendingScroll;
     private routeActivity: ReturnType<typeof activity<RouteValue, Location>>;
 
     // Construction is DOM-lazy by design: instances only come from
@@ -53,9 +65,10 @@ class Router {
         this.ownerWindow = win;
         // Initial-load anchor: the browser's native scroll fired before
         // lazily-imported route content existed, so the fragment is still
-        // owed once that content renders.
-        this.pendingFragment = win.location.hash
-            ? win.location.hash.slice(1)
+        // owed once that content renders. A fragmentless initial location
+        // owes nothing — the browser owns its boot position.
+        this.pendingScroll = win.location.hash
+            ? { fragment: win.location.hash.slice(1) }
             : undefined;
         this.locationActivity = activity<Location>(win.location, {
             // The raw location layer keeps the legacy activity's semantics:
@@ -101,8 +114,8 @@ class Router {
             if (currentPath === this.matchedRoute) {
                 // The page content is already delivered (a param-only
                 // navigation within the same matched route), so a pending
-                // fragment consumes now rather than on a page import.
-                this.consumePendingFragment();
+                // scroll consumes now rather than on a page import.
+                this.consumePendingScroll();
                 return;
             }
 
@@ -172,12 +185,21 @@ class Router {
         // so both location and route subscribers observe the navigation.
         win.history[action]({}, 'route', href);
 
+        // `scroll: false` means "this navigation does not move the viewport":
+        // no fragment scroll of any kind, and no fragmentless top scroll.
+        const scroll = options?.scroll !== false;
+
         if (didRouteChange(locationSnapshot)) {
-            // Defer any fragment until the routed content renders — and drop
-            // a stale unconsumed one when this navigation carries none.
-            this.pendingFragment = fragment;
+            // Defer this navigation's scroll — the fragment's anchor, or the
+            // top for a fragmentless route change — until the routed content
+            // renders. A stale unconsumed scroll is dropped either way.
+            this.pendingScroll = !scroll
+                ? undefined
+                : fragment !== undefined
+                  ? { fragment }
+                  : { top: true };
             this.locationActivity.update(win.location);
-        } else if (fragment !== undefined) {
+        } else if (fragment !== undefined && scroll) {
             // Hash-only navigation: the activity pipeline stays quiet — the
             // router owes only the native anchor jump its `preventDefault`
             // suppressed.
@@ -225,11 +247,11 @@ class Router {
                 // resolved window never changes, so this always passes.
                 if (hasWindow() && getWindow() === this.ownerWindow) {
                     update(contextFn);
-                    // Routed content delivered — a pending anchor fragment
-                    // (cross-page navigation, initial load) consumes against
-                    // it. The seeded default fallback resolves no content, so
-                    // it can't consume a fragment the real page still owes.
-                    contextFn && this.consumePendingFragment();
+                    // Routed content delivered — a pending scroll (cross-page
+                    // navigation, initial load) consumes against it. The
+                    // seeded default fallback resolves no content, so it
+                    // can't consume a scroll the real page still owes.
+                    contextFn && this.consumePendingScroll();
                 }
             });
             this.pageImportActivity.update(routeTable.fallback);
@@ -238,24 +260,28 @@ class Router {
         return this.pageImportActivity;
     }
 
-    // Scrolls to the pending fragment's anchor target, once — cleared before
-    // the attempt, single attempt, silent no-op when the target is absent.
-    // A microtask puts the attempt after the routed content's synchronous
-    // mount settles; scrolling needs no paint, & unlike an animation frame a
-    // microtask is neither throttled in background pages nor absent in
-    // provider DOMs.
-    private consumePendingFragment() {
-        const fragment = this.pendingFragment;
+    // Performs the pending scroll, once — cleared before the attempt, single
+    // attempt, silent no-op when a fragment's target is absent. The attempt
+    // waits on the settlement signal (bounded, like `hydrate`) so anchors
+    // produced by tracked async work — lazy route chunks, data fetched
+    // through activity transforms — exist by scroll time; the bound keeps an
+    // unsettled page from holding the scroll indefinitely.
+    private consumePendingScroll() {
+        const pending = this.pendingScroll;
 
-        if (fragment === undefined) {
+        if (!pending) {
             return;
         }
 
-        this.pendingFragment = undefined;
+        this.pendingScroll = undefined;
 
         const win = this.ownerWindow;
 
-        queueMicrotask(() => scrollToFragment(win, fragment));
+        boundedWait(settled(), SCROLL_SETTLE_MAX_WAIT).then(() =>
+            'fragment' in pending
+                ? scrollToFragment(win, pending.fragment)
+                : scrollToTop(win)
+        );
     }
 
     // Returns the route value for the current location.
@@ -398,6 +424,15 @@ const scrollToFragment = (win: DomWindow, fragment: string) => {
     typeof target?.scrollIntoView === 'function' && target.scrollIntoView();
 };
 
+// The instant top scroll of a fragmentless route change — explicit non-smooth
+// behavior so page-to-page motion mimics a fresh document load regardless of
+// the page's `scroll-behavior` CSS (which keeps animating anchor jumps only).
+// The runtime guard keeps provider DOMs without CSSOM view APIs inert.
+const scrollToTop = (win: DomWindow) => {
+    typeof win.scrollTo === 'function' &&
+        win.scrollTo({ behavior: 'instant', left: 0, top: 0 });
+};
+
 /**
  * Returns `true` if `Window.Location` has changed in consideration to `origin`, `pathname`, & `search`.
  * @param locationSnapshot A snapshot of `Window.Location` before any browser history updates were made.
@@ -493,6 +528,8 @@ export const redirect = (arg: Parameters<Router['redirect']>[0]) =>
  *      Options properties accepted:
  *          `href` - The href url to use - this overrides the href attribute of an `HTMLAnchorElement`.
  *          `replace` - If set to `true`, "replaceState" will be used instead of "pushState" as the `History` action.
+ *          `scroll` - If set to `false`, the navigation performs no scroll of
+ *          any kind (fragment scrolls & the fragmentless top scroll alike).
  */
 export const route = (...arg: Parameters<Router['route']>) =>
     getRouter().route(...arg);

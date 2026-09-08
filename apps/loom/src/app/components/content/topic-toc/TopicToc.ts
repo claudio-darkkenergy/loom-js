@@ -1,7 +1,7 @@
 import { ContentfulDocument, RichText } from '@loom-js/contentful';
 import { simple } from '@loom-js/core';
-import { toKebabCase } from '@loom-js/utils';
 
+import { headingAnchorId } from '../styled-rich-text/lib/heading';
 import { Toc } from '../toc';
 
 export type TopicTocProps = {
@@ -29,7 +29,7 @@ export const TopicToc = simple<TopicTocProps>(({ json, ...props }) => {
         title: 'On this page',
         items: getTocItems().map((title) => ({
             title,
-            url: `#${toKebabCase(title)}`
+            url: `#${headingAnchorId(title)}`
         }))
     });
 });

@@ -128,6 +128,41 @@ const mergeRuns = (tokens: CodeToken[]) =>
         return merged;
     }, []);
 
+// HTML comments inside template literals: Prism's JS/TS grammars type the
+// whole template body as one string token, which would paint `<!-- … -->`
+// like markup. Re-kind those runs as comments so annotations read as
+// annotations. (A quoted string containing a literal `<!--` re-kinds too —
+// acceptable for a highlighter.)
+const HTML_COMMENT = /<!--[\s\S]*?-->/g;
+
+const rekindHtmlComments = (tokens: CodeToken[]): CodeToken[] =>
+    tokens.flatMap((token) => {
+        if (token.kind !== 'string' || !token.text.includes('<!--')) {
+            return [token];
+        }
+
+        const pieces: CodeToken[] = [];
+        let cursor = 0;
+
+        for (const match of token.text.matchAll(HTML_COMMENT)) {
+            if (match.index > cursor) {
+                pieces.push({
+                    kind: 'string',
+                    text: token.text.slice(cursor, match.index)
+                });
+            }
+
+            pieces.push({ kind: 'comment', text: match[0] });
+            cursor = match.index + match[0].length;
+        }
+
+        if (cursor < token.text.length) {
+            pieces.push({ kind: 'string', text: token.text.slice(cursor) });
+        }
+
+        return pieces;
+    });
+
 /**
  * Pure text → tokens against a loaded Prism instance. Unknown languages come
  * back as one `plain` token so callers need no branch; the tokenizer runs
@@ -145,5 +180,9 @@ export const tokenizeCode = (
         return [{ kind: 'plain', text }];
     }
 
-    return mergeRuns(flattenTokens(prism.tokenize(text, grammar), 'plain', []));
+    return mergeRuns(
+        rekindHtmlComments(
+            flattenTokens(prism.tokenize(text, grammar), 'plain', [])
+        )
+    );
 };

@@ -91,6 +91,43 @@ describe('hash navigation (same-page)', () => {
         expect(scrollIntoViewFake.called).to.be.false;
     });
 
+    it('should not scroll when opted out, while the URL updates & the pipeline stays quiet', () => {
+        const locationHandler = sinon.fake();
+        const routeHandler = sinon.fake();
+        const unsubscribeLocation = watchLocation(locationHandler);
+        const unsubscribeRoute = watchRoute(routeHandler);
+        const locationCallCount = locationHandler.callCount;
+        const routeCallCount = routeHandler.callCount;
+
+        route(null, { href: samePageHref('hash-target'), scroll: false });
+
+        expect(window.location.hash).to.equal('#hash-target');
+        expect(locationHandler.callCount, 'location stayed quiet').to.equal(
+            locationCallCount
+        );
+        expect(routeHandler.callCount, 'route stayed quiet').to.equal(
+            routeCallCount
+        );
+        expect(scrollIntoViewFake.called, 'no anchor scroll').to.be.false;
+        expect(scrollToFake.called, 'no top scroll').to.be.false;
+
+        unsubscribeLocation();
+        unsubscribeRoute();
+    });
+
+    it('should not scroll to the top for an opted-out empty fragment', () => {
+        route(null, { href: samePageHref(''), scroll: false });
+
+        expect(scrollToFake.called, 'no top scroll').to.be.false;
+        expect(scrollIntoViewFake.called).to.be.false;
+    });
+
+    it('should scroll when the option is explicitly `true`', () => {
+        route(null, { href: samePageHref('hash-target'), scroll: true });
+
+        expect(scrollIntoViewFake.calledOn($anchorTarget)).to.be.true;
+    });
+
     it('should leave modified activations with hash hrefs to the browser', () => {
         const anchor = document.createElement('a');
 

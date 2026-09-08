@@ -355,6 +355,14 @@ export type ValueProp<V = unknown> = {
 export interface OnRouteOptions {
     href?: string;
     replace?: boolean;
+    /**
+     * Whether the navigation may move the viewport (default `true`). Set to
+     * `false` to suppress every scroll the navigation would perform — the
+     * same-page fragment scroll, the deferred cross-page fragment scroll, the
+     * bare-`#` top scroll, and the fragmentless route-change top scroll —
+     * while leaving everything else about the navigation unchanged.
+     */
+    scroll?: boolean;
 }
 
 /* Config */
