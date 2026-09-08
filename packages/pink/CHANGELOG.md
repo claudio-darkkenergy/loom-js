@@ -1,5 +1,23 @@
 # @loom-js/pink
 
+## 0.3.0
+
+### Minor Changes
+
+- e5f1fa2: Add `PinkInlineCode` — an inline code element (`<code class="inline-code">`) over the upstream appwrite/pink `.inline-code` styles, for highlighting short code snippets within a sentence.
+- 4dbd615: Add the `PinkCopyToClipboard` behavior — a host around any children that copies `text` on activation and shows `copiedChildren` plus a tooltip label while copied — with `PinkCopyButton` (icon-only button or anchor over it) and `PinkCodePanel.CopyButton`, its header-end composition for code panels.
+- 976b5b3: Add themed syntax highlighting to `PinkCodePanel.Content` without a tokenizer dependency: `language` plus a `tokenize` lazy-import activity (e.g. `@loom-js/highlight`'s `codeTokenizer()`) render each line as `code-token` spans classed by kind, colored through the `--p-code-token-<kind>` variables in the new `@loom-js/pink/styles/code-tokens.css` (Ayu Dark preset with brand-tinted keyword/constant kinds; an AA-safe light counterpart). Lines render plain until the tokenizer lands; server renders and hydration wait for it. Panels without `language`/`tokenize` are unchanged. The theme file also anchors the dark panel background that upstream pink 1.0 leaves undefined.
+- e5f1fa2: Add `PinkTable` — a compound table component over the upstream appwrite/pink `.table*` styles: `PinkTable` (root, with the upstream layout/scroll/vertical modifiers) plus `Head`/`Body`/`Foot`, `Row`, `HeadCol`/`Col`, and `Wrapper` sub-components, all `is`-polymorphic. Rendering table-part roots and dynamic row lists requires `@loom-js/core`'s table-aware template parsing (first published in the release containing that fix); on older cores, table markup degrades exactly as it did before that fix.
+
+### Patch Changes
+
+- 4dbd615: Fix `PinkInlineCode` rendering template whitespace around its children (pink styles `code` as `white-space: pre-wrap`), which showed up as padding and line breaks around inline code.
+- Updated dependencies [4dbd615]
+- Updated dependencies [4a43f75]
+- Updated dependencies [4a43f75]
+- Updated dependencies [32c3a87]
+    - @loom-js/core@0.8.0
+
 ## 0.2.1
 
 ### Patch Changes

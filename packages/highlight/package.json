@@ -1,6 +1,6 @@
 {
     "name": "@loom-js/highlight",
-    "version": "0.0.0",
+    "version": "0.1.0",
     "author": "Claudio Nunez Jr",
     "license": "ISC",
     "description": "Syntax highlighting for loom UI libraries: a pure text→tokens tokenizer (Prism) behind a lazy-import activity, with a UI-library-agnostic token vocabulary.",
