@@ -1,24 +1,14 @@
-import { unlink } from 'fs';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
 import terser from '@rollup/plugin-terser';
 import typescriptRollupPlugin from '@rollup/plugin-typescript';
+import { readFileSync, rmSync } from 'fs';
 import del from 'rollup-plugin-delete';
 import dts from 'rollup-plugin-dts';
 
-const pkg = require('./package.json');
+const pkg = JSON.parse(readFileSync('./package.json', 'utf8'));
 
 // Delete old typings to avoid issues
 for (const typings of ['dist/index.d.ts', 'dist/server.d.ts']) {
-    unlink(typings, (err) => {
-        if (err) {
-            console.error(err);
-            return;
-        }
-
-        console.info(`${typings} was deleted`);
-    });
+    rmSync(typings, { force: true });
 }
 
 // Shared by the browser (`.`) and server (`./server`) entries.

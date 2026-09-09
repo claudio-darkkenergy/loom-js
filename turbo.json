@@ -1,7 +1,15 @@
 {
     "$schema": "./node_modules/turbo/schema.json",
     "ui": "tui",
-    "globalPassThroughEnv": ["ENABLE_EXPERIMENTAL_COREPACK"],
+    "globalPassThroughEnv": [
+        "AWS_ROLE_ARN",
+        "OPENAI_API_KEY",
+        "CTF_SPACE_ID",
+        "CTF_TOKEN",
+        "CTF_HOST",
+        "API_URL",
+        "CTF_IS_PREVIEW"
+    ],
     "tasks": {
         "build": {
             "dependsOn": ["^build", "^build-package"],
@@ -33,6 +41,10 @@
         },
         "type-check": {
             "dependsOn": ["topo"]
+        },
+        "@loom-js/services#build": {
+            "dependsOn": ["^build", "^build-package"],
+            "outputs": []
         }
     }
 }

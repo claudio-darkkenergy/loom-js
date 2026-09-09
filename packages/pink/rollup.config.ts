@@ -1,24 +1,14 @@
-import { unlink } from 'fs';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
 import terser from '@rollup/plugin-terser';
 import typescriptRollupPlugin from '@rollup/plugin-typescript';
+import { readFileSync, rmSync } from 'fs';
 import type { RollupOptions } from 'rollup';
 import del from 'rollup-plugin-delete';
 import dts from 'rollup-plugin-dts';
 
-const pkg = require('./package.json');
+const pkg = JSON.parse(readFileSync('./package.json', 'utf8'));
 
 // Delete old typings to avoid issues
-unlink('dist/index.d.ts', (err) => {
-    if (err) {
-        console.error(err);
-        return;
-    }
-
-    console.info('dist/index.d.ts was deleted');
-});
+rmSync('dist/index.d.ts', { force: true });
 
 export default [
     // CommonJS (for Node) and ES module (for bundlers) build.
