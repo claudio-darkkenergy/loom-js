@@ -8,6 +8,8 @@ build(
         // Preview is an explicit opt-in — production must never default onto
         // Contentful's uncached Preview API.
         ctfIsPreview: process.env.CTF_IS_PREVIEW === 'true',
-        isProd: process.env.NODE_ENV === 'production'
+        // build.mts is the production entry (dev.mts serves dev) — don't
+        // depend on ambient NODE_ENV, which CI build environments may not set.
+        isProd: process.env.NODE_ENV !== 'development'
     })
 );
