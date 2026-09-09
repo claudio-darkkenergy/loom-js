@@ -39,3 +39,4 @@ ui-kit
 
 # Python bytecode (contentful-sync tooling)
 __pycache__/
+.env*
