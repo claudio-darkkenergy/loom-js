@@ -16,8 +16,9 @@ Valid reasons for accepting an advisory:
 
 ## Currently accepted advisories
 
-**None.** As of 2026-08-02, `pnpm audit` (full and `--prod`) reports zero known
-vulnerabilities on the committed `pnpm-lock.yaml`.
+**None.** As of 2026-09-08, `pnpm audit` (full and `--prod`) reports zero known
+vulnerabilities on the committed `pnpm-lock.yaml` (last pass: fast-uri, js-yaml
+4.3.2, and qs remediated via `pnpm-workspace.yaml` overrides).
 
 Notes from the last remediation pass (`openspec/changes/fix-dependency-vulnerabilities`):
 

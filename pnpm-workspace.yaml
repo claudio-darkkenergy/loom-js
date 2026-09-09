@@ -31,10 +31,11 @@ overrides:
     # minimatch: GHSA-3ppc-4f35-3m26, GHSA-7r86-cg39-jmmj, GHSA-23c5-xmqv-rm74
     # (high). @vercel/python-analysis pins 10.1.1; patched >=10.2.3.
     'minimatch@>=10.0.0 <10.2.3': ^10.2.6
-    # js-yaml: GHSA-52cp-r559-cp3m (high), GHSA-h67p-54hq-rp68 (moderate).
-    # @vercel/python-analysis pins 3.15.1; patched >=4.3.0 only. It calls
+    # js-yaml: GHSA-52cp-r559-cp3m (high), GHSA-h67p-54hq-rp68 (moderate),
+    # GHSA-2883-xcg3-v3hh (high, added 2026-09-08 — needs >=4.3.2).
+    # @vercel/python-analysis pins 3.15.1; patched >=4.3.2 only. It calls
     # yaml.load, which v4 keeps (as the safe loader), so the major jump holds.
-    'js-yaml@<4.3.0': ^4.3.1
+    'js-yaml@<4.3.2': ^4.3.2
     # Collateral repair for the js-yaml jump above: read-yaml-file@1 (under
     # changesets' @manypkg/find-root) calls yaml.safeLoad, which js-yaml 4
     # removed — breaking the changesets CLI (`pnpm status-packages` and the
@@ -50,6 +51,14 @@ overrides:
     # ajv: GHSA-2g4f-4pwh-qvx6 (moderate). @vercel/static-config pins 8.6.3;
     # patched >=8.18.0.
     'ajv@>=8.0.0 <8.18.0': ^8.20.0
+    # fast-uri: GHSA-5jgf-p345-68v8, GHSA-f65p-4m7j-42xc, GHSA-fph4-wmhf-6fwf,
+    # GHSA-jqff-g426-hqxp (all high). ajv (under @vercel/static-config, via the
+    # override above) resolves fast-uri <3.1.6; patched >=3.1.6.
+    'fast-uri@>=3.0.0 <3.1.6': ^3.1.6
+    # qs: GHSA-x5fp-wj9c-mxmx, GHSA-4mjr-xmp4-gh2g (moderate).
+    # contentful-sdk-core (under apps/loom's contentful) pins <6.16.0; patched
+    # >=6.16.0. Drop when contentful-sdk-core bumps qs.
+    'qs@<6.16.0': ^6.16.0
     # smol-toml: GHSA-v3rj-xjv7-4jmq (moderate). vercel pins 1.5.2; patched >=1.6.1.
     'smol-toml@<1.6.1': ^1.7.1
     # @tootallnate/once: GHSA-vpq2-c234-7xj6 (low). @vercel/fun pins 2.0.0;
