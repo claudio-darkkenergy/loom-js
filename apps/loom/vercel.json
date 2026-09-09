@@ -2,7 +2,7 @@
     "redirects": [
         {
             "source": "/docs",
-            "destination": "/docs/get-started"
+            "destination": "/docs/getting-started"
         }
     ],
     "rewrites": [
