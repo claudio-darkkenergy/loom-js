@@ -18,3 +18,4 @@
 - [ ] 3.1 README Transforms + Options (incl. the when-to-use guide) per D5; `input` bullet gains the by-reference read-only convention (D2c); activities topic mirrored and draft re-pushed; map sample note if outlines shift
 - [ ] 3.2 **Minor** changeset with the behavior-change note (nondeterministic race → latest-wins)
 - [ ] 3.3 One-line note in `server-first-loom-app` tasks that prerender verification assumes these semantics
+- [ ] 3.4 Verify against the docs-app repro (2026-09-09): two rapid side-nav clicks before the first topic's fetch resolves — with `pageContent` on latest-wins, the first topic's content never flashes in; the skeleton holds until the second's data commits (an app-level supersede guard was drafted and deliberately reverted in favor of this landing)
