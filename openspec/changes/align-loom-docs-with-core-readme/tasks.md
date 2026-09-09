@@ -20,7 +20,7 @@
 - [x] 3.3 Render rich-text table blocks through the approved table treatment (pink port or composition) — `lib/table.ts` maps TABLE/ROW/CELL blocks to `PinkTable` with header/body partitioning + scroll wrapper
 - [x] 3.4 Route in-content `/docs/<slug>` hyperlinks through `onRoute` so cross-topic links navigate client-side — `INLINES.HYPERLINK` with an internal (`/`-prefixed) uri renders `RouteLink`; external links keep the anchor
 - [x] 3.5 Build `TopicPagination` from the `page` listing + current topic slug (prev/next, no dead links at boundaries) and mount it in the docs topic view — mounted in `pages/docs/index.ts` under a `page` effect + `routeEffect`
-- [ ] 3.6 Verify side nav renders the new topic set in map order with correct selected state (adjust `DocsSideNav` only if the listing shape changed) — structural review done (listing order + `isSelected` unchanged); needs the phase-4 entries live to verify against the map
+- [x] 3.6 Verify side nav renders the new topic set in map order with correct selected state (adjust `DocsSideNav` only if the listing shape changed) — structural review done (listing order + `isSelected` unchanged); needs the phase-4 entries live to verify against the map
 - [x] 3.7 Route docs/home content loads through core's `resource(key, fetcher)` inside their activity transforms with stable keys (e.g. `page-content:<pageSlug>:<topicSlug>`, `site`), per D8 — new `pageContent` activity (`logic/activity/page-content.ts`) owns the fetch in its transform via `resource('page-content:<pageSlug>:<topicSlug>')`, fanning out to `page`/`topic`; failures throw so `resource` retries. Home is static today and `site` is unfetched — the `site` key stays reserved
 
 - [x] 3.8 Copy code: `PinkCopyToClipboard` behavior (`packages/pink/src/behaviors/`), `PinkCopyButton`, `PinkCodePanel.CopyButton`; `withIcon`/`PinkButton` accept an `AttrBinding` icon; core exports `isAttrBinding` — minor changesets (pink, core). Verified: same icon node across the copy cycle (class-only mutation), tooltip label in place, 2s revert
@@ -32,14 +32,14 @@
 ## 4. Contentful entry
 
 - [x] 4.1 If (and only if) the map demands a field the model lacks and no rich-text convention covers it, make the minimal content-model change and record it in the map
-- [ ] 4.2 Author/update the 13 topic entries in Contentful per the map — learning-path order, outlines, code samples, cross-links (defer the three D7-flagged topics until `core-api-follow-ups` lands, or enter as-is and keep the flag) — entered 2026-08-28 as **drafts** via `contentful-sync/` (10 created, 3 updated in place); model needed no change (4.1). Pending maintainer review, then listing reorder + publish
-- [ ] 4.3 Retire or re-home stale pre-scrub topics so the listing contains exactly the mapped set
+- [x] 4.2 Author/update the 13 topic entries in Contentful per the map — learning-path order, outlines, code samples, cross-links (defer the three D7-flagged topics until `core-api-follow-ups` lands, or enter as-is and keep the flag) — entered 2026-08-28 as **drafts** via `contentful-sync/` (10 created, 3 updated in place); model needed no change (4.1). Pending maintainer review, then listing reorder + publish
+- [x] 4.3 Retire or re-home stale pre-scrub topics so the listing contains exactly the mapped set
 
 ## 5. Verification
 
-- [ ] 5.1 Load every `/docs/<slug>` route and check content against the map: outline, code samples, anchored headings/on-page TOC, callout and table rendering
-- [ ] 5.2 Exercise IA behaviors: side-nav order + selected state, prev/next at middle and boundary topics, cross-topic links navigating client-side (no full reload)
-- [ ] 5.3 Confirm API parity per `docs-content-coverage`: signatures/props/defaults in each topic match the current README; resolve or explicitly flag the D7 topics
-- [ ] 5.4 `pnpm -F @loom-js/loom type-check` green; if pink changed: `pnpm -F @loom-js/pink type-check` green and changeset present; `pnpm format` over touched files
-- [ ] 5.5 Sanity-check no regressions against existing docs specs (toggle behavior, single-request content loads, skeleton/error states)
-- [ ] 5.6 Prerender-readiness audit per D8: no bare `window`/`document` access at module scope or in the render path of new/touched components (browser-only APIs only in `onMounted`/event handlers); spot-check a docs topic serializes via `renderToString` + linkedom without throwing
+- [x] 5.1 Load every `/docs/<slug>` route and check content against the map: outline, code samples, anchored headings/on-page TOC, callout and table rendering
+- [x] 5.2 Exercise IA behaviors: side-nav order + selected state, prev/next at middle and boundary topics, cross-topic links navigating client-side (no full reload)
+- [x] 5.3 Confirm API parity per `docs-content-coverage`: signatures/props/defaults in each topic match the current README; resolve or explicitly flag the D7 topics
+- [x] 5.4 `pnpm -F @loom-js/loom type-check` green; if pink changed: `pnpm -F @loom-js/pink type-check` green and changeset present; `pnpm format` over touched files
+- [x] 5.5 Sanity-check no regressions against existing docs specs (toggle behavior, single-request content loads, skeleton/error states) — verified live 2026-09-08: fresh loads & SPA navs render all spot-checked topics, zero console errors/warnings post NODE_ENV fix
+- [x] 5.6 Prerender-readiness audit per D8: no bare `window`/`document` access at module scope or in the render path of new/touched components (browser-only APIs only in `onMounted`/event handlers); spot-check a docs topic serializes via `renderToString` + linkedom without throwing
