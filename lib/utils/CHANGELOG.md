@@ -1,5 +1,12 @@
 # @loom-js/utils
 
+## 0.0.7
+
+### Patch Changes
+
+- Updated dependencies [946c525]
+    - @loom-js/core@0.9.1
+
 ## 0.0.6
 
 ### Patch Changes
