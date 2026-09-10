@@ -34,11 +34,13 @@ const savedScrollOf = (win: DomWindow): number | undefined => {
     return typeof saved === 'number' && saved > 0 ? saved : undefined;
 };
 
-// Captures the current offset onto the current history entry. Top (0) is
-// never stored — it is the no-state default, and storing it would turn
-// scroll-free traversals into no-op-but-observable restore scrolls — and a
-// previously captured offset is cleared once the entry rests at the top
-// again, so a stale depth can never restore.
+/**
+ * Captures the current offset onto the current history entry. Top (0) is
+ * never stored — it is the no-state default, and storing it would turn
+ * scroll-free traversals into no-op-but-observable restore scrolls — and a
+ * previously captured offset is cleared once the entry rests at the top
+ * again, so a stale depth can never restore.
+ */
 const captureScroll = (win: DomWindow) => {
     if (typeof win.history?.replaceState !== 'function') {
         return;
@@ -99,9 +101,8 @@ class Router {
     // inside a DOM scope, never at module load.
     constructor(win: DomWindow) {
         this.ownerWindow = win;
-        // The router owns restoration: the browser's own attempt fires
-        // before client-rendered content exists and clamps against the
-        // short document (`settlement-scroll-restoration`).
+        // The router owns restoration — the browser's own attempt fires
+        // before client-rendered content exists and clamps short.
         try {
             if (win.history && 'scrollRestoration' in win.history) {
                 win.history.scrollRestoration = 'manual';
@@ -109,11 +110,9 @@ class Router {
         } catch (_e) {
             // Provider DOMs without a session history stay inert.
         }
-        // Initial-load anchor: the browser's native scroll fired before
-        // lazily-imported route content existed, so the fragment is still
-        // owed once that content renders. A fragmentless boot owes the
-        // entry's captured offset if one exists (reload, traversal back into
-        // the app) — otherwise nothing: the boot position is the top.
+        // The boot owes the fragment's anchor if the URL carries one, else
+        // the entry's captured offset (reload / traversal back into the
+        // app), else nothing — the boot position is the top.
         const bootSaved = savedScrollOf(win);
 
         this.pendingScroll = win.location.hash
@@ -121,29 +120,21 @@ class Router {
             : bootSaved !== undefined
               ? { restore: bootSaved }
               : undefined;
-        // Reloads bypass route(), and Chrome ignores history API writes
-        // during pagehide — so the offset is captured whenever scrolling
-        // comes to rest instead: `scrollend` where supported, a debounced
-        // scroll fallback otherwise. A handful of writes per reading session
-        // stays far under the history API's rate limits.
-        // `as object` defeats aliased narrowing — otherwise the fallback
-        // branch types `win` as `never`.
-        const supportsScrollEnd = 'onscrollend' in (win as object);
+        // Chrome ignores history writes during pagehide, so offsets are
+        // captured at scroll rest: a debounced scroll listener always, and
+        // scrollend where it exists for a faster capture at gesture end.
+        let scrollRest: ReturnType<typeof setTimeout> | undefined;
 
-        if (supportsScrollEnd) {
+        win.addEventListener?.(
+            'scroll',
+            () => {
+                clearTimeout(scrollRest);
+                scrollRest = setTimeout(() => captureScroll(win), 250);
+            },
+            { passive: true }
+        );
+        'onscrollend' in (win as object) &&
             win.addEventListener?.('scrollend', () => captureScroll(win));
-        } else {
-            let scrollRest: ReturnType<typeof setTimeout> | undefined;
-
-            win.addEventListener?.(
-                'scroll',
-                () => {
-                    clearTimeout(scrollRest);
-                    scrollRest = setTimeout(() => captureScroll(win), 250);
-                },
-                { passive: true }
-            );
-        }
         this.locationActivity = activity<Location>(win.location, {
             // The raw location layer keeps the legacy activity's semantics:
             // it fires on every update, even a same-location one.
@@ -165,9 +156,7 @@ class Router {
             this.routeActivity.update(location)
         );
 
-        // Hook into the History API onpopstate event when the browser history
-        // updates via back/forward controls — one listener per instance. The
-        // arrived entry's scroll is the router's to owe (manual restoration):
+        // On traversal the arrived entry's scroll is the router's to owe:
         // its fragment, else its captured offset, else nothing.
         win.addEventListener('popstate', () => {
             const saved = savedScrollOf(win);
@@ -265,9 +254,7 @@ class Router {
         event?.preventDefault();
 
         // Leaving this entry: capture its offset so a later traversal back
-        // restores it (push only — a replaced entry is gone). Traversals
-        // leaving an entry keep its last captured offset; the browser gives
-        // no pre-popstate hook to refresh it.
+        // restores it (push only — a replaced entry is gone).
         action === 'pushState' && captureScroll(win);
 
         // Update the browser url. The location activity heads the pipeline,
@@ -349,15 +336,13 @@ class Router {
         return this.pageImportActivity;
     }
 
-    // Performs the pending scroll, once — cleared before the attempt, single
-    // attempt, silent no-op when a fragment's target is absent. A fragment
-    // scroll waits on the settlement signal (bounded, like `hydrate`) so
-    // anchors produced by tracked async work — lazy route chunks, data
-    // fetched through activity transforms — exist by scroll time; the bound
-    // keeps an unsettled page from holding the scroll indefinitely. A top
-    // scroll has no target to wait for, so it fires immediately — deferring
-    // it would leave the viewport parked mid-page (over stale or loading
-    // content) until the navigation's data lands.
+    /**
+     * Performs the pending scroll, once — cleared before the attempt, single
+     * attempt, silent no-op when a fragment's target is absent. Fragment and
+     * restore scrolls wait on the settlement signal (bounded, like
+     * `hydrate`) so their target content exists by scroll time; a top scroll
+     * has no target, so it fires immediately.
+     */
     private consumePendingScroll() {
         const pending = this.pendingScroll;
 
