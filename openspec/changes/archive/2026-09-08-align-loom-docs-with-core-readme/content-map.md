@@ -213,7 +213,11 @@ topic (noted per topic below).
     - h2 The activity — pub/sub model, `V`/`I` type parameters.
     - h2 Transforms — the async-data path; settlement-signal tracking (anchor target for other
       topics).
-    - h2 Options — `deep`, `force`, `transform`.
+    - h2 Transform concurrency — `'latest'` / `'ordered'` / `'serial'` dispatch semantics with
+      the when-to-use guide (added 2026-09-09 by `activity-transform-concurrency`; README gains
+      the matching subsection).
+    - h2 Options — `deep`, `force`, `transform`; `concurrency` + `timeout` added 2026-09-09 by
+      `activity-transform-concurrency`.
     - h2 The returned interface — `initialValue`; h3 `effect`; h3 `bind`; h3 `reset`;
       h3 `update`; h3 `value`; h3 `watch`.
     - h2 Examples — h3 Attribute binding; h3 Counter (quick example + effect example);
