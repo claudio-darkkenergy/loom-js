@@ -1,5 +1,14 @@
 # @loom-js/storybook
 
+## 0.0.10
+
+### Patch Changes
+
+- Updated dependencies [a4c3cb0]
+- Updated dependencies [a4c3cb0]
+- Updated dependencies [a4c3cb0]
+    - @loom-js/core@0.9.0
+
 ## 0.0.9
 
 ### Patch Changes

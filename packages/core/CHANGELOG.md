@@ -1,5 +1,16 @@
 # @loom-js/core
 
+## 0.9.0
+
+### Minor Changes
+
+- a4c3cb0: Debug narration is now switchable at runtime and `setDebug` is fixed. The `loom` global now exposes `setDebug` and no longer exposes the console proxy (it was consumer-unusable — the access-time gate made cached references stale, and nothing needs the handle now that `setDebug` is reachable) (`loom.setDebug({ updates: true })` from a devtools console). `setDebug` itself no longer `Object.assign`s onto a primitive `false` (which produced a truthy Boolean-wrapper debug state that could never be switched off) and no longer mutates the shared scope defaults: `setDebug(false)` turns everything off, `setDebug(true)` enables the full scope set, an explicit scope record becomes the active set exactly (unlisted scopes off), and a scopes-first call implies enabling. `setDebug` always returns the whole resulting scope record — every scope explicitly on or off — for enables, scope changes, and `setDebug(false)` alike.
+- a4c3cb0: The router now owns scroll restoration (`history.scrollRestoration = 'manual'`): each entry's scroll offset is captured into its history state at exit (router navigations and pagehide), and replays after the settlement signal resolves on reload and back/forward traversal — so restoration is computed against fully-rendered content instead of the browser clamping against a still-loading document. A URL fragment outranks a saved offset; entries with no saved offset stay at the top. `route(event, { scroll: false })` and all other scroll semantics are unchanged.
+
+### Patch Changes
+
+- a4c3cb0: Fragmentless navigations now scroll to the top immediately when the navigation commits, instead of waiting on the settlement signal. Deferring the top scroll left the viewport parked mid-page over stale or loading content until the new route's data landed; only fragment scrolls still wait for settled content, since their target has to exist. `route(event, { scroll: false })` continues to suppress both.
+
 ## 0.8.0
 
 ### Minor Changes
