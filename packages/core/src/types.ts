@@ -48,7 +48,13 @@ export interface Es6Object<T = unknown> {
 }
 
 export interface LoomGlobal {
-    console: Console;
+    // Runtime access to the debug-narration switch, mirroring the module
+    // export — narration is opt-in, so the switch must be reachable from a
+    // devtools console in any build.
+    setDebug: (
+        isOn?: boolean | (ConfigDebugAllowable & object),
+        types?: ConfigDebugAllowable & object
+    ) => Required<ConfigDebugAllowable>;
 }
 
 // String-keyed record for props/templating paths — see `Es6Object` for the

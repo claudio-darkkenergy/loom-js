@@ -39,15 +39,37 @@ const fetchPageContent = async (
  * hydration swaps wait for it), and the stable `page-content:` key makes the
  * values capturable by `dehydrate()` and primeable on the client.
  */
+// Keys this window has successfully loaded — mirrors the resource cache
+// (which core doesn't expose a peek for) so the skeleton reset above only
+// fires when a real fetch is coming.
+const loadedKeys = new Set<string>();
+
 export const pageContent = activity<
     PageContent | ContentLoadFailure | undefined,
     PageContentRequest
 >(undefined, async ({ input: { pageSlug, topicSlug }, update }) => {
+    // Navigating to a topic this window hasn't loaded yet clears the held
+    // one immediately, so the skeleton renders for the whole load instead of
+    // the previous topic sitting frozen until the swap. Already-loaded
+    // topics resolve from the resource cache and swap in place in a single
+    // render — measured at 8-86ms on production (2026-09-09), so no skeleton
+    // flash is warranted for them.
+    const resourceKey = `page-content:${pageSlug}:${topicSlug}`;
+    const heldTopic = topic.value();
+    const topicChanged =
+        hasContentError(heldTopic) || heldTopic?.slug !== topicSlug;
+
+    if (topicChanged && !loadedKeys.has(resourceKey)) {
+        topic.update(undefined);
+    }
+
     try {
-        const data = await resource(
-            `page-content:${pageSlug}:${topicSlug}`,
-            () => fetchPageContent(pageSlug, topicSlug)
+        const data = await resource(resourceKey, () =>
+            fetchPageContent(pageSlug, topicSlug)
         );
+
+        loadedKeys.add(resourceKey);
+
         // A page's listing only changes when the page itself changes — update
         // on a slug change (or to replace an empty/failed state) so topic
         // navigations within a page don't re-render the nav with a

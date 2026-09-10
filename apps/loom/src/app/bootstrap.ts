@@ -62,14 +62,12 @@ export const Bootstrap = (
             ]
         }) as ContextFunction,
         // placement: 'prepend',
+        // Debug narration stays opt-in (the diagnostics contract): with
+        // `updates` narration on, a docs topic swap emits thousands of
+        // console groups — seconds of main-thread cost with DevTools open.
+        // Enable ad hoc from the console via `loom` / `setDebug` instead.
         globalConfig: {
-            debug: __DEV__,
-            debugScope: {
-                activity: false,
-                creation: false,
-                mutations: false,
-                updates: true
-            }
+            debug: false
         },
         root: $app
     });

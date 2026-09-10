@@ -6,12 +6,15 @@ import type { ContextFunction } from '../../src/types';
 import { runSetup } from '../support/run-setup';
 
 // Specs for the router's navigation-scroll contract (`route-scroll-option`):
-// navigations that change the route consume their scroll — the fragment's
-// anchor, or the top for a fragmentless navigation — once the settlement
-// signal resolves, so anchors produced by tracked async work (route chunks,
-// data fetched through activity transforms) exist for the single attempt.
-// `{ scroll: false }` suppresses every scroll of the navigation; history
-// traversal (`popstate`) is left to the browser's own scroll restoration.
+// navigations that change the route consume their scroll — a fragment's
+// anchor once the settlement signal resolves (so anchors produced by tracked
+// async work — route chunks, data fetched through activity transforms — exist
+// for the single attempt), or the top immediately for a fragmentless
+// navigation (a top scroll has no target to wait for).
+// `{ scroll: false }` suppresses every scroll of the navigation. The router
+// owns scroll restoration (`settlement-scroll-restoration`): offsets capture
+// onto the entry at exit and replay after settlement on traversal/reload;
+// entries with no captured offset traverse scroll-free.
 //
 // Test order matters: the router singleton is constructed on first routing
 // use, so the initial-load spec must own that first use — with the boot
@@ -274,6 +277,59 @@ describe('hash navigation (routed, deferred scroll)', () => {
 
         expect(scrollToFake.called, 'no top scroll').to.be.false;
         expect(scrollIntoViewFake.called, 'no anchor scroll').to.be.false;
+    });
+
+    it('owns scroll restoration for the routing window', () => {
+        expect(window.history.scrollRestoration).to.equal('manual');
+    });
+
+    it('replays a captured offset on traversal, after settlement', async () => {
+        // Park the current entry at a fake depth so the router captures it
+        // on the way out (capture reads `scrollY` at push time).
+        const scrollYDescriptor = Object.getOwnPropertyDescriptor(
+            window,
+            'scrollY'
+        );
+
+        Object.defineProperty(window, 'scrollY', {
+            configurable: true,
+            get: () => 777
+        });
+        route(null, { href: '/hash-docs' });
+        await settle();
+
+        // Restore the real scrollY before the traversal back.
+        if (scrollYDescriptor) {
+            Object.defineProperty(window, 'scrollY', scrollYDescriptor);
+        } else {
+            delete (window as { scrollY?: number }).scrollY;
+        }
+
+        scrollToFake.resetHistory();
+        scrollIntoViewFake.resetHistory();
+        await new Promise((resolve) => {
+            window.addEventListener('popstate', resolve, { once: true });
+            window.history.back();
+        });
+        await settle();
+        await waitFor(() => scrollToFake.called);
+
+        expect(
+            scrollToFake.calledWithMatch({
+                behavior: 'instant',
+                left: 0,
+                top: 777
+            }),
+            'restored the captured offset exactly'
+        ).to.be.true;
+        expect(scrollIntoViewFake.called, 'no anchor scroll').to.be.false;
+
+        // Clean the captured offset off the entry so later traversal specs
+        // stay scroll-free, and return to the pre-spec entry.
+        window.history.replaceState({}, '');
+        route(null, { href: '/hash-docs' });
+        await settle();
+        scrollToFake.resetHistory();
     });
 
     it('renders a cross-page navigation with a hash but no scroll when opted out', async () => {

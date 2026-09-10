@@ -16,7 +16,7 @@ Pages don't have to start in the browser: loom can serialize an app to HTML on a
 
 - `options.window` - The DOM to render against, e.g. `parseHTML(...).window` from linkedom. Use a fresh window per render — never share one across concurrent renders.
 - `options.url?: string` - The request URL. Installed as the window's `location`, so `locationEffect` & `createRoutes` match the requested path.
-- `options.maxWait?: number` - Upper bound in ms (default `4000`) on the settlement wait — symmetric with `hydrate`'s `maxWait`. On expiry the render serializes whatever has landed & a `loom.console` warning names the still-pending count. `Infinity` disables the bound. Ignored by `renderToStringSync`.
+- `options.maxWait?: number` - Upper bound in ms (default `4000`) on the settlement wait — symmetric with `hydrate`'s `maxWait`. On expiry the render serializes whatever has landed & a framework console warning names the still-pending count. `Infinity` disables the bound. Ignored by `renderToStringSync`.
 
 **Quick Example**
 

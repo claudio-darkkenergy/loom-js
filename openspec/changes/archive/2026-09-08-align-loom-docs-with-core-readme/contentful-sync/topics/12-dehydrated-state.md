@@ -24,7 +24,7 @@ The full story: `renderToString` → `dehydrate` → embed → `primeResources` 
 
 ### `dehydrate`
 
-`dehydrate(window): DehydratedState` (server entry) - After `await renderToString(app, { window, url })` (see [Server Rendering](/docs/server-rendering)), returns that window's **settled** resource values as a plain JSON-serializable object. Pending entries (possible when `maxWait`-style drain bounds expire) are skipped; so are unserializable values, with a `loom.console` warning — a skipped key is just a client-side cache miss.
+`dehydrate(window): DehydratedState` (server entry) - After `await renderToString(app, { window, url })` (see [Server Rendering](/docs/server-rendering)), returns that window's **settled** resource values as a plain JSON-serializable object. Pending entries (possible when `maxWait`-style drain bounds expire) are skipped; so are unserializable values, with a framework console warning — a skipped key is just a client-side cache miss.
 
 ### `serializeState`
 

@@ -4,12 +4,16 @@
 import { appendEvents, setDebug, setToken } from '../config';
 import type { AppGlobalConfig, LoomGlobal } from '../types';
 import { getDocument, getWindow } from './dom';
-import { loomConsole } from './globals/loom-console';
 import { mount } from './mount';
 
 export const bootstrap = () => {
     ((globalThis as any).loom as LoomGlobal) = {
-        console: loomConsole
+        // The runtime switch for opt-in debug narration — reachable from the
+        // devtools console (`loom.setDebug({ updates: true })`) so narration
+        // never has to ship enabled to be usable. The console proxy itself
+        // stays internal: nothing consumer-facing needs the handle, and
+        // exposing it invited cached-method-reference misuse.
+        setDebug
     };
 };
 

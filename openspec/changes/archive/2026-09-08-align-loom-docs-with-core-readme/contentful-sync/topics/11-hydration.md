@@ -14,7 +14,7 @@ Pre-rendered markup needs a client takeover the reader never sees. This topic co
 
 - `app`, `root`, `globalConfig`, `onAppMounted` - As in `init`.
 - `ready?: Promise<unknown>` - Optional caller-owned gate: the swap awaits it alongside settlement. Use it for async work the framework cannot track (see the tracking boundary below).
-- `maxWait?: number` - Upper bound in ms (default `4000`) on how long the swap waits. On expiry the swap runs with whatever has rendered & a `loom.console` warning names the still-pending count. `Infinity` disables the bound.
+- `maxWait?: number` - Upper bound in ms (default `4000`) on how long the swap waits. On expiry the swap runs with whatever has rendered & a framework console warning names the still-pending count. `Infinity` disables the bound.
 
 **Inclusion** `import { hydrate } from '@loom-js/core';`
 

@@ -1,17 +1,20 @@
-import {
-    Config,
-    ConfigDebug,
-    ConfigDebugAllowable,
-    ConfigEvent
-} from './types';
+import { Config, ConfigDebugAllowable, ConfigEvent } from './types';
 
-const debugAllowable: ConfigDebugAllowable = {
+const debugAllowable: Required<ConfigDebugAllowable> = {
     activity: true,
     creation: true,
     mutations: true,
     updates: true
 };
-let debug: ConfigDebug = false;
+const allScopesOff = (): Required<ConfigDebugAllowable> => ({
+    activity: false,
+    creation: false,
+    mutations: false,
+    updates: false
+});
+// Always a complete scope record — every scope explicitly on or off, so
+// reads (and `setDebug`'s return) never expose a partial or falsy state.
+let debug: Required<ConfigDebugAllowable> = allScopesOff();
 // Accepted events: https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers
 const defaultEvents: ConfigEvent[] = [
     'abort',
@@ -111,7 +114,7 @@ export const appendEvents = (eventsToAppend: string[]) => {
 };
 
 export const canDebug = (type: keyof ConfigDebugAllowable) =>
-    debugIsOn() && debug && debug[type];
+    debugIsOn() && debug[type];
 
 /**
  * Contains the framework configuration.
@@ -123,12 +126,31 @@ export const config: Config = getConfig();
  * environment — the gate `loomConsole` reads for non-warning methods.
  */
 export const debugIsOn = () =>
-    globalThis.process?.env.NODE_ENV !== 'production' && Boolean(debug);
+    globalThis.process?.env.NODE_ENV !== 'production' &&
+    Object.values(debug).some(Boolean);
 
+/**
+ * Switches debug narration. `setDebug(false)` turns every scope off;
+ * `setDebug(true)` enables the full scope set; with scopes, the active set
+ * is exactly what the call provides — unlisted scopes are off. Scopes-first
+ * calls (`setDebug({ updates: true })`) imply `isOn: true`. Never mutates
+ * shared state; always returns the whole resulting scope record, every
+ * scope explicitly on or off.
+ */
 export const setDebug = (
-    isOn = true,
-    types: ConfigDebugAllowable & object = debugAllowable
-) => (debug = isOn && Object.assign(debug, types));
+    isOn: boolean | (ConfigDebugAllowable & object) = true,
+    types?: ConfigDebugAllowable & object
+): Required<ConfigDebugAllowable> => {
+    const scopesFirst = typeof isOn === 'object';
+    const scopes = scopesFirst ? isOn : types;
+
+    debug =
+        scopesFirst || isOn
+            ? { ...allScopesOff(), ...(scopes ?? debugAllowable) }
+            : allScopesOff();
+
+    return { ...debug };
+};
 
 /**
  * Use this to customize the `config` TOKEN used by the template renderer during dynamic value resolution.

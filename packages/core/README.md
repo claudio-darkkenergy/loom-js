@@ -1085,7 +1085,7 @@ Loop avoidance is caller-owned: the guard must pass its own redirect target (her
 
 The deferred scroll is a **single attempt**, fired once the settlement signal resolves (bounded, like `hydrate`'s settle window) — so anchors produced by framework-tracked async work (lazy route chunks, content fetched through activity transforms) exist by scroll time. If the target `id` still doesn't exist — async work outside the tracking boundary — nothing scrolls and the app owns its own scroll from there. A subsequent navigation drops any unconsumed fragment. Scrolling uses `scrollIntoView()`, so the page's `scroll-behavior` CSS controls smoothness.
 
-**Fragmentless navigations land at the top.** A route-changing `route()` with no fragment scrolls the window to the top once the new page renders — instantly, bypassing `scroll-behavior` CSS, the way a fresh document load lands. History traversal (back/forward) is left to the browser's own scroll restoration.
+**Fragmentless navigations land at the top.** A route-changing `route()` with no fragment scrolls the window to the top as soon as the navigation commits — instantly, bypassing `scroll-behavior` CSS, the way a fresh document load lands. (Only fragment scrolls wait on settled content: their target has to render first; a top scroll has no target.) History traversal & reloads restore exactly: the router owns scroll restoration (`history.scrollRestoration = 'manual'`), captures the entry's offset on the way out, & replays it once the arrived content settles — so the saved position is computed against a fully-rendered page (the browser's own restoration clamps against the short, still-loading document). An entry with no saved offset stays at the top.
 
 Pass `{ scroll: false }` when the scroll itself is unwanted — the viewport stays put while the URL, history & pipeline behave exactly as above. The opt-out is for caller-owned cases where the user is already at the target, e.g. an in-page "copy link" anchor beside a heading; any scrolling from there is the caller's.
 
@@ -1184,7 +1184,7 @@ export const Dashboard = component(
     - `options`
         - `window` - The DOM to render against, e.g. `parseHTML(...).window` from linkedom. Use a fresh window per render — never share one across concurrent renders.
         - `url?: string` - The request URL. Installed as the window's `location`, so `locationEffect` & `createRoutes` match the requested path.
-        - `maxWait?: number` - Upper bound in ms (default `4000`) on the settlement wait — symmetric with `hydrate`'s `maxWait`. On expiry the render serializes whatever has landed & a `loom.console` warning names the still-pending count. `Infinity` disables the bound. Ignored by `renderToStringSync`.
+        - `maxWait?: number` - Upper bound in ms (default `4000`) on the settlement wait — symmetric with `hydrate`'s `maxWait`. On expiry the render serializes whatever has landed & a framework console warning names the still-pending count. `Infinity` disables the bound. Ignored by `renderToStringSync`.
 - `renderToStringSync(app: ContextFunction, options)` - The synchronous primitive: whatever has rendered when the app's synchronous work completes is what serializes (the naming follows Node's `readFile`/`readFileSync` pairing). Right for route-less renders — fragments, email/OG markup, component snapshot tests. A route-table app serializes only its shell/fallback here, since page importers cannot settle inside a synchronous pass. Same `options`.
 
 **Inclusion** `import { renderToString } from '@loom-js/core/server';`
@@ -1328,7 +1328,7 @@ Serve `./dist` statically and every listed route is a real page. Two notes close
     - `props`
         - `app`, `root`, `globalConfig`, `onAppMounted` - As in `init`.
         - `ready?: Promise<unknown>` - Optional caller-owned gate: the swap awaits it alongside settlement. Use it for async work the framework cannot track (see the tracking boundary below).
-        - `maxWait?: number` - Upper bound in ms (default `4000`) on how long the swap waits. On expiry the swap runs with whatever has rendered & a `loom.console` warning names the still-pending count. `Infinity` disables the bound.
+        - `maxWait?: number` - Upper bound in ms (default `4000`) on how long the swap waits. On expiry the swap runs with whatever has rendered & a framework console warning names the still-pending count. `Infinity` disables the bound.
 - `settled(): Promise<void>` - The signal `hydrate` gates on, importable directly: resolves once no framework-mediated async work is pending for the current DOM window, confirmed by one macrotask of continued quiet (so chained lazy work is awaited to quiescence). Useful as a test await point or anywhere "the app is done booting" matters.
 
 **Quick Example**
@@ -1402,7 +1402,7 @@ The full story: `renderToString` → `dehydrate` → embed → `primeResources` 
 
 - `resource<T>(key: string, fetcher: () => Promise<T>): Promise<T>` - A keyed async memo, per DOM window — the interception point capture & priming share. The first call per key invokes the fetcher, concurrent callers share the in-flight promise, & later calls resolve from cache without invoking the fetcher again. A rejected fetch rejects its sharing callers & is **not** cached — the next call retries. Call it inside an [async activity transform](#transforms-the-async-data-path) (the idiomatic data path), where the returned promise is already tracked by the settlement signal `hydrate` gates on.
 - `primeResources(state: DehydratedState): void` - Seeds the current window's resource cache from a dehydrated state object: a primed key resolves with the primed value without ever invoking its fetcher; unprimed keys fetch exactly as before. Run it **before the boot call** — transforms run during first render — & ahead of any boot: `hydrate` & `init` benefit identically.
-- `dehydrate(window): DehydratedState` (server entry) - After `await renderToString(app, { window, url })`, returns that window's **settled** resource values as a plain JSON-serializable object. Pending entries (possible when `maxWait`-style drain bounds expire) are skipped; so are unserializable values, with a `loom.console` warning — a skipped key is just a client-side cache miss.
+- `dehydrate(window): DehydratedState` (server entry) - After `await renderToString(app, { window, url })`, returns that window's **settled** resource values as a plain JSON-serializable object. Pending entries (possible when `maxWait`-style drain bounds expire) are skipped; so are unserializable values, with a framework console warning — a skipped key is just a client-side cache miss.
 - `serializeState(state: DehydratedState): string` (server entry) - Serializes the state to a JSON string safe to inline inside an HTML script element: `<`, U+2028 & U+2029 are escaped, & `JSON.parse` reproduces the original state. Hand-rolling `JSON.stringify` into inline HTML is a known XSS footgun (`</script>` smuggled through content) — always embed through this helper.
 
 **Inclusion** `import { primeResources, resource } from '@loom-js/core';` · `import { dehydrate, serializeState } from '@loom-js/core/server';`
@@ -1490,15 +1490,15 @@ hydrate({
 
 ### Diagnostics (warnings & debug logging)
 
-Loom's console surface (`loom.console`, backed by the framework's `loomConsole`) has two lanes:
+Loom's console surface (the framework-internal `loomConsole`) has two lanes:
 
 - **Warnings & errors always surface** — in development & production alike, with no opt-in. Attr misuse, unregistered custom elements, & settlement `maxWait` expiries reach the native console unconditionally.
-- **Everything else is opt-in debug narration**, silent by default. Enable it with `setDebug(isOn, scopes)` (or `globalConfig.debug`/`globalConfig.debugScope` at boot) in a non-production build. Scopes: `activity`, `creation`, `mutations`, `updates` — each call site is gated by exactly one scope, & hot-path narration (render/mount/mutation/update cycles) folds into collapsed console groups.
+- **Everything else is opt-in debug narration**, silent by default. Enable it with `setDebug(isOn, scopes)` (or `globalConfig.debug`/`globalConfig.debugScope` at boot) in a non-production build — or at runtime from the devtools console via the `loom` global: `loom.setDebug(true, { updates: true })`. Scopes: `activity`, `creation`, `mutations`, `updates` — each call site is gated by exactly one scope, & hot-path narration (render/mount/mutation/update cycles) folds into collapsed console groups.
 
 **Semantics worth knowing**
 
-- **Attribution is real:** accessing a `loom.console` method returns the native console method bound to the console (or a shared no-op when its gate is closed) — never a wrapper — so the browser attributes each message to the framework call site that produced it.
-- **The gate is read at property access:** `loom.console.info(…)` reflects the debug state at that access. Don't cache a method reference (`const log = loom.console.info`) — it freezes the gate state it was read under.
+- **Attribution is real:** each framework console access resolves to the native console method bound to the console (or a shared no-op when its gate is closed) — never a wrapper — so the browser attributes each message to the framework call site that produced it.
+- **The gate is read at property access:** every narration call reflects the debug state at that moment — flipping `loom.setDebug` applies from the very next message, no reload needed.
 
 **Inclusion** `import { setDebug } from '@loom-js/core';`
 
