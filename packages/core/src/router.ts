@@ -35,15 +35,24 @@ const savedScrollOf = (win: DomWindow): number | undefined => {
 };
 
 // Captures the current offset onto the current history entry. Top (0) is
-// never stored: it is the no-state default, and storing it would turn
-// scroll-free traversals into no-op-but-observable restore scrolls.
+// never stored — it is the no-state default, and storing it would turn
+// scroll-free traversals into no-op-but-observable restore scrolls — and a
+// previously captured offset is cleared once the entry rests at the top
+// again, so a stale depth can never restore.
 const captureScroll = (win: DomWindow) => {
+    if (typeof win.history?.replaceState !== 'function') {
+        return;
+    }
+
     const scrollY = typeof win.scrollY === 'number' ? win.scrollY : 0;
+    const state = (win.history.state ?? {}) as Record<string, unknown>;
 
-    if (scrollY > 0 && typeof win.history?.replaceState === 'function') {
-        const state = (win.history.state ?? {}) as Record<string, unknown>;
-
+    if (scrollY > 0) {
         win.history.replaceState({ ...state, [SCROLL_STATE_KEY]: scrollY }, '');
+    } else if (SCROLL_STATE_KEY in state) {
+        const { [SCROLL_STATE_KEY]: _stale, ...rest } = state;
+
+        win.history.replaceState(rest, '');
     }
 };
 
@@ -112,9 +121,29 @@ class Router {
             : bootSaved !== undefined
               ? { restore: bootSaved }
               : undefined;
-        // Reloads bypass route() — capture the leaving offset as the page
-        // hides so the next boot can restore it.
-        win.addEventListener?.('pagehide', () => captureScroll(win));
+        // Reloads bypass route(), and Chrome ignores history API writes
+        // during pagehide — so the offset is captured whenever scrolling
+        // comes to rest instead: `scrollend` where supported, a debounced
+        // scroll fallback otherwise. A handful of writes per reading session
+        // stays far under the history API's rate limits.
+        // `as object` defeats aliased narrowing — otherwise the fallback
+        // branch types `win` as `never`.
+        const supportsScrollEnd = 'onscrollend' in (win as object);
+
+        if (supportsScrollEnd) {
+            win.addEventListener?.('scrollend', () => captureScroll(win));
+        } else {
+            let scrollRest: ReturnType<typeof setTimeout> | undefined;
+
+            win.addEventListener?.(
+                'scroll',
+                () => {
+                    clearTimeout(scrollRest);
+                    scrollRest = setTimeout(() => captureScroll(win), 250);
+                },
+                { passive: true }
+            );
+        }
         this.locationActivity = activity<Location>(win.location, {
             // The raw location layer keeps the legacy activity's semantics:
             // it fires on every update, even a same-location one.
