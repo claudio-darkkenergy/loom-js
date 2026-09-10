@@ -113,7 +113,7 @@ The router SHALL scroll the anchor target identified by the location's `#fragmen
 #### Scenario: a reload behaves like an initial load
 
 - **WHEN** the page is reloaded on a URL carrying a `#fragment` whose target arrives with tracked async content
-- **THEN** the settled scroll attempt fires the same way (the browser's scroll restoration may subsequently apply its own position; the router does not fight it)
+- **THEN** the settled scroll attempt fires the same way — the fragment outranks any saved restoration offset (the router owns restoration; see the restoration requirement below)
 
 #### Scenario: missing anchor target is a silent no-op
 
@@ -197,3 +197,22 @@ A route-changing navigation performed via `route()` whose href carries no `#frag
 
 - **WHEN** `createRoutes` is called without a `guard`
 - **THEN** every valid match emits exactly as it did before this capability
+
+### Requirement: Scroll restoration is settlement-exact
+
+The router SHALL own scroll restoration for its window (`history.scrollRestoration = 'manual'`), capturing the entry's scroll offset into its history state as scrolling comes to rest (and at push-time exit), and replaying a saved offset after the settlement signal resolves (bounded) on reload and history traversal — so the restored position is computed against fully-rendered content. A URL fragment SHALL outrank a saved offset; an entry with no saved offset SHALL remain at the top. All other scrolls of the navigation contract are unchanged.
+
+#### Scenario: reload returns to the exact position
+
+- **WHEN** a user scrolls a client-rendered page and reloads
+- **THEN** after tracked content settles, the viewport returns to the saved offset — not a clamped intermediate, not the top
+
+#### Scenario: traversal restores like reload
+
+- **WHEN** the user navigates away and returns via back/forward
+- **THEN** the entry's saved offset replays after settlement, exactly
+
+#### Scenario: no saved state stays at the top
+
+- **WHEN** a fresh entry (no captured offset) boots without a fragment
+- **THEN** the viewport stays at the boot position and no restoration scroll fires

@@ -2,7 +2,7 @@
 
 ### Requirement: Scroll restoration is settlement-exact
 
-The router SHALL own scroll restoration for its window (`history.scrollRestoration = 'manual'`), capturing the outgoing entry's scroll offset into its history state at exit, and replaying a saved offset after the settlement signal resolves (bounded) on reload and history traversal — so the restored position is computed against fully-rendered content. A URL fragment SHALL outrank a saved offset; an entry with no saved offset SHALL remain at the top. All other scrolls of the navigation contract are unchanged.
+The router SHALL own scroll restoration for its window (`history.scrollRestoration = 'manual'`), capturing the entry's scroll offset into its history state as scrolling comes to rest (and at push-time exit), and replaying a saved offset after the settlement signal resolves (bounded) on reload and history traversal — so the restored position is computed against fully-rendered content. A URL fragment SHALL outrank a saved offset; an entry with no saved offset SHALL remain at the top. All other scrolls of the navigation contract are unchanged.
 
 #### Scenario: reload returns to the exact position
 

@@ -8,7 +8,7 @@
 ## 2. Docs & spec sync
 
 - [x] 2.1 README routing section + Routing topic: replace the "history traversal is left to the browser's own scroll restoration" sentence with the settlement-exact contract; re-push draft
-- [ ] 2.2 Verify against the production reproduction (deep scroll → reload → exact offset)
+- [x] 2.2 Verify against the production reproduction (deep scroll → reload → exact offset)
 
 ## 3. Release
 
