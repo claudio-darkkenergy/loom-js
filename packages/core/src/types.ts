@@ -328,14 +328,45 @@ export type ActivityEffectAction<V> = (
     valueProp: ValueProp<V>
 ) => TemplateTagValue;
 
+/**
+ * Dispatch semantics for an async transform when `update()` calls overlap:
+ * - `'latest'` (default) — a newer dispatch supersedes in-flight runs; a
+ *   superseded run's signal aborts and its late commits are dropped.
+ * - `'ordered'` — dispatches run in parallel, but commits apply strictly in
+ *   dispatch order; nothing is dropped.
+ * - `'serial'` — a dispatch's transform doesn't start until the prior run
+ *   settles, so each run's `value` sees its predecessor's committed result.
+ */
+export type ActivityConcurrency = 'latest' | 'ordered' | 'serial';
+
 export interface ActivityOptions<V = unknown, I = V> {
+    concurrency?: ActivityConcurrency;
     deep?: boolean;
     force?: boolean;
+    /**
+     * Upper bound (ms) on a transform run — on expiry the run is retired
+     * exactly as supersession retires one (signal aborted, later commits
+     * dropped, any queue released) and it counts as settled for the
+     * settlement signal. Unset means unbounded, as before.
+     */
+    timeout?: number;
     transform?: ActivityTransform<V, I>;
 }
 
+// `Readonly<T>` is a mapped type — applied to a function it keeps properties
+// but drops the call signature — so function-shaped inputs (importers) pass
+// through untouched.
+export type ReadonlyInput<I> = I extends (...args: never[]) => unknown
+    ? I
+    : Readonly<I>;
+
 export type ActivityTransform<V = unknown, I = V> = (ctx: {
-    input: I;
+    // Read-only by contract — handed through by reference, never copied or
+    // frozen at runtime.
+    input: ReadonlyInput<I>;
+    // Aborts when the run is retired (superseded under `'latest'`, or timed
+    // out) — wire it into cancellable work (`fetch(url, { signal })`).
+    signal: AbortSignal;
     update: (valueInput: V) => void;
     value: V;
 }) => void | Promise<void>;

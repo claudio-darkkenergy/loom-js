@@ -1,15 +1,16 @@
+import { createTransformDispatcher } from './lib/activity/transform-dispatch';
+import { createValueStore } from './lib/activity/value-store';
 import { ATTR_BINDING, AttrBinding } from './lib/attr-binding';
 import { appendChildContext } from './lib/context';
-import { isObject, shallowDiffArray, shallowDiffObject } from './lib/helpers';
-import { reactive, reactiveEffect } from './lib/reactive';
-import { trackTransformResult } from './lib/settlement';
+import { isObject } from './lib/helpers';
+import { reactiveEffect } from './lib/reactive';
 import { textUpdater } from './lib/templating/get-text-update';
 import type {
     ActivityEffectAction,
     ActivityOptions,
     ActivityTransform,
     ComponentContextPartial,
-    PlainObject,
+    ReadonlyInput,
     TemplateRoot,
     TemplateRootArray,
     TemplateTagValue,
@@ -32,56 +33,21 @@ export const activity = <V, I = V>(
         : isObject(transformOrOptions)
           ? transformOrOptions?.transform
           : undefined;
-    const { deep = false, force = false } = transformIsSet
-        ? options
-        : transformOrOptions || {};
-    let forceAtThisMoment = force;
-    // Shallow-clones the passed value so consumers can't mutate the stored current value and defeat
-    // change detection. Plain objects and arrays get a fresh reference; other types pass through.
-    // @TODO Also create new references for other types, i.e. Map, Set, etc.
-    const resolveCurrentValue = (value: V) =>
-        Array.isArray(value)
-            ? (value.slice() as V)
-            : isObject(value) && (value as Object).constructor.name === 'Object'
-              ? Object.assign({}, value)
-              : value;
-    let currentValue = resolveCurrentValue(initialValue);
-    const shouldUpdate = (oldValue: V, newValue: V) => {
-        let valueChanged = false;
-
-        if (forceAtThisMoment) {
-            valueChanged = true;
-        } else if (deep && Array.isArray(oldValue) && Array.isArray(newValue)) {
-            // Compare arrays element-by-element (positional) so a same-content
-            // update doesn't cascade to subscribed effects.
-            valueChanged = shallowDiffArray(oldValue, newValue);
-        } else if (deep && isObject(oldValue) && isObject(newValue)) {
-            // Compare the Object values at the property level.
-            // Allow updates if at least 1 value has changed.
-            valueChanged = shallowDiffObject(
-                oldValue as PlainObject,
-                newValue as PlainObject
-            );
-        } else {
-            valueChanged = oldValue !== newValue;
-        }
-
-        currentValue = valueChanged ? resolveCurrentValue(newValue) : oldValue;
-        return valueChanged;
-    };
-    const valueProp: ValueProp<V> = reactive(
-        { value: currentValue },
-        shouldUpdate
-    ) as {
-        value: V;
-    };
-    // Update Handler
-    const update = (valueInput: V) => {
-        valueProp.value = valueInput;
-    };
-    const value = () => {
-        return resolveCurrentValue(currentValue);
-    };
+    const {
+        concurrency = 'latest',
+        deep = false,
+        force = false,
+        timeout
+    } = transformIsSet ? options : transformOrOptions || {};
+    // The value cell — storage, clone isolation, change detection.
+    const { commit, dispatchWithForce, forceNow, value, valueProp } =
+        createValueStore(initialValue, { deep, force });
+    // The run machinery — supersession, ordering, timeout, settlement.
+    const dispatchTransformRun = createTransformDispatcher<V>({
+        commit,
+        concurrency,
+        timeout
+    });
 
     try {
         isObject(initialValue) && Object.freeze(initialValue);
@@ -172,21 +138,28 @@ export const activity = <V, I = V>(
             };
         },
         initialValue,
-        reset: () => update(initialValue),
-        update(valueInput: I, forceUpdate = forceAtThisMoment) {
-            forceAtThisMoment = forceUpdate;
+        // An ordinary dispatch that bypasses the transform — it supersedes,
+        // queues, or buffers like any other run, so an in-flight transform
+        // can't stomp a reset (and vice versa).
+        reset: () =>
             typeof transform === 'function'
-                ? // An async transform's promise is pending framework work —
-                  // tracked for the `settled()` signal.
-                  trackTransformResult(
-                      transform({
-                          input: valueInput,
-                          update,
-                          value: value()
-                      })
-                  )
-                : update(valueInput as unknown as V);
-            forceAtThisMoment = force;
+                ? dispatchTransformRun((runUpdate) => runUpdate(initialValue))
+                : commit(initialValue),
+        update(valueInput: I, forceUpdate = forceNow()) {
+            dispatchWithForce(forceUpdate, () =>
+                typeof transform === 'function'
+                    ? // Dispatched as a run — supersession, ordering, timeout
+                      // and the `settled()` signal all hang off the run.
+                      dispatchTransformRun((runUpdate, signal) =>
+                          transform({
+                              input: valueInput as ReadonlyInput<I>,
+                              signal,
+                              update: runUpdate,
+                              value: value()
+                          })
+                      )
+                    : commit(valueInput as unknown as V)
+            );
         },
         // Returns a shallow copy of the current value.
         value,
