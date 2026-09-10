@@ -47,7 +47,7 @@ const loadedKeys = new Set<string>();
 export const pageContent = activity<
     PageContent | ContentLoadFailure | undefined,
     PageContentRequest
->(undefined, async ({ input: { pageSlug, topicSlug }, update }) => {
+>(undefined, async ({ input: { pageSlug, topicSlug }, signal, update }) => {
     // Navigating to a topic this window hasn't loaded yet clears the held
     // one immediately, so the skeleton renders for the whole load instead of
     // the previous topic sitting frozen until the swap. Already-loaded
@@ -70,6 +70,14 @@ export const pageContent = activity<
 
         loadedKeys.add(resourceKey);
 
+        // A retired run (a newer navigation superseded this one) must not
+        // fan out to `page`/`topic` — those writes sit outside the run's
+        // gated `update`, so the signal is the guard. The latest dispatch
+        // owns the paint.
+        if (signal.aborted) {
+            return;
+        }
+
         // A page's listing only changes when the page itself changes — update
         // on a slug change (or to replace an empty/failed state) so topic
         // navigations within a page don't re-render the nav with a
@@ -89,6 +97,11 @@ export const pageContent = activity<
 
         update(data);
     } catch (loadError) {
+        // Same guard on the failure path — a superseded run's error is moot.
+        if (signal.aborted) {
+            return;
+        }
+
         const failure: ContentLoadFailure = {
             contentError:
                 loadError instanceof Error
