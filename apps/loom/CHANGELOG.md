@@ -1,5 +1,16 @@
 # @loom-js/loom
 
+## 0.0.15
+
+### Patch Changes
+
+- Updated dependencies [946c525]
+    - @loom-js/core@0.9.1
+    - @loom-js/contentful@0.0.9
+    - @loom-js/utils@0.0.7
+    - @loom-js/highlight@0.1.0
+    - @loom-js/pink@0.3.2
+
 ## 0.0.14
 
 ### Patch Changes

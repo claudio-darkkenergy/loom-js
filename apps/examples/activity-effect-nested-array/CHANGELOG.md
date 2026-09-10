@@ -1,5 +1,12 @@
 # activity-effect-nested-array
 
+## 1.0.5
+
+### Patch Changes
+
+- Updated dependencies [946c525]
+    - @loom-js/core@0.9.1
+
 ## 1.0.4
 
 ### Patch Changes
