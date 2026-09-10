@@ -1,5 +1,15 @@
 # @loom-js/contentful
 
+## 0.0.8
+
+### Patch Changes
+
+- Updated dependencies [a4c3cb0]
+- Updated dependencies [a4c3cb0]
+- Updated dependencies [a4c3cb0]
+    - @loom-js/core@0.9.0
+    - @loom-js/utils@0.0.6
+
 ## 0.0.7
 
 ### Patch Changes
