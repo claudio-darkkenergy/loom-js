@@ -30,6 +30,8 @@ The sibling change `align-loom-docs-with-core-readme` lands the readiness constr
 
 _Alternatives considered:_ rendering the built bundle (adds a Node-loading story for hashed ESM output — the source path is simpler and `tsx` already runs the build); a separate Vercel prerender framework (nothing to gain; the app owns its esbuild pipeline).
 
+**Amended at apply (2026-09-11):** the prerender renders the _built bundle_ after all, via `static/js/prerender` — an extra entry point of the SAME client esbuild build (exports `prerenderRoute`, `listDocsTopics`, the transport setter; the html template filters it out of every shell). Two hard constraints killed source-under-tsx: (1) `tsx` cannot load the app's CSS imports at all, and (2) minified css-module local names are assigned per-build (verified empirically: the same class minifies to different names in two builds), so only markup rendered from the same build as the shipped stylesheets carries matching class names. The shared build also guarantees one `@loom-js/core` module instance between the app tree and the render/dehydrate calls. `linkedom` stays out of the bundle — the tsx runner (`prerender.mts`) supplies each route's window. `prerenderRoute(url, window) → { html, state }` remains the ISR seam (D8), with the window injected by the trigger.
+
 ### D2 — Shell injection contract
 
 The html-split template gains two explicit slots: the app root element (`<div id="app">…</div>` — markup injected inside) and a state slot for the `<script type="application/json" id="loom-state">` payload. The prerender step treats the emitted shells as templates and fills the slots; dev and any non-prerendered fallback serve the shells with the slots empty. `bootstrap.ts` stops creating the root div — the shell owns it (this also retires the `document.body.prepend($app)` / `innerText = 'loading…'` boot path).
@@ -54,11 +56,19 @@ Because `align-loom-docs-with-core-readme` routes these loads through `resource(
 
 - `/docs/<slug>` resolves to the prerendered `docs/<slug>/index.html` (Vercel serves existing static files before rewrites; the blanket `/docs/(.*)` → shell rewrite remains as fallback for unknown/new topics).
 - `/docs` keeps its redirect to the default topic (slug per the content map).
+- The catch-all rewrite targets `shell.html` — a pristine pre-injection copy of the home shell the prerender phase sets aside — so unknown paths boot the SPA shell rather than flashing home content (`/` itself serves the injected `index.html` by filesystem precedence).
+- Hashed asset immutability is explicit: a `headers` rule in `apps/loom/vercel.json` marks `chunk|docs|pages|prism-*|font|icon` hashed files `immutable`; unhashed entries (`spa.js`, `base.css`, HTML) keep Vercel's per-deploy revalidation.
 - Hashed JS/CSS stays immutable-cacheable; prerendered HTML is CDN-cached until the next deploy (Vercel's static default — no custom TTL headers to get wrong at the SSG stage; explicit `s-maxage`/`stale-while-revalidate` tuning belongs to the ISR evolution).
 
 ### D7 — Freshness: publish webhook → deploy hook
 
 A Contentful `publish`/`unpublish` webhook (scoped to docs content types) calls a Vercel deploy hook. At ~13 topics, whole-site rebuild-on-publish is cheap and keeps SSG honest. The trigger volume/latency at which this stops scaling is the recorded cue to pick up ISR.
+
+**Wiring (task 4.3 — maintainer dashboards):**
+
+1. Vercel → the loom project → Settings → Git → Deploy Hooks → Create Hook: name `contentful-publish`, branch `main`; copy the hook URL.
+2. Contentful space `2x238mu87414` → Settings → Webhooks → Add Webhook: URL = the deploy hook (POST), triggers = Entry `publish` + `unpublish` only, filter `sys.contentType.sys.id in [page, content]` (the docs page + topic types).
+3. Also add `CTF_SPACE_ID` + `CTF_TOKEN` (Delivery token) to the Vercel project's **build** environment for Production — the prerender phase fails the build loudly without them.
 
 ### D8 — The ISR seam
 
@@ -70,7 +80,7 @@ The prerender module exposes one pure entry: `prerenderRoute(url) → { html, st
 - [Stale content between publish and rebuild completion] → acceptable minutes-scale window for docs; the webhook automates the trigger; ISR is the recorded fix if the window matters later.
 - [Direct-Contentful transport drifts from the proxy transport] → same providers/queries, only base URL + auth injected (D4); the two paths share every line above the transport seam.
 - [Shell template slots drift from what `hydrate` expects as root] → the slot contract lives in one template module consumed by both the html-split config and the prerender injector; verification renders and hydrates each route in CI-able checks.
-- [linkedom gaps for pink/appwrite markup (unusual DOM APIs during render)] → core shims the known gaps (`NodeFilter`, `location`, `history`); the per-topic prerender in verification catches any component that needs more, and `docs-prerender-readiness` pushes browser-only work to `onMounted`.
+- [linkedom gaps for pink/appwrite markup (unusual DOM APIs during render)] → core shims the known gaps (`NodeFilter`, `location`, `history`); the per-topic prerender in verification catches any component that needs more, and `docs-prerender-readiness` pushes browser-only work to `onMounted`. **Found at apply:** two readiness gaps remained and were fixed here per task 1.2's escape hatch — `matchQuery` (lib/utils) called `window.matchMedia` bare during render (now server-inert: reports "no match" once and stays quiet, so toggles hold initial state; the browser hydration pass re-runs it with the real API pre-swap), and `useDocsLayout`'s once-per-process module flag left every prerender window after the first without watchers (now registered per layout mount with `onUnmounted` teardown — per-window off-browser, no stacking in the browser). Consequence of the toggle default: prerendered markup ships with the side nav collapsed; it opens at the hydration swap on desktop. Two more verification findings (2026-09-11, maintainer review of rendered pages): (1) the shell root's `id="app"` woke a dormant `#app { padding: 0 24px 24px }` rule in the app's own `base.css` — root renamed `loom-app` and the stale rule deleted; (2) reload-with-fragment landed misaligned — with `scrollRestoration: 'manual'` the browser performs no fragment scroll on reload, and the router's boot-owed `scrollIntoView` targeted the pre-swap server DOM (and, being smooth per the page's `scroll-behavior` CSS, pauses entirely in background tabs) — fixed as a core patch: `hydrate` re-runs the fragment scroll instantly against the post-swap layout (changeset `hydrate-boot-fragment-realign`). Also observed (pre-existing, not this change): the client render fetches a literal `⚡` URL once per boot — a template attr token briefly live on a detached `<img>`; candidate core fix, tracked as a follow-up.
 - [`renderToString` serializes renders — 14 routes render sequentially] → fine at this scale (single-digit seconds); parallelism would require per-window isolation the framework deliberately doesn't offer for async renders.
 
 ## Open Questions

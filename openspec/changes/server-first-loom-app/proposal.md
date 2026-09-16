@@ -33,4 +33,4 @@
 - `apps/loom/vercel.json` — static-first rewrites, redirects for `/docs`.
 - Vercel + Contentful config — deploy hook and publish webhook.
 - Depends on `align-loom-docs-with-core-readme`'s readiness work (`docs-prerender-readiness`: SSR-safe components, `resource()`-routed data, permanent slugs). Homepage prerendering can proceed before the docs content alignment completes.
-- No `@loom-js/core` changes; new dev-time dependency: `linkedom` in the loom app workspace.
+- One `@loom-js/core` **patch** (found at verification, 2026-09-11): `hydrate` realigns a boot URL fragment after the atomic swap — the boot-owed fragment scroll targeted the pre-swap server DOM and the swap stranded it (misaligned on reload; a no-op entirely in background tabs, where smooth scroll animations pause). New dev-time dependency: `linkedom` in the loom app workspace.

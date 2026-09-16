@@ -23,7 +23,7 @@ The same boot code SHALL serve every environment: an empty root (dev server, SPA
 #### Scenario: Dev server boot
 
 - **WHEN** the app boots from the dev server's empty shell (no markup, no state script)
-- **THEN** `hydrate` renders and swaps into the empty root and the app behaves as today, with no separate `init` code path
+- **THEN** `hydrate` mounts the empty root immediately and renders progressively — the loading skeleton paints while data is pending, as it did under `init` — with no separate `init` code path
 
 #### Scenario: Fallback shell boot
 
