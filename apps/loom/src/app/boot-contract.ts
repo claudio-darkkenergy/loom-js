@@ -27,15 +27,37 @@ export const appRootSlot = `<div id="${APP_ROOT_ID}" style="height: 100%"></div>
 export const stateScriptSlot = `<script id="${STATE_SCRIPT_ID}" type="application/json"></script>`;
 
 /**
- * Inline fragment-positioning script for the shell's head: keeps the URL
- * fragment aligned while the document streams in, so the anchor is in
- * place from the first painted frame. On reloads the browser skips its
- * native fragment jump (the router persists `scrollRestoration:
- * 'manual'`), and an end-of-body script runs too late on slow
- * connections — the top of the page paints long before it executes. A
- * user scroll cancels the alignment; parse end stops it.
+ * Inline head script: once the document has parsed, smooth-scrolls to the
+ * URL fragment — the reader lands at the top, then glides to the anchor.
+ * A user scroll cancels it.
  */
-export const fragmentBootScript = `<script>(()=>{var h=location.hash.slice(1);if(!h)return;h=decodeURIComponent(h);var stop=false;var cancel=()=>{stop=true;obs.disconnect()};["wheel","touchstart","keydown"].forEach((e)=>addEventListener(e,cancel,{once:true,passive:true}));var align=()=>{if(stop)return;var t=document.getElementById(h);t&&t.scrollIntoView({behavior:"instant",block:"start"})};var obs=new MutationObserver(align);obs.observe(document.documentElement,{childList:true,subtree:true});document.addEventListener("DOMContentLoaded",()=>{align();obs.disconnect()})})()</script>`;
+export const fragmentBootScript = `<script>
+    (() => {
+        var hash = location.hash.slice(1);
+
+        if (!hash) return;
+
+        hash = decodeURIComponent(hash);
+
+        var cancelled = false;
+
+        ['wheel', 'touchstart', 'keydown'].forEach((event) =>
+            addEventListener(event, () => (cancelled = true), {
+                once: true,
+                passive: true
+            })
+        );
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (cancelled) return;
+
+            var target = document.getElementById(hash);
+
+            target &&
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    })();
+</script>`;
 
 export interface PrerenderPayload {
     appHtml: string;
