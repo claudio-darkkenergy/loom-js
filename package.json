@@ -18,7 +18,7 @@
         "remote-cache": "turbo link",
         "remote-cache-unlink": "turbo unlink",
         "outdated-deps": "pnpm -r outdated",
-        "publish-packages": "pnpm build-packages && pnpm version-packages && changeset publish",
+        "publish-packages": "pnpm build-packages && changeset publish",
         "status-packages": "changeset status",
         "storybook": "turbo storybook",
         "update-deps": "pnpm -r update -i -L",
