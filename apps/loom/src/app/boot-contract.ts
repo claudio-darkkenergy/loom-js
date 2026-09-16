@@ -27,9 +27,9 @@ export const appRootSlot = `<div id="${APP_ROOT_ID}" style="height: 100%"></div>
 export const stateScriptSlot = `<script id="${STATE_SCRIPT_ID}" type="application/json"></script>`;
 
 /**
- * Inline head script: once the document has parsed, smooth-scrolls to the
- * URL fragment — the reader lands at the top, then glides to the anchor.
- * A user scroll cancels it.
+ * Inline head script: keeps the viewport pinned to the URL fragment while
+ * the document streams in, so the anchor is in place from the first
+ * painted frame. A user scroll cancels it; parse end stops it.
  */
 export const fragmentBootScript = `<script>
     (() => {
@@ -39,22 +39,33 @@ export const fragmentBootScript = `<script>
 
         hash = decodeURIComponent(hash);
 
-        var cancelled = false;
+        var stopped = false;
+        var observer = new MutationObserver(align);
 
-        ['wheel', 'touchstart', 'keydown'].forEach((event) =>
-            addEventListener(event, () => (cancelled = true), {
-                once: true,
-                passive: true
-            })
-        );
-
-        document.addEventListener('DOMContentLoaded', () => {
-            if (cancelled) return;
+        function align() {
+            if (stopped) return;
 
             var target = document.getElementById(hash);
 
             target &&
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                target.scrollIntoView({ behavior: 'instant', block: 'start' });
+        }
+
+        function cancel() {
+            stopped = true;
+            observer.disconnect();
+        }
+
+        ['wheel', 'touchstart', 'keydown'].forEach((event) =>
+            addEventListener(event, cancel, { once: true, passive: true })
+        );
+        observer.observe(document.documentElement, {
+            childList: true,
+            subtree: true
+        });
+        document.addEventListener('DOMContentLoaded', () => {
+            align();
+            observer.disconnect();
         });
     })();
 </script>`;
