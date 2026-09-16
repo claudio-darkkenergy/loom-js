@@ -1,10 +1,6 @@
 import { HtmlTemplateArgs } from 'esbuild-plugin-html-split';
 
-import {
-    appRootSlot,
-    fragmentBootScript,
-    stateScriptSlot
-} from '../../src/app/boot-contract.js';
+import { appRootSlot, stateScriptSlot } from '../../src/app/boot-contract.js';
 
 export const htmlTemplate = (args: HtmlTemplateArgs) => {
     const routeScopes: string[] = args.define.routeScopes ?? [];
@@ -56,7 +52,6 @@ export const htmlTemplate = (args: HtmlTemplateArgs) => {
     <title>${args.define.getTitle ? args.define.getTitle(args.scope) : ''}</title>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    ${fragmentBootScript}
     <link rel="dns-prefetch" href="${args.define.apiUrl}/api/contentful/graphql" />
 ${css.map((path) => `    <link href="${path}" rel="stylesheet" />`).join('\n')}
 ${js
