@@ -64,3 +64,10 @@ overrides:
     # @tootallnate/once: GHSA-vpq2-c234-7xj6 (low). @vercel/fun pins 2.0.0;
     # patched >=2.0.1.
     '@tootallnate/once@<2.0.1': ^2.0.1
+
+# @vercel/node's deploy-time type-check resolves with preserveSymlinks and
+# can't traverse pnpm's symlinked store — hoist the AWS SDK so S3Client's
+# base class stays intact (see CLAUDE.md Tooling notes).
+publicHoistPattern:
+    - '@aws-sdk/*'
+    - '@smithy/*'
