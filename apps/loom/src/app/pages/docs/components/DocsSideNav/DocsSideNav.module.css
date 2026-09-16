@@ -31,4 +31,15 @@
             opacity: 1;
         }
     }
+
+    /* Open by default at tablet+ — mirrors `useSideNavToggle`'s query, so
+       prerendered markup (whose toggle state is the server default) lays
+       out exactly like the hydrated tree. */
+    @media (width >= 768px) {
+        min-inline-size: var(--side-nav-width);
+
+        .sideNav {
+            opacity: 1;
+        }
+    }
 }
