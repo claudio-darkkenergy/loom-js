@@ -26,53 +26,6 @@ export const appRootSlot = `<div id="${APP_ROOT_ID}" style="height: 100%"></div>
  */
 export const stateScriptSlot = `<script id="${STATE_SCRIPT_ID}" type="application/json"></script>`;
 
-/**
- * Inline head script: keeps the viewport pinned to the URL fragment while
- * the document streams in, so the anchor is in place from the first
- * painted frame. A user scroll cancels it; parse end stops it.
- */
-export const fragmentBootScript = `<script>
-    (() => {
-        var hash = location.hash.slice(1);
-
-        if (!hash) return;
-
-        hash = decodeURIComponent(hash);
-
-        var stopped = false;
-        var observer = new MutationObserver(align);
-
-        function align() {
-            if (stopped) return;
-
-            var target = document.getElementById(hash);
-
-            target &&
-                target.scrollIntoView({ behavior: 'instant', block: 'start' });
-        }
-
-        function cancel() {
-            stopped = true;
-            observer.disconnect();
-        }
-
-        ['wheel', 'touchstart', 'keydown'].forEach((event) =>
-            addEventListener(event, cancel, { once: true, passive: true })
-        );
-        observer.observe(document.documentElement, {
-            childList: true,
-            subtree: true
-        });
-        document.addEventListener('DOMContentLoaded', () => {
-            align();
-            observer.disconnect();
-        });
-        // Late resources (fonts, images) can shift the anchor after parse.
-        addEventListener('load', align, { once: true });
-        document.fonts && document.fonts.ready.then(align);
-    })();
-</script>`;
-
 export interface PrerenderPayload {
     appHtml: string;
     stateJson: string;
