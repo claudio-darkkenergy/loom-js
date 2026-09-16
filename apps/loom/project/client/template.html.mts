@@ -1,6 +1,10 @@
 import { HtmlTemplateArgs } from 'esbuild-plugin-html-split';
 
-import { appRootSlot, stateScriptSlot } from '../../src/app/boot-contract.js';
+import {
+    appRootSlot,
+    fragmentBootScript,
+    stateScriptSlot
+} from '../../src/app/boot-contract.js';
 
 export const htmlTemplate = (args: HtmlTemplateArgs) => {
     const routeScopes: string[] = args.define.routeScopes ?? [];
@@ -62,6 +66,7 @@ ${js
     <noscript>You need to enable JavaScript to run this app.</noscript>
     ${appRootSlot}
     ${stateScriptSlot}
+    ${fragmentBootScript}
 </body>
 </html>
 `;
