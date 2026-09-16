@@ -56,6 +56,7 @@ export const htmlTemplate = (args: HtmlTemplateArgs) => {
     <title>${args.define.getTitle ? args.define.getTitle(args.scope) : ''}</title>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    ${fragmentBootScript}
     <link rel="dns-prefetch" href="${args.define.apiUrl}/api/contentful/graphql" />
 ${css.map((path) => `    <link href="${path}" rel="stylesheet" />`).join('\n')}
 ${js
@@ -66,7 +67,6 @@ ${js
     <noscript>You need to enable JavaScript to run this app.</noscript>
     ${appRootSlot}
     ${stateScriptSlot}
-    ${fragmentBootScript}
 </body>
 </html>
 `;

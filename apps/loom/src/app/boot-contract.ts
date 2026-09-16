@@ -27,13 +27,15 @@ export const appRootSlot = `<div id="${APP_ROOT_ID}" style="height: 100%"></div>
 export const stateScriptSlot = `<script id="${STATE_SCRIPT_ID}" type="application/json"></script>`;
 
 /**
- * Inline fragment-positioning script for the shell: scrolls to the URL
- * fragment at parse time, before first paint. On reloads the browser skips
- * its native fragment jump (the router persists `scrollRestoration:
- * 'manual'`), which otherwise leaves the page flashing at the top until
- * hydration realigns it.
+ * Inline fragment-positioning script for the shell's head: keeps the URL
+ * fragment aligned while the document streams in, so the anchor is in
+ * place from the first painted frame. On reloads the browser skips its
+ * native fragment jump (the router persists `scrollRestoration:
+ * 'manual'`), and an end-of-body script runs too late on slow
+ * connections — the top of the page paints long before it executes. A
+ * user scroll cancels the alignment; parse end stops it.
  */
-export const fragmentBootScript = `<script>(()=>{var h=location.hash.slice(1);if(!h)return;var t=document.getElementById(decodeURIComponent(h));t&&t.scrollIntoView({behavior:"instant",block:"start"})})()</script>`;
+export const fragmentBootScript = `<script>(()=>{var h=location.hash.slice(1);if(!h)return;h=decodeURIComponent(h);var stop=false;var cancel=()=>{stop=true;obs.disconnect()};["wheel","touchstart","keydown"].forEach((e)=>addEventListener(e,cancel,{once:true,passive:true}));var align=()=>{if(stop)return;var t=document.getElementById(h);t&&t.scrollIntoView({behavior:"instant",block:"start"})};var obs=new MutationObserver(align);obs.observe(document.documentElement,{childList:true,subtree:true});document.addEventListener("DOMContentLoaded",()=>{align();obs.disconnect()})})()</script>`;
 
 export interface PrerenderPayload {
     appHtml: string;
