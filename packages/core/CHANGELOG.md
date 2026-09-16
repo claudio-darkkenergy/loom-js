@@ -1,5 +1,16 @@
 # @loom-js/core
 
+## 0.10.0
+
+### Minor Changes
+
+- 3675b08: Async transform dispatches are now deterministic — **behavior change**: overlapping `update()` calls used to race, committing whichever run's inner `update` landed last in real time (stale data could overwrite newer). The default is now latest-dispatch-wins: a newer `update()` retires an in-flight run — its new `AbortSignal` (`signal` on the transform context) aborts and its late commits are dropped — extending the sync path's last-call-wins guarantee to async. Code that relied on the old interleaving was relying on nondeterminism; the deliberate replacements are the new `concurrency` option's opt-in modes: `'ordered'` (parallel runs, commits applied strictly in dispatch order) and `'serial'` (each run starts after its predecessor settles and sees its committed `value`). Also new: a per-run `timeout` option that retires hung runs (signal aborted, queue released, settlement unpinned), and the transform's `input` is now typed `Readonly<I>`.
+
+### Patch Changes
+
+- cdcc0ed: `hydrate` now realigns a boot URL fragment after the atomic swap. Previously the fragment scroll targeted the pre-swap server DOM (the router's boot-owed scroll, or the browser's native jump) and the swap's reflow stranded the position — on reloads, `scrollRestoration: 'manual'` means the browser performs no fragment scroll at all, so a prerendered page could land misaligned or unscrolled.
+- cdcc0ed: `hydrate` on an empty root (no pre-rendered children) now mounts immediately and renders progressively, as `init` would. The settle-gated swap exists to keep served markup visible until takeover — on an empty root it only held a blank screen for the whole settle wait where the app's loading state should have painted (dev servers and SPA-fallback shells hit this).
+
 ## 0.9.1
 
 ### Patch Changes
