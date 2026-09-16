@@ -10,7 +10,7 @@ Established by the `add-client-hydration` change (2026-08-16). Adopt-in-place hy
 
 ### Requirement: Hydrating boot defers takeover to a single atomic swap
 
-The framework SHALL provide a client boot entry, `hydrate`, that leaves the root's pre-rendered children untouched while the app renders and settles off-DOM, then replaces the root's children exactly once with the rendered app. `hydrate` SHALL mirror `init`'s contract (`app`, `root`, `globalConfig`, `onAppMounted`) except that no append mode is offered — the swap is always a full replace.
+The framework SHALL provide a client boot entry, `hydrate`, that leaves the root's pre-rendered children untouched while the app renders and settles off-DOM, then replaces the root's children exactly once with the rendered app. `hydrate` SHALL mirror `init`'s contract (`app`, `root`, `globalConfig`, `onAppMounted`) except that no append mode is offered — the swap is always a full replace. A root with no pre-rendered children SHALL instead mount immediately and render progressively, as `init` would — with nothing to preserve, the settle gate would only hold a blank screen where a loading state should paint.
 
 #### Scenario: Pre-rendered content stays visible until the swap
 
@@ -23,10 +23,10 @@ The framework SHALL provide a client boot entry, `hydrate`, that leaves the root
 - **WHEN** the app settles and the swap runs
 - **THEN** the root's children are replaced in one `replaceChildren`-equivalent operation, with no intermediate fallback state ever attached to the root
 
-#### Scenario: Empty root degrades gracefully
+#### Scenario: Empty root mounts immediately
 
 - **WHEN** `hydrate` is called on a root with no pre-rendered children
-- **THEN** the boot completes through the same deferred-swap path with the rendered app as the root's children
+- **THEN** the app mounts right away and renders progressively — loading states paint while async work is pending, exactly as under `init`
 
 ### Requirement: The settled signal reports quiescence of framework-tracked async work
 

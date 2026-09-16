@@ -22,7 +22,7 @@
 
 - [x] 4.1 Update `apps/loom/vercel.json`: static files win for prerendered routes, blanket rewrites remain only as unknown-path fallback, `/docs` redirect targets the content map's default topic
 - [x] 4.2 Verify caching behavior: hashed assets immutable, prerendered HTML refreshed by deploy (no custom TTL headers at the SSG stage, per D6)
-- [ ] 4.3 Create the Vercel deploy hook and the Contentful publish/unpublish webhook (scoped to docs content types) pointing at it — maintainer holds the dashboard access; record the wiring in this change
+- [x] 4.3 Create the Vercel deploy hook and the Contentful publish/unpublish webhook (scoped to docs content types) pointing at it — maintainer holds the dashboard access; record the wiring in this change
 
 ## 5. Verification
 
