@@ -26,6 +26,15 @@ export const appRootSlot = `<div id="${APP_ROOT_ID}" style="height: 100%"></div>
  */
 export const stateScriptSlot = `<script id="${STATE_SCRIPT_ID}" type="application/json"></script>`;
 
+/**
+ * Inline fragment-positioning script for the shell: scrolls to the URL
+ * fragment at parse time, before first paint. On reloads the browser skips
+ * its native fragment jump (the router persists `scrollRestoration:
+ * 'manual'`), which otherwise leaves the page flashing at the top until
+ * hydration realigns it.
+ */
+export const fragmentBootScript = `<script>(()=>{var h=location.hash.slice(1);if(!h)return;var t=document.getElementById(decodeURIComponent(h));t&&t.scrollIntoView({behavior:"instant",block:"start"})})()</script>`;
+
 export interface PrerenderPayload {
     appHtml: string;
     stateJson: string;
