@@ -7,7 +7,13 @@ import type {
     DocsTopicSummary,
     PrerenderTransportConfig
 } from '../../src/app/prerender.entry.js';
-import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import {
+    copyFile,
+    mkdir,
+    readdir,
+    readFile,
+    writeFile
+} from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -23,6 +29,22 @@ interface PrerenderBundle {
 
 // Any origin works — only the pathname participates in route matching.
 const ORIGIN = 'https://loomjs.local';
+
+// Font files are only discoverable through CSS url()s, which puts their
+// download after first paint and swaps text metrics late — preloading them
+// from the head removes that shift.
+const injectFontPreloads = (shellHtml: string, fontFiles: string[]) => {
+    const preloads = fontFiles
+        .map(
+            (file) =>
+                `    <link as="font" crossorigin href="/${file}" rel="preload" type="font/woff2" />\n`
+        )
+        .join('');
+
+    return shellHtml.replace('    <link rel="dns-prefetch"', () =>
+        preloads.concat('    <link rel="dns-prefetch"')
+    );
+};
 
 const freshWindow = () =>
     parseHTML('<!DOCTYPE html><html><head></head><body></body></html>')
@@ -70,11 +92,21 @@ export const prerender = async (outdir = './build') => {
         path.join(buildDir, 'shell.html')
     );
 
-    const homeShell = await readFile(path.join(buildDir, 'index.html'), 'utf8');
-    const docsShell = await readFile(
-        path.join(buildDir, 'docs/index.html'),
-        'utf8'
+    const fontFiles = (await readdir(buildDir)).filter((file) =>
+        /^(font|icon)-[A-Z0-9]+\.woff2$/.test(file)
     );
+    const homeShell = injectFontPreloads(
+        await readFile(path.join(buildDir, 'index.html'), 'utf8'),
+        fontFiles
+    );
+    const docsShell = injectFontPreloads(
+        await readFile(path.join(buildDir, 'docs/index.html'), 'utf8'),
+        fontFiles
+    );
+
+    // The fallback shells get the preloads too.
+    await writeFile(path.join(buildDir, 'shell.html'), homeShell);
+    await writeFile(path.join(buildDir, 'docs/index.html'), docsShell);
 
     const emit = async (
         routePath: string,

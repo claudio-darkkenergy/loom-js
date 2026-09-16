@@ -67,6 +67,9 @@ export const fragmentBootScript = `<script>
             align();
             observer.disconnect();
         });
+        // Late resources (fonts, images) can shift the anchor after parse.
+        addEventListener('load', align, { once: true });
+        document.fonts && document.fonts.ready.then(align);
     })();
 </script>`;
 
