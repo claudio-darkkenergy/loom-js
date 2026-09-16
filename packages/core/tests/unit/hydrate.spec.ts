@@ -191,7 +191,49 @@ describe('hydrate', () => {
         root.remove();
     });
 
-    it('should degrade gracefully on an empty root through the same deferred path', async () => {
+    it('should realign a boot URL fragment against the post-swap layout', async () => {
+        const root = document.createElement('div');
+        const tallMarkup =
+            '<div class="app"><div style="height: 3000px"></div><h2 id="frag-target">Target</h2><div style="height: 3000px"></div></div>';
+
+        // Server markup: the fragment target sits far below the fold.
+        root.innerHTML = tallMarkup;
+        document.body.append(root);
+        // `replaceState` installs the fragment without a native jump — the
+        // reload shape, where `scrollRestoration: 'manual'` suppresses the
+        // browser's own fragment scroll and the boot owes it.
+        history.replaceState(null, '', '#frag-target');
+
+        const TallApp = component(
+            (html) => html`
+                <div class="app">
+                    <div style="height: 3000px"></div>
+                    <h2 id="frag-target">Target</h2>
+                    <div style="height: 3000px"></div>
+                </div>
+            `
+        );
+
+        try {
+            await hydrate({ app: TallApp(), root });
+            await macrotasks(2);
+
+            const targetTop =
+                document.getElementById('frag-target')?.getBoundingClientRect()
+                    .top ?? Infinity;
+
+            // The swap landed, and the fragment is aligned at the top of
+            // the final layout — not stranded at the pre-swap offset.
+            expect(window.scrollY).to.be.greaterThan(1000);
+            expect(targetTop).to.be.lessThan(60);
+        } finally {
+            history.replaceState(null, '', window.location.pathname);
+            window.scrollTo(0, 0);
+            root.remove();
+        }
+    });
+
+    it('should mount an empty root immediately and render progressively, like init', async () => {
         const root = document.createElement('div');
 
         document.body.append(root);
@@ -200,12 +242,17 @@ describe('hydrate', () => {
         const App = makeLazyApp(releaseRef);
         const bootDone = hydrate({ app: App(), root });
 
-        // No pre-rendered markup — the root simply stays empty until the swap.
+        // No pre-rendered markup means nothing to preserve — the fallback
+        // paints right away while the import is pending, exactly as `init`
+        // would (loading states depend on this).
+        await bootDone;
         await macrotasks(3);
-        expect(root.childNodes.length).to.equal(0);
+        expect(root.querySelector('.fallback')?.textContent).to.equal(
+            'loading'
+        );
 
         releaseRef.release?.();
-        await bootDone;
+        await macrotasks(3);
         expect(root.querySelector('.page')?.textContent).to.equal(
             'Client page'
         );

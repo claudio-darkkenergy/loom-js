@@ -8,12 +8,32 @@ import { boundedWait, getPendingCount } from './lib/settlement';
 import { settled } from './settled';
 import type { AppHydrateProps } from './types';
 
+// Mirrors the router's fragment scroll for the hydrating boot — kept local
+// so `hydrate` doesn't pull the router module into every bundle.
+const scrollToBootFragment = () => {
+    const doc = getDocument();
+    const fragment = doc.location?.hash?.slice(1);
+
+    if (!fragment) {
+        return;
+    }
+
+    const target = doc.getElementById(decodeURIComponent(fragment));
+
+    // Instant regardless of the page's `scroll-behavior` CSS — a boot
+    // should snap like a native fragment load, and a smooth animation can
+    // be paused (background tab) or stranded by later reflow.
+    typeof target?.scrollIntoView === 'function' &&
+        target.scrollIntoView({ behavior: 'instant', block: 'start' });
+};
+
 /**
  * The hydrating client boot for pre-rendered pages: the root's server-rendered
  * children stay visible and untouched while the app renders off-DOM, and the
  * takeover is a single atomic swap once the app has settled — lazy route
  * content and async activity work included — so nothing regresses to
- * placeholders mid-boot. See `init` for the immediate-mount boot.
+ * placeholders mid-boot. An empty root (no served markup) skips the gate
+ * and mounts immediately, rendering progressively exactly as `init` would.
  *
  * Pre-swap, the server DOM has no listeners: native anchors still navigate
  * (full page load); other interaction is inert for the short, bounded settle
@@ -35,6 +55,20 @@ export const hydrate = async ({
     // the only DOM-touching step, deferred below.
     const appCtx = app();
     const appRoot = resolveAppRoot(root);
+
+    // An empty root has nothing to preserve, so the settle gate would only
+    // hold a blank screen — mount immediately and render progressively,
+    // leaving any fragment scroll to the router's settle-gated pass.
+    if (!appRoot.firstElementChild) {
+        mount(appRoot, appCtx);
+        _lifeCycles.observe(appRoot);
+
+        if (typeof onAppMounted === 'function') {
+            onAppMounted(appRoot);
+        }
+
+        return;
+    }
 
     // Effect updates landing pre-swap must see this detached tree as a live
     // instance, not a stale one (D7). Captured so the removal below releases
@@ -62,6 +96,11 @@ export const hydrate = async ({
     // Observe DOM changes for some component life-cycle events — the sweep
     // also fires `onMounted` for the now-attached tree.
     _lifeCycles.observe(appRoot);
+
+    // Realign a boot URL fragment against the final layout — any earlier
+    // scroll targeted the pre-swap DOM, and on reloads the browser performs
+    // no fragment scroll at all under `scrollRestoration: 'manual'`.
+    scrollToBootFragment();
 
     // Execute the app-fully-mounted callback.
     if (typeof onAppMounted === 'function') {

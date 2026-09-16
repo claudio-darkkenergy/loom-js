@@ -26,9 +26,10 @@ When creating a new activity, you provide an initial value — & optionally a tr
 
 A transform sits between `update()` & the stored value: every `update(input)` call routes through it, & only the transform's own `update` calls commit values. The initial value doesn't take this path — it's stored as-is at creation, untransformed; the transform first runs on the first dispatch. It receives one context object:
 
-- `input: I` - Whatever the caller passed to `update()` — may be a different type than the stored `V`.
-- `update(next: V)` - Commits a value; call it as many times as needed. It deliberately shadows the activity's own `update`: inside a transform, updating *is* committing — dispatching the activity from within its own transform would loop infinitely.
-- `value: V` - The current value at the moment the update was dispatched — a shallow copy for plain objects & arrays (not frozen), so it is a safe base to build on. It is bound once per run: it does not move across `await`s, and it does not reflect the run's own commits.
+- `input: Readonly<I>` - Whatever the caller passed to `update()` — may be a different type than the stored `V`. It is handed through **by reference** and typed read-only: core never copies or freezes it, so treat it as borrowed — read it, don't write it (the compiler enforces this).
+- `update(next: V)` - Commits a value; call it as many times as needed *within the run* (a newer dispatch retires the run under the default concurrency — see below). It deliberately shadows the activity's own `update`: inside a transform, updating *is* committing — dispatching the activity from within its own transform would loop infinitely.
+- `value: V` - The current value at the moment the update was dispatched — a shallow copy for plain objects & arrays (not frozen), so it is a safe base to build on. It is bound once per run: it does not move across `await`s, and it does not reflect the run's own commits. (Under `concurrency: 'serial'` the read moves to the run's start, so each run sees its predecessor's committed result.)
+- `signal: AbortSignal` - Aborts when the run is retired — superseded by a newer dispatch (default concurrency) or timed out. Wire it into cancellable work (`fetch(url, { signal })`) so a retired run's request actually stops and settlement drains promptly. Ignoring it is always safe: a retired run's late commits are dropped regardless.
 
 **An async transform's returned promise is tracked by the settlement signal** — `settled()`, the signal `renderToString` & `hydrate` gate on — which is what lets server renders & hydration swaps wait for activity data to land. This makes transforms the framework's idiomatic path for async data (see [Server Rendering](/docs/server-rendering), [Client Hydration](/docs/hydration) & [Dehydrated State](/docs/dehydrated-state)):
 
@@ -84,14 +85,26 @@ const feed = activity<Result[], string>(
 );
 ```
 
+## Transform concurrency
+
+Async transforms can overlap — a second `update()` can dispatch before the first run's data lands. The `concurrency` option picks the semantics; the default extends the sync path's guarantee (the value reflects the last `update()`) to async:
+
+- **`'latest'`** (default) — a newer `update()` retires an in-flight run: its `signal` aborts and its late commits are dropped, so an earlier dispatch resolving late can never overwrite newer data. Commits still flow freely *within* the current run (loading → data). Reach for it whenever a new dispatch makes the old one moot — fetch-and-display, search-as-you-type, per-navigation page data.
+- **`'ordered'`** — every dispatch's transform starts immediately (parallel speed), but commits apply strictly in dispatch order: a run's commits are held until every earlier dispatch has settled and flushed, and nothing is dropped. Reach for it when runs are independent but arrival order matters — chart points, event streams, append-only feeds.
+- **`'serial'`** — a dispatch's transform doesn't start until the prior run settles (rejection included), and each run's `value` sees its predecessor's committed result. Reach for it when runs build on each other — running totals, ledgers, anything accumulating through `value`. The cost is inherent queue latency: asking for order means waiting in line.
+
+In every mode a rejected run releases its turn, and superseded runs stay settlement-tracked — `settled()` (and so `renderToString` / `hydrate`) waits for them to actually settle, which is why wiring `signal` matters: an aborted fetch settles immediately instead of holding the swap open. One boundary to know: the gate covers only the run's own `update` — writes a transform makes to *other* activities (a fan-out pipeline feeding siblings) are ordinary calls core cannot attribute to the run, so guard them the same way: check `signal.aborted` after each `await` before writing elsewhere.
+
 Transforms decide *how* a value changes; the options tune *when* a change counts.
 
 ## Options
 
 `ActivityOptions`:
 
+- `concurrency?: 'latest' | 'ordered' | 'serial'` - [Default: `'latest'`] Dispatch semantics for overlapping async transform runs — see Transform concurrency, above.
 - `deep?: boolean` - [Default: `false`] Compare plain objects property-by-property & arrays element-by-element (a shallow diff) instead of by reference, so a same-content update doesn't cascade to subscribed effects.
 - `force?: boolean` - [Default: `false`] Treat every update as a change, skipping comparison entirely.
+- `timeout?: number` - [Default: unset — unbounded] Upper bound (ms) per transform run. On expiry the run is retired exactly as supersession retires one — `signal` aborted, later commits dropped, any `'serial'` queue or `'ordered'` turn released — and it counts as settled for the settlement signal even if its promise never resolves, so a hung transform can't block a queue or pin `settled()`. Expiry warns on the console. With debug narration on (`setDebug(true, { activity: true })`), a long-pending run on an activity that sets no `timeout` is flagged instead — pointed at, never bounded for you.
 - `transform?: ActivityTransform<V, I>` - The transform, for when options ride in the second argument.
 
 ## The returned interface
@@ -122,7 +135,7 @@ _Methods_
 
 `reset()`
 
-- Shorthand for `update(initialValue)` — returns the activity to its starting value (subject to the same change comparison as any update).
+- Returns the activity to its starting value (subject to the same change comparison as any update). The transform is bypassed, but the reset dispatches like any other run — under the default concurrency it retires an in-flight transform run, so stale data can't land on top of a reset.
 
 ### `update`
 

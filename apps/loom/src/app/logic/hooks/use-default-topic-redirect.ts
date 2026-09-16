@@ -6,8 +6,9 @@ import { redirect, watchRoute } from '@loom-js/core';
  * @param whenRoute Scopes the redirect to a matched route — without it the
  *      watcher would fire on every route, redirecting any topic-less page
  *      (e.g. the home page) into the docs section.
+ * @returns The watcher's unsubscriber — the caller owns cleanup.
  */
-export const useDefaultTopicRedirect = (defaultTopic = '', whenRoute = '') => {
+export const useDefaultTopicRedirect = (defaultTopic = '', whenRoute = '') =>
     watchRoute(async ({ value: routeValue }) => {
         if (whenRoute && routeValue.matchedRoute !== whenRoute) {
             return;
@@ -17,4 +18,3 @@ export const useDefaultTopicRedirect = (defaultTopic = '', whenRoute = '') => {
             redirect(defaultTopic);
         }
     });
-};

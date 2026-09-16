@@ -26,8 +26,9 @@ _None._
 
 ## Impact
 
-- `packages/core/src/activity.ts` — dispatch bookkeeping around the transform call and the per-run `update` closure.
+- `packages/core/src/activity.ts` — dispatch bookkeeping around the transform call and the per-run `update` closure (extracted post-green into `src/lib/activity/transform-dispatch.ts` + `value-store.ts`; the public surface stays `activity.ts`).
 - `packages/core/tests/unit` — new concurrency specs (deferred-promise fixtures forcing out-of-order resolution).
 - `packages/core/README.md` + `contentful-sync/topics/07-activities.md` — semantics documented; drafts re-pushed.
+- `apps/loom/src/app/logic/activity/page-content.ts` — the transform's `page`/`topic` fan-out gains a `signal.aborted` guard after its awaits (added at verification, 2026-09-10): cross-activity writes sit outside the run's gated `update`, and attributing them in core would take async-context tracking — the signal is the core-provided mitigation, consumed in one line per await.
 - Published: `@loom-js/core` **minor** changeset; behavior note that the nondeterministic race is resolved to latest-wins.
 - Sequencing: before `server-first-loom-app`'s verification leans on the data path; independent of everything else in flight.

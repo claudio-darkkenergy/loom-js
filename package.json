@@ -6,7 +6,7 @@
         "url": "https://github.com/darkkenergy/loomjs"
     },
     "scripts": {
-        "api": "pnpm vercel dev -p 2000",
+        "api": "pnpm vercel dev --listen 2000",
         "build": "turbo build",
         "build-packages": "turbo build-package --cache-dir=.turbo",
         "changeset": "changeset",
@@ -25,19 +25,19 @@
         "version-packages": "changeset version"
     },
     "devDependencies": {
-        "@dotenvx/dotenvx": "^2.19.1",
+        "@dotenvx/dotenvx": "^2.24.1",
         "@loom-js/typescript-config": "workspace:*",
         "prettier": "^3.9.6",
         "prettier-plugin-sort-imports": "^1.8.11",
-        "turbo": "^2.10.8",
-        "vercel": "^58.4.4"
+        "turbo": "^2.10.13",
+        "vercel": "^59.16.0"
     },
-    "packageManager": "pnpm@10.33.0",
+    "packageManager": "pnpm@12.4.1",
     "engines": {
         "node": ">=20",
         "pnpm": ">=9"
     },
     "dependencies": {
-        "@changesets/cli": "^2.31.1"
+        "@changesets/cli": "^3.0.3"
     }
 }

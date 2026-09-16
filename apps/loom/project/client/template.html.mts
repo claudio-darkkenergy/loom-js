@@ -1,5 +1,7 @@
 import { HtmlTemplateArgs } from 'esbuild-plugin-html-split';
 
+import { appRootSlot, stateScriptSlot } from '../../src/app/boot-contract.js';
+
 export const htmlTemplate = (args: HtmlTemplateArgs) => {
     const routeScopes: string[] = args.define.routeScopes ?? [];
     // Prod shells are route-scoped — each HTML references only its own route
@@ -9,7 +11,14 @@ export const htmlTemplate = (args: HtmlTemplateArgs) => {
     // pre-deduped from the html-split plugin (route CSS chunks are never
     // linked; their rules live in the entry stylesheet).
     const isScoped = Boolean(args.define.isProd);
+    // The prerender bundle is build tooling — no shell may load it.
+    const isPrerenderResource = (resource: string) =>
+        resource.includes('/static/js/prerender');
     const includeResource = (resource: string) => {
+        if (isPrerenderResource(resource)) {
+            return false;
+        }
+
         const owner = routeScopes.find((scope) =>
             resource.startsWith(`${scope}-`)
         );
@@ -22,7 +31,9 @@ export const htmlTemplate = (args: HtmlTemplateArgs) => {
     // importer — must not be evaluated eagerly.
     const isRouteChunk = (resource: string) =>
         routeScopes.some((scope) => resource.startsWith(`${scope}-`));
-    const css = args.common.css.concat(args.css);
+    const css = args.common.css
+        .concat(args.css)
+        .filter((resource) => !isPrerenderResource(resource));
     const js = args.common.js
         .filter(includeResource)
         .concat(
@@ -31,7 +42,8 @@ export const htmlTemplate = (args: HtmlTemplateArgs) => {
                     isRouteChunk(resource) && includeResource(resource)
             )
         )
-        .concat(args.js);
+        .concat(args.js)
+        .filter((resource) => !isPrerenderResource(resource));
 
     return `
 <!DOCTYPE html>
@@ -46,8 +58,10 @@ ${js
     .map((path) => `    <script defer src="${path}" type="module"></script>`)
     .join('\n')}
 </head>
-<body>
+<body class="theme-dark"><!-- shell-owned: prerendered markup needs the theme before the boot runs -->
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    ${appRootSlot}
+    ${stateScriptSlot}
 </body>
 </html>
 `;

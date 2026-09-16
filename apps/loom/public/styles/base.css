@@ -57,10 +57,6 @@ button {
     padding: 8px 16px;
 }
 
-#app {
-    padding: 0 24px 24px;
-}
-
 /* @layer resets.typography {
     .theme-dark {
         [class*=heading-] {
