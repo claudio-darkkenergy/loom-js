@@ -16,9 +16,24 @@ export const addHydratingRoot = (
     root: TemplateRoot | TemplateRootArray | undefined
 ) => toNodeList(root).forEach((rootNode) => hydratingRoots.add(rootNode));
 
+const idleWaiters: (() => void)[] = [];
+
 export const removeHydratingRoot = (
     root: TemplateRoot | TemplateRootArray | undefined
-) => toNodeList(root).forEach((rootNode) => hydratingRoots.delete(rootNode));
+) => {
+    toNodeList(root).forEach((rootNode) => hydratingRoots.delete(rootNode));
+    hydratingRoots.size === 0 &&
+        idleWaiters.splice(0).forEach((notify) => notify());
+};
+
+/**
+ * Runs `notify` once no hydrating boot is in flight — immediately when none
+ * is, else right after the last pending hydration swap completes. Lets
+ * boot-time work (the router's owed scroll) target the post-swap layout.
+ */
+export const whenHydrationIdle = (notify: () => void): void => {
+    hydratingRoots.size === 0 ? notify() : idleWaiters.push(notify);
+};
 
 /**
  * `true` when `node` belongs to an in-flight hydrating render's detached

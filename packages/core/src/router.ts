@@ -1,5 +1,6 @@
 import { activity } from './activity';
 import { DomWindow, getWindow, hasWindow } from './lib/dom';
+import { whenHydrationIdle } from './lib/hydrating-roots';
 import { boundedWait } from './lib/settlement';
 import { settled } from './settled';
 import type {
@@ -359,15 +360,19 @@ class Router {
             return;
         }
 
+        // Hydration idle guarantees the scroll targets the post-swap
+        // layout instead of racing the swap for it.
         boundedWait(settled(), SCROLL_SETTLE_MAX_WAIT).then(() =>
-            'fragment' in pending
-                ? scrollToFragment(win, pending.fragment)
-                : typeof win.scrollTo === 'function' &&
-                  win.scrollTo({
-                      behavior: 'instant',
-                      left: 0,
-                      top: pending.restore
-                  })
+            whenHydrationIdle(() =>
+                'fragment' in pending
+                    ? scrollToFragment(win, pending.fragment)
+                    : typeof win.scrollTo === 'function' &&
+                      win.scrollTo({
+                          behavior: 'instant',
+                          left: 0,
+                          top: pending.restore
+                      })
+            )
         );
     }
 

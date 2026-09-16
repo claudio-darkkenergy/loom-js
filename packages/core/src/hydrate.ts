@@ -8,25 +8,6 @@ import { boundedWait, getPendingCount } from './lib/settlement';
 import { settled } from './settled';
 import type { AppHydrateProps } from './types';
 
-// Mirrors the router's fragment scroll for the hydrating boot — kept local
-// so `hydrate` doesn't pull the router module into every bundle.
-const scrollToBootFragment = () => {
-    const doc = getDocument();
-    const fragment = doc.location?.hash?.slice(1);
-
-    if (!fragment) {
-        return;
-    }
-
-    const target = doc.getElementById(decodeURIComponent(fragment));
-
-    // Instant regardless of the page's `scroll-behavior` CSS — a boot
-    // should snap like a native fragment load, and a smooth animation can
-    // be paused (background tab) or stranded by later reflow.
-    typeof target?.scrollIntoView === 'function' &&
-        target.scrollIntoView({ behavior: 'instant', block: 'start' });
-};
-
 /**
  * The hydrating client boot for pre-rendered pages: the root's server-rendered
  * children stay visible and untouched while the app renders off-DOM, and the
@@ -96,11 +77,6 @@ export const hydrate = async ({
     // Observe DOM changes for some component life-cycle events — the sweep
     // also fires `onMounted` for the now-attached tree.
     _lifeCycles.observe(appRoot);
-
-    // Realign a boot URL fragment against the final layout — any earlier
-    // scroll targeted the pre-swap DOM, and on reloads the browser performs
-    // no fragment scroll at all under `scrollRestoration: 'manual'`.
-    scrollToBootFragment();
 
     // Execute the app-fully-mounted callback.
     if (typeof onAppMounted === 'function') {

@@ -1,7 +1,14 @@
 import { expect } from '@esm-bundle/chai';
 import sinon from 'sinon';
 
-import { activity, component, hydrate, lazyImport, setDebug } from '../../src';
+import {
+    activity,
+    component,
+    createRoutes,
+    hydrate,
+    lazyImport,
+    setDebug
+} from '../../src';
 import type { Component } from '../../src/types';
 
 const macrotasks = async (count: number) => {
@@ -191,40 +198,57 @@ describe('hydrate', () => {
         root.remove();
     });
 
-    it('should realign a boot URL fragment against the post-swap layout', async () => {
+    it('should fire the boot fragment scroll after the swap, on final layout', async () => {
         const root = document.createElement('div');
-        const tallMarkup =
-            '<div class="app"><div style="height: 3000px"></div><h2 id="frag-target">Target</h2><div style="height: 3000px"></div></div>';
 
-        // Server markup: the fragment target sits far below the fold.
-        root.innerHTML = tallMarkup;
+        // Served markup: the anchor sits near 1000px.
+        root.innerHTML =
+            '<div class="app"><div style="height: 1000px"></div><h2 id="frag-target">Target</h2><div style="height: 3000px"></div></div>';
         document.body.append(root);
         // `replaceState` installs the fragment without a native jump — the
-        // reload shape, where `scrollRestoration: 'manual'` suppresses the
-        // browser's own fragment scroll and the boot owes it.
+        // reload shape, where the boot owes the fragment scroll.
         history.replaceState(null, '', '#frag-target');
 
-        const TallApp = component(
+        // The hydrated layout differs: the anchor lands near 3000px. A
+        // scroll fired against the pre-swap server DOM would strand the
+        // viewport at the served offset.
+        const releaseRef: { release?: () => void } = {};
+        const Page = component(
             (html) => html`
-                <div class="app">
+                <div class="page">
                     <div style="height: 3000px"></div>
                     <h2 id="frag-target">Target</h2>
                     <div style="height: 3000px"></div>
                 </div>
             `
         );
+        const Routes = createRoutes({
+            config: {
+                '/': () =>
+                    new Promise<{ default: Component }>((resolve) => {
+                        releaseRef.release = () => resolve({ default: Page });
+                    })
+            }
+        });
+        const App = component(
+            (html, props) => html`
+                <main>${Routes(props)}</main>
+            `
+        );
 
         try {
-            await hydrate({ app: TallApp(), root });
-            await macrotasks(2);
+            const bootDone = hydrate({ app: App(), root });
+
+            await macrotasks(3);
+            releaseRef.release?.();
+            await bootDone;
+            await macrotasks(3);
 
             const targetTop =
                 document.getElementById('frag-target')?.getBoundingClientRect()
                     .top ?? Infinity;
 
-            // The swap landed, and the fragment is aligned at the top of
-            // the final layout — not stranded at the pre-swap offset.
-            expect(window.scrollY).to.be.greaterThan(1000);
+            expect(window.scrollY).to.be.greaterThan(2500);
             expect(targetTop).to.be.lessThan(60);
         } finally {
             history.replaceState(null, '', window.location.pathname);
