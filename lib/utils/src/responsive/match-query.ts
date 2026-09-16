@@ -17,6 +17,23 @@ export const matchQuery = (
     // When we have more than one media query, join each string with ' and ', making it a valid
     // media query.
     const mediaQuery = queries.join(' and ');
+
+    // No `matchMedia` (a server prerender window): report "no match" once
+    // and stay inert, so callers keep their initial state.
+    if (
+        typeof window === 'undefined' ||
+        typeof window.matchMedia !== 'function'
+    ) {
+        const inertMql = {
+            matches: false,
+            media: mediaQuery
+        } as MediaQueryList;
+
+        onChange.call(inertMql, inertMql as unknown as MediaQueryListEvent);
+
+        return { unsubscribeMql: () => undefined };
+    }
+
     const mql = window.matchMedia(mediaQuery);
 
     // Initially trigger 'onChange', and setup event-listener

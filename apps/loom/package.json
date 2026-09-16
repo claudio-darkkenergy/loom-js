@@ -22,16 +22,17 @@
         "@loom-js/pink": "workspace:*",
         "@loom-js/utils": "workspace:*",
         "classnames": "^2.5.1",
-        "contentful": "^11.12.7"
+        "contentful": "^11.12.10"
     },
     "devDependencies": {
         "@loom-js/typescript-config": "workspace:*",
-        "@types/node": "^26.1.2",
-        "esbuild": "^0.28.1",
+        "@types/node": "^26.5.1",
+        "esbuild": "^0.28.2",
         "esbuild-plugin-clean": "^1.0.1",
         "esbuild-plugin-copy": "^2.1.1",
         "esbuild-plugin-html-split": "workspace:*",
-        "tsx": "^4.23.4",
+        "linkedom": "^0.18.13",
+        "tsx": "^4.23.13",
         "typescript": "^7.0.2"
     }
 }

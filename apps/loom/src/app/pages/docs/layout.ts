@@ -9,7 +9,7 @@ import { page } from '@/app/logic/activity/selected-content';
 import { sideNavToggle, topicTocToggle } from '@/app/logic/activity/toggles';
 import { useDocsLayout } from '@/app/logic/hooks';
 
-const DocsLayout = component((html, { children, className }) => {
+const DocsLayout = component((html, { children, className, onUnmounted }) => {
     const { effect: pageEffect } = page;
     // The side nav keeps the declarative effect boundary — its subtree is
     // cheap to re-render. The TOC open state is a reactive attr binding on
@@ -18,7 +18,7 @@ const DocsLayout = component((html, { children, className }) => {
     // `._open .docContainer`).
     const { effect: sideNavToggleEffect } = sideNavToggle;
 
-    useDocsLayout();
+    useDocsLayout(onUnmounted);
 
     return html`
         <div

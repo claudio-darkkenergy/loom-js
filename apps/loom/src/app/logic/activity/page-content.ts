@@ -44,6 +44,13 @@ const fetchPageContent = async (
 // fires when a real fetch is coming.
 const loadedKeys = new Set<string>();
 
+/**
+ * Builds the resource-cache key for one page + topic load — the same key
+ * `dehydrate` captures and the prerender pass validates.
+ */
+export const pageContentResourceKey = (pageSlug: string, topicSlug: string) =>
+    `page-content:${pageSlug}:${topicSlug}`;
+
 export const pageContent = activity<
     PageContent | ContentLoadFailure | undefined,
     PageContentRequest
@@ -54,7 +61,7 @@ export const pageContent = activity<
     // topics resolve from the resource cache and swap in place in a single
     // render — measured at 8-86ms on production (2026-09-09), so no skeleton
     // flash is warranted for them.
-    const resourceKey = `page-content:${pageSlug}:${topicSlug}`;
+    const resourceKey = pageContentResourceKey(pageSlug, topicSlug);
     const heldTopic = topic.value();
     const topicChanged =
         hasContentError(heldTopic) || heldTopic?.slug !== topicSlug;
@@ -70,18 +77,14 @@ export const pageContent = activity<
 
         loadedKeys.add(resourceKey);
 
-        // A retired run (a newer navigation superseded this one) must not
-        // fan out to `page`/`topic` — those writes sit outside the run's
-        // gated `update`, so the signal is the guard. The latest dispatch
-        // owns the paint.
+        // A newer navigation superseded this run — don't write to `page`/
+        // `topic`; the latest dispatch owns the paint.
         if (signal.aborted) {
             return;
         }
 
-        // A page's listing only changes when the page itself changes — update
-        // on a slug change (or to replace an empty/failed state) so topic
-        // navigations within a page don't re-render the nav with a
-        // fresh-but-identical object.
+        // Only update `page` when the page itself changed, so topic
+        // navigations don't re-render the nav with an identical object.
         const currentPage = page.value();
         const currentPageSlug = !hasContentError(currentPage)
             ? currentPage?.slug
