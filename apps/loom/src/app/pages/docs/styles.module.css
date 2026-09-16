@@ -64,3 +64,18 @@
         display: block;
     }
 }
+
+/* Open by default at desktop — mirrors `useTopicTocToggle`'s query, so
+   prerendered markup (whose toggle state is the server default) lays out
+   exactly like the hydrated tree. */
+@media (width >= 1199px) {
+    .docContainer {
+        grid-template-areas:
+            'header header'
+            'main sidebar';
+
+        .topicAside {
+            display: block;
+        }
+    }
+}
