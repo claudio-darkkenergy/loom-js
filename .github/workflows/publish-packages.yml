@@ -64,14 +64,24 @@ jobs:
 
             - name: Create Release Pull Request or Publish to npm
               id: changesets
-              # https://github.com/changesets/action
-              uses: changesets/action@v1
+              # https://github.com/changesets/action — v2 understands
+              # changesets v3's publish output (v1 missed it, so tags and
+              # GitHub Releases silently stopped after the v3 upgrade).
+              uses: changesets/action@v2
               with:
                   # This expects you to have a script called publish-package which does a build for your packages and calls changeset publish
                   publish: pnpm publish-packages
                   # version: pnpm version-packages
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            # Belt and braces: tag pushing must not depend on the action
+            # parsing publish output. `changeset tag` is idempotent (skips
+            # existing tags), so non-publish runs are a no-op.
+            - name: Ensure release tags are pushed
+              run: |
+                  pnpm changeset tag
+                  git push origin --tags
 
             # - name: Send a Slack notification if a publish happens
             # if: steps.changesets.outputs.published == 'true'
