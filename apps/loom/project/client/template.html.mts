@@ -7,9 +7,9 @@ export const htmlTemplate = (args: HtmlTemplateArgs) => {
     // Prod shells are route-scoped — each HTML references only its own route
     // chunk plus the shared resources. Dev keeps the superset shell: the
     // dev server serves a single SPA fallback file, so every route's chunks
-    // must be reachable from it. Scoping applies to JS only: CSS arrives
-    // pre-deduped from the html-split plugin (route CSS chunks are never
-    // linked; their rules live in the entry stylesheet).
+    // must be reachable from it. CSS: the entry stylesheet is shared-only;
+    // a prod shell links its own route's CSS (`args.routeCss`), and SPA
+    // navigation loads the next route's CSS from the inlined manifest.
     const isScoped = Boolean(args.define.isProd);
     // The prerender bundle is build tooling — no shell may load it.
     const isPrerenderResource = (resource: string) =>
@@ -33,6 +33,7 @@ export const htmlTemplate = (args: HtmlTemplateArgs) => {
         routeScopes.some((scope) => resource.startsWith(`${scope}-`));
     const css = args.common.css
         .concat(args.css)
+        .concat(args.routeCss)
         .filter((resource) => !isPrerenderResource(resource));
     const js = args.common.js
         .filter(includeResource)
@@ -54,6 +55,7 @@ export const htmlTemplate = (args: HtmlTemplateArgs) => {
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <link rel="dns-prefetch" href="${args.define.apiUrl}/api/contentful/graphql" />
 ${css.map((path) => `    <link href="${path}" rel="stylesheet" />`).join('\n')}
+    <script>window.__ROUTE_ASSETS__ = ${JSON.stringify(args.routeAssets)}</script>
 ${js
     .map((path) => `    <script defer src="${path}" type="module"></script>`)
     .join('\n')}
