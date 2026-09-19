@@ -50,7 +50,12 @@ export const clientConfig = (options: ClientConfigOptions = {}) => {
             '.woff2': 'file',
             '.svg': 'file'
         },
-        minify: isProd,
+        // Identifier minification is off deliberately: css-module local
+        // names must be build-stable so the plugin's shared-CSS rewrite and
+        // the prerender emit the same class names the JS carries. Costs
+        // ~4 KB gzipped across the app (measured 2026-09-17).
+        minifySyntax: isProd,
+        minifyWhitespace: isProd,
         outdir,
         plugins: [
             // `del` refuses paths outside the cwd — an isolated outdir

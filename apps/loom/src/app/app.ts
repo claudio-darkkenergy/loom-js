@@ -4,7 +4,16 @@ import { usePinkTheming } from '@loom-js/pink';
 import { RoutePath } from './pages/constants';
 import PageLayout from './pages/layout';
 
+// The build manifest keys by shell scope; the router keys by pattern —
+// bridge the two here, where both vocabularies are owned.
+const manifest =
+    typeof window === 'undefined' ? undefined : window.__ROUTE_ASSETS__;
+
 const Routes = createRoutes({
+    assets: manifest && {
+        [RoutePath.Home]: manifest['/'] ?? [],
+        [RoutePath.Docs]: manifest['/docs'] ?? []
+    },
     config: {
         [RoutePath.Home]: () => import('@/app/pages/'),
         [RoutePath.Docs]: () => import('@/app/pages/docs/')

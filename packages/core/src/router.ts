@@ -1,6 +1,7 @@
 import { activity } from './activity';
 import { DomWindow, getWindow, hasWindow } from './lib/dom';
 import { whenHydrationIdle } from './lib/hydrating-roots';
+import { loadRouteAssets } from './lib/route-assets';
 import { boundedWait } from './lib/settlement';
 import { settled } from './settled';
 import type {
@@ -15,6 +16,10 @@ import type {
 } from './types';
 
 export type RoutesConfig = Record<string, () => Promise<any>>;
+
+// Stylesheet URLs to have loaded before a route renders, keyed like
+// `RoutesConfig` — opaque to core, produced by the app's build.
+export type RouteAssets = Record<string, string[]>;
 
 // The scroll a navigation owes: the fragment's anchor scroll or a restored
 // history offset (both consumed once content settles — their target must
@@ -72,6 +77,7 @@ const defaultFallback = () => Promise.resolve(undefined);
 // the capture (the server case) matches immediately. A repeat `createRoutes`
 // call replaces the table — last call wins.
 const routeTable: {
+    assets?: RouteAssets;
     fallback: () => Promise<ContextFunction | undefined>;
     guard?: (routeValue: RouteValue) => boolean;
     routesConfig?: RoutesConfig;
@@ -195,10 +201,15 @@ class Router {
             // Update the current path.
             currentPath = this.matchedRoute;
 
+            const assetUrls = routeTable.assets?.[this.matchedRoute ?? ''];
             const importer = async () => {
-                const { default: ComponentFn } = await (
-                    this.pathImporter as () => Promise<any>
-                )();
+                // Assets load concurrently with the chunk; the route
+                // renders only after both settle.
+                const [pageModule] = await Promise.all([
+                    (this.pathImporter as () => Promise<any>)(),
+                    loadRouteAssets(this.ownerWindow, assetUrls)
+                ]);
+                const { default: ComponentFn } = pageModule;
 
                 return ComponentFn({
                     ...props,
@@ -571,14 +582,19 @@ const getRouter = () => {
  * @returns A component `ContextFunction`.
  */
 export const createRoutes = ({
+    assets,
     config = {},
     fallback = defaultFallback,
     guard
 }: {
+    // Stylesheet URLs loaded before each route renders — keyed like
+    // `config`; omit entirely (or per route) for today's behavior.
+    assets?: RouteAssets;
     config?: RoutesConfig;
     fallback?: () => Promise<ContextFunction | undefined>;
     guard?: (routeValue: RouteValue) => boolean;
 }) => {
+    routeTable.assets = assets;
     routeTable.fallback = fallback;
     routeTable.guard = guard;
     routeTable.routesConfig = config;

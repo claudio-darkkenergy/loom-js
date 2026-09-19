@@ -17,6 +17,9 @@ export const HomePage = component(
 );
 
 export const Routes = createRoutes({
+    // Server renders must ignore declared assets entirely — these URLs
+    // resolve nowhere and the suite still passes.
+    assets: { '/': ['/never-fetched.css'], '/about': ['/never-fetched.css'] },
     config: {
         '/': () => Promise.resolve({ default: HomePage }),
         '/about': () => Promise.resolve({ default: AboutPage })
