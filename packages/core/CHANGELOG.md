@@ -1,5 +1,11 @@
 # @loom-js/core
 
+## 0.11.0
+
+### Minor Changes
+
+- e8f9708: `createRoutes` accepts an optional `assets` map — stylesheet URLs keyed by route pattern, loaded concurrently with the route's chunk import and settled before the route renders. Already-linked URLs count as loaded, failures log on the debug lane and never block navigation, and server renders skip asset loading. Omitting `assets` changes nothing.
+
 ## 0.10.1
 
 ### Patch Changes
