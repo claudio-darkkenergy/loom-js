@@ -34,5 +34,9 @@ export interface HtmlSplitPluginOptions {
     routes?: string[];
     spa?: string;
     template?: (args: HtmlTemplateArgs) => string;
+    // Rebuild once with synthetic css entries so one mangle pool names the
+    // js and every stylesheet — enables full identifier minification at
+    // roughly double the build time. Off by default.
+    twoPassCss?: boolean;
     verbose?: boolean;
 }
