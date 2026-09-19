@@ -8,9 +8,9 @@ Introduced by the `table-aware-template-parsing` change; heals `el('tr')`/`el('t
 
 ### Requirement: Table-part-rooted templates keep their authored root
 
-A component template whose top-level element is a table-part tag (`tr`, `td`, `th`, `thead`,
-`tbody`, `tfoot`, `caption`, `colgroup`, `col`) SHALL parse to that element as the template
-root — never to a stripped or text-only fragment.
+A component template SHALL parse to its authored top-level table-part tag (`tr`, `td`,
+`th`, `thead`, `tbody`, `tfoot`, `caption`, `colgroup`, `col`) as the template root —
+never to a stripped or text-only fragment.
 
 #### Scenario: tr-rooted template
 
@@ -26,9 +26,9 @@ root — never to a stripped or text-only fragment.
 
 ### Requirement: Interpolations inside table content stay in place
 
-A node-position interpolation directly inside `table`, `thead`/`tbody`/`tfoot`, `tr`, or
-`colgroup` content SHALL render its resolved value at the authored position — never
-foster-parented outside the table.
+A node-position interpolation SHALL render its resolved value at the authored position
+when it sits directly inside `table`, `thead`/`tbody`/`tfoot`, `tr`, or `colgroup`
+content — never foster-parented outside the table.
 
 #### Scenario: Dynamic row list
 
@@ -60,8 +60,8 @@ mechanism, same cached fragment content, same paths.
 
 ### Requirement: Browser and injected-DOM renders agree on table templates
 
-Rendering a table template in the browser and via `renderToString` against an injected
-(linkedom) window SHALL produce the same markup.
+Rendering a table template SHALL produce the same markup in the browser and via
+`renderToString` against an injected (linkedom) window.
 
 #### Scenario: Server render parity
 
