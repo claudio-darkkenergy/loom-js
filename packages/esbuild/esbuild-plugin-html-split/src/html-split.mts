@@ -7,7 +7,12 @@ import {
     getHtmlPromise,
     getResourcePath
 } from './helpers.mjs';
-import { applyRouteScopedCss, routeScopeOf } from './route-css.mjs';
+import {
+    analyzeRouteCss,
+    applyRouteScopedCss,
+    applyTwoPassCss,
+    routeScopeOf
+} from './route-css.mjs';
 import type { HtmlTemplateArgs, HtmlSplitPluginOptions } from './types.mjs';
 import path from 'node:path';
 
@@ -19,6 +24,7 @@ export const htmlSplit: (pluginOptions: HtmlSplitPluginOptions) => Plugin = ({
     routes = [],
     spa = '',
     template = getDefaultTemplate,
+    twoPassCss = false,
     verbose = false
 } = {}) => ({
     name: 'html-split-plugin',
@@ -49,25 +55,30 @@ export const htmlSplit: (pluginOptions: HtmlSplitPluginOptions) => Plugin = ({
             // linked. (Dynamic chunks can't be told apart by `entryPoint` —
             // esbuild marks them as sub-entry points too — so detect them as
             // targets of a `dynamic-import` edge from another output.)
-            const dynamicChunkPaths = new Set(
-                Object.values(outputs).flatMap((meta) =>
-                    meta.imports
-                        .filter(({ kind }) => kind === 'dynamic-import')
-                        .map(({ path: importPath }) => importPath)
-                )
-            );
-            const dynamicChunkCssBundles = new Set(
-                Object.entries(outputs).flatMap(([outputPath, meta]) =>
-                    dynamicChunkPaths.has(outputPath) && meta.cssBundle
-                        ? [getResourcePath({ outdir, path: meta.cssBundle })]
-                        : []
-                )
-            );
+            const findDynamicChunks = (from: Metafile['outputs']) =>
+                new Set(
+                    Object.values(from).flatMap((meta) =>
+                        meta.imports
+                            .filter(({ kind }) => kind === 'dynamic-import')
+                            .map(({ path: importPath }) => importPath)
+                    )
+                );
+            const classify = (from: Metafile['outputs']) => {
+                const dynamicChunks = findDynamicChunks(from);
+                const dynamicChunkCssBundles = new Set(
+                    Object.entries(from).flatMap(([outputPath, meta]) =>
+                        dynamicChunks.has(outputPath) && meta.cssBundle
+                            ? [
+                                  getResourcePath({
+                                      outdir,
+                                      path: meta.cssBundle
+                                  })
+                              ]
+                            : []
+                    )
+                );
 
-            // Fetched from cache if possible.
-            const templateArgs =
-                cache.get(cacheKey) ||
-                Object.entries(outputs).reduce<
+                return Object.entries(from).reduce<
                     Omit<HtmlTemplateArgs, 'define'>
                 >((acc, [outputPath, meta]) => {
                     const resourcePath = getResourcePath({
@@ -109,16 +120,58 @@ export const htmlSplit: (pluginOptions: HtmlSplitPluginOptions) => Plugin = ({
 
                     return acc;
                 }, getDefaultTemplateArgs());
+            };
 
-            templateArgs.routeAssets = await applyRouteScopedCss({
-                buildOptions: options,
+            const dynamicChunkPaths = findDynamicChunks(outputs);
+            const plan = analyzeRouteCss({
                 dynamicChunkPaths,
                 inputs,
-                outdir,
                 outputs,
                 routes,
                 spa
             });
+            let templateArgs: Omit<HtmlTemplateArgs, 'define'>;
+
+            if (twoPassCss) {
+                // One rebuild with synthetic css entries: a single mangle
+                // pool names the js and every stylesheet, so full
+                // identifier minification stays sound. Shells emit from
+                // pass 2's outputs.
+                const passTwo = await applyTwoPassCss({
+                    initialOptions: options,
+                    outdir,
+                    passOneOutputs: outputs,
+                    plan
+                });
+
+                templateArgs = classify(passTwo.outputs);
+                templateArgs.routeAssets = passTwo.routeAssets;
+            } else {
+                // Single-pass rewrites regenerate css-module names in a
+                // separate build — under identifier minification those can
+                // never match the names already emitted in the js. Fail
+                // loudly instead of shipping silently broken styles.
+                const rewritesModuleCss = [
+                    ...plan.sharedInputs,
+                    ...plan.bundles.flatMap(({ ownedInputs }) => ownedInputs)
+                ].some((input) => /\.module\.css$/.test(input));
+
+                if (
+                    rewritesModuleCss &&
+                    (options.minify || options.minifyIdentifiers)
+                ) {
+                    throw new Error(
+                        '[html-split] css-module names are not build-stable under identifier minification. Enable `twoPassCss: true`, or build with `minifyWhitespace`/`minifySyntax` instead of `minify`.'
+                    );
+                }
+
+                templateArgs = cache.get(cacheKey) ?? classify(outputs);
+                templateArgs.routeAssets = await applyRouteScopedCss({
+                    buildOptions: options,
+                    outdir,
+                    plan
+                });
+            }
 
             cache.set(cacheKey, templateArgs);
             console.log({ templateArgs: JSON.stringify(templateArgs) });
