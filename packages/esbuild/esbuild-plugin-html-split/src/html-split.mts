@@ -7,6 +7,7 @@ import {
     getHtmlPromise,
     getResourcePath
 } from './helpers.mjs';
+import { applyRouteScopedCss, routeScopeOf } from './route-css.mjs';
 import type { HtmlTemplateArgs, HtmlSplitPluginOptions } from './types.mjs';
 import path from 'node:path';
 
@@ -15,7 +16,6 @@ export const htmlSplit: (pluginOptions: HtmlSplitPluginOptions) => Plugin = ({
     entryPoints, // Possibly not needed, or just for some edge cases.
     isProd = false,
     main = '',
-    prerender = false,
     routes = [],
     spa = '',
     template = getDefaultTemplate,
@@ -34,7 +34,7 @@ export const htmlSplit: (pluginOptions: HtmlSplitPluginOptions) => Plugin = ({
             });
 
         build.onEnd(async ({ metafile = {} }) => {
-            const { outputs } = metafile as Partial<Metafile>;
+            const { inputs = {}, outputs } = metafile as Partial<Metafile>;
 
             if (!outputs) {
                 return;
@@ -110,6 +110,16 @@ export const htmlSplit: (pluginOptions: HtmlSplitPluginOptions) => Plugin = ({
                     return acc;
                 }, getDefaultTemplateArgs());
 
+            templateArgs.routeAssets = await applyRouteScopedCss({
+                buildOptions: options,
+                dynamicChunkPaths,
+                inputs,
+                outdir,
+                outputs,
+                routes,
+                spa
+            });
+
             cache.set(cacheKey, templateArgs);
             console.log({ templateArgs: JSON.stringify(templateArgs) });
 
@@ -121,7 +131,13 @@ export const htmlSplit: (pluginOptions: HtmlSplitPluginOptions) => Plugin = ({
                           const html = template({
                               ...templateArgs,
                               define,
-                              scope: route === '/' ? '/pages' : route
+                              // Scoped prod shells link their own route CSS;
+                              // dev's superset shell leaves it to the runtime
+                              // loader so that path is exercised constantly.
+                              routeCss: isProd
+                                  ? (templateArgs.routeAssets[route] ?? [])
+                                  : [],
+                              scope: routeScopeOf(route)
                           });
                           const out = path.join(
                               outdir,

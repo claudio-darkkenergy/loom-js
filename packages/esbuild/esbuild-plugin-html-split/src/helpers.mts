@@ -9,8 +9,10 @@ export const getDefaultTemplate = (args: HtmlTemplateArgs) => `
     <meta charset="utf-8" />
 ${args.common.css
     .concat(args.css)
+    .concat(args.routeCss)
     .map((path) => `    <link href="${path}" rel="stylesheet" />`)
     .join('\n')}
+    <script>window.__ROUTE_ASSETS__ = ${JSON.stringify(args.routeAssets)}</script>
 ${args.common.js
     .concat(args.js)
     .map((path) => `    <script defer src="${path}" type="module"></script>`)
@@ -89,6 +91,8 @@ export const getDefaultTemplateArgs = (): Omit<HtmlTemplateArgs, 'define'> => ({
     css: [],
     dynamic: { js: [] },
     js: [],
+    routeAssets: {},
+    routeCss: [],
     scope: ''
 });
 
