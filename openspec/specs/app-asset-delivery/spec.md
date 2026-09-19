@@ -10,7 +10,7 @@ Established by the `web-vitals-contentful-latency` change (2026-08-14), which fo
 
 ### Requirement: Route HTML loads only its own assets
 
-Each route's generated HTML SHALL reference the shared chunks plus only that route's JS. A route's lazily-imported chunk SHALL NOT appear in another route's HTML. CSS SHALL be referenced through shared stylesheets only (the entry CSS bundle and genuine CSS entry points); per-route CSS chunk files SHALL NOT be referenced by any shell, because their content is already contained in the entry CSS bundle (esbuild does not code-split CSS).
+Each route's generated HTML SHALL reference the shared chunks plus only that route's JS and CSS. A route's lazily-imported chunk SHALL NOT appear in another route's HTML. Shared CSS (the shared-only entry stylesheet and CSS entry points) SHALL be referenced by every shell; a route's own CSS bundle SHALL be referenced by that route's prod shell only.
 
 #### Scenario: Home shell excludes docs assets
 
@@ -21,11 +21,6 @@ Each route's generated HTML SHALL reference the shared chunks plus only that rou
 
 - **WHEN** `build/docs/index.html` is inspected
 - **THEN** it references the shared chunks and the docs assets, and no `pages-*.js` or `pages-*.css`
-
-#### Scenario: No shell references route CSS chunk files
-
-- **WHEN** any generated HTML shell (dev or prod) is inspected
-- **THEN** its stylesheet links are limited to the entry CSS bundle and CSS entry points, with no `pages-*.css` or `docs-*.css` references
 
 #### Scenario: Hard reload works on both shells
 
@@ -87,3 +82,31 @@ The home hero image SHALL carry valid intrinsic `width`/`height` attributes matc
 
 - **WHEN** the home page loads
 - **THEN** the hero image request carries `fetchpriority="high"` and serves webp at the requested width
+
+### Requirement: Entry stylesheet carries only shared CSS
+
+The entry CSS bundle SHALL contain only CSS inputs not owned by a single route's chunk. CSS owned by exactly one route SHALL exist only in that route's CSS bundle; CSS reachable from more than one route SHALL remain shared. The union of shared and route bundles SHALL cover every rule of the original entry bundle — nothing dropped, nothing duplicated.
+
+#### Scenario: Route rules absent from entry stylesheet
+
+- **WHEN** the built entry stylesheet is searched for a route-scoped selector (e.g. `styles_docContainer`)
+- **THEN** it contains no match, while that route's CSS bundle contains the rules exactly as many times as the source module defines them
+
+#### Scenario: Shared rules stay in the entry stylesheet with cascade order preserved
+
+- **WHEN** the shared-only entry stylesheet is compared with the original all-in-one bundle
+- **THEN** shared rules (e.g. pink.css, icon fonts) are present in their original relative order, and a route-styled element's computed styles are unchanged on both routes
+
+### Requirement: SPA navigation loads the next route's CSS at runtime
+
+Shells SHALL inline the build-generated route-assets manifest, and the app SHALL pass it to `createRoutes` so client-side navigation to a not-yet-visited route loads that route's CSS before the route renders.
+
+#### Scenario: Manifest is inlined and wired
+
+- **WHEN** any generated shell is inspected
+- **THEN** it inlines the route-assets manifest (route pattern → CSS URLs) ahead of the SPA script, and the app passes that manifest to `createRoutes`
+
+#### Scenario: Client-side navigation is styled without duplication
+
+- **WHEN** the user loads `/` and client-side navigates to `/docs`
+- **THEN** the docs CSS bundle is fetched once, docs content renders styled with no flash of unstyled content, and devtools shows each docs rule applied exactly once
