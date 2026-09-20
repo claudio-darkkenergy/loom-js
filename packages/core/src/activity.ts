@@ -2,6 +2,7 @@ import { createTransformDispatcher } from './lib/activity/transform-dispatch';
 import { createValueStore } from './lib/activity/value-store';
 import { ATTR_BINDING, AttrBinding } from './lib/attr-binding';
 import { appendChildContext } from './lib/context';
+import { createDiagnosticSubject } from './lib/globals/diagnostic-format';
 import { isObject } from './lib/helpers';
 import { reactiveEffect } from './lib/reactive';
 import { textUpdater } from './lib/templating/get-text-update';
@@ -37,15 +38,19 @@ export const activity = <V, I = V>(
         concurrency = 'latest',
         deep = false,
         force = false,
+        label,
         timeout
     } = transformIsSet ? options : transformOrOptions || {};
     // The value cell — storage, clone isolation, change detection.
     const { commit, dispatchWithForce, forceNow, value, valueProp } =
         createValueStore(initialValue, { deep, force });
-    // The run machinery — supersession, ordering, timeout, settlement.
+    // The run machinery — supersession, ordering, timeout, settlement. The
+    // subject names this activity in diagnostics: its opt-in `label`, or a
+    // stable generated tag assigned on first diagnostic use.
     const dispatchTransformRun = createTransformDispatcher<V>({
         commit,
         concurrency,
+        subject: createDiagnosticSubject('activity', label),
         timeout
     });
 

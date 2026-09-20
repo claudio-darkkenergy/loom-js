@@ -5,9 +5,15 @@
 // State is keyed per window through the DOM provider seam so concurrent
 // server renders (each with its own injected window) can't cross-talk.
 import { DomWindow, getWindow, hasWindow } from './dom';
+import type { DiagnosticSubjectRef } from './globals/diagnostic-format';
 
 interface SettlementState {
     pending: number;
+    // Refcounted so a subject with several in-flight runs stays listed until
+    // its last run settles. Recorded always-on (not debug-gated): the
+    // always-on `maxWait` warnings enumerate it — kept cheap as one map
+    // upsert per tracked thenable, against a ref the caller already holds.
+    pendingSubjects: Map<DiagnosticSubjectRef, number>;
     zeroWaiters: (() => void)[];
 }
 
@@ -17,7 +23,7 @@ const getState = (win: DomWindow): SettlementState => {
     let state = settlementStates.get(win);
 
     if (!state) {
-        state = { pending: 0, zeroWaiters: [] };
+        state = { pending: 0, pendingSubjects: new Map(), zeroWaiters: [] };
         settlementStates.set(win, state);
     }
 
@@ -32,7 +38,10 @@ const getState = (win: DomWindow): SettlementState => {
  * The window is captured at track time so the decrement lands on the same
  * counter even if the resolvable window has changed by then.
  */
-export const trackTransformResult = (result: unknown): void => {
+export const trackTransformResult = (
+    result: unknown,
+    subject?: DiagnosticSubjectRef
+): void => {
     if (
         result === null ||
         (typeof result !== 'object' && typeof result !== 'function') ||
@@ -46,12 +55,25 @@ export const trackTransformResult = (result: unknown): void => {
     const onSettled = () => {
         state.pending--;
 
+        if (subject) {
+            const remaining = (state.pendingSubjects.get(subject) ?? 1) - 1;
+
+            remaining > 0
+                ? state.pendingSubjects.set(subject, remaining)
+                : state.pendingSubjects.delete(subject);
+        }
+
         if (state.pending === 0) {
             state.zeroWaiters.splice(0).forEach((notify) => notify());
         }
     };
 
     state.pending++;
+    subject &&
+        state.pendingSubjects.set(
+            subject,
+            (state.pendingSubjects.get(subject) ?? 0) + 1
+        );
     (result as PromiseLike<unknown>).then(onSettled, onSettled);
 };
 
@@ -61,6 +83,17 @@ export const trackTransformResult = (result: unknown): void => {
  */
 export const getPendingCount = (): number =>
     hasWindow() ? (settlementStates.get(getWindow())?.pending ?? 0) : 0;
+
+/**
+ * The current window's still-pending diagnostic subjects — what the bounded
+ * settlement warnings enumerate alongside the count.
+ */
+export const getPendingSubjects = (): DiagnosticSubjectRef[] =>
+    hasWindow()
+        ? Array.from(
+              settlementStates.get(getWindow())?.pendingSubjects.keys() ?? []
+          )
+        : [];
 
 /**
  * Waits out a settle gate up to `maxWait` ms; resolves `true` when the bound

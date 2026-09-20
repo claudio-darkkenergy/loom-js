@@ -935,6 +935,7 @@ In every mode a rejected run releases its turn, and superseded runs stay settlem
 - `concurrency?: 'latest' | 'ordered' | 'serial'` - [Default: `'latest'`] Dispatch semantics for overlapping async transform runs — see Transform concurrency, above.
 - `deep?: boolean` - [Default: `false`] Compare plain objects property-by-property & arrays element-by-element (a shallow diff) instead of by reference, so a same-content update doesn't cascade to subscribed effects.
 - `force?: boolean` - [Default: `false`] Treat every update as a change, skipping comparison entirely.
+- `label?: string` - [Default: unset] Names the activity in diagnostics — narration lines, dropped-commit & timeout notices, & the pending enumeration of bounded settlement warnings all show `⟨label⟩`. Purely diagnostic, never behavioral. Unlabeled activities fall back to a stable generated tag (`activity#3`) so lines stay distinguishable — see Diagnostics.
 - `timeout?: number` - [Default: unset — unbounded] Upper bound (ms) per transform run. On expiry the run is retired exactly as supersession retires one — `signal` aborted, later commits dropped, any `'serial'` queue or `'ordered'` turn released — and it counts as settled for the settlement signal even if its promise never resolves, so a hung transform can't block a queue or pin `settled()`. Expiry warns on the console. With debug narration on (`setDebug(true, { activity: true })`), a long-pending run on an activity that sets no `timeout` is flagged instead — pointed at, never bounded for you.
 - `transform?: ActivityTransform<V, I>` - The transform, for when options ride in the second argument.
 
@@ -1507,9 +1508,18 @@ Loom's console surface (the framework-internal `loomConsole`) has two lanes:
 - **Warnings & errors always surface** — in development & production alike, with no opt-in. Attr misuse, unregistered custom elements, & settlement `maxWait` expiries reach the native console unconditionally.
 - **Everything else is opt-in debug narration**, silent by default. Enable it with `setDebug(isOn, scopes)` (or `globalConfig.debug`/`globalConfig.debugScope` at boot) in a non-production build — or at runtime from the devtools console via the `loom` global: `loom.setDebug(true, { updates: true })`. Scopes: `activity`, `creation`, `mutations`, `updates` — each call site is gated by exactly one scope, & hot-path narration (render/mount/mutation/update cycles) folds into collapsed console groups.
 
+**The line anatomy** — every loom console line carries one scannable shape: the `[loom]` badge, the scope/lane tag, the _subject_ (which activity, component, element, or resource key the line concerns), the event, & the detail — `%c`-styled in browsers that support it, the same segments as plain text in server consoles:
+
+```
+[loom] activity ⟨search⟩ dropped commit — the run was retired (superseded or timed out)
+```
+
 **Semantics worth knowing**
 
-- **Attribution is real:** each framework console access resolves to the native console method bound to the console (or a shared no-op when its gate is closed) — never a wrapper — so the browser attributes each message to the framework call site that produced it.
+- **Subjects have names:** an activity's opt-in `label` option (`activity(initial, { label: 'search', … })`) names it as `⟨search⟩` in every diagnostic that references it; unlabeled subjects fall back to a stable generated tag (`activity#3`) so lines from different sources stay distinguishable. Other subject kinds reuse what already identifies them — component keys, tag names, resource keys. Labels are purely diagnostic & never affect behavior.
+- **Warnings point at the fix:** every always-on warning ends with a one-clause remedy or docs-concept pointer ("pass `maxWait: Infinity` to disable the bound", "see Dehydrated state: serializability boundary"), not just the symptom.
+- **Bounded settlement warnings name the laggards:** a `maxWait`-class expiry (`hydrate`, `renderToString`) enumerates the labeled subjects still pending alongside the count — `3 pending — ⟨page-content⟩, ⟨search⟩, activity#7` — capped, with the overflow counted.
+- **Attribution is real:** each framework console access resolves to the native console method bound to the console (or a shared no-op when its gate is closed) — never a wrapper — so the browser attributes each message to the framework call site that produced it. Styling composes _arguments_ for that bound method; it never wraps it.
 - **The gate is read at property access:** every narration call reflects the debug state at that moment — flipping `loom.setDebug` applies from the very next message, no reload needed.
 
 **Inclusion** `import { setDebug } from '@loom-js/core';`

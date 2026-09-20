@@ -2,10 +2,18 @@ import { bootstrap, configApp, resolveAppRoot } from './lib/bootstrap';
 import { _lifeCycles } from './lib/context/life-cycles';
 import { getDocument } from './lib/dom';
 import { captureReplayEvents } from './lib/event-replay';
+import {
+    describePending,
+    formatDiagnostic
+} from './lib/globals/diagnostic-format';
 import { loomConsole } from './lib/globals/loom-console';
 import { addHydratingRoot, removeHydratingRoot } from './lib/hydrating-roots';
 import { mount } from './lib/mount';
-import { boundedWait, getPendingCount } from './lib/settlement';
+import {
+    boundedWait,
+    getPendingCount,
+    getPendingSubjects
+} from './lib/settlement';
 import { settled } from './settled';
 import type { AppHydrateProps } from './types';
 
@@ -74,7 +82,15 @@ export const hydrate = async ({
         // but say so.
         expired &&
             loomConsole.warn(
-                `[loom] hydrate: settlement did not complete within ${maxWait}ms — swapping with ${getPendingCount()} operation(s) still pending. Pass \`maxWait: Infinity\` to disable the bound.`
+                ...formatDiagnostic({
+                    detail: `swapping with ${describePending(
+                        getPendingCount(),
+                        getPendingSubjects()
+                    )}`,
+                    event: `settlement did not complete within ${maxWait}ms`,
+                    remedy: 'pass `maxWait: Infinity` to disable the bound',
+                    scope: 'hydrate'
+                })
             );
 
         // The single atomic swap.

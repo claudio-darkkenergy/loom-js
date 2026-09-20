@@ -1,3 +1,4 @@
+import { formatDiagnostic } from './globals/diagnostic-format';
 import { loomConsole } from './globals/loom-console';
 
 // The interactions users actually lose mid-boot — what `replayEvents: true`
@@ -125,7 +126,12 @@ export const captureReplayEvents = (
             const dropped = queue.shift();
 
             loomConsole.warn(
-                `[loom] hydrate: replay queue is full (${QUEUE_CAP}) — dropped the oldest recorded '${dropped?.event.type}' event.`
+                ...formatDiagnostic({
+                    detail: `dropped the oldest recorded '${dropped?.event.type}' event`,
+                    event: `replay queue is full (${QUEUE_CAP})`,
+                    remedy: 'narrow `replayEvents` to the interactions worth replaying',
+                    scope: 'hydrate'
+                })
             );
         }
 
@@ -151,7 +157,12 @@ export const captureReplayEvents = (
 
                 if (!target) {
                     loomConsole.warn(
-                        `[loom] hydrate: replay dropped a '${event.type}' event — target path [${path.join(', ')}] did not resolve in the hydrated tree.`
+                        ...formatDiagnostic({
+                            detail: `target path [${path.join(', ')}] did not resolve in the hydrated tree`,
+                            event: `replay dropped a '${event.type}' event`,
+                            remedy: 'keep the served markup structurally aligned with the first client render',
+                            scope: 'hydrate'
+                        })
                     );
                     continue;
                 }
