@@ -69,9 +69,10 @@ jobs:
               # GitHub Releases silently stopped after the v3 upgrade).
               uses: changesets/action@v2
               with:
-                  # This expects you to have a script called publish-package which does a build for your packages and calls changeset publish
-                  publish: pnpm publish-packages
-                  # version: pnpm version-packages
+                  # v2 renamed `publish` -> `publish-script` (the run fails
+                  # on the old name). Builds the packages and runs
+                  # `changeset publish`.
+                  publish-script: pnpm publish-packages
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
