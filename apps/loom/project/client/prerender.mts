@@ -1,5 +1,6 @@
 // The build-time SSG runner: renders every route through the prerender
 // bundle and injects markup + dehydrated state into the emitted shells.
+import type { SerializedStateEnvelope } from '@loom-js/core';
 import { parseHTML } from 'linkedom';
 
 import { injectPrerender } from '../../src/app/boot-contract.js';
@@ -150,7 +151,12 @@ export const prerender = async (outdir = './build') => {
                     );
                 }
 
-                const stateKeys = Object.keys(JSON.parse(state));
+                // `serializeState` wraps the resource values in a versioned
+                // envelope — the keys live under its `state` field.
+                const envelope = JSON.parse(
+                    state
+                ) as Partial<SerializedStateEnvelope>;
+                const stateKeys = Object.keys(envelope.state ?? {});
 
                 if (!stateKeys.includes(docsContentResourceKey(slug))) {
                     throw new Error(
