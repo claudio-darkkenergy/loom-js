@@ -20,6 +20,21 @@ Root-causing starts from the characterization matrix (children region, provided 
 
 The new server tests render the same fixtures the browser slot/rendering specs use and compare serialized output against the expected markup those specs pin — asserting the shape, so any future artifact (not just this one) fails. TDD: red on the current output first.
 
+## Root Cause (recorded at apply)
+
+The fragment-prefix suspicion from D1 was correct, one step earlier than the
+synthesized component: `htmlParser`'s rootless-template cleanup
+(`src/html-parser.ts`) strips the `<>` marker with
+`textContent = textContent?.replace('<>', '') || null`. When a region's first
+static is exactly `<>` (the region starts with an element — every compiled
+children/slot region hits this), the replace yields `''`, which is falsy, so
+`textContent` is assigned `null`. Per spec a `null` assignment to
+`textContent` is treated as `''`; linkedom instead coerces it to the string
+`"null"`, leaving a literal `null` text node that serializes ahead of the
+region content. Shared-path bug class per D1's preference order: the fix is
+one token in core (`?? ''` in place of `|| null`), byte-identical in the
+browser, and repairs the server render.
+
 ## Risks / Trade-offs
 
 - [Fix perturbs the hot browser path] → the full browser suite plus the "browser rendering unchanged" requirement gate it; prefer the narrowest seam the diagnosis supports.

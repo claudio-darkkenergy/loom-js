@@ -33,3 +33,5 @@
 - [x] 5.3 Dev-mode audit: `pnpm -F @loom-js/loom dev` behaves as today (empty-root hydrate, live reload intact)
 - [x] 5.4 Regression pass against existing specs: `app-asset-delivery` (route HTML still loads only its own assets — state script included), `content-delivery-performance` (proxy caching untouched; SPA navigations still one batched request), docs toggles
 - [x] 5.5 `pnpm -F @loom-js/loom type-check` green; `pnpm format` over touched files
+
+> Post-archive note (2026-09-19): the prerender verification above predates `fix-ssr-region-null-text` — regions starting immediately with an element serialized a literal `null` under `renderToString` until that core patch; the shipped output was re-checked clean (real templates carry leading whitespace, which dodged the bug), and future prerenders rely on that fix.

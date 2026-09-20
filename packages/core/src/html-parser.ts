@@ -84,8 +84,10 @@ export function htmlParser(
         // This will inherit its connected parent element as its root.
         if (/^<>/.test(statics[0]?.trim() ?? '') && fragment.childNodes[0]) {
             // Remove the fragment artifact "<>" from the renderable content.
+            // Always assign a string — a nullish assignment leaves the
+            // coercion up to the host DOM implementation.
             fragment.childNodes[0].textContent =
-                fragment.childNodes[0].textContent?.replace('<>', '') || null;
+                fragment.childNodes[0].textContent?.replace('<>', '') ?? '';
         }
 
         // Will be "walked" to obtain the dynamic paths mappings.
