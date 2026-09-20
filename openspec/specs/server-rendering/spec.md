@@ -4,7 +4,7 @@
 
 Defines how `@loom-js/core` renders an app to an HTML string outside a browser: the `@loom-js/core/server` entries — `renderToString` (async, the go-to) and `renderToStringSync` (the synchronous primitive) — render through the same code path the client runs, against a per-render injected DOM provider (e.g. linkedom), covering SSR (request-time) and SSG/prerender (build-time). Covers off-browser import safety, per-render isolation, browser-path neutrality, server lifecycle semantics, and route-aware rendering.
 
-Established by the `add-server-rendering` change (2026-08-15). Route-aware rendering was added by the `unify-routing` change (2026-08-15). Client hydration of pre-rendered markup is now covered by the `client-hydration` capability (`renderToString` → `hydrate`, added by `add-client-hydration`, 2026-08-16); edge/worker delivery remains a future extension of this capability. The `unify-server-drain-on-settled` change (2026-08-18) replaced the async render's quiet-markup drain with the settlement signal `settled()` and `hydrate` consume, bounded by a `maxWait` option. The `improve-loom-console` change (2026-08-18) made the `maxWait` expiry warning unconditional (no longer debug-gated), per the `diagnostic-logging` capability.
+Established by the `add-server-rendering` change (2026-08-15). Route-aware rendering was added by the `unify-routing` change (2026-08-15). Client hydration of pre-rendered markup is now covered by the `client-hydration` capability (`renderToString` → `hydrate`, added by `add-client-hydration`, 2026-08-16); edge/worker delivery remains a future extension of this capability. The `unify-server-drain-on-settled` change (2026-08-18) replaced the async render's quiet-markup drain with the settlement signal `settled()` and `hydrate` consume, bounded by a `maxWait` option. The `improve-loom-console` change (2026-08-18) made the `maxWait` expiry warning unconditional (no longer debug-gated), per the `diagnostic-logging` capability. The `server-dom-compat` change (2026-09-20) verified a DOM-implementation matrix — linkedom, jsdom, Happy DOM — with per-document template caching lifting the one-implementation-per-process rule, and `location` resolved through the provider seam.
 
 ## Requirements
 
@@ -25,8 +25,8 @@ The framework SHALL provide two server render entries that render a loom app aga
 
 #### Scenario: Injected window is normalized
 
-- **WHEN** the injected linkedom `window` lacks `NodeFilter`, `location`, or `history`
-- **THEN** the render entries install working stand-ins before rendering (`NodeFilter` constants, a plain-object `location`-like derived from the `url` option, a minimal `history` shim)
+- **WHEN** the injected `window` lacks `NodeFilter` or `history`, or a `url` option is passed
+- **THEN** the render entries install working stand-ins before rendering (`NodeFilter` constants, a minimal `history` shim) and register the `url`-derived `location`-like with the provider seam — installed onto the window where the implementation permits, and resolvable by loom's routing either way
 
 ### Requirement: The core package is importable without a browser
 
@@ -122,3 +122,32 @@ Component-element regions — the children region and each provided named-slot r
 
 - **WHEN** a component element supplies labelled slot content and the component interpolates its regions
 - **THEN** each provided region serializes its content exactly as the browser renders it, and an absent region serializes nothing
+
+### Requirement: Server rendering works under spec-strict DOM implementations
+
+`renderToString` SHALL produce correct output under spec-faithful DOM implementations beyond linkedom — verified against jsdom and Happy DOM — issuing no DOM calls that rely on lenient validation (empty attribute names included), on shared class realms across windows, or on a process-wide first document: templates parse per document, so any number of windows — of one implementation or several — may render in one process.
+
+#### Scenario: the render matrix passes
+
+- **WHEN** the server render tests run against linkedom, jsdom, and Happy DOM windows
+- **THEN** each produces the expected markup, custom-element upgrades included
+
+#### Scenario: no empty-name attribute calls
+
+- **WHEN** a template with custom elements and `$`-prefixed interpolated props renders under a strict implementation
+- **THEN** no `setAttribute` call carries an empty name and no `InvalidCharacterError` is thrown
+
+#### Scenario: sequential windows render fully
+
+- **WHEN** the same app renders into two windows of the same implementation, one after the other, in one process
+- **THEN** both renders produce complete markup — dynamic slots filled and custom elements upgraded — with no placeholder artifacts in the second
+
+#### Scenario: mixed implementations in one process
+
+- **WHEN** renders against windows from two different DOM implementations interleave in one process
+- **THEN** each render's templates parse against its own document and both produce correct markup
+
+#### Scenario: the url option is implementation-independent
+
+- **WHEN** a render passes `url` with a window whose `location` cannot be replaced (spec-unforgeable, e.g. jsdom)
+- **THEN** loom's routing APIs (`locationEffect`, `watchRoute`, route matching) resolve the `url`-derived location
