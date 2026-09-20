@@ -1,5 +1,5 @@
 import { ComponentContext } from '../../types';
-import { getDocument, getWindow } from '../dom';
+import { getDocument } from '../dom';
 import { memo } from '../memo';
 import { getAttrUpdate } from './get-attr-update';
 import { getDynamicElement } from './get-dynamic-element';
@@ -7,6 +7,17 @@ import { getLiveTextNodes } from './get-live-text-nodes';
 import { getTextUpdate } from './get-text-update';
 import { setReactiveUpdates } from './set-reactive-updates';
 import type { DynamicNode } from './types';
+
+// `Node.TEXT_NODE` / `Node.COMMENT_NODE` — literal so no window resolution is
+// needed at check time.
+const TEXT_NODE = 3;
+const COMMENT_NODE = 8;
+
+// `nodeType`, not `instanceof getWindow().Text/Comment` — an imported node
+// can keep its source window's class realm (Happy DOM's `importNode`), and
+// `nodeType` is realm-free.
+const isSlotTextNode = (node: DynamicNode): node is Comment | Text =>
+    node.nodeType === TEXT_NODE || node.nodeType === COMMENT_NODE;
 
 export const setUpdatesForPaths = (
     paths: Set<[number[], Attr | undefined]>,
@@ -42,12 +53,11 @@ export const setUpdatesForPaths = (
                 // Setup effect udpate.
                 setReactiveUpdates(update, i, ctx);
             } else if (
-                dynamicNode instanceof getWindow().Text ||
                 // A comment marker stands in for a slot token in table content
                 // — `replaceWith` below swaps the marker clone for its token text
                 // node post-parse, and the live-text machinery proceeds unchanged.
-                dynamicNode instanceof getWindow().Comment ||
-                dynamicNode === undefined
+                dynamicNode === undefined ||
+                isSlotTextNode(dynamicNode)
             ) {
                 // Text Node handling
                 const textFragment = getDocument().createDocumentFragment();

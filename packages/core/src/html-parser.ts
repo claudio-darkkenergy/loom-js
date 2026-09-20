@@ -25,11 +25,23 @@ import type {
 // transform-synthesized chunks array (both are one stable identity for the
 // life of the process). A synthesized children template's derived sub-chunks
 // live on its parent's cached plan, never in a separate keyed store.
+//
+// The compile plan is pure string work and shared across documents; the
+// parsed fragment and its `paths` (which hold `Attr` references into that
+// fragment) live per document — templates parse against each document that
+// renders them, so any number of injected windows (of any DOM
+// implementation) can render in one process, and a server window's
+// fragments release with its document (`WeakMap`). In the browser there is
+// one document ever, so this stays a single cached parse.
+interface TemplateDocumentCacheEntry {
+    fragment: DocumentFragment;
+    paths: Set<[number[], Attr | undefined]>;
+}
+
 const templateCacheStore = new Map<
     TemplateStringsArray | string[],
     {
-        fragment: DocumentFragment;
-        paths: Set<[number[], Attr | undefined]>;
+        documentCache: WeakMap<Document, TemplateDocumentCacheEntry>;
         plan: TemplateTransformPlan | null;
     }
 >();
@@ -49,7 +61,20 @@ export function htmlParser(
         // Compile any component-element syntax out of the chunks before the
         // native parser sees them. A `null` plan means no component tags —
         // the template passes through byte-identical.
-        const plan = compileComponentTags(chunks);
+        cacheEntry = {
+            documentCache: new WeakMap(),
+            plan: compileComponentTags(chunks)
+        };
+        templateCacheStore.set(chunks, cacheEntry);
+    }
+
+    const { documentCache, plan } = cacheEntry;
+    const currentDocument = getDocument();
+    let documentEntry = documentCache.get(currentDocument);
+
+    // This runs once per (definition, document) — each document parses the
+    // template against its own realm.
+    if (!documentEntry) {
         const statics = plan ? plan.chunks : (chunks as readonly string[]);
         const tableScope = scanTableScope(statics);
         let fragment: DocumentFragment;
@@ -58,7 +83,7 @@ export function htmlParser(
             // Template-element parsing preserves table-part roots, and
             // table-content tokens become comment markers (safe from foster
             // parenting) that `setUpdatesForPaths` swaps back at wire time.
-            const templateElement = getDocument().createElement(
+            const templateElement = currentDocument.createElement(
                 'template'
             ) as HTMLTemplateElement;
 
@@ -75,7 +100,7 @@ export function htmlParser(
             fragment = templateElement.content;
         } else {
             // Creates a `DocumentFragment` using the component HTML template as its context (children.)
-            fragment = getDocument()
+            fragment = currentDocument
                 .createRange()
                 .createContextualFragment(statics.join(config.TOKEN));
         }
@@ -91,17 +116,16 @@ export function htmlParser(
         }
 
         // Will be "walked" to obtain the dynamic paths mappings.
-        const treeWalker = getDocument().createTreeWalker(
+        const treeWalker = currentDocument.createTreeWalker(
             fragment,
             getWindow().NodeFilter.SHOW_ALL
         );
 
-        // Cache the template using the chunks identity.
-        cacheEntry = { fragment, paths: getPaths(treeWalker), plan };
-        templateCacheStore.set(chunks, cacheEntry);
+        // Cache this document's parse of the template.
+        documentEntry = { fragment, paths: getPaths(treeWalker) };
+        documentCache.set(currentDocument, documentEntry);
     }
 
-    const { plan } = cacheEntry;
     // Apply the cached plan to this render's raw interpolations — the plan is
     // static, the derived values are not. Without a plan, both pass through.
     const values = plan
@@ -126,15 +150,13 @@ export function htmlParser(
             isWithinHydratingRoot(instanceAnchor)
         )
     ) {
-        const { fragment, paths } = cacheEntry;
+        const { fragment, paths } = documentEntry;
         // The live fragment - the `DocumentFragment`
         // which will contain all the live nodes which will exist in the DOM.
-        // `importNode`, not `cloneNode` — the cached fragment belongs to the
-        // document that first rendered this template, and a server render with
-        // a fresh injected document must re-clone INTO its own document or
-        // custom elements in the template never upgrade there. In the browser
-        // (one document, ever) the two are equivalent.
-        const liveFragment = getDocument().importNode(fragment, true);
+        // The cached fragment is per document (see `templateCacheStore`), so
+        // this clone never crosses documents; `importNode` stays as the
+        // spec-neutral spelling of "clone into this document".
+        const liveFragment = currentDocument.importNode(fragment, true);
         // Convert `values[]` to object.
         const valueObj = values.reduce(
             (acc: { [key: number]: TemplateTagValue }, value, i) => {

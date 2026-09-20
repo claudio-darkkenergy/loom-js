@@ -1,5 +1,15 @@
 import { activity } from './activity';
-import { DomWindow, getWindow, hasWindow } from './lib/dom';
+// Location reads resolve through `getLocation`/`getLocationOf`, never
+// `win.location` directly — the server's `url` option registers a seam
+// override when the window's own `location` cannot be replaced (jsdom's is
+// spec-unforgeable).
+import {
+    DomWindow,
+    getLocation,
+    getLocationOf,
+    getWindow,
+    hasWindow
+} from './lib/dom';
 import { whenHydrationIdle } from './lib/hydrating-roots';
 import { loadRouteAssets } from './lib/route-assets';
 import { boundedWait } from './lib/settlement';
@@ -122,8 +132,8 @@ class Router {
         // app), else nothing — the boot position is the top.
         const bootSaved = savedScrollOf(win);
 
-        this.pendingScroll = win.location.hash
-            ? { fragment: win.location.hash.slice(1) }
+        this.pendingScroll = getLocationOf(win).hash
+            ? { fragment: getLocationOf(win).hash.slice(1) }
             : bootSaved !== undefined
               ? { restore: bootSaved }
               : undefined;
@@ -142,13 +152,13 @@ class Router {
         );
         'onscrollend' in (win as object) &&
             win.addEventListener?.('scrollend', () => captureScroll(win));
-        this.locationActivity = activity<Location>(win.location, {
+        this.locationActivity = activity<Location>(getLocationOf(win), {
             // The raw location layer keeps the legacy activity's semantics:
             // it fires on every update, even a same-location one.
             force: true
         });
         this.routeActivity = activity<RouteValue, Location>(
-            this.getRouteValue(win.location),
+            this.getRouteValue(getLocationOf(win)),
             {
                 transform: ({ input: location, update }) =>
                     this.transform(location, update)
@@ -168,12 +178,12 @@ class Router {
         win.addEventListener('popstate', () => {
             const saved = savedScrollOf(win);
 
-            this.pendingScroll = win.location.hash
-                ? { fragment: win.location.hash.slice(1) }
+            this.pendingScroll = getLocationOf(win).hash
+                ? { fragment: getLocationOf(win).hash.slice(1) }
                 : saved !== undefined
                   ? { restore: saved }
                   : undefined;
-            this.locationActivity.update(win.location);
+            this.locationActivity.update(getLocationOf(win));
         });
     }
 
@@ -232,7 +242,7 @@ class Router {
     // Re-runs the match transform against the current location — used when
     // the route table is replaced after this router was constructed.
     refreshRoute() {
-        this.routeActivity.update(getWindow().location);
+        this.routeActivity.update(getLocation());
     }
 
     route<T extends EventTarget = HTMLAnchorElement>(
@@ -256,7 +266,7 @@ class Router {
         const action = (options?.replace && 'replaceState') || 'pushState';
         const href =
             options?.href || (event?.currentTarget as HTMLAnchorElement).href;
-        const locationSnapshot = Object.assign({}, win.location);
+        const locationSnapshot = Object.assign({}, getLocationOf(win));
         // The href's fragment: `''` for a bare trailing `#` (scroll-to-top),
         // `undefined` when the href carries no fragment at all. Read from the
         // href rather than `location.hash`, which can't represent a bare `#`.
@@ -286,7 +296,7 @@ class Router {
                 : fragment !== undefined
                   ? { fragment }
                   : { top: true };
-            this.locationActivity.update(win.location);
+            this.locationActivity.update(getLocationOf(win));
         } else if (fragment !== undefined && scroll) {
             // Hash-only navigation: the activity pipeline stays quiet — the
             // router owes only the native anchor jump its `preventDefault`
@@ -542,9 +552,9 @@ const scrollToTop = (win: DomWindow) => {
  * @returns `true` if only the `Window.Location` has changed.
  */
 const didRouteChange = ({ origin, pathname, search }: Location) =>
-    origin !== getWindow().location.origin ||
-    pathname !== getWindow().location.pathname ||
-    search !== getWindow().location.search;
+    origin !== getLocation().origin ||
+    pathname !== getLocation().pathname ||
+    search !== getLocation().search;
 
 // One router per provider window: in a browser there is one window forever, so
 // one router — the singleton emerges rather than being enforced. On a server

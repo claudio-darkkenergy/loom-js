@@ -60,6 +60,8 @@
         "@web/dev-server-esbuild": "^2.0.0",
         "@web/test-runner": "^1.0.0",
         "@web/test-runner-puppeteer": "^1.0.1",
+        "happy-dom": "^20.14.5",
+        "jsdom": "^30.1.0",
         "linkedom": "^0.18.13",
         "pptr-testing-library": "0.8.0",
         "puppeteer": "^25.11.0",

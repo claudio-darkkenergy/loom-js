@@ -1,12 +1,18 @@
 // Server render entry — `@loom-js/core/server`. Renders a loom app against an
-// injected DOM implementation (e.g. a linkedom `parseHTML` window) through the
-// exact same code path the browser uses, and returns the serialized markup.
-// loom never imports the DOM implementation itself; the caller supplies it,
-// which keeps this entry dependency-free and the browser bundle untouched.
+// injected DOM implementation through the exact same code path the browser
+// uses, and returns the serialized markup. loom never imports the DOM
+// implementation itself; the caller supplies a window, which keeps this entry
+// dependency-free and the browser bundle untouched.
 export * from './dehydrate';
 
 import { _lifeCycles } from './lib/context/life-cycles';
-import { DomWindow, enterWindow, withWindow } from './lib/dom';
+import {
+    DomWindow,
+    enterWindow,
+    getLocationOf,
+    setLocationOverride,
+    withWindow
+} from './lib/dom';
 import { loomConsole } from './lib/globals/loom-console';
 import { mount } from './lib/mount';
 import { boundedWait, getPendingCount } from './lib/settlement';
@@ -17,15 +23,17 @@ import type { ContextFunction } from './types';
 export interface RenderToStringOptions {
     /**
      * The DOM to render against — e.g. `parseHTML(...).window` from linkedom.
-     * Must not be shared across concurrent renders. Gaps linkedom leaves
-     * (`NodeFilter`, `location`, `history`) are filled in before rendering.
+     * Must not be shared across concurrent renders. Gaps the implementation
+     * leaves (`NodeFilter`, `location`, `history`) are filled in before
+     * rendering.
      */
     window: object;
     /**
-     * The request URL. Installed as the window's `location` so route matching
-     * (`createRoutes`, `locationEffect`) sees the requested path. When
-     * omitted, an existing `location` is kept, or a localhost placeholder is
-     * installed.
+     * The request URL. Registered as the render's effective `location` so
+     * route matching (`createRoutes`, `locationEffect`) sees the requested
+     * path — installed onto the window too where the implementation permits
+     * (some make `location` unforgeable, e.g. jsdom). When omitted, an
+     * existing `location` is kept, or a localhost placeholder is installed.
      */
     url?: string;
     /**
@@ -40,8 +48,8 @@ export interface RenderToStringOptions {
 const DEFAULT_URL = 'http://localhost/';
 
 // The `whatToShow` bit-field constants `document.createTreeWalker` consumers
-// use — linkedom accepts the numeric values but does not expose the constants
-// on its window.
+// use — some implementations accept the numeric values without exposing the
+// constants on their window.
 const NODE_FILTER_CONSTANTS = {
     FILTER_ACCEPT: 1,
     FILTER_REJECT: 2,
@@ -90,11 +98,15 @@ const createLocationLike = (url: string) => {
 // `pushState`/`replaceState` are all the router calls; both just move the
 // location-like. Navigation history itself is meaningless within one render.
 const createHistoryShim = (win: DomWindow) => {
+    // Navigation moves the render's effective location — the seam-registered
+    // override when the window's own `location` could not be replaced.
     const navigate = (url?: string | URL | null) => {
+        const location = getLocationOf(win);
+
         url != null &&
             Object.assign(
-                win.location,
-                createLocationLike(String(new URL(url, win.location.href)))
+                location,
+                createLocationLike(String(new URL(url, location.href)))
             );
     };
 
@@ -112,13 +124,24 @@ const createHistoryShim = (win: DomWindow) => {
     };
 };
 
-// Fills the gaps a linkedom window leaves relative to what loom resolves
+// Fills the gaps an injected window can leave relative to what loom resolves
 // through the provider seam.
 const normalizeWindow = (win: DomWindow, url?: string) => {
     const looseWin = win as unknown as Record<string, unknown>;
 
     if (url || !looseWin.location) {
-        looseWin.location = createLocationLike(url || DEFAULT_URL);
+        const locationLike = createLocationLike(url || DEFAULT_URL);
+
+        if (!looseWin.location) {
+            // The window ships no `location` of its own — install directly so
+            // app code reading `window.location` sees the request URL too.
+            looseWin.location = locationLike;
+        }
+
+        // Loom's own reads resolve through the seam either way — assigning
+        // over an existing `location` is never attempted, since jsdom's is
+        // unforgeable and its assignment setter is a navigation attempt.
+        setLocationOverride(win, locationLike as unknown as Location);
     }
 
     if (!looseWin.NodeFilter) {

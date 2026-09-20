@@ -1,7 +1,7 @@
 // The render-scoped DOM provider seam. Rendering resolves `window`/`document`
 // (and every constructor it `instanceof`-checks) through these accessors
 // instead of bare globals, so a server render can point the same code path at
-// an injected DOM implementation (e.g. linkedom) without forking it.
+// an injected DOM implementation without forking it.
 //
 // The swap is synchronous — loom's render pass never awaits, so `withWindow`
 // is observationally identical to threading the window through as an argument,
@@ -37,6 +37,32 @@ export const getWindow = (): DomWindow => {
  * Resolves the current `document` (see `getWindow`).
  */
 export const getDocument = () => getWindow().document;
+
+// Per-window location overrides. Some DOM implementations make `location`
+// spec-unforgeable (jsdom), so the server's `url` option cannot always be
+// installed onto the window itself — the override carries it instead, and
+// loom reads location exclusively through these resolvers.
+const locationOverrides = new WeakMap<DomWindow, Location>();
+
+/**
+ * Registers `location` as `win`'s effective location for loom's own reads —
+ * the server render entries call this with the `url`-derived location-like.
+ */
+export const setLocationOverride = (win: DomWindow, location: Location) => {
+    locationOverrides.set(win, location);
+};
+
+/**
+ * Resolves `win`'s effective location — the registered override, else the
+ * window's own `location`.
+ */
+export const getLocationOf = (win: DomWindow): Location =>
+    locationOverrides.get(win) ?? win.location;
+
+/**
+ * Resolves the current window's effective location (see `getWindow`).
+ */
+export const getLocation = (): Location => getLocationOf(getWindow());
 
 /**
  * Enters `win` as the resolvable window & returns the function that restores

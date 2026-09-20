@@ -41,13 +41,17 @@ interface ListenerCtxCollection {
     [key: string]: ListenerCtx | undefined;
 }
 
+// Attribute names always read from `Attr.name`, never `Attr.nodeName` —
+// Happy DOM's `Attr` returns an empty string for `nodeName`, which strict
+// implementations then reject as a `setAttribute` name (`name` is the spec's
+// canonical accessor for an attribute's qualified name).
 export const getAttrUpdate = (
     dynamicNode: DynamicNode,
     dynamicAttr: Attr,
     hostCtx?: ComponentContextPartial
 ) => {
     // Special attributes start w/ `$`.
-    if (dynamicAttr['nodeName'][0] === '$') {
+    if (dynamicAttr.name[0] === '$') {
         return getSpecialAttrUpdate(dynamicNode, dynamicAttr, hostCtx);
     }
     // Handle dynamic standard attributes.
@@ -62,7 +66,7 @@ const getSpecialAttrUpdate = (
     hostCtx?: ComponentContextPartial
 ) => {
     // Removes the prefix "$".
-    const nodeName = attr.nodeName.slice(1);
+    const nodeName = attr.name.slice(1);
     // Precedence: named special attributes, then known dom-event attributes
     // (dynamic via `config.events`, so they can't be static map keys), then
     // the safe default.
@@ -91,10 +95,7 @@ const getStandardAttrUpdate = (
     let unsubscribeBinding: Unsubscriber | undefined;
     const applyValue = (newValue: TemplateTagValue) => {
         // Special attributes start w/ `$`.
-        let nodeName =
-            attr['nodeName'][0] === '$'
-                ? attr.nodeName.slice(1)
-                : attr.nodeName;
+        let nodeName = attr.name[0] === '$' ? attr.name.slice(1) : attr.name;
         const value = resolveValue(newValue);
         const element = dynamicNode as HTMLElement | SVGElement;
 
@@ -259,7 +260,7 @@ const overrideEventListener = ({
     else if (override) {
         loomConsole.warn(
             `[Template Update Warning] The provided special attribute ("${
-                attr.nodeName
+                attr.name
             }") contains a value of ${JSON.stringify(
                 override
             )} which may not be the intended value. While this is non-breaking, a valid value would be falsy or an event-listener.`
@@ -289,7 +290,7 @@ const setCustomElementProps = ({
         // this template was parsed, so the element was not yet upgraded.
         newProps &&
             loomConsole.warn(
-                `${attr?.nodeName} was set on <${(
+                `${attr?.name} was set on <${(
                     dynamicNode as HTMLElement
                 ).tagName?.toLowerCase()}>, which is not a registered custom element. Register it with \`defineElement\`, and make sure its module is imported before this template renders.`
             );
@@ -298,7 +299,7 @@ const setCustomElementProps = ({
 
     if (!newProps || !isObject(newProps)) {
         newProps &&
-            loomConsole.warn(`${attr?.nodeName} must be an object literal.`);
+            loomConsole.warn(`${attr?.name} must be an object literal.`);
         return;
     }
 
@@ -426,9 +427,7 @@ const specialAttrUpdaterFactories: {
             // The new value must be an object literal.
             if (!newValue || !isObject(newValue)) {
                 newValue &&
-                    loomConsole.warn(
-                        `${attr.nodeName} must be an object literal.`
-                    );
+                    loomConsole.warn(`${attr.name} must be an object literal.`);
                 return;
             }
 
@@ -472,9 +471,7 @@ const specialAttrUpdaterFactories: {
             // The new value must be an object literal.
             if (!newValue || !isObject(newValue)) {
                 newValue &&
-                    loomConsole.warn(
-                        `${attr.nodeName} must be an object literal.`
-                    );
+                    loomConsole.warn(`${attr.name} must be an object literal.`);
                 return;
             }
 
