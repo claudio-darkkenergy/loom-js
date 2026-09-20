@@ -47,6 +47,15 @@ export interface AppHydrateProps extends Omit<AppInitProps, 'placement'> {
      * settled signal, still bounded by `maxWait`.
      */
     ready?: Promise<unknown>;
+    /**
+     * Opt-in replay of settle-window interactions: events of these types
+     * landing on the inert served markup are recorded — native actions
+     * cancelled, anchor navigation excepted — and re-dispatched in order
+     * (untrusted) to the corresponding client nodes after the swap. `true`
+     * enables the default set, `['click', 'submit']`; an array names the
+     * types explicitly. Defaults to off.
+     */
+    replayEvents?: boolean | string[];
 }
 
 export interface Aria {
