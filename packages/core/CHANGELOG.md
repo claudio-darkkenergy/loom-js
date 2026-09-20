@@ -1,5 +1,30 @@
 # @loom-js/core
 
+## 0.12.0
+
+### Minor Changes
+
+- 9de512d: Dehydrated state ships in a versioned envelope, and priming now requires it:
+  
+  - `serializeState` wraps its output as `{ __loom: 1, state }` — same script-safe escaping, still plain `JSON.parse`-able; `primeResources(JSON.parse(...))` pipelines need no shape change.
+  - **Behavior change:** `primeResources` primes nothing from a payload without the envelope (or with a version it doesn't read) — one console warning names the problem and the boot proceeds unprimed, so every key just fetches. This only affects callers hand-feeding bare objects, which is the misuse being guarded: hand-rolling `JSON.stringify` into inline HTML is the documented XSS footgun. The envelope is misuse detection, not a trust layer — `serializeState`'s escaping remains the XSS defense.
+  - New exported type: `SerializedStateEnvelope` (the parsed form of `serializeState`'s output, now `primeResources`'s parameter type).
+- 28ce5ee: `hydrate` gains opt-in event replay: `replayEvents?: boolean | string[]` (`true` = `['click', 'submit']`; an array names event types explicitly; off by default).
+  
+  - While enabled, hydration attaches one capturing listener per replayed type on the root for the settle window. Recorded interactions have their native action cancelled — except clicks with an enclosing `href`-bearing anchor, which pass through (and are never replayed) so native navigation keeps degrading gracefully.
+  - After the swap and the `onMounted` sweep — before `onAppMounted` — recorded events re-dispatch in FIFO order to the structurally corresponding client nodes, as real constructed events with `isTrusted: false`. A target path that no longer resolves (e.g. after a `maxWait`-expired swap) drops that event with a console warning instead of mis-targeting.
+  - Listeners and the queue are released at the swap (and on `hydrate`'s failure path); the queue is capped at 50 with drop-oldest warnings. Off by default means zero behavior change, and `init`-only bundles still tree-shake all of it out.
+- 6c33262: Server rendering works under spec-strict DOM implementations — the supply-a-window contract is now continuously verified against linkedom, jsdom, and Happy DOM:
+  
+  - Attribute names read from `Attr.name` (the spec accessor), fixing the empty-name `setAttribute` that Happy DOM rejected with `InvalidCharacterError`.
+  - Slot wiring checks node kinds via realm-free `nodeType`, so imported nodes that keep a foreign class realm still wire their updates.
+  - Templates now parse per document (the compile plan stays shared), which lifts the one-DOM-implementation-per-process rule entirely — any number of windows, of one implementation or several, can render in one process — and stops the template cache from pinning the first render's document.
+  - The `url` render option registers the request location through the provider seam, so route matching works even where `window.location` is unforgeable (jsdom). App code reading `window.location` directly under jsdom still sees jsdom's own — pass `url` to `new JSDOM(html, { url })` if that matters.
+
+### Patch Changes
+
+- 4951281: Fix a stray literal `null` text node serialized ahead of every compiled component-element region (children and named slots) under `renderToString`/`renderToStringSync`. The rootless-template cleanup assigned `textContent = null` when the fragment marker was the whole first static; browsers treat that as `''`, linkedom stringifies it. Compiled regions now serialize byte-identical to the browser's rendering of the same template — region content in place, no artifact nodes, absent regions rendering nothing — and the server suite pins that parity.
+
 ## 0.11.0
 
 ### Minor Changes
