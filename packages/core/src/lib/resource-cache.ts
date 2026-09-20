@@ -14,6 +14,14 @@ export interface ResourceCacheEntry {
 /** The dehydrated form: settled resource values keyed by resource key. */
 export type DehydratedState = Record<string, unknown>;
 
+/**
+ * The dehydrated-state format version `serializeState` writes into its
+ * envelope (`__loom`) and `primeResources` requires before priming. Bump it
+ * only with a format change; older loom versions then skip the payload and
+ * boot unprimed rather than misread it.
+ */
+export const STATE_FORMAT_VERSION = 1;
+
 const resourceCaches = new WeakMap<
     DomWindow,
     Map<string, ResourceCacheEntry>

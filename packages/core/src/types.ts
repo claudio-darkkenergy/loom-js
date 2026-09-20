@@ -1,4 +1,18 @@
 import type { AttrBinding } from './lib/attr-binding';
+import type { DehydratedState } from './lib/resource-cache';
+
+/**
+ * The parsed form of `serializeState`'s output: a versioned envelope
+ * carrying the dehydrated state. `primeResources` primes only payloads
+ * carrying a version it recognizes — provenance and forward compatibility
+ * in one field.
+ */
+export interface SerializedStateEnvelope {
+    /** The dehydrated-state format version `serializeState` wrote. */
+    __loom: number;
+    /** Settled resource values keyed by resource key (see `dehydrate`). */
+    state: DehydratedState;
+}
 
 export interface AppGlobalConfig {
     debug?: boolean;

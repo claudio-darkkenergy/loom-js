@@ -4,27 +4,75 @@
 // `primeResources` at boot), so hydration settles from local data instead of
 // re-running the network work.
 import { getWindow } from './lib/dom';
-import { DehydratedState, getResourceCache } from './lib/resource-cache';
+import { loomConsole } from './lib/globals/loom-console';
+import { STATE_FORMAT_VERSION, getResourceCache } from './lib/resource-cache';
+import type { SerializedStateEnvelope } from './types';
+
+// `true` when `payload` is a well-formed envelope of the version this loom
+// writes. The signature already says envelope; this catches the untyped
+// `JSON.parse` path — exactly where hand-rolled payloads come from. Misuse
+// detection, not a security boundary: the serialize-time escaping in
+// `serializeState` remains the XSS defense.
+const isPrimeablePayload = (payload: SerializedStateEnvelope): boolean => {
+    const looseEnvelope = payload as Partial<SerializedStateEnvelope> | null;
+
+    if (
+        !looseEnvelope ||
+        typeof looseEnvelope !== 'object' ||
+        looseEnvelope.__loom === undefined
+    ) {
+        loomConsole.warn(
+            '[loom] primeResources: the payload carries no `__loom` envelope, so it was not produced by `serializeState` — nothing was primed and every key will fetch normally. Embed state through `serializeState` on the server and pass the parsed result here.'
+        );
+
+        return false;
+    }
+
+    if (
+        looseEnvelope.__loom !== STATE_FORMAT_VERSION ||
+        !looseEnvelope.state ||
+        typeof looseEnvelope.state !== 'object'
+    ) {
+        loomConsole.warn(
+            `[loom] primeResources: state format version ${String(
+                looseEnvelope.__loom
+            )} is not the version this loom reads (${STATE_FORMAT_VERSION}) — nothing was primed and every key will fetch normally.`
+        );
+
+        return false;
+    }
+
+    return true;
+};
 
 /**
- * Seeds the current window's resource cache from a dehydrated state object —
- * a subsequent `resource` call for a primed key resolves with the primed
- * value without ever invoking its fetcher; unprimed keys fetch exactly as
- * before. Run it before the boot call renders the app (transforms run during
- * first render) — ahead of `hydrate` and `init` alike:
+ * Seeds the current window's resource cache from a parsed `serializeState`
+ * envelope — a subsequent `resource` call for a primed key resolves with the
+ * primed value without ever invoking its fetcher; unprimed keys fetch
+ * exactly as before. Run it before the boot call renders the app
+ * (transforms run during first render) — ahead of `hydrate` and `init`
+ * alike:
  *
  * ```ts
  * primeResources(readEmbeddedState());
  * hydrate({ app: App(), root });
  * ```
  *
- * @param state The dehydrated state — `dehydrate`'s capture, read back from
- *      wherever the page embedded it.
+ * A payload not produced by `serializeState` — no envelope, or a version
+ * this loom doesn't read — primes nothing: one console warning names the
+ * problem and the boot proceeds unprimed (every key fetches normally).
+ *
+ * @param payload The parsed envelope — `serializeState`'s output, read back
+ *      from wherever the page embedded it and `JSON.parse`d.
  */
-export const primeResources = (state: DehydratedState): void => {
+export const primeResources = (payload: SerializedStateEnvelope): void => {
+    if (!isPrimeablePayload(payload)) {
+        return;
+    }
+
     const cache = getResourceCache(getWindow());
 
-    Object.entries(state).forEach(([key, value]) => {
+    Object.entries(payload.state).forEach(([key, value]) => {
         cache.set(key, {
             promise: Promise.resolve(value),
             settled: true,

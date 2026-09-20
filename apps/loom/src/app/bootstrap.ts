@@ -1,9 +1,10 @@
 import '@appwrite.io/pink';
 import '@appwrite.io/pink-icons';
-import { hydrate, primeResources } from '@loom-js/core';
-// Type-only: the index bundle doesn't export `DehydratedState` yet, and
-// `import type` is erased, so no server code reaches the browser bundle.
-import type { DehydratedState } from '@loom-js/core/server';
+import {
+    hydrate,
+    primeResources,
+    type SerializedStateEnvelope
+} from '@loom-js/core';
 import '@loom-js/pink/styles/code-tokens.css';
 
 import { App } from './app';
@@ -27,7 +28,7 @@ if (!__DEV__) {
 
 // Reads the embedded state payload on a prerendered page. Dev and fallback
 // shells serve the slot empty; a malformed payload boots unprimed.
-const readEmbeddedState = (): DehydratedState | undefined => {
+const readEmbeddedState = (): SerializedStateEnvelope | undefined => {
     const payload = document
         .getElementById(STATE_SCRIPT_ID)
         ?.textContent?.trim();
@@ -37,7 +38,7 @@ const readEmbeddedState = (): DehydratedState | undefined => {
     }
 
     try {
-        return JSON.parse(payload) as DehydratedState;
+        return JSON.parse(payload) as SerializedStateEnvelope;
     } catch (_parseError) {
         console.warn(
             '[loom app] embedded state did not parse — booting unprimed.'

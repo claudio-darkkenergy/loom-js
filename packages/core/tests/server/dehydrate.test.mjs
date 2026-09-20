@@ -110,7 +110,7 @@ describe('dehydrate', () => {
 });
 
 describe('serializeState', () => {
-    it('neutralizes script-breaking content and parses back to the original state', () => {
+    it('neutralizes script-breaking content and parses back to the enveloped state', () => {
         const state = {
             'page:markup':
                 'a sneaky </script><script>alert(1)</script> payload',
@@ -120,6 +120,8 @@ describe('serializeState', () => {
 
         assert.doesNotMatch(serialized, /</);
         assert.doesNotMatch(serialized, /[\u2028\u2029]/);
-        assert.deepEqual(JSON.parse(serialized), state);
+        // The output is a versioned envelope carrying the state exactly \u2014
+        // provenance + forward compatibility in one field.
+        assert.deepEqual(JSON.parse(serialized), { __loom: 1, state });
     });
 });

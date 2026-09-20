@@ -41,6 +41,7 @@ export type {
     RefContext,
     ReservedProps,
     RouteValue,
+    SerializedStateEnvelope,
     SimpleComponent,
     SyntheticRouteEvent,
     SyntheticRouteEventListener,

@@ -3,7 +3,12 @@
 // its cache (`primeResources`) instead of re-running the fetches.
 import { DomWindow } from './lib/dom';
 import { loomConsole } from './lib/globals/loom-console';
-import { DehydratedState, peekResourceCache } from './lib/resource-cache';
+import {
+    DehydratedState,
+    STATE_FORMAT_VERSION,
+    peekResourceCache
+} from './lib/resource-cache';
+import type { SerializedStateEnvelope } from './types';
 
 export type { DehydratedState };
 
@@ -56,9 +61,11 @@ export const dehydrate = (win: object): DehydratedState => {
  * Serializes a dehydrated state object to a JSON string safe to inline
  * inside an HTML script element — the sequences that could terminate the
  * element or break parsing (`<`, U+2028, U+2029) are escaped, and
- * `JSON.parse` of the output reproduces the original state. Hand-rolling
- * `JSON.stringify` into inline HTML is a known XSS footgun (`</script>`
- * smuggled through content) — always embed through this helper:
+ * `JSON.parse` of the output reproduces a versioned envelope
+ * (`{ __loom: 1, state }`) carrying the original state exactly. The envelope
+ * is what `primeResources` requires: a payload without it primes nothing.
+ * Hand-rolling `JSON.stringify` into inline HTML is a known XSS footgun
+ * (`</script>` smuggled through content) — always embed through this helper:
  *
  * ```ts
  * const embed = `<script type="application/json" id="loom-state">${serializeState(state)}</script>`;
@@ -67,8 +74,14 @@ export const dehydrate = (win: object): DehydratedState => {
  * @param state The dehydrated state (see `dehydrate`).
  * @returns The script-safe JSON string.
  */
-export const serializeState = (state: DehydratedState): string =>
-    JSON.stringify(state)
+export const serializeState = (state: DehydratedState): string => {
+    const envelope: SerializedStateEnvelope = {
+        __loom: STATE_FORMAT_VERSION,
+        state
+    };
+
+    return JSON.stringify(envelope)
         .replace(/</g, '\\u003c')
         .replace(/\u2028/g, '\\u2028')
         .replace(/\u2029/g, '\\u2029');
+};

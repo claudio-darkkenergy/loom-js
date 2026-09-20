@@ -80,11 +80,18 @@ describe('resource', () => {
     });
 });
 
+// Mirrors the real client path — `JSON.parse` of embedded text — which is
+// untyped, and exactly where hand-rolled payloads come from.
+const asParsedJson = (payload: object) => JSON.parse(JSON.stringify(payload));
+
 describe('primeResources', () => {
-    it('should resolve primed keys without ever invoking the fetcher', async () => {
+    it('should resolve keys primed from a v1 envelope without ever invoking the fetcher', async () => {
         const fetcher = sinon.fake.resolves('network-value');
 
-        primeResources({ 'prime:hit:key': 'primed-value' });
+        primeResources({
+            __loom: 1,
+            state: { 'prime:hit:key': 'primed-value' }
+        });
 
         const value = await resource('prime:hit:key', fetcher);
 
@@ -95,9 +102,58 @@ describe('primeResources', () => {
     it('should leave unprimed keys fetching exactly as before', async () => {
         const fetcher = sinon.fake.resolves('network-value');
 
-        primeResources({ 'prime:other:key': 'primed-value' });
+        primeResources({
+            __loom: 1,
+            state: { 'prime:other:key': 'primed-value' }
+        });
 
         const value = await resource('prime:unprimed:key', fetcher);
+
+        expect(value).to.equal('network-value');
+        expect(fetcher.callCount).to.equal(1);
+    });
+
+    it('should prime nothing from a bare payload and warn once pointing at serializeState', async () => {
+        const warn = sinon.stub(globalThis.console, 'warn');
+
+        try {
+            primeResources(asParsedJson({ 'prime:bare:key': 'hand-rolled' }));
+
+            expect(warn.callCount).to.equal(1);
+            expect(String(warn.firstCall.args.join(' '))).to.contain(
+                'serializeState'
+            );
+        } finally {
+            warn.restore();
+        }
+
+        // The rejected boot proceeds unprimed — the key fetches normally.
+        const fetcher = sinon.fake.resolves('network-value');
+        const value = await resource('prime:bare:key', fetcher);
+
+        expect(value).to.equal('network-value');
+        expect(fetcher.callCount).to.equal(1);
+    });
+
+    it('should prime nothing from an unknown envelope version and warn once naming the mismatch', async () => {
+        const warn = sinon.stub(globalThis.console, 'warn');
+
+        try {
+            primeResources(
+                asParsedJson({
+                    __loom: 2,
+                    state: { 'prime:future:key': 'from-the-future' }
+                })
+            );
+
+            expect(warn.callCount).to.equal(1);
+            expect(String(warn.firstCall.args.join(' '))).to.contain('version');
+        } finally {
+            warn.restore();
+        }
+
+        const fetcher = sinon.fake.resolves('network-value');
+        const value = await resource('prime:future:key', fetcher);
 
         expect(value).to.equal('network-value');
         expect(fetcher.callCount).to.equal(1);
