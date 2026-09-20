@@ -5,9 +5,7 @@
 Defines how `@loom-js/core` renders an app to an HTML string outside a browser: the `@loom-js/core/server` entries — `renderToString` (async, the go-to) and `renderToStringSync` (the synchronous primitive) — render through the same code path the client runs, against a per-render injected DOM provider (e.g. linkedom), covering SSR (request-time) and SSG/prerender (build-time). Covers off-browser import safety, per-render isolation, browser-path neutrality, server lifecycle semantics, and route-aware rendering.
 
 Established by the `add-server-rendering` change (2026-08-15). Route-aware rendering was added by the `unify-routing` change (2026-08-15). Client hydration of pre-rendered markup is now covered by the `client-hydration` capability (`renderToString` → `hydrate`, added by `add-client-hydration`, 2026-08-16); edge/worker delivery remains a future extension of this capability. The `unify-server-drain-on-settled` change (2026-08-18) replaced the async render's quiet-markup drain with the settlement signal `settled()` and `hydrate` consume, bounded by a `maxWait` option. The `improve-loom-console` change (2026-08-18) made the `maxWait` expiry warning unconditional (no longer debug-gated), per the `diagnostic-logging` capability.
-
 ## Requirements
-
 ### Requirement: Render a loom app to an HTML string outside a browser
 
 The framework SHALL provide two server render entries that render a loom app against an injected DOM provider and produce serialized HTML, without requiring a live browser: `renderToString` (async — the go-to; awaits the settlement signal so framework-tracked async work serializes before the markup is captured) and `renderToStringSync` (the synchronous primitive; serializes only what settled during the app's synchronous work).
@@ -108,3 +106,18 @@ An app whose routing is registered via `createRoutes` SHALL be importable and re
 
 - **WHEN** `maxWait: Infinity` is passed
 - **THEN** the render waits for settlement indefinitely
+
+### Requirement: Compiled regions serialize without artifacts
+
+Component-element regions — the children region and each provided named-slot region — SHALL serialize under `renderToString` byte-identical to the browser's rendering of the same template: region content in place, no artifact text nodes, and absent regions rendering nothing.
+
+#### Scenario: children region serializes clean
+
+- **WHEN** a template composes a component element with markup children and renders via `renderToString`
+- **THEN** the serialized children match the browser render exactly, with no leading or trailing artifact text
+
+#### Scenario: named-slot regions serialize clean
+
+- **WHEN** a component element supplies labelled slot content and the component interpolates its regions
+- **THEN** each provided region serializes its content exactly as the browser renders it, and an absent region serializes nothing
+
