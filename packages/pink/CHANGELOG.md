@@ -1,5 +1,12 @@
 # @loom-js/pink
 
+## 0.3.7
+
+### Patch Changes
+
+- Updated dependencies [6c7c17e]
+  - @loom-js/core@0.13.0
+
 ## 0.3.6
 
 ### Patch Changes
