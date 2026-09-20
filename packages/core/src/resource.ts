@@ -4,6 +4,7 @@
 // `primeResources` at boot), so hydration settles from local data instead of
 // re-running the network work.
 import { getWindow } from './lib/dom';
+import { formatDiagnostic } from './lib/globals/diagnostic-format';
 import { loomConsole } from './lib/globals/loom-console';
 import { STATE_FORMAT_VERSION, getResourceCache } from './lib/resource-cache';
 import type { SerializedStateEnvelope } from './types';
@@ -22,7 +23,12 @@ const isPrimeablePayload = (payload: SerializedStateEnvelope): boolean => {
         looseEnvelope.__loom === undefined
     ) {
         loomConsole.warn(
-            '[loom] primeResources: the payload carries no `__loom` envelope, so it was not produced by `serializeState` — nothing was primed and every key will fetch normally. Embed state through `serializeState` on the server and pass the parsed result here.'
+            ...formatDiagnostic({
+                detail: 'the payload carries no `__loom` envelope, so it was not produced by `serializeState`; every key will fetch normally',
+                event: 'nothing was primed',
+                remedy: 'embed state through `serializeState` on the server and pass the parsed result here',
+                scope: 'primeResources'
+            })
         );
 
         return false;
@@ -34,9 +40,14 @@ const isPrimeablePayload = (payload: SerializedStateEnvelope): boolean => {
         typeof looseEnvelope.state !== 'object'
     ) {
         loomConsole.warn(
-            `[loom] primeResources: state format version ${String(
-                looseEnvelope.__loom
-            )} is not the version this loom reads (${STATE_FORMAT_VERSION}) — nothing was primed and every key will fetch normally.`
+            ...formatDiagnostic({
+                detail: `state format version ${String(
+                    looseEnvelope.__loom
+                )} is not the version this loom reads (${STATE_FORMAT_VERSION}); every key will fetch normally`,
+                event: 'nothing was primed',
+                remedy: 're-render the page so `serializeState` writes the current format',
+                scope: 'primeResources'
+            })
         );
 
         return false;

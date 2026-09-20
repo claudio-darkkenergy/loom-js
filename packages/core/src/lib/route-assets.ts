@@ -1,4 +1,5 @@
 import type { DomWindow } from './dom';
+import { formatDiagnostic } from './globals/diagnostic-format';
 import { loomConsole } from './globals/loom-console';
 
 /**
@@ -51,7 +52,11 @@ const loadStylesheet = (doc: Document, url: string) =>
             'error',
             () => {
                 loomConsole.info(
-                    `[loom] route assets: stylesheet failed to load — ${url}. The route renders without it.`
+                    ...formatDiagnostic({
+                        detail: `${url} — the route renders without it`,
+                        event: 'stylesheet failed to load',
+                        scope: 'route assets'
+                    })
                 );
                 resolve();
             },

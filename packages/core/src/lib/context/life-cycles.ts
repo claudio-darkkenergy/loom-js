@@ -7,6 +7,10 @@ import type {
     LifeCycleState
 } from '../../types';
 import { getDocument, getWindow } from '../dom';
+import {
+    createDiagnosticSubject,
+    formatDiagnostic
+} from '../globals/diagnostic-format';
 import { loomConsole } from '../globals/loom-console';
 import { reactive, reactiveEffect } from '../reactive';
 import { getContextRootAnchor, getShareableContext } from './helpers';
@@ -54,7 +58,10 @@ export const _lifeCycles = {
         const canDebugMutations = canDebug('mutations');
         const observer = new (getWindow().MutationObserver)(domChanged);
 
-        canDebugMutations && loomConsole.groupCollapsed('loom (Mounting...)');
+        canDebugMutations &&
+            loomConsole.groupCollapsed(
+                ...formatDiagnostic({ event: 'mounting', scope: 'mutations' })
+            );
 
         // Observe future DOM updates.
         observer.observe(observableNode, { childList: true, subtree: true });
@@ -66,7 +73,16 @@ export const _lifeCycles = {
                 ctx.lifeCycleState.value = 'mounted';
                 canDebugMutations &&
                     loomConsole.info(
-                        `${ctx.key ? `\`${ctx.key}\` ` : ''}mounted`,
+                        ...formatDiagnostic({
+                            event: 'mounted',
+                            scope: 'mutations',
+                            subject: ctx.key
+                                ? createDiagnosticSubject(
+                                      'component',
+                                      String(ctx.key)
+                                  )
+                                : undefined
+                        }),
                         node,
                         getShareableContext(ctx)
                     );
@@ -116,7 +132,10 @@ const domChanged: MutationCallback = (diffNodes) => {
     // been processed (see the batch-end pass below).
     const removalCandidates = new Map<Node, ComponentContextPartial>();
 
-    canDebugMutations && loomConsole.groupCollapsed('loom (Mutating...)');
+    canDebugMutations &&
+        loomConsole.groupCollapsed(
+            ...formatDiagnostic({ event: 'mutating', scope: 'mutations' })
+        );
 
     diffNodes.forEach(({ addedNodes, removedNodes, type }) => {
         switch (type) {
@@ -155,9 +174,16 @@ const domChanged: MutationCallback = (diffNodes) => {
                             ctx.lifeCycleState.value = 'mounted';
                             canDebugMutations &&
                                 loomConsole.info(
-                                    `${
-                                        ctx.key ? `\`${ctx.key}\` ` : ''
-                                    }mounted`,
+                                    ...formatDiagnostic({
+                                        event: 'mounted',
+                                        scope: 'mutations',
+                                        subject: ctx.key
+                                            ? createDiagnosticSubject(
+                                                  'component',
+                                                  String(ctx.key)
+                                              )
+                                            : undefined
+                                    }),
                                     node,
                                     getShareableContext(ctx)
                                 );
@@ -201,7 +227,13 @@ const domChanged: MutationCallback = (diffNodes) => {
         teardownContext(ctx);
         canDebugMutations &&
             loomConsole.info(
-                `${ctx.key ? `\`${ctx.key}\` ` : ''}unmounted`,
+                ...formatDiagnostic({
+                    event: 'unmounted',
+                    scope: 'mutations',
+                    subject: ctx.key
+                        ? createDiagnosticSubject('component', String(ctx.key))
+                        : undefined
+                }),
                 node,
                 getShareableContext(ctx)
             );

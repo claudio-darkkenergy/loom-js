@@ -11,6 +11,10 @@ import type {
     Unsubscriber
 } from '../../types';
 import { bindAttr, isAttrBinding } from '../attr-binding';
+import {
+    createDiagnosticSubject,
+    formatDiagnostic
+} from '../globals/diagnostic-format';
 import { loomConsole } from '../globals/loom-console';
 import { isObject, toCamelCase } from '../helpers';
 import { resolveValue } from './resolve-value';
@@ -259,11 +263,15 @@ const overrideEventListener = ({
     // This is non-breaking, so just want to warn in case the provided value was a mistake.
     else if (override) {
         loomConsole.warn(
-            `[Template Update Warning] The provided special attribute ("${
-                attr.name
-            }") contains a value of ${JSON.stringify(
-                override
-            )} which may not be the intended value. While this is non-breaking, a valid value would be falsy or an event-listener.`
+            ...formatDiagnostic({
+                detail: `${JSON.stringify(
+                    override
+                )} is neither falsy nor an event listener, so nothing was bound (non-breaking)`,
+                event: 'unexpected special-attribute value',
+                remedy: 'pass an event-listener function, or a falsy value to skip binding',
+                scope: 'templating',
+                subject: createDiagnosticSubject('attr', attr.name)
+            })
         );
     }
 };
@@ -290,16 +298,33 @@ const setCustomElementProps = ({
         // this template was parsed, so the element was not yet upgraded.
         newProps &&
             loomConsole.warn(
-                `${attr?.name} was set on <${(
-                    dynamicNode as HTMLElement
-                ).tagName?.toLowerCase()}>, which is not a registered custom element. Register it with \`defineElement\`, and make sure its module is imported before this template renders.`
+                ...formatDiagnostic({
+                    detail: `${attr?.name} was set, but the element is not a registered custom element`,
+                    event: 'ignored props',
+                    remedy: 'register it with `defineElement`, and import its module before this template renders',
+                    scope: 'templating',
+                    subject: createDiagnosticSubject(
+                        'element',
+                        `<${(
+                            dynamicNode as HTMLElement
+                        ).tagName?.toLowerCase()}>`
+                    )
+                })
             );
         return;
     }
 
     if (!newProps || !isObject(newProps)) {
         newProps &&
-            loomConsole.warn(`${attr?.name} must be an object literal.`);
+            loomConsole.warn(
+                ...formatDiagnostic({
+                    detail: 'the value must be an object literal, so it was ignored',
+                    event: 'ignored a non-object value',
+                    remedy: 'pass an object literal',
+                    scope: 'templating',
+                    subject: createDiagnosticSubject('attr', attr?.name)
+                })
+            );
         return;
     }
 
@@ -427,7 +452,15 @@ const specialAttrUpdaterFactories: {
             // The new value must be an object literal.
             if (!newValue || !isObject(newValue)) {
                 newValue &&
-                    loomConsole.warn(`${attr.name} must be an object literal.`);
+                    loomConsole.warn(
+                        ...formatDiagnostic({
+                            detail: 'the value must be an object literal, so it was ignored',
+                            event: 'ignored a non-object value',
+                            remedy: 'pass an object literal',
+                            scope: 'templating',
+                            subject: createDiagnosticSubject('attr', attr.name)
+                        })
+                    );
                 return;
             }
 
@@ -471,7 +504,15 @@ const specialAttrUpdaterFactories: {
             // The new value must be an object literal.
             if (!newValue || !isObject(newValue)) {
                 newValue &&
-                    loomConsole.warn(`${attr.name} must be an object literal.`);
+                    loomConsole.warn(
+                        ...formatDiagnostic({
+                            detail: 'the value must be an object literal, so it was ignored',
+                            event: 'ignored a non-object value',
+                            remedy: 'pass an object literal',
+                            scope: 'templating',
+                            subject: createDiagnosticSubject('attr', attr.name)
+                        })
+                    );
                 return;
             }
 

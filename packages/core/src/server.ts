@@ -13,9 +13,17 @@ import {
     setLocationOverride,
     withWindow
 } from './lib/dom';
+import {
+    describePending,
+    formatDiagnostic
+} from './lib/globals/diagnostic-format';
 import { loomConsole } from './lib/globals/loom-console';
 import { mount } from './lib/mount';
-import { boundedWait, getPendingCount } from './lib/settlement';
+import {
+    boundedWait,
+    getPendingCount,
+    getPendingSubjects
+} from './lib/settlement';
 import { applyElementRegistrations } from './lib/templating/register-custom-element';
 import { settled } from './settled';
 import type { ContextFunction } from './types';
@@ -236,7 +244,15 @@ const renderSettled = async (
         // landed, but say so.
         expired &&
             loomConsole.warn(
-                `[loom] renderToString: settlement did not complete within ${maxWait}ms — serializing with ${getPendingCount()} operation(s) still pending. Pass \`maxWait: Infinity\` to disable the bound.`
+                ...formatDiagnostic({
+                    detail: `serializing with ${describePending(
+                        getPendingCount(),
+                        getPendingSubjects()
+                    )}`,
+                    event: `settlement did not complete within ${maxWait}ms`,
+                    remedy: 'pass `maxWait: Infinity` to disable the bound',
+                    scope: 'renderToString'
+                })
             );
 
         return body.innerHTML;

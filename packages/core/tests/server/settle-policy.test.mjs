@@ -65,7 +65,7 @@ describe('renderToString settle policy', () => {
             assert.match(markup, /loading/);
             assert.match(
                 warnings.join('\n'),
-                /renderToString: settlement did not complete within 50ms.*1 operation\(s\) still pending/
+                /renderToString settlement did not complete within 50ms.*serializing with 1 pending/
             );
         } finally {
             globalThis.console.warn = originalWarn;

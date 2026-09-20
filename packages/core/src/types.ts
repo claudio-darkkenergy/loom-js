@@ -367,6 +367,13 @@ export interface ActivityOptions<V = unknown, I = V> {
     deep?: boolean;
     force?: boolean;
     /**
+     * Names this activity in diagnostics — narration lines, dropped-commit
+     * and timeout notices, and the pending enumeration of bounded settlement
+     * warnings all show `⟨label⟩`. Purely diagnostic: never affects
+     * behavior. Unlabeled activities fall back to a stable generated tag.
+     */
+    label?: string;
+    /**
      * Upper bound (ms) on a transform run — on expiry the run is retired
      * exactly as supersession retires one (signal aborted, later commits
      * dropped, any queue released) and it counts as settled for the

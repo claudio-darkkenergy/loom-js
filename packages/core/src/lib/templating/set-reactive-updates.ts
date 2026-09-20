@@ -1,6 +1,10 @@
 import { canDebug } from '../../config';
 import type { ComponentContext, TemplateNodeUpdate } from '../../types';
 import { appendChildContext, getShareableContext } from '../context';
+import {
+    createDiagnosticSubject,
+    formatDiagnostic
+} from '../globals/diagnostic-format';
 import { loomConsole } from '../globals/loom-console';
 import { reactiveEffect } from '../reactive';
 
@@ -18,7 +22,13 @@ export const setReactiveUpdates = (
         // consistent with the `loom (Updating...)` group in `html-parser.ts`.
         canDebugUpdates &&
             loomConsole.groupCollapsed(
-                `loom (Updating${ctx.key ? ` \`${ctx.key}\`` : ''}...)`,
+                ...formatDiagnostic({
+                    event: 'updating',
+                    scope: 'updates',
+                    subject: ctx.key
+                        ? createDiagnosticSubject('component', String(ctx.key))
+                        : undefined
+                }),
                 getShareableContext(ctx)
             );
         canDebugUpdates && loomConsole.info('should update', { updateValue });

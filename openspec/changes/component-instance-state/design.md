@@ -14,7 +14,7 @@ Component contexts persist across re-renders (keyed by `ctxScopes`/fingerprint);
 
 ### D1 — Positional memoization via the existing ref machinery, generalized
 
-A per-context value list + iterator mirroring `ctx.refs`: first render pushes `create()` results; re-renders replay in call order. Implementation should share or closely mirror `memoizedRefContext` rather than introduce a second pattern. Misuse (different call count/order across renders) gets the same stance as hooks: documented rule, plus a debug-lane warning when the iterator over/underruns.
+A per-context value list + iterator mirroring `ctx.refs`: first render pushes `create()` results; re-renders replay in call order. Implementation should share or closely mirror `memoizedRefContext` rather than introduce a second pattern. Misuse (different call count/order across renders) gets the same stance as hooks: documented rule, plus a debug-lane warning when the iterator over/underruns. That warning adopts the diagnostics style contract (`diagnostics-output-quality`, landed): compose it through `formatDiagnostic` in `lib/globals/diagnostic-format.ts` — badge · scope · subject · event · detail as an argument array to the bound `loomConsole` method.
 
 ### D2 — Naming and surface
 

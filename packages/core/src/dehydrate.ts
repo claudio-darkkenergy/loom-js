@@ -2,6 +2,10 @@
 // settled resource values so the page can embed them and the client can prime
 // its cache (`primeResources`) instead of re-running the fetches.
 import { DomWindow } from './lib/dom';
+import {
+    createDiagnosticSubject,
+    formatDiagnostic
+} from './lib/globals/diagnostic-format';
 import { loomConsole } from './lib/globals/loom-console';
 import {
     DehydratedState,
@@ -45,7 +49,13 @@ export const dehydrate = (win: object): DehydratedState => {
 
         if (!isSerializable(value)) {
             loomConsole.warn(
-                `[loom] dehydrate: skipping "${key}" — its value cannot be JSON-serialized, so the client will fetch it instead.`
+                ...formatDiagnostic({
+                    detail: 'its value cannot be JSON-serialized, so the client will fetch it instead',
+                    event: 'skipped a resource',
+                    remedy: 'see Dehydrated state: serializability boundary',
+                    scope: 'dehydrate',
+                    subject: createDiagnosticSubject('resource', key)
+                })
             );
 
             return;

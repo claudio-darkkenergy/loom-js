@@ -1,5 +1,9 @@
 import { canDebug } from '../../config';
 import type { ActivityConcurrency } from '../../types';
+import {
+    DiagnosticSubjectRef,
+    formatDiagnostic
+} from '../globals/diagnostic-format';
 import { loomConsole } from '../globals/loom-console';
 import { trackTransformResult } from '../settlement';
 
@@ -38,6 +42,9 @@ export interface TransformDispatcherOptions<V> {
     // The store's raw commit — the only way a run's value lands.
     commit: (valueInput: V) => void;
     concurrency: ActivityConcurrency;
+    // The owning activity's diagnostic identity — names this dispatcher's
+    // lines and the settlement pending enumeration.
+    subject?: DiagnosticSubjectRef;
     timeout?: number;
 }
 
@@ -51,6 +58,7 @@ export interface TransformDispatcherOptions<V> {
 export const createTransformDispatcher = <V>({
     commit,
     concurrency,
+    subject,
     timeout
 }: TransformDispatcherOptions<V>) => {
     let latestRun: TransformRun<V> | null = null;
@@ -67,7 +75,12 @@ export const createTransformDispatcher = <V>({
         if (run.retired) {
             canDebug('activity') &&
                 loomConsole.info(
-                    '[loom] activity: dropped a commit from a retired transform run (superseded or timed out).'
+                    ...formatDiagnostic({
+                        detail: 'the run was retired (superseded or timed out)',
+                        event: 'dropped commit',
+                        scope: 'activity',
+                        subject
+                    })
                 );
 
             return;
@@ -131,7 +144,8 @@ export const createTransformDispatcher = <V>({
             trackTransformResult(
                 new Promise<void>((resolve) => {
                     run.resolveTracked = resolve;
-                })
+                }),
+                subject
             );
 
         let pendingTimer: ReturnType<typeof setTimeout> | undefined;
@@ -153,7 +167,13 @@ export const createTransformDispatcher = <V>({
 
                 retireRun(run);
                 loomConsole.warn(
-                    `[loom] activity: a transform run exceeded its ${timeout}ms timeout and was retired — its signal aborted and any later commits are dropped.`
+                    ...formatDiagnostic({
+                        detail: 'its signal aborted and any later commits are dropped',
+                        event: `transform run exceeded its ${timeout}ms timeout and was retired`,
+                        remedy: 'raise `timeout`, or make the transform abort-aware via its `signal`',
+                        scope: 'activity',
+                        subject
+                    })
                 );
                 settleRun(run);
             }, timeout);
@@ -162,7 +182,12 @@ export const createTransformDispatcher = <V>({
                 !run.settled &&
                     canDebug('activity') &&
                     loomConsole.info(
-                        `[loom] activity: a transform run has been pending for ${LONG_PENDING_NOTICE_MS}ms and the activity sets no \`timeout\` — it stays unbounded.`
+                        ...formatDiagnostic({
+                            detail: `the activity sets no \`timeout\`, so it stays unbounded`,
+                            event: `transform run pending for ${LONG_PENDING_NOTICE_MS}ms`,
+                            scope: 'activity',
+                            subject
+                        })
                     );
             }, LONG_PENDING_NOTICE_MS);
         }
@@ -183,7 +208,8 @@ export const createTransformDispatcher = <V>({
             trackTransformResult(
                 new Promise<void>((resolve) => {
                     run.resolveTracked = resolve;
-                })
+                }),
+                subject
             );
 
             const start = () => runTransform(run, invoke);

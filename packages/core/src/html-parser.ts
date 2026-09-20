@@ -1,6 +1,10 @@
 import { canDebug, config } from './config';
 import { _lifeCycles, getShareableContext } from './lib/context';
 import { getDocument, getWindow } from './lib/dom';
+import {
+    createDiagnosticSubject,
+    formatDiagnostic
+} from './lib/globals/diagnostic-format';
 import { loomConsole } from './lib/globals/loom-console';
 import { deepDiffObject, isObject } from './lib/helpers';
 import { isWithinHydratingRoot } from './lib/hydrating-roots';
@@ -224,7 +228,13 @@ export function htmlParser(
         _lifeCycles.preRender(ctx);
         canDebugUpdates &&
             loomConsole.groupCollapsed(
-                `loom (Updating${ctx.key ? ` \`${ctx.key}\`` : ''}...)`,
+                ...formatDiagnostic({
+                    event: 'updating',
+                    scope: 'updates',
+                    subject: ctx.key
+                        ? createDiagnosticSubject('component', String(ctx.key))
+                        : undefined
+                }),
                 getShareableContext(ctx)
             );
 
