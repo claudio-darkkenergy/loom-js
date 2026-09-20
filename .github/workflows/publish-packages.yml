@@ -67,6 +67,11 @@ jobs:
               # https://github.com/changesets/action — v2 understands
               # changesets v3's publish output (v1 missed it, so tags and
               # GitHub Releases silently stopped after the v3 upgrade).
+              # v2 owns tags AND GitHub Releases end-to-end: the release it
+              # creates per published package API-creates the tag ref. Do not
+              # re-add a manual `changeset tag` + push step — its annotated
+              # tags collide with those API-created refs and reject the push
+              # on every real publish (run #103).
               uses: changesets/action@v2
               with:
                   # v2 renamed `publish` -> `publish-script` (the run fails
@@ -75,14 +80,6 @@ jobs:
                   publish-script: pnpm publish-packages
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-            # Belt and braces: tag pushing must not depend on the action
-            # parsing publish output. `changeset tag` is idempotent (skips
-            # existing tags), so non-publish runs are a no-op.
-            - name: Ensure release tags are pushed
-              run: |
-                  pnpm changeset tag
-                  git push origin --tags
 
             # - name: Send a Slack notification if a publish happens
             # if: steps.changesets.outputs.published == 'true'
