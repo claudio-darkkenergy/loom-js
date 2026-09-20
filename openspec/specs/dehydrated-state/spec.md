@@ -4,7 +4,7 @@
 
 Defines the server-to-client state handoff for pre-rendered loom pages: a per-window keyed resource cache (`resource`) as the interception seam for app data fetches, server-side capture of a render's settled resource values (`dehydrate`), a script-safe serializer for embedding that state in HTML (`serializeState`), and boot-time priming of the client cache (`primeResources`) so primed fetches never hit the network and hydration settles from local data. Transport is explicit — the consumer embeds and reads back the state; loom never writes or discovers page structure.
 
-Established by the `add-dehydrated-state` change (2026-08-16). Automatic script-tag embed/discovery and cache TTL/invalidation semantics remain future extensions; freshness is expressed through keys.
+Established by the `add-dehydrated-state` change (2026-08-16). The `dehydrated-state-envelope` change (2026-09-20) versioned the serialized format (`{ __loom: 1, state }`) and made priming validate the envelope — misuse detection, explicitly not a trust layer. Automatic script-tag embed/discovery and cache TTL/invalidation semantics remain future extensions; freshness is expressed through keys.
 
 ## Requirements
 
@@ -62,9 +62,28 @@ The framework SHALL provide a prime step that, given a dehydrated state object, 
 
 ### Requirement: Embeddable serialization is script-safe
 
-The framework's server entry SHALL provide a serialize helper producing a JSON string safe to inline inside an HTML script element: sequences that could terminate the element or break parsing (`<`, U+2028, U+2029) SHALL be escaped, and the output SHALL parse back to the original state with `JSON.parse`.
+The framework's server entry SHALL provide a serialize helper producing a JSON string safe to inline inside an HTML script element: sequences that could terminate the element or break parsing (`<`, U+2028, U+2029) SHALL be escaped, and the output SHALL parse back with `JSON.parse` to a versioned envelope (`__loom` format version plus the state) carrying the original state exactly.
 
 #### Scenario: Script-breaking content is neutralized
 
 - **WHEN** a dehydrated value contains `</script>` or paragraph/line separator characters and the helper serializes the state
-- **THEN** the output contains no unescaped `<` and `JSON.parse` of it reproduces the original value exactly
+- **THEN** the output contains no unescaped `<` and `JSON.parse` of it reproduces the envelope with the original state exactly
+
+### Requirement: Priming validates the envelope and degrades unprimed
+
+`primeResources` SHALL prime only payloads carrying a recognized envelope version. A payload without the envelope, or with an unrecognized version, SHALL prime nothing, SHALL emit one console warning naming the problem and the remedy, and SHALL leave the boot to proceed unprimed (all keys fetch normally). This is misuse detection, not a security boundary — the docs SHALL state that the serialize-time escaping remains the XSS defense.
+
+#### Scenario: a hand-rolled payload does not prime
+
+- **WHEN** `primeResources` receives a bare object produced by hand-rolled `JSON.stringify`
+- **THEN** no keys are primed, one warning points at `serializeState`, and subsequent resource calls fetch as if unprimed
+
+#### Scenario: an unknown future version degrades safely
+
+- **WHEN** `primeResources` receives an envelope with a version it does not recognize
+- **THEN** no keys are primed and one warning names the version mismatch, and the app boots correctly via normal fetching
+
+#### Scenario: the helper's own output round-trips
+
+- **WHEN** state serialized by the helper is parsed and passed to `primeResources`
+- **THEN** every key primes exactly as before this change
