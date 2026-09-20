@@ -3,10 +3,13 @@ name: terse-reports
 description: Diagram-first, hard-capped terse format for every plan, finding, report, and follow-up answer in this project. Use for all status/report-style responses.
 ---
 
-**Plans, findings, and reports are diagram-first and terse.** Lead with an
-ASCII flow chart or a single pipeline line with one-word (or hyphenated)
-arrow labels showing what the change does and where it sits; follow with
-one-line bullets (pieces, tests, PR shape, points), then only the questions.
+**Plans, findings, and reports are diagram-first and terse.** Open with a
+one-line "what" header stating outcome + subject (e.g. `**Implementation
+Complete** — <change> — N/N tasks ✓`) so the reader knows what is being
+reported before parsing the diagram. Then an ASCII flow chart or a single
+pipeline line with one-word (or hyphenated) arrow labels showing what the
+change does and where it sits; follow with one-line bullets (pieces, tests,
+PR shape, points), then only the questions.
 No paragraph-length rationale — park the reasoning and give it when asked.
 The _work_ stays rigorous; only the _report_ gets short.
 

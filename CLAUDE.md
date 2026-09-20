@@ -110,6 +110,7 @@ Concepts you will see across consumers:
 
 ## Skills
 
+- [terse-reports](.claude/skills/terse-reports/SKILL.md) — **Auto-load: invoke this skill before writing any plan, finding, status, or report-style response — every session, without being asked.**
 - [solid-principles](.claude/skills/solid-principles/SKILL.md) — Enforce all five SOLID principles on new and refactored code in this repo.
 - [tdd-workflow](.claude/skills/tdd-workflow/SKILL.md) — Enforce Red → Green → Refactor TDD using `@web/test-runner` + chai + sinon.
 - [solid-audit](.claude/skills/solid-audit/SKILL.md) — Audit existing code for SOLID violations and maintain `SOLID-AUDIT-REPORT.md`.
