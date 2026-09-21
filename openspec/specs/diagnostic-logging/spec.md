@@ -4,7 +4,7 @@
 
 Defines the framework's console surface (`loomConsole`): warnings and errors always pass through to the native console with true call-site attribution, non-warning narration is opt-in behind named debug scopes (`setDebug` + `canDebug('<scope>')`) and silent by default, and hot-path narration collapses into per-cycle console groups. The gate costs one property-access check when channels are off.
 
-Established by the `improve-loom-console` change (2026-08-18).
+Established by the `improve-loom-console` change (2026-08-18). Extended by the `diagnostics-output-quality` change (2026-09-20): one scannable line anatomy (badge · scope · subject · event · detail), labeled/tagged subjects, remedies on always-on warnings, pending-subject enumeration.
 
 ## Requirements
 
@@ -58,3 +58,27 @@ Per-value debug narration that emits once per reconciled value per render cycle 
 
 - **WHEN** the `updates` scope is enabled and a render cycle reconciles many reactive values
 - **THEN** the per-value detail lines appear inside a collapsed group for that cycle rather than as top-level console lines
+
+### Requirement: Diagnostic output follows one scannable anatomy
+
+Every loom console line SHALL present the badge, scope, subject, event, and detail as distinct segments — styled where the console supports it, plain otherwise — composed as arguments to the bound native method so call-site attribution is preserved. Subjects SHALL be identifiable: an opt-in `label` on activities, stable generated tags otherwise. Always-on warnings SHALL carry a one-clause remedy or concept pointer. Settlement-bound diagnostics SHALL enumerate the labeled subjects still pending alongside the count.
+
+#### Scenario: narration lines are traceable
+
+- **WHEN** two labeled activities narrate under the activity scope
+- **THEN** each line's subject segment distinguishes them, and an unlabeled third shows its stable generated tag
+
+#### Scenario: styling never costs attribution
+
+- **WHEN** a styled diagnostic prints in a supporting browser
+- **THEN** the console still attributes the message to the framework call site (no wrapper frames)
+
+#### Scenario: a maxWait expiry names the laggards
+
+- **WHEN** a bounded settlement wait expires with labeled work pending
+- **THEN** the warning lists the pending subjects (capped), not only their count
+
+#### Scenario: warnings state the fix
+
+- **WHEN** any always-on warning prints
+- **THEN** its final clause names the remedy or the docs concept that resolves it
