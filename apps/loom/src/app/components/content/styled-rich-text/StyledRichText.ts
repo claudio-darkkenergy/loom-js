@@ -42,12 +42,17 @@ export const StyledRichText = simple<StyledRichTextProps>(
                     [INLINES.HYPERLINK]: (node, children) => {
                         const href = String(node.data.uri ?? '');
 
-                        // Internal links navigate client-side.
+                        // Internal links navigate client-side; external
+                        // links leave the docs in a new tab.
                         return href.startsWith('/')
                             ? RouteLink({ children, href })
                             : el('a')({
                                   children,
-                                  attrs: { href, target: '_self' }
+                                  attrs: {
+                                      href,
+                                      rel: 'noopener noreferrer',
+                                      target: '_blank'
+                                  }
                               });
                     },
                     [BLOCKS.HEADING_1]: (_, children) =>

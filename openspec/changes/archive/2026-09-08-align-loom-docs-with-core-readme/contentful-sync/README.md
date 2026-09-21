@@ -8,6 +8,6 @@ the entries **as drafts** (it never publishes). `ids.json` maps slug → entry i
 Re-run: `python3 push.py [--dry]` from this directory (reads the CMA token from the personal
 profile's Contentful MCP config; needs `curl`). Slugs in `ids.json` update in place.
 
-Code samples are re-indented 4→2 spaces at push time (`reindent`). Entered 2026-08-28: 10 created, 3 updated in place (`components`, `activities`, `routing`).
+Code samples are re-indented 4→2 spaces at push time (`reindent`). Entered 2026-08-28: 10 created, 3 updated in place (`components`, `activities`, `routing`). `14-feedback.md` joined 2026-09-20 (`docs-feedback-topic` — a trailing utility topic outside the 13-topic parity set, mapped to the pre-existing `feedback` entry).
 Not yet done: `/docs` page listing (`1voqtWKFf2dQZWLfpnOYgd`) reorder, retiring the six
 pre-scrub topics (task 4.3), publishing.
