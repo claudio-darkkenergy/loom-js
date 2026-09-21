@@ -144,6 +144,9 @@ export type TemplateTagValueBase =
     | Node
     | null
     | number
+    // `ref=${createRef()}` on a component element — the transform passes
+    // props verbatim, so the interpolation type must admit a `RefContext`.
+    | RefContext
     | SpecialTemplateTagValue
     | string
     | TemplateRoot

@@ -152,6 +152,7 @@ topic (noted per topic below).
     - h2 Defining a component — tagged template, single top-level element, fragment exception.
     - h2 The template function — `html` and `props`, `node()` getter.
     - h2 Life-cycle hooks — the five-hook table; server caveat for `onMounted`/`onUnmounted`.
+    - h2 Built-in props — one prose entry per reserved prop (`children`, `slots`, `key`, `ref`, `attrs`, `on`, `onClick`, `className`/`id`/`style`, `routeProps`) and utility (`node()`, `createRef()`, `ctxRefs()`, `own()`); definitions here, owned depth pointed to (Element Syntax for authoring mechanics, Routing for `routeProps`, Activities for `own`). h3 Refs nested inside, `ref`-adjacent (placement per `document-component-refs` D1: after Life-cycle hooks, before Attribute and text values); closes with the See also block. Note: this section *is* the prop-surface table's replacement — per-prop prose, no summary table (`document-component-refs` D2, added 2026-09-20).
     - h2 Attribute and text values — truthy/falsy application, the `0` exception.
     - h2 Simple components — `simple()` pass-through, when to reach for it.
     - h2 Using components — both forms shown (call + markup) plus calls as plain values; renders in any value slot (added at draft review 2026-09-01).
