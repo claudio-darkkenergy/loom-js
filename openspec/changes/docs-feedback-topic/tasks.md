@@ -2,8 +2,8 @@
 
 ## 1. Content
 
-- [ ] 1.1 Author the feedback body in `contentful-sync/topics/` (issues link, discussions, "what helps while pre-1.0"); push as a draft to entry `wQLhRMdC2tGF2CgJPAOSN`; maintainer reviews
-- [ ] 1.2 Append the entry to the `/docs` page listing after `diagnostics` (draft)
+- [x] 1.1 Author the feedback body in `contentful-sync/topics/` (issues link, discussions, "what helps while pre-1.0"); push as a draft to entry `wQLhRMdC2tGF2CgJPAOSN` (v13 after phrasing review); maintainer reviews — Discussions was disabled at authoring; maintainer enabled it, verified live 2026-09-21
+- [x] 1.2 Append the entry to the `/docs` page listing after `diagnostics` (draft — listing entry v18, published version still 16)
 
 ## 2. Verification & release
 
