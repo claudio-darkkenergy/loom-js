@@ -1,5 +1,9 @@
 import { htmlParser } from './html-parser';
-import { lifeCycles, memoizedRefContext } from './lib/context';
+import {
+    lifeCycles,
+    memoizedOwnedValues,
+    memoizedRefContext
+} from './lib/context';
 import type {
     ComponentContextPartial,
     ComponentFactory,
@@ -52,6 +56,9 @@ export const component: ComponentFactory = <Props extends object = {}>(
                 ctx.refs = new Set<RefContext>();
                 // ctx.render = htmlParser.bind(ctx);
                 ctx.render = htmlParser.bind(ctx);
+                // A refreshed context must not replay another template's
+                // owned values.
+                delete ctx.owned;
 
                 if (ref) {
                     // Set component's received `RefContext` prop onto the the current component's `ComponentContext`.
@@ -92,6 +99,8 @@ export const component: ComponentFactory = <Props extends object = {}>(
 
             refIterator = ctx.refs!.values();
 
+            const ownedValues = memoizedOwnedValues(ctx);
+
             /*
              * ```
              * component(
@@ -100,13 +109,18 @@ export const component: ComponentFactory = <Props extends object = {}>(
              * );
              * ```
              */
-            return templateFunction(ctx.render!, {
+            const template = templateFunction(ctx.render!, {
                 ...inputProps,
                 ...ctx.lifeCycles!,
                 createRef: memoizedRefContext(ctx, refIterator),
                 ctxRefs: () => ctx.refs!.values(),
-                node: ctx.node!
+                node: ctx.node!,
+                own: ownedValues.own
             });
+
+            ownedValues.settle();
+
+            return template;
         }
 
         return contextFunction;

@@ -250,6 +250,9 @@ const domChanged: MutationCallback = (diffNodes) => {
 const teardownContext = (ctx: ComponentContextPartial) => {
     ctx.teardowns?.forEach((teardown) => teardown());
     ctx.teardowns?.clear();
+    // Owned values (`own`) live exactly as long as the mounted context — a
+    // remount re-creates them through a fresh first render.
+    delete ctx.owned;
     ctx.children?.forEach((childCtx) => teardownContext(childCtx));
 };
 

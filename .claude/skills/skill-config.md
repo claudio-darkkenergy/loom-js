@@ -161,6 +161,7 @@ The legacy `routing.ts` module (`router`, `onRoute`, `onRouteUpdate`) was remove
 ### Reactivity
 
 - `activity(initialValue)` — pub/sub reactive primitive; `.effect()`, `.update()`, `.value()`, `.reset()`, `.watch()`.
+- Instance state (`component-instance-state`): the render function's props include `own<T>(create: () => T): T` — first render invokes and caches per component context in call order, re-renders replay the cached value (so `own(() => activity(false))` survives parent re-renders). Call it unconditionally, same order every render (mismatch → debug-lane warning); values release on unmount; module scope remains the home for state shared between instances.
 - Activity effects run immediately on first render and on every subsequent `update()`.
 - Effects must return a `ContextFunction` (the result of calling a component).
 - Settlement tracking (`add-client-hydration`): a thenable returned by an activity transform counts as pending framework work for the window-scoped `settled()` signal (which `hydrate` gates its swap on). Async work outside a transform (raw `fetch` in a `watch` callback, timers) is untracked by design — `hydrate`'s `ready` option is the caller-owned gate. Prefer async transforms as the idiomatic data path.

@@ -217,6 +217,10 @@ export interface ComponentContext<Props extends object = {}>
     lifeCycleState: LifeCycleState;
     lifeCycles: LifeCycleHookProps;
     node: ContextNodeGetter;
+    // Instance-memoized values behind the `own` utility prop — created in
+    // call order on the instance's first render, replayed on re-renders,
+    // released with the context on unmount.
+    owned: OwnedValueStore;
     parent: ComponentContextPartial;
     props: ComponentInputProps<Props>;
     render: TaggedTemplate;
@@ -229,11 +233,19 @@ export interface ComponentContext<Props extends object = {}>
 }
 
 export type ComponentContextPartial = Partial<ComponentContext>;
+
+// The per-context storage behind the `own` utility prop. A completed first
+// render seals the store, fixing the call order later renders must replay.
+export interface OwnedValueStore {
+    sealed: boolean;
+    values: unknown[];
+}
 // Every component will get these.
 export type UtilityProps = {
     createRef(): RefContext;
     ctxRefs(): IterableIterator<RefContext>;
     node: ContextNodeGetter;
+    own<T>(create: () => T): T;
 };
 // The component definition (internal props from external values)
 // It takes a `TemplateFunction`.

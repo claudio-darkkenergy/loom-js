@@ -35,4 +35,4 @@ Additive minor. The docs' Disclosure example gains the `own` variant; existing m
 
 ## Open Questions
 
-- Final name (D2) — settled at red-spec review.
+- Final name (D2) — settled at red-spec review: `own` (confirmed 2026-09-20 against the red specs; `keep`/`local`/`memoLocal` passed over).

@@ -259,6 +259,30 @@ export const Disclosure = component((html, { children, label }) => {
 });
 ```
 
-The boundary: internal reactivity — the component's own effects and binds — re-renders content without re-running the render function, so the activity persists. A *parent* re-rendering this component re-runs the render function and recreates the activity, resetting it to its initial value. State that must survive parent-driven re-renders (or be shared between instances) belongs at module scope.
+Choose your scope. Internal reactivity — the component's own effects and binds — re-renders content without re-running the render function, so the plain local activity above persists through it. A *parent* re-rendering the component re-runs the render function, which recreates that activity and resets it. When instance state must survive parent-driven re-renders, create it through the `own` utility prop: on the instance's first render it invokes the factory and caches the result; every re-render returns the cached value.
+
+```ts
+import { activity, component } from '@loom-js/core';
+
+export const Disclosure = component((html, { children, label, own }) => {
+    // Survives parent re-renders — same activity instance every render.
+    const isOpen = own(() => activity(false));
+
+    return html`
+        <section>
+            <button
+                $click=${() => isOpen.update(!isOpen.value())}
+                aria-expanded=${isOpen.bind((open) => String(open))}
+                type="button"
+            >
+                ${label}
+            </button>
+            ${isOpen.effect(({ value }) => (value ? children : undefined))}
+        </section>
+    `;
+});
+```
+
+`own` replays cached values by call order — the same rule `createRef` already follows: call it unconditionally, in the same order, every render (a mismatched call count gets a debug-lane warning). Values live exactly as long as the component instance — released on unmount, isolated per instance and per server render — and disposing anything the factory allocated stays yours, paired with `onUnmounted`. State shared *between* instances still belongs at module scope.
 
 The next two topics are built directly on this primitive: [Routing](/docs/routing) — its location and route layers are activities over the History API — and [Lazy Imports](/docs/lazy-imports), a dynamic `import()` wrapped in an activity.
