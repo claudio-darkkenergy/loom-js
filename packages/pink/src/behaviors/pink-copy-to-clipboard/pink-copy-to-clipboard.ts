@@ -89,8 +89,9 @@ export const PinkCopyToClipboard = component<
             text
         }
     ) => {
-        // Per-instance state: this closure is the component instance, so the
-        // activity lives exactly as long as the rendered host does.
+        // Per-instance state while the host never re-renders this component —
+        // a parent-triggered re-render would recreate the closure and reset
+        // it. If that changes, create it through core's `own` utility prop.
         const isCopied = activity(false);
         let resetTimer: ReturnType<typeof setTimeout> | undefined;
         const onClick = async () => {
