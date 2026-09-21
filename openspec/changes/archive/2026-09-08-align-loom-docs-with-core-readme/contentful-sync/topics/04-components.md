@@ -22,7 +22,7 @@ When using `component`, the tagged template's template string typically contains
 
 - interface `TemplateFunction` = `(html, props) => <the rendered template>`
     - `html` (can be named anything) - the template render function ("tagged template") with the bound context. It initializes a component template; once initialized, it efficiently handles updates to the same component using the bound context. Its argument is a `TemplateLiteral` - the template literal typically contains a single top-level `Element` (see above for the fragment-rooted exception). It **returns** the rendered template — return it straight from the template function.
-    - `props` (can be named anything or destructured) - an object literal containing dynamic property values for enriching your component, along with a getter, `node()`, which returns the component's rendered node, and the five life-cycle hooks below - each hook takes a handler callback, and that handler receives the component's rendered node as an argument (see Life cycles under Examples, below).
+    - `props` (can be named anything or destructured) - the caller's props merged with the framework's built-in surface — the reserved props, the utilities (`node()`, `createRef()`, `ctxRefs()`, `own()`), and the five life-cycle hooks below. See Built-in props for the full surface.
 
 **Returns** `Component` The callable component function.
 
@@ -56,6 +56,58 @@ That's a complete component. Its render function receives more than props, thoug
 | `onUnmounted` | When the component's node is removed from the live document. |
 
 `onMounted` & `onUnmounted` describe a live, observed browser document — they never fire on the server (see [Server Rendering](/docs/server-rendering)).
+
+## Built-in props
+
+Beside the caller's own props, every render function receives a built-in surface: the **reserved props** any component may be handed (typed on every component — the framework consumes `key` & `ref` itself; everything else arrives like any other prop) and the **utilities** the framework adds alongside them.
+
+**Reserved props**
+
+- `children` — the content a caller places between a component element's tags, or passes as `children` in the functional form. Interpolate it where the content belongs (`${children}`). Authoring mechanics — the `</>` closing form, how markup fills it — live under [Children](/docs/element-syntax#children).
+- `slots` — named content regions beyond `children`: top-level markup children labelled `slot="name"` arrive as `slots.name`; place each with `${slots?.name}`. See [Named slots](/docs/element-syntax#named-slots).
+- `key` — reconciliation identity for repeated instances (`key=${item.id}`); the framework matches keyed instances across re-renders instead of pairing by position. See [The `key` prop](/docs/element-syntax#the-key-prop).
+- `ref` — a `RefContext` minted by the parent via `createRef()`. The framework wires it to the receiving component & removes it from the props object — a render function never reads `ref`. See Refs below.
+- `attrs` — a bag of attribute name → value pairs. The framework doesn't apply it for you: forward it to your root element's `$attrs` binding (`$attrs=${attrs}`) so callers can set arbitrary attributes without the component naming each one.
+- `on` — a bag of event name → listener pairs; forward it to the root element's `$on` binding (`$on=${on}`).
+- `onClick` — the single-listener click convention; forward it to the root element's `$click` binding (`$click=${onClick}`).
+- `className`, `id`, `style` — root-element identity & styling; forward them onto the root (`class=${className}`, `id=${id}`, `style=${style}`). `style` accepts a string, an object of declarations, or an array of those; a style value that resolves to nothing should be omitted rather than passed empty.
+- `routeProps` — the matched route (a `RouteValue`: `params`, `matchedRoute`, `pathname`, the raw `Location`) that the router passes to page components; see [Routing](/docs/routing).
+
+**Utilities**
+
+- `node()` — the component's rendered root node (or node group, for fragment-rooted templates). Meaningful from `onCreated` time onward; see the life-cycle table above for when handlers receive it.
+- `createRef()` — mints a `RefContext` for reaching a child component's node & hooks; see Refs below.
+- `ctxRefs()` — an iterator over every `RefContext` this component has minted, in creation order.
+- `own(create)` — instance-memoized values: the first render invokes `create` & caches the result per instance; every re-render returns the cached value, so locally created state survives parent-triggered re-renders. Depth under [Component-scoped state](/docs/activities#component-scoped-state).
+- The five life-cycle hooks — `onCreated`, `onBeforeRender`, `onRendered`, `onMounted`, `onUnmounted` — documented in the table above.
+
+### Refs
+
+A ref reaches a *child* component's node & life-cycle hooks from the outside — the case `node()` alone can't cover, since your own `node()` returns your own root. `createRef()` mints a `RefContext`; hand it to a child through its `ref` prop and the framework wires the two together: the ref's `node()` returns the child's rendered root, and its hook setters (`onCreated`, `onBeforeRender`, `onRendered`, `onMounted`, `onUnmounted`) register handlers that fire with the child's node — the same life cycle the child observes, watched from the creator's side. Register ref handlers during the render that creates the ref, before the child first renders.
+
+```ts
+import { component } from '@loom-js/core';
+
+const Field = component(
+    (html) => html`
+        <input type="text" />
+    `
+);
+
+export const Form = component((html, { createRef }) => {
+    const fieldRef = createRef();
+
+    fieldRef.onMounted((node) => (node as HTMLInputElement).focus());
+
+    return html`
+        <form><${Field} ref=${fieldRef} /></form>
+    `;
+});
+```
+
+Reach for a ref when the parent needs a child's rendered node (focus, measurement, wiring a third-party library to it) or its life-cycle timing; reach for your own `node()` when the node you need is your own root. `ctxRefs()` complements `createRef()` on the minting side: it iterates every ref the component has created, in creation order — useful when a render loop mints one ref per item.
+
+**See also** — [Children](/docs/element-syntax#children), [Named slots](/docs/element-syntax#named-slots), [The `key` prop](/docs/element-syntax#the-key-prop) & [the `$`-sigil rule](/docs/element-syntax#no--sigil-on-component-tags) (component tags take props verbatim); Attribute and text values, below (how forwarded values apply to real elements); [Routing](/docs/routing) (`routeProps`); [Component-scoped state](/docs/activities#component-scoped-state) (`own`).
 
 ## Attribute and text values
 

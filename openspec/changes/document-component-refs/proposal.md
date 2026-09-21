@@ -22,6 +22,6 @@ _None._
 
 ## Impact
 
-- `packages/core/README.md` — Components section (Refs subsection + prop-surface table). No code changes; the API ships already.
+- `packages/core/README.md` — Components section (Refs subsection + prop-surface table). One type-only code change, discovered at apply (2026-09-20) by the compile scenario: `TemplateTagValue` gains `RefContext` so `ref=${…}` on a component element type-checks (runtime always passed it through); **patch** changeset. No behavioral changes; the API ships already.
 - `openspec/changes/align-loom-docs-with-core-readme/contentful-sync/topics/04-components.md` + `content-map.md` — parity section and map amendment; draft re-push.
 - `openspec/specs/core-readme-accuracy/spec.md` — delta at archive.

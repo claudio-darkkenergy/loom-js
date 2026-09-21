@@ -22,7 +22,7 @@ A named **Built-in props** section under Components (heading = discoverability, 
 
 ### D3 — The example is the tested pattern
 
-The Refs code sample mirrors `create-ref.ts`'s shape: parent mints `createRef()`, passes `ref` to a child component element, then uses the ref's `node()`/hooks — demonstrating the case `node()` alone can't cover (reaching a _child's_ rendered node). Example validity falls under the accuracy spec's compile scenario.
+The Refs code sample mirrors `create-ref.ts`'s shape: parent mints `createRef()`, passes `ref` to a child component element, then uses the ref's `node()`/hooks — demonstrating the case `node()` alone can't cover (reaching a _child's_ rendered node). Example validity falls under the accuracy spec's compile scenario — which earned its keep at apply (2026-09-20): the markup-first example exposed that `TemplateTagValue` didn't admit `RefContext` (element-syntax `ref` was untypeable despite working at runtime); fixed as a type-only addition with a patch changeset, approved at review.
 
 ### D4 — Spec delta sharpens, doesn't restate
 
