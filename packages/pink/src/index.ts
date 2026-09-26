@@ -3,6 +3,7 @@ export * from './components/pink-action-bar';
 export * from './components/pink-avatar';
 export * from './components/pink-avatar-group';
 export * from './components/pink-code-panel';
+export * from './components/pink-collapsible';
 export * from './components/pink-drop-list';
 export * from './components/pink-grid-item';
 export * from './components/pink-table';

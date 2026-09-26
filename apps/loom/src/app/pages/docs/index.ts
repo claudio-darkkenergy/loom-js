@@ -13,6 +13,7 @@ import { TopicContent } from '@/app/components/content/topic-content.ts';
 import { TopicPagination } from '@/app/components/content/topic-pagination';
 import { TopicToc } from '@/app/components/content/topic-toc';
 import { page, topic } from '@/app/logic/activity/selected-content';
+import { flattenListing } from '@/app/logic/listing';
 
 /**
  * The Docs component is a high-level component which renders documentation pages.
@@ -103,7 +104,9 @@ const Docs: SimpleComponent = (props) => {
                     }),
                     // Prev/next topic navigation, derived from the page
                     // listing + current topic (D5) — renders nothing while
-                    // the listing loads or when the load failed.
+                    // the listing loads or when the load failed. Flattening
+                    // restores the learning-path order from a grouped
+                    // listing, so pagination crosses group boundaries.
                     page.effect(({ value: pageData }) => {
                         if (!pageData || 'contentError' in pageData) {
                             return;
@@ -112,7 +115,9 @@ const Docs: SimpleComponent = (props) => {
                         return routeEffect(({ value: routeValue }) =>
                             TopicPagination({
                                 currentSlug: routeValue.params.topic,
-                                items: pageData.contentCollection?.items
+                                items: flattenListing(
+                                    pageData.contentCollection?.items
+                                )
                             })
                         );
                     })

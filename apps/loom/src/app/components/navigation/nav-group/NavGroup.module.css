@@ -1,0 +1,5 @@
+/* Links inside a collapsible group indent under the group label, mirroring
+   the upstream collapsible nav. */
+.groupLink {
+    padding-inline-start: 2rem;
+}

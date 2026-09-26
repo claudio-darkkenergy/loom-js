@@ -30,6 +30,23 @@ The four unlinked pre-scrub topics were re-adjudicated at draft review:
 
 The listing rule amends from "exactly the mapped set" to "the mapped set, then trailing utility topics" (IA delta rides `docs-feedback-topic`).
 
+## Grouped side-nav sign-off (2026-09-25, via `docs-grouped-side-nav`)
+
+The maintainer signed off this partition of the listing order into named concept groups
+(contiguous over the table order below; trailing utility topics join the final group):
+
+1. **Onboarding** — `getting-started`, `bootstrapping`, `configuration`
+2. **Templating** — `components`, `element-syntax`, `custom-elements`
+3. **Reactivity** — `activities`, `routing`, `lazy-imports` (shortened from "Reactivity & Routing", 2026-09-26)
+4. **Server-first** — `server-rendering`, `hydration`, `dehydrated-state`
+5. **Reference** — `diagnostics` (+ trailing: `feedback`, `build-tool` when it lands)
+
+Groups render as collapsible sections — upstream pink's Collapsible markup
+(`<details>`/`<summary>`, ported as `PinkCollapsible`); the active topic's group renders
+open, server markup included. A group is a `content` entry whose
+`content[]` links its topics (non-empty `content[]` is the group signal — a listed entry
+with links renders as a group, one with a body as a topic; an entry with both flags a review).
+
 ## Deferred restructures (noted 2026-09-02, not in this change)
 
 Maintainer notes from draft review — now owned by the `docs-ia-discoverability` proposal (2026-09-02), which also carries the systematic sweep:

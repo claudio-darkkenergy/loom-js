@@ -55,6 +55,9 @@ interface ContentProps<T = ContentProps<unknown>> {
 interface ShortContentProps<T = ContentProps<unknown>> {
     _id: string;
     content?: T;
+    // One nesting level: a listed entry with linked children is a nav
+    // group whose items are its topics (see `@/app/logic/listing`).
+    contentCollection?: { items: ShortContentProps<T>[] };
     slug?: string;
     title?: Node;
 }

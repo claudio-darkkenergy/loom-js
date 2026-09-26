@@ -6,6 +6,7 @@ import {
     type SerializedStateEnvelope
 } from '@loom-js/core';
 import '@loom-js/pink/styles/code-tokens.css';
+import '@loom-js/pink/styles/side-nav.css';
 
 import { App } from './app';
 import { APP_ROOT_ID, STATE_SCRIPT_ID } from './boot-contract';

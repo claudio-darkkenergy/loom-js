@@ -9,6 +9,7 @@ import {
 
 import { App } from './app';
 import { pageContentResourceKey } from './logic/activity/page-content';
+import { flattenListing } from './logic/listing';
 import { getPageContent } from './logic/providers/contentful';
 import { setContentfulTransport } from './logic/providers/contentful/lib/contentful-request';
 import { DOCS_PAGE_SLUG } from './pages/constants';
@@ -41,12 +42,13 @@ export const configurePrerenderTransport = ({
 
 /**
  * Lists the docs topics from the Contentful page listing — the same list
- * the side nav shows. Throws when the listing is missing or empty, so a
+ * the side nav shows, flattened from its nav groups back into the
+ * learning-path order. Throws when the listing is missing or empty, so a
  * bad build fails instead of shipping empty pages.
  */
 export const listDocsTopics = async (): Promise<DocsTopicSummary[]> => {
     const { data, error } = await getPageContent(DOCS_PAGE_SLUG, '');
-    const topics = data?.page?.contentCollection?.items.flatMap(
+    const topics = flattenListing(data?.page?.contentCollection?.items).flatMap(
         ({ slug, title }) =>
             typeof slug === 'string'
                 ? [{ slug, title: typeof title === 'string' ? title : '' }]

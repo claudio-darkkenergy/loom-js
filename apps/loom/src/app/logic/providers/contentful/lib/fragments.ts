@@ -27,6 +27,15 @@ fragment shortPageFields on Page {
     contentCollection(limit: 20) {
         items {
             ...baseContentFields
+            ... on Content {
+                contentCollection(limit: 20) {
+                    items {
+                        ... on Content {
+                            ...baseContentFields
+                        }
+                    }
+                }
+            }
         }
     }
 }

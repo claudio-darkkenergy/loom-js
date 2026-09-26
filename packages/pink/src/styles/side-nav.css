@@ -1,0 +1,6 @@
+/* Side-nav collapsible groups. Complements upstream's own
+   `.side-nav .collapsible-wrapper { padding: 0 }` reset: the group header
+   aligns with the drop buttons' inline padding (their 0.75rem default). */
+.side-nav .collapsible-button {
+    padding-inline: 0.75rem;
+}

@@ -3,6 +3,7 @@ import '@appwrite.io/pink-icons';
 import { LoomJsStorybookDecorator, type Preview } from '@loom-js/storybook';
 
 import '../src/styles/code-tokens.css';
+import '../src/styles/side-nav.css';
 
 const { parameters } = (window as any).storybook;
 

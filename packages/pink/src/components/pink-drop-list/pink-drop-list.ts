@@ -126,6 +126,7 @@ const DropListWrapper = component<PinkDropListProps>(
 );
 
 export const PinkDropList = Object.assign(DropListWrapper, {
+    Item: DropListItem,
     List: DropList,
     Section: DropSection
 });

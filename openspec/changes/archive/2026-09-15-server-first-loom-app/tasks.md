@@ -10,7 +10,7 @@
 - [x] 2.1 Add the app-root and state-script slots to the html-split shell template (shell owns the root element; slots empty in dev/fallback output)
 - [x] 2.2 Add `linkedom` to the loom app workspace (dev dependency) and remember `.prettierrc` `packageJSONFiles` needs no change (existing workspace)
 - [x] 2.3 Write `prerenderRoute(url) → { html, state }` as a reusable module: fresh linkedom window, `renderToString(App(), { url, window })`, `serializeState(dehydrate(window))` — the ISR seam (D8)
-- [x] 2.4 Wire the build-time enumerator: fetch the docs page listing, prerender `/` + every `/docs/<slug>`, inject into shells, emit `build/index.html` and `build/docs/<slug>/index.html`; fail the build loudly on unreachable content or non-settling routes
+- [x] 2.4 Wire the build-time enumerator: fetch the docs page listing, prerender `/` + every `/docs/<slug>`, inject into shells, emit `build/index.html` and `build/docs/<slug>/index.html`; fail the build loudly on unreachable content or non-settling routes _(2026-09-25, `docs-grouped-side-nav`: the enumerator now reads the listing through `flattenListing` — nav groups flatten back to the topic order)_
 - [x] 2.5 Hook the prerender phase into `build.mts` after `esbuild.build()`; dev (`dev.mts`) is untouched
 
 ## 3. Hydration boot

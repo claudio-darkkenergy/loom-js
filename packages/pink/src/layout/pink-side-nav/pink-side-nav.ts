@@ -9,8 +9,7 @@ import classNames from 'classnames';
 
 import {
     type DropListItemProps,
-    PinkDropList,
-    type PinkDropListProps
+    PinkDropList
 } from '../../components/pink-drop-list';
 import { PinkDynamicProps } from '../../types';
 
@@ -22,31 +21,32 @@ const SideNavBottom = component<ComponentInputProps>(
     `
 );
 
-interface SideNavTopProps {
-    listProps: PinkDropListProps;
-}
-
-const SideNavTop = component<ComponentInputProps<SideNavTopProps>>(
-    (html, { listProps }) => html`
-        <div class="side-nav-main">
-            <section>${PinkDropList(listProps)}</section>
-        </div>
+const SideNavTop = component<ComponentInputProps>(
+    (html, { children }) => html`
+        <div class="side-nav-main">${children}</div>
     `
 );
 
 export type PinkSideNavProps = PinkDynamicProps & {
     bottom?: TemplateTagValue;
+    /**
+     * Arbitrary main-area content — e.g. multiple labelled sections. Takes
+     * precedence over `topLinkProps`, which renders a single flat list.
+     */
+    top?: TemplateTagValue;
     topLinkProps?: ComponentInputProps<DropListItemProps>[];
 };
 
 // Pure delegation at the root (`is`); the inner level-1 wrapper travels as
 // a value.
 export const PinkSideNav = simple<ComponentInputProps<PinkSideNavProps>>(
-    ({ bottom, className, is = el('nav'), topLinkProps, ...props }) => {
+    ({ bottom, className, is = el('nav'), top, topLinkProps, ...props }) => {
         const sideNavTop = SideNavTop({
-            listProps: {
-                itemProps: topLinkProps
-            }
+            children:
+                top ??
+                el('section')({
+                    children: PinkDropList({ itemProps: topLinkProps })
+                })
         });
         const children = bottom
             ? [

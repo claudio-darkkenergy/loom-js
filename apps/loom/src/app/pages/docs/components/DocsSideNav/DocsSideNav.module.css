@@ -22,6 +22,11 @@
             --p-drop-text-color: var(--docs-link-color);
             color: hsl(var(--docs-link-color));
         }
+
+        /* Group headers match the topic links' color. */
+        summary {
+            color: hsl(var(--docs-link-color));
+        }
     }
 
     &._open {

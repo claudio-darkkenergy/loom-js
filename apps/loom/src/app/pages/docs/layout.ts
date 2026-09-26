@@ -8,6 +8,7 @@ import styles from './styles.module.css';
 import { page } from '@/app/logic/activity/selected-content';
 import { sideNavToggle, topicTocToggle } from '@/app/logic/activity/toggles';
 import { useDocsLayout } from '@/app/logic/hooks';
+import { listingSections } from '@/app/logic/listing';
 
 const DocsLayout = component((html, { children, className, onUnmounted }) => {
     const { effect: pageEffect } = page;
@@ -40,19 +41,22 @@ const DocsLayout = component((html, { children, className, onUnmounted }) => {
                 }
 
                 return routeEffect(({ value: routeValue }) => {
-                    const sideNavItems = pageData.contentCollection?.items.map(
-                        ({ title, slug }) => ({
-                            children: title,
+                    const sideNavSections = listingSections(
+                        pageData.contentCollection?.items
+                    ).map(({ items, title }) => ({
+                        itemProps: items.map(({ title: topicTitle, slug }) => ({
+                            children: topicTitle,
                             href: slug,
                             isSelected: slug === routeValue.params.topic,
                             onClick: route
-                        })
-                    );
+                        })),
+                        title
+                    }));
 
                     return sideNavToggleEffect(({ value: isToggledOpen }) =>
                         DocsSideNav({
                             isOpen: isToggledOpen,
-                            sideNavItems
+                            sideNavSections
                         })
                     );
                 });
