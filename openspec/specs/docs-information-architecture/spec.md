@@ -5,7 +5,9 @@
 Defines the docs section's shape in `@loom-js/loom`: one topic per consumer-facing concept in `packages/core/README.md` (per the change's content map), each reachable at `/docs/<slug>`, a side nav listing topics in learning-path order with the current topic marked, previous/next navigation derived from the listing order, and client-side (SPA router) navigation for cross-topic links.
 
 Established by the `align-loom-docs-with-core-readme` change (2026-08-28).
+
 ## Requirements
+
 ### Requirement: One docs topic per core README concept
 
 The docs section SHALL expose one topic per consumer-facing concept in `packages/core/README.md`, per the change's content map: `getting-started`, `bootstrapping`, `configuration`, `components`, `element-syntax`, `custom-elements`, `activities`, `routing`, `lazy-imports`, `server-rendering`, `hydration`, `dehydrated-state`, `diagnostics`. Each topic SHALL be reachable at `/docs/<slug>`.
@@ -66,4 +68,3 @@ Links within topic content that target `/docs/<slug>` SHALL navigate via the SPA
 
 - **WHEN** a user activates a link to another docs topic inside topic content
 - **THEN** the app routes client-side and the target topic renders without a page reload
-
