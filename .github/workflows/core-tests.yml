@@ -1,7 +1,10 @@
 name: Core Tests
 
+# Push runs on edge only: main is always a fast-forward of edge, so the
+# identical SHA has already run there; PRs still get their own runs.
 on:
     push:
+        branches: [edge]
     pull_request:
 
 concurrency:
