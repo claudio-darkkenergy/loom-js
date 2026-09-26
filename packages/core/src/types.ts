@@ -284,10 +284,13 @@ export type ReservedProps = {
 };
 
 // `ComponentContext` related types
-export type ContextFunction = (
-    ctx?: ComponentContextPartial,
-    dryRun?: boolean
-) => ComponentContextPartial;
+export type ContextFunction = {
+    (ctx?: ComponentContextPartial, dryRun?: boolean): ComponentContextPartial;
+    // Set at creation ('component' by `component()`, 'activity' by an
+    // activity's `effect`) so detection survives minifiers that rename
+    // functions; the name checks alone are not minification-safe.
+    contextFunctionKind?: 'activity' | 'component';
+};
 // Returns the parent of `TemplateRoot` or `TemplateRootArray`.
 export type ContextNodeGetter = () => TemplateRoot | TemplateRootArray;
 

@@ -1,7 +1,7 @@
 import { createTransformDispatcher } from './lib/activity/transform-dispatch';
 import { createValueStore } from './lib/activity/value-store';
 import { ATTR_BINDING, AttrBinding } from './lib/attr-binding';
-import { appendChildContext } from './lib/context';
+import { appendChildContext, isActivityContextFunction } from './lib/context';
 import { createDiagnosticSubject } from './lib/globals/diagnostic-format';
 import { isObject } from './lib/helpers';
 import { reactiveEffect } from './lib/reactive';
@@ -89,58 +89,62 @@ export const activity = <V, I = V>(
             };
         },
         effect(action: ActivityEffectAction<V>) {
-            return function activityContextFunction(
-                ctx: ComponentContextPartial = {}
-            ) {
-                const renderEffect = () => {
-                    const scopedAction = scopedActions.get(ctx);
-                    const templateTagValue =
-                        scopedAction &&
-                        scopedAction({ value: valueProp.value });
+            // The kind marker keeps detection working when a minifier
+            // renames the function (see `contextFunctionKind`).
+            return Object.assign(
+                function activityContextFunction(
+                    ctx: ComponentContextPartial = {}
+                ) {
+                    const renderEffect = () => {
+                        const scopedAction = scopedActions.get(ctx);
+                        const templateTagValue =
+                            scopedAction &&
+                            scopedAction({ value: valueProp.value });
 
-                    ctx.root = textUpdater(
-                        ctx.root as TemplateRoot | TemplateRootArray,
-                        templateTagValue,
-                        typeof templateTagValue === 'function' &&
-                            templateTagValue.name === 'activityContextFunction'
-                            ? appendChildContext(ctx, templateTagValue, 0)
-                            : ctx
-                    );
-                };
+                        ctx.root = textUpdater(
+                            ctx.root as TemplateRoot | TemplateRootArray,
+                            templateTagValue,
+                            isActivityContextFunction(templateTagValue)
+                                ? appendChildContext(ctx, templateTagValue, 0)
+                                : ctx
+                        );
+                    };
 
-                // Ensure the `ctx` has a `ctxScopes` map.
-                ctx.ctxScopes = ctx.ctxScopes || new Map();
+                    // Ensure the `ctx` has a `ctxScopes` map.
+                    ctx.ctxScopes = ctx.ctxScopes || new Map();
 
-                // Handle when `effect` is 1st called.
-                if (!ctx.root || !scopedActions.has(ctx)) {
-                    // Set the current action scope.
-                    scopedActions.set(ctx, action);
-                    // Set up the reactive effect for the activity.
-                    const disposeRenderEffect = reactiveEffect(
-                        renderEffect,
-                        valueProp
-                    );
+                    // Handle when `effect` is 1st called.
+                    if (!ctx.root || !scopedActions.has(ctx)) {
+                        // Set the current action scope.
+                        scopedActions.set(ctx, action);
+                        // Set up the reactive effect for the activity.
+                        const disposeRenderEffect = reactiveEffect(
+                            renderEffect,
+                            valueProp
+                        );
 
-                    // Register the unmount cleanup — dispose the render
-                    // effect and release this context from the activity's
-                    // scoped actions so it stops pinning the context (and
-                    // its DOM) once the subtree is genuinely detached.
-                    ctx.teardowns = ctx.teardowns || new Set();
-                    ctx.teardowns.add(() => {
-                        disposeRenderEffect();
-                        scopedActions.delete(ctx);
-                    });
-                }
-                // Handle when `effect` is recalled.
-                else {
-                    // Update the current action scope.
-                    scopedActions.set(ctx, action);
-                    // & call the effect, directly, so we don't duplicate the effect reactivity.
-                    renderEffect();
-                }
+                        // Register the unmount cleanup — dispose the render
+                        // effect and release this context from the activity's
+                        // scoped actions so it stops pinning the context (and
+                        // its DOM) once the subtree is genuinely detached.
+                        ctx.teardowns = ctx.teardowns || new Set();
+                        ctx.teardowns.add(() => {
+                            disposeRenderEffect();
+                            scopedActions.delete(ctx);
+                        });
+                    }
+                    // Handle when `effect` is recalled.
+                    else {
+                        // Update the current action scope.
+                        scopedActions.set(ctx, action);
+                        // & call the effect, directly, so we don't duplicate the effect reactivity.
+                        renderEffect();
+                    }
 
-                return ctx;
-            };
+                    return ctx;
+                },
+                { contextFunctionKind: 'activity' as const }
+            );
         },
         initialValue,
         // An ordinary dispatch that bypasses the transform — it supersedes,

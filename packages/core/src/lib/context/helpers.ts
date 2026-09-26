@@ -66,8 +66,33 @@ export const appendChildContext = (
     }
 };
 
+// Resolves which kind of context function a template value is, if any. The
+// explicit marker set at creation survives minification; the name checks
+// keep values from older core copies recognizable.
+const contextFunctionKind = (value: TemplateTagValue) =>
+    typeof value === 'function'
+        ? ((value as ContextFunction).contextFunctionKind ??
+          (value.name === 'contextFunction'
+              ? 'component'
+              : value.name === 'activityContextFunction'
+                ? 'activity'
+                : undefined))
+        : undefined;
+
+/** Detects a context function of either kind (component or activity). */
+export const isContextFunction = (
+    value: TemplateTagValue
+): value is ContextFunction => !!contextFunctionKind(value);
+
+/** Detects an activity effect's context function specifically. */
+export const isActivityContextFunction = (
+    value: TemplateTagValue
+): value is ContextFunction => contextFunctionKind(value) === 'activity';
+
 export const getContextForValue = (value: TemplateTagValue) =>
-    typeof value === 'function' && value.name === 'contextFunction'
+    // Component context functions only — dry-running an activity context
+    // function would leak a subscription.
+    contextFunctionKind(value) === 'component'
         ? (value as ContextFunction)({}, true)
         : {};
 

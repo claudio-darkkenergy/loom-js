@@ -4,6 +4,7 @@ import type {
     TemplateTagValue,
     TemplateTagValueFunction
 } from '../../types';
+import { isContextFunction } from '../context/helpers';
 import { getWindow } from '../dom';
 
 export const resolveValue = (
@@ -13,8 +14,7 @@ export const resolveValue = (
     if (typeof value === 'function') {
         let templateTagValue: TemplateTagValue;
 
-        // Using syntax `function contextFunction() {}` w/ this name, exactly.
-        if (value.name.toLowerCase().endsWith('contextfunction')) {
+        if (isContextFunction(value)) {
             // Passing down a `ComponentContext` in the case the function value is a `ContextFunction`
             // which supports maintaining the component context so we don't unnecessarily create & replace w/ new nodes.
             const resultCtx = (value as ContextFunction)(ctx);
