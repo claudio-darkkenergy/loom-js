@@ -1,0 +1,48 @@
+name: Core Tests
+
+on:
+    push:
+    pull_request:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    core-tests:
+        name: Core Tests
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Repo
+              # https://github.com/actions/checkout
+              uses: actions/checkout@v4
+
+            - name: Install pnpm
+              # https://github.com/pnpm/action-setup
+              uses: pnpm/action-setup@v3
+
+            - name: Install Node.js 24.x
+              # https://github.com/actions/setup-node
+              # Matches the local dev baseline (see format-check.yml).
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.x
+                  cache: 'pnpm'
+
+            - name: Install Dependencies
+              # puppeteer's postinstall downloads the Chromium the test
+              # runner launches.
+              run: pnpm install
+
+            - name: Type-Check Core
+              run: pnpm -F @loom-js/core type-check
+
+            # wtr's esbuild only transpiles, so this is the only thing that
+            # type-checks tests/** (see packages/core/tests/tsconfig.json).
+            - name: Type-Check Core Tests
+              run: pnpm -F @loom-js/core type-check-tests
+
+            # Browser (wtr + puppeteer Chromium) and node:test suites.
+            - name: Run Core Tests
+              run: pnpm -F @loom-js/core test-ci
