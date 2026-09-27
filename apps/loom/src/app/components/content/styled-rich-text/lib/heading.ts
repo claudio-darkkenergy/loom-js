@@ -1,13 +1,13 @@
 import { el, route, simple, type SyntheticRouteEvent } from '@loom-js/core';
 import { withAnchorLink } from '@loom-js/pink';
-import { toKebabCase } from '@loom-js/utils';
 
-// The anchor id convention the on-page TOC (`TopicToc`) links to: the h2's
-// text kebab-cased with punctuation stripped — matching GitHub's slugger, so
-// a heading's anchor is identical on the docs site and in the rendered
-// README. Kept as one helper so the heading and the TOC can't drift apart.
-export const headingAnchorId = (headingText: string) =>
-    toKebabCase(headingText).replace(/[^a-z0-9-_]/g, '');
+// Re-exported from the pure module so existing imports keep resolving.
+export {
+    collectHeadingAnchors,
+    headingAnchorId,
+    type HeadingAnchor,
+    type HeadingAnchors
+} from './heading-anchors';
 
 // The anchor routes through loom so a same-page fragment stays a quiet
 // `pushState` — a native hash jump fires `popstate`, which re-renders the

@@ -1,35 +1,46 @@
-import { ContentfulDocument, RichText } from '@loom-js/contentful';
+import { ContentfulDocument } from '@loom-js/contentful';
 import { simple } from '@loom-js/core';
 
-import { headingAnchorId } from '../styled-rich-text/lib/heading';
-import { Toc } from '../toc';
+import { collectHeadingAnchors } from '../styled-rich-text/lib/heading';
+import { Toc, type TocItem } from '../toc';
 
 export type TopicTocProps = {
     json?: ContentfulDocument;
 };
 
-export const TopicToc = simple<TopicTocProps>(({ json, ...props }) => {
-    const getTocItems = () => {
-        if (!json) {
-            return [];
+// One walk over the shared anchor pass, in document order.
+const toTocItems = (json?: ContentfulDocument): TocItem[] => {
+    const items: TocItem[] = [];
+    let open: TocItem | undefined;
+
+    for (const { id, level, text } of collectHeadingAnchors(json).entries) {
+        const item: TocItem = { title: text, url: `#${id}` };
+
+        // An h2 opens an entry.
+        if (level === 2) {
+            open = item;
+            items.push(item);
+            continue;
         }
 
-        return json.content.reduce<string[]>((acc, { content, nodeType }) => {
-            if (nodeType === 'heading-2') {
-                const heading = (content[0] as RichText)?.value;
-                acc.push(heading);
-            }
+        // An h3 before any h2 (not a shape the conventions allow) gets a
+        // headerless group instead of being dropped.
+        if (!open) {
+            open = { items: [] };
+            items.push(open);
+        }
 
-            return acc;
-        }, []);
-    };
+        // An h3 nests under the open entry.
+        (open.items ??= []).push(item);
+    }
 
-    return Toc({
+    return items;
+};
+
+export const TopicToc = simple<TopicTocProps>(({ json, ...props }) =>
+    Toc({
         ...props,
         title: 'On this page',
-        items: getTocItems().map((title) => ({
-            title,
-            url: `#${headingAnchorId(title)}`
-        }))
-    });
-});
+        items: toTocItems(json)
+    })
+);

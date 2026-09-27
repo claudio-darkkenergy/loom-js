@@ -10,7 +10,7 @@ Established by the `align-loom-docs-with-core-readme` change (2026-08-28).
 
 ### Requirement: One docs topic per core README concept
 
-The docs section SHALL expose one topic per consumer-facing concept in `packages/core/README.md`, per the change's content map: `getting-started`, `bootstrapping`, `configuration`, `components`, `element-syntax`, `custom-elements`, `activities`, `routing`, `lazy-imports`, `server-rendering`, `hydration`, `dehydrated-state`, `diagnostics`. Each topic SHALL be reachable at `/docs/<slug>`.
+The docs section SHALL expose one topic per consumer-facing concept in `packages/core/README.md`, per the change's content map — the mapped set including `fragments`, which sources from multiple README passages (the recorded exception: a concept topic justified by discoverability rather than a single README section). Each topic SHALL be reachable at `/docs/<slug>`.
 
 #### Scenario: Every mapped topic resolves
 
@@ -21,6 +21,16 @@ The docs section SHALL expose one topic per consumer-facing concept in `packages
 
 - **WHEN** a topic's README source has sub-sections (e.g. activity transforms, custom-element shadow DOM)
 - **THEN** they render as headings within that topic — anchored for the on-page TOC — rather than as separate routes
+
+#### Scenario: Sought concepts carry headings
+
+- **WHEN** the sweep identifies a concept readers would seek by name (per the reviewed sweep artifact)
+- **THEN** that concept is reachable through a heading — its own topic or a named section — not only through prose inside another section
+
+#### Scenario: Consolidated concepts leave pointers
+
+- **WHEN** material moves from a topic into a concept home (e.g. fragment rules into the fragments topic)
+- **THEN** the vacating sites keep brief pointers to the new home, and cross-links/anchors update in the same change
 
 ### Requirement: Side nav lists topics in learning-path order
 
@@ -68,3 +78,27 @@ Links within topic content that target `/docs/<slug>` SHALL navigate via the SPA
 
 - **WHEN** a user activates a link to another docs topic inside topic content
 - **THEN** the app routes client-side and the target topic renders without a page reload
+
+### Requirement: The on-page TOC covers h2 and h3 sections
+
+Every h2 and h3 heading in a rendered topic SHALL carry a stable anchor id — the shared kebab/punctuation-stripped convention, with GitHub-style occurrence suffixes making ids unique within the topic — and the on-page TOC SHALL list every h2 with its h3s nested beneath it, in document order, each entry linking to its heading's anchor.
+
+#### Scenario: sub-sections are listed and nested
+
+- **WHEN** a topic containing h2 sections with h3 sub-sections renders
+- **THEN** the TOC shows each h2 entry with its h3s as an indented sub-list, in document order
+
+#### Scenario: TOC links land on their headings
+
+- **WHEN** the reader activates any TOC entry, h2 or h3
+- **THEN** the page scrolls to that heading (same-page anchor navigation)
+
+#### Scenario: duplicate heading text stays uniquely addressable
+
+- **WHEN** two headings in one topic share the same text
+- **THEN** the second receives an occurrence-suffixed id (`-1`, …), the TOC links each to its own heading, and the rendered ids match the TOC's hrefs exactly
+
+#### Scenario: h4 and deeper stay out
+
+- **WHEN** a topic contains h4 headings
+- **THEN** they render without anchors and do not appear in the TOC

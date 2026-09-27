@@ -1,0 +1,10 @@
+/* Nested TOC level (h3 sub-sections): one indent step in, smaller type, a
+   tighter rhythm than the top level. */
+.subList {
+    font-size: 0.875em;
+    padding-inline-start: 0.875rem;
+
+    li + li {
+        margin-block-start: 0.4rem;
+    }
+}

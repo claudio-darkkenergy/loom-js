@@ -77,9 +77,8 @@ interprets them. They are invisible in Contentful's editor, so authors must know
 
 1. **Headings.** The topic title is the entry's title field — the body never uses h1. Body
    headings start at h2 (README h4/h5 sub-sections flatten to h3 where noted per topic).
-   h2 text is kebab-cased with punctuation stripped into the anchor `id` (GitHub-slugger parity — fixed at draft review 2026-08-31; `headingAnchorId` is the one helper) and feeds the
-   on-page TOC — so **h2 text must be unique within a topic**, and renaming an h2 changes its
-   anchor (treat h2 text as semi-permanent).
+   h2 **and h3** text is kebab-cased with punctuation stripped into the anchor `id` (GitHub-slugger parity — fixed at draft review 2026-08-31; `headingAnchorId` is the one helper, `collectHeadingAnchors` the one per-document pass — extended to h3s 2026-09-27 by `toc-sub-section-links`) and feeds the
+   on-page TOC, which lists h2s with their h3s nested beneath. The heading's text is the concatenation of its inline runs (``The `key` prop`` → `the-key-prop`; camelCase splits: `renderToStringSync` → `render-to-string-sync`). **Duplicate heading text within a topic dedupes GitHub-style** — the first occurrence keeps the bare id, repeats get `-1`, `-2`, … in document order — so duplicates stay addressable, but their suffixes are order-fragile: unique text is the stable path. Renaming an h2 or h3 changes its anchor (treat both as semi-permanent; record renames as redirect notes). h4 and deeper carry no anchor and stay out of the TOC.
 2. **Block code samples.** A paragraph whose _entire_ content carries `MARKS.CODE` is a code
    block → `PinkCodePanel` with line numbers when multi-line. **Language label:** the block's
    first line is a directive comment, `// @lang ts` (or `bash`, `html`), stripped by the renderer

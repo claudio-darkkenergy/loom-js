@@ -9,14 +9,17 @@ import {
 } from '../contentful-rich-text';
 import styles from './StyledRichText.module.css';
 import { asCodeBlock, CodeSample } from './lib/code';
-import { AnchoredHeading, headingAnchorId } from './lib/heading';
+import { AnchoredHeading, collectHeadingAnchors } from './lib/heading';
 import { tableRenderers } from './lib/table';
 
 export type StyledRichTextProps = ContentfulRichTextProps;
 
 export const StyledRichText = simple<StyledRichTextProps>(
-    ({ className, ...props }) =>
-        ContentfulRichText({
+    ({ className, ...props }) => {
+        // Same pass `TopicToc` reads, so ids and TOC hrefs agree.
+        const anchors = collectHeadingAnchors(props.json);
+
+        return ContentfulRichText({
             ...props,
             className: classNames(styles.richText, className),
             options: {
@@ -60,21 +63,28 @@ export const StyledRichText = simple<StyledRichTextProps>(
                             children,
                             className: 'heading-level-3 u-capitalize'
                         }),
-                    [BLOCKS.HEADING_2]: (_, children) =>
+                    [BLOCKS.HEADING_2]: (node, children) =>
                         AnchoredHeading({
                             anchorClassName: styles.headingAnchor,
-                            anchorId: headingAnchorId(String(children)),
+                            anchorId: anchors.idOf(node) ?? '',
                             children,
                             className: classNames(
                                 'heading-level-4 u-capitalize',
                                 styles.anchoredHeading
                             )
                         }),
-                    [BLOCKS.HEADING_3]: (_, children) =>
-                        el('h3')({ children, className: 'heading-level-5' }),
+                    // Anchored for the TOC; no copy-link (h2-only for now).
+                    [BLOCKS.HEADING_3]: (node, children) =>
+                        el('h3')({
+                            children,
+                            className: 'heading-level-5',
+                            id: anchors.idOf(node)
+                        }),
+                    // h4 and deeper: no anchor, not in the TOC.
                     [BLOCKS.HEADING_4]: (_, children) =>
                         el('h4')({ children, className: 'heading-level-6' })
                 }
             }
-        })
+        });
+    }
 );
