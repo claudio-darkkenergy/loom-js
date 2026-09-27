@@ -86,7 +86,7 @@ Boot-time configuration rides in on `init`'s (& `hydrate`'s) `globalConfig`:
 
     - `token` - [Default: `'⚡'`] The placeholder token the template renderer uses during dynamic value resolution. Change it only if the default could collide with your content.
 
-**`appendEvents(eventsToAppend)`** - The template renderer recognizes `$event` bindings for the standard [`GlobalEventHandlers`](https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers) set (`click`, `input`, `change`, …). If an event you bind isn't in that list — a custom event, or a newer DOM event — append it before the binding template renders:
+**`appendEvents(eventsToAppend)`** - The template renderer recognizes `$event` bindings (see Element bindings, under Components) for the standard [`GlobalEventHandlers`](https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers) set (`click`, `input`, `change`, …). If an event you bind isn't in that list — a custom event, or a newer DOM event — append it before the binding template renders:
 
 ```ts
 import { appendEvents } from '@loom-js/core';
@@ -102,7 +102,7 @@ A component uses a "tagged template" (w/ [template literal](https://developer.mo
 
 Use `component` to register a template render function. It takes a render function as its argument, passing Loom's template renderer to the render function along with some props, and a getter for the component's rendered node. A template context is bound to the renderer to achieve optimal rerenders.
 
-When using `component`, the tagged template's template string typically contains a single top-level element (one opening & closing tag pair wrapping the whole template). Fragment-rooted templates — starting with `<>`, or whose top level is only component elements — are the exception (see Composing components). An interpolated value at the top level doesn't qualify — give it the `<>` prefix.
+When using `component`, the tagged template's template string typically contains a single top-level element (one opening & closing tag pair wrapping the whole template). Fragment-rooted templates — starting with `<>`, or whose top level is only component elements — are the exception (see Fragments). An interpolated value at the top level doesn't qualify — give it the `<>` prefix.
 
 **API** `component<Props>(templateFunction)`
 
@@ -175,7 +175,7 @@ Beside the caller's own props, every render function receives a built-in surface
 
 **Utilities**
 
-- `node()` — the component's rendered root node (or node group, for fragment-rooted templates). Meaningful from `onCreated` time onward; see the life-cycle table above for when handlers receive it.
+- `node()` — the component's rendered root node (or, for a fragment-rooted template, the array of its top-level nodes — see Fragments). Meaningful from `onCreated` time onward; see the life-cycle table above for when handlers receive it.
 - `createRef()` — mints a `RefContext` for reaching a child component's node & hooks; see Refs below.
 - `ctxRefs()` — an iterator over every `RefContext` this component has minted, in creation order.
 - `own(create)` — instance-memoized values: the first render invokes `create` & caches the result per instance; every re-render returns the cached value, so locally created state survives parent-triggered re-renders. Depth under Component-scoped state (Activities).
@@ -207,7 +207,7 @@ export const Form = component((html, { createRef }) => {
 
 Reach for a ref when the parent needs a child's rendered node (focus, measurement, wiring a third-party library to it) or its life-cycle timing; reach for your own `node()` when the node you need is your own root. `ctxRefs()` complements `createRef()` on the minting side: it iterates every ref the component has created, in creation order — useful when a render loop mints one ref per item.
 
-**See also** — Composing components: Children, Named slots, The `key` prop, and the `$`-sigil note (component tags take props verbatim); Attribute & text values (how forwarded values apply to real elements); Routing (`routeProps`); Component-scoped state under Activities (`own`); core's ref specs (`packages/core/tests/unit/component/create-ref.ts`, `context-refs.ts`).
+**See also** — Composing components: Children, Named slots, The `key` prop, and the `$`-sigil note (component tags take props verbatim); Attribute & text values (how forwarded values apply to real elements); Element bindings (where forwarded `attrs`/`on`/`onClick` land); Routing (`routeProps`); Component-scoped state under Activities (`own`); core's ref specs (`packages/core/tests/unit/component/create-ref.ts`, `context-refs.ts`).
 
 **Attribute & text values.** An interpolated attribute value on a plain element is applied when truthy & **removed when falsy** — that one rule gives you boolean attributes (`disabled=${isDisabled}`) and conditional attributes (`aria-label=${labelOrUndefined}`) for free. The number `0` is the deliberate exception: it is a real value, so `tabindex=${0}`, `min=${0}`, and a `$attrs` entry of `0` render as `"0"` (and `value=${0}` sets the element's value property). Text slots follow the same shape — `${0}` renders `0`, while `undefined`/`null`/`false` render as empty text.
 
@@ -228,9 +228,176 @@ export const SaveButton = component<{ busy?: boolean; label?: string }>(
 //   => <button aria-label="Save" disabled tabindex="0">Saved 0 times</button>
 ```
 
-### Simple components (pass-through)
+#### Element bindings
 
-`simple` is the pass-through counterpart to `component()`: it wraps a render function that composes _other_ components — no template, no component context of its own. Reach for it when a component's output is entirely another component's output: choosers, prop-mapping wrappers, convenience façades (core's own `Picture` is one — a `<picture>` component when `sources` is present, a bare `<img>` component when not).
+Real elements carry a small vocabulary of `$`-prefixed attributes that are loom's own — bindings the renderer resolves, not attributes the browser sees.
+
+A `$` attribute never reaches the DOM: it is consumed during the render, and its target is always _that_ element. Four forms exist. On a component tag, `$` means nothing and throws (see No `$` sigil on component tags, under Composing components).
+
+##### `$event`
+
+`$click=${handler}`, `$input=${handler}`, `$submit=${handler}` — any recognized event name attaches `handler` as a listener on the element.
+
+- The recognized set is the standard `GlobalEventHandlers` list (`click`, `input`, `change`, `keydown`, …). Extend it at boot with `globalConfig.events`, or at runtime with `appendEvents` (see Framework configuration).
+- One listener per `$event` per element: a re-render with a new handler replaces the previous listener rather than stacking a second.
+- A falsy value binds nothing; any other non-function value is skipped with a console warning.
+
+```ts
+import { activity, component } from '@loom-js/core';
+
+const query = activity('');
+
+export const SearchBox = component(
+    (html) => html`
+        <form $submit=${(event: Event) => event.preventDefault()}>
+            <input
+                $input=${(event: Event) =>
+                    query.update((event.target as HTMLInputElement).value)}
+                type="search"
+            />
+        </form>
+    `
+);
+```
+
+##### `$attrs`
+
+`$attrs=${object}` spreads an object of attribute name → value pairs onto the element.
+
+- Each entry applies with the same rule as a directly written attribute (Attribute & text values, above): truthy sets, falsy removes, `0` is a real value.
+- `className` maps to `class`; `style` accepts a string, an object of declarations, or an array of those.
+- An entry may itself be a `bind()` value, so one attribute inside the bag tracks an activity without re-rendering.
+- A non-object value is ignored with a console warning.
+
+```ts
+import { activity, component } from '@loom-js/core';
+
+const isBusy = activity(false);
+
+export const SaveButton = component(
+    (html) => html`
+        <button
+            $attrs=${{
+                'aria-busy': isBusy.bind((busy) => String(busy)),
+                'data-action': 'save',
+                tabindex: 0
+            }}
+            type="button"
+        >
+            Save
+        </button>
+    `
+);
+// => <button aria-busy="false" data-action="save" tabindex="0" type="button">Save</button>
+```
+
+##### `$on`
+
+`$on=${object}` attaches one listener per entry — event name → handler.
+
+- Only recognized event names bind; unrecognized names are skipped silently.
+- Each entry follows the same replace-not-stack rule as `$event`.
+- A non-object value is ignored with a console warning.
+
+```ts
+import { component } from '@loom-js/core';
+
+const log = (event: Event) => console.log(event.type);
+
+export const TrackedInput = component(
+    (html) => html`
+        <input $on=${{ blur: log, focus: log, input: log }} type="text" />
+    `
+);
+```
+
+##### `$props`
+
+`$props=${object}` hands a whole object of JS properties to a **registered custom element** — the multi-property form of the `$name=${value}` attribute Custom elements › Passing props from a consuming page documents.
+
+- Values arrive uncoerced: objects, arrays, and functions stay what they are.
+- On anything that isn't a registered custom element the value is ignored with a warning naming the element.
+
+```ts
+import { component } from '@loom-js/core';
+
+const chartProps = {
+    onSelect: (point: { x: number; y: number }) => console.log(point),
+    series: [3, 1, 4, 1, 5]
+};
+
+// <data-chart> is registered with defineElement elsewhere in the app.
+export const Report = component(
+    (html) => html`
+        <data-chart $props=${chartProps}></data-chart>
+    `
+);
+```
+
+The reserved props and the bindings pair up: a component forwards `attrs`, `on`, and `onClick` to its root element's `$attrs`, `$on`, and `$click`, and callers reach the element without the component naming every attribute or event:
+
+```ts
+import { activity, component } from '@loom-js/core';
+
+export const ToggleButton = component<{ label: string }>(
+    (html, { attrs, label, on, onClick }) => html`
+        <button $attrs=${attrs} $click=${onClick} $on=${on} type="button">
+            ${label}
+        </button>
+    `
+);
+
+const isBold = activity(false);
+const toggleBold = () => isBold.update(!isBold.value());
+const announce = (event: Event) => console.log(event.type);
+
+export const Toolbar = component(
+    (html) => html`
+        <${ToggleButton}
+            attrs=${{ 'aria-pressed': isBold.bind((bold) => String(bold)) }}
+            label="Bold"
+            on=${{ blur: announce, focus: announce }}
+            onClick=${toggleBold}
+        />
+    `
+);
+```
+
+**See also** — Built-in props (the `attrs`/`on`/`onClick` props these bindings receive); Attribute & text values; No `$` sigil on component tags (Composing components); Framework configuration (`appendEvents`); Custom elements › Passing props from a consuming page (the custom-element `$name` form); Client hydration › Semantics worth knowing (bindings are inert until the swap; `replayEvents`).
+
+### Functional components
+
+Not every component needs `component()`. A component is any function that returns a `ContextFunction` — the renderable value a `component()` call produces — so any function meeting that contract composes like the components core builds for you — callable in value positions, writable as a component tag. Two forms cover the ground: a plain function, and `simple`, its typed wrapper.
+
+#### Plain functions
+
+A plain function that returns another component's output is a component in its own right — no `component()` call, no template of its own:
+
+```ts
+import { component } from '@loom-js/core';
+
+import { Button } from './button';
+
+// Returns `Button`'s `ContextFunction`, so it *is* a component — call it,
+// or write it as a tag.
+export const SuperButton = ({ label }: { label: string }) =>
+    Button({ className: 'super-button', label });
+
+export const Toolbar = component(
+    (html) => html`
+        <div role="toolbar">
+            <${SuperButton} label="Save" />
+            ${SuperButton({ label: 'Cancel' })}
+        </div>
+    `
+);
+```
+
+What the plain form lacks is the framework's typing: nothing declares the reserved props (`key`, `className`, `ref`, …) on `SuperButton`, and a direct propless call passes nothing at all (`SuperButton()` sees `undefined`). `simple` adds exactly that.
+
+#### Simple components
+
+`simple` is the typed counterpart to the plain function above — a pass-through around a render function that composes _other_ components, with no template and no component context of its own. Reach for it when a component's output is entirely another component's output: choosers, prop-mapping wrappers, convenience façades (core's own `Picture` is one — a `<picture>` component when `sources` is present, a bare `<img>` component when not).
 
 **API** `simple<Props>(render)`
 
@@ -272,7 +439,7 @@ export const Toolbar = component(
 
 ### Using components
 
-A defined component is just a function: calling it with props returns a `ContextFunction`, and a `ContextFunction` renders wherever a template accepts a value. The same component composes in two interchangeable forms — as a call, or as markup.
+A defined component is just a function: calling it with props returns a `ContextFunction` (the contract Functional components spells out), and a `ContextFunction` renders wherever a template accepts a value. The same component composes in two interchangeable forms — as a call, or as markup.
 
 The call form, in a text slot:
 
@@ -356,7 +523,7 @@ const MenuButton = component(
 );
 ```
 
-Only component _tags_ earn that inference — a lone interpolated value at the top level still needs the `<>` prefix.
+Only component _tags_ earn that inference — a lone interpolated value at the top level still needs the `<>` prefix. The root forms — single element, explicit `<>`, inferred — are gathered under Fragments.
 
 When the tag sits inside a real element, no inference is needed — the call simply takes its place and the root is untouched:
 
@@ -378,6 +545,16 @@ const Menu = component(
 ```
 
 The two forms mix freely in one template and render identically. The compile step is cheap where it matters: templates with no component tags pass through byte-identical, and the transform runs once per template call site and is cached.
+
+#### Transform time
+
+That compile step has a name worth owning, because several rules hang off it. The **template transform** is the phase that rewrites component tags into their calls. It runs once per template call site — the first time that tagged template renders — before the native HTML parser sees the string, and its result is cached, so every later render of that site skips it (templates with no component tags pass through untouched). Anything the transform must know is fixed at that moment, and anything it can reject is rejected then:
+
+- Slot labels are read by the transform, before any JS value exists — so a label must be literal text in the template. An interpolated `slot=${name}` throws, and a `slot` key that only appears inside a spread object at render time is invisible to the transform, so it arrives as an ordinary prop, never as a label (Named slots, below).
+- On a component tag, `slot` is consumed at transform time and never reaches the component as a prop.
+- Malformed component syntax throws at transform time — the "first render" the Errors section describes is exactly this phase.
+
+Both phrases name the same moment. Rules stated from the transform's point of view say "transform time"; rules stated from the renderer's say "first render" — one phase, two vantage points.
 
 #### Markup vs. the functional form
 
@@ -421,7 +598,7 @@ const DocsCard = component(
 );
 ```
 
-The functional form is not a legacy mode — it is exactly the compiled call shown above. Fragment-rooted components travel the same way anywhere a value goes: interpolated or in a children array, the reconciler moves their nodes as one group.
+The functional form is not a legacy mode — it is exactly the compiled call shown above. Fragment-rooted components travel the same way anywhere a value goes: interpolated or in a children array, the reconciler moves their nodes as one group (see Fragments).
 
 **Props** come in four forms, and the prop name is always taken **verbatim** — `onClick` stays `onClick`, with no lowercasing (component tags never reach the native HTML parser):
 
@@ -474,7 +651,7 @@ const SpreadCard = component(
 );
 ```
 
-**No `$` sigil on component tags.** On a component tag, write `onClick=${fn}` — never `$onClick=${fn}`. The `$` sigil belongs to real elements, where it marks the renderer's own bindings — `$click`, `$attrs`, `$on`, `$props`. A component element needs no marker: every attribute is already a prop, so a `$`-prefixed prop there carries no meaning, and throws.
+**No `$` sigil on component tags.** On a component tag, write `onClick=${fn}` — never `$onClick=${fn}`. The `$` sigil belongs to real elements, where it marks the renderer's own bindings — `$click`, `$attrs`, `$on`, `$props` (see Element bindings, under Components). A component element needs no marker: every attribute is already a prop, so a `$`-prefixed prop there carries no meaning, and throws.
 
 ```ts
 // Component tag: every attribute is a prop — no sigil.
@@ -588,7 +765,7 @@ Card({
 });
 ```
 
-A named region arrives with no wrapper element: interpolating it drops the labeled nodes in place as bare siblings, and the region renders as its own unit — its nodes reconcile and move together, like any fragment. An absent region simply renders nothing. Multiple same-label siblings concatenate in source order.
+A named region arrives with no wrapper element: interpolating it drops the labeled nodes in place as bare siblings, and the region renders as its own unit — its nodes reconcile and move together, like any fragment (see Fragments). An absent region simply renders nothing. Multiple same-label siblings concatenate in source order.
 
 The label itself leaves different traces. A plain element keeps its `slot` attribute in the rendered DOM — inert, exactly as the platform leaves it on natively assigned nodes. On a component element, `slot` exists only to name the region its content belongs to — consumed at transform time, never reaching the component as a prop:
 
@@ -656,9 +833,9 @@ const TodoList = component(
 
 Keys are what make reordering cheap and safe: on an update, a keyed item's rendered nodes are _moved_, not rebuilt — node identity survives, so an item's input value, focus, or scroll position rides along with it. Without keys, a reorder re-renders items in place instead.
 
-Children of keyed items move with their parents automatically; no `key` is needed on inner component elements — and a keyed _fragment-rooted_ item moves as one group, every top-level node relocating together.
+Children of keyed items move with their parents automatically; no `key` is needed on inner component elements — and a keyed _fragment-rooted_ item moves as one group, every top-level node relocating together (the group rules live under Fragments: Keyed reconciliation).
 
-**Errors.** Malformed component syntax throws on the template's first render — naming the offending construct and quoting the surrounding template text — rather than falling through to the native parser and silently mis-rendering. This covers unclosed tags, unmatched `</>`, `$`-prefixed props, unquoted attribute values (`a=b`), interpolations inside quoted values (`a="x ${y}"` — use ``a=${`x ${y}`}`` instead), and `...` not immediately before an interpolation.
+**Errors.** Malformed component syntax throws on the template's first render (at transform time, above) — naming the offending construct and quoting the surrounding template text — rather than falling through to the native parser and silently mis-rendering. This covers unclosed tags, unmatched `</>`, `$`-prefixed props, unquoted attribute values (`a=b`), interpolations inside quoted values (`a="x ${y}"` — use ``a=${`x ${y}`}`` instead), and `...` not immediately before an interpolation.
 
 #### Template comments
 
@@ -802,6 +979,138 @@ const StatusLine = component(
 );
 ```
 
+### Fragments
+
+A fragment is a template with no single root: its top level is a list of nodes that loom renders, moves, and removes as one group. This section gathers the rules that orbit that idea — the `<>` token, when a template counts as fragment-rooted, what a fragment is as a value, and how keyed fragments reconcile. (Not the URL `#fragment` that Routing scrolls to, nor the HTML snippets `renderToStringSync` is right for.)
+
+#### The `<>` token
+
+A template normally wraps everything in one top-level element, and that element is the component's root. `<>` at the start of a template declares it fragment-rooted instead: everything after the token is top-level content, rendered as siblings directly into whatever parent the component lands in. `<>` is a prefix, not an element — there is no closing form, leading whitespace before it is fine, and it never reaches the DOM:
+
+```ts
+import { component } from '@loom-js/core';
+
+export const Pair = component<{ definition: string; term: string }>(
+    (html, { definition, term }) => html`
+        <>
+        <dt>${term}</dt>
+        <dd>${definition}</dd>
+    `
+);
+
+// Each Pair renders as two siblings — the <dl> is the only wrapper.
+export const Glossary = component(
+    (html) => html`
+        <dl>
+            <${Pair} term="activity" definition="loom's reactive primitive" />
+            <${Pair}
+                term="fragment"
+                definition="a template with no single root"
+            />
+        </dl>
+    `
+);
+```
+
+Reach for a fragment when the markup around the component owns the wrapper — table rows, list items, definition pairs, a run of siblings a CSS grid lays out directly.
+
+#### Root forms and inference
+
+A template's top level takes one of three shapes:
+
+- **A single element** — the default. One opening and closing pair wraps the whole template, and `node()` is that element.
+- **An explicit fragment** — the template starts with `<>`, as above.
+- **An inferred fragment** — the top level holds only component elements (and whitespace). With no real element left to root the template, the compiler prepends `<>` for you, so a component that renders just another component needs no wrapper and no token:
+
+```ts
+import { component } from '@loom-js/core';
+
+import { IconButton } from './icon-button';
+
+const toggleMenu = () => document.body.classList.toggle('menu-open');
+
+// Fragment-rooted by inference — compiles to `<>${IconButton({ … })}`.
+export const MenuButton = component(
+    (html) => html`
+        <${IconButton} icon="icon-menu" onClick=${toggleMenu} />
+    `
+);
+```
+
+Only component _tags_ earn the inference. A lone interpolated value at the top level — `` html`${Child()}` `` — is not recognized as a root and renders nothing; give it the `<>` prefix. The compile itself is Composing components' subject (Transform time); the root forms are the same whichever way you author.
+
+#### Fragments as values
+
+Where a single-rooted component has one node, a fragment-rooted one has a node list — and loom hands you the list wherever it would hand you the node. `node()` returns an array of the top-level nodes in DOM order, and every life-cycle handler receives that same array. It holds _every_ top-level node — the whitespace text nodes between your elements included — so filter for elements when elements are what you need:
+
+```ts
+import { component } from '@loom-js/core';
+
+export const Pair = component((html, { onMounted }) => {
+    onMounted((nodes) => {
+        // Whitespace text nodes ride along — filter when you need elements.
+        const elements = (nodes as Node[]).filter((n) => n instanceof Element);
+
+        console.log(elements.length); // => 2
+    });
+
+    return html`
+        <>
+        <dt>Term</dt>
+        <dd>Definition</dd>
+    `;
+});
+```
+
+As a rendered value, a fragment-rooted component travels exactly like any other: interpolated in a text slot, as an item of a children array, or inside a named slot region. The reconciler treats its nodes as one group — inserted together, moved together, removed together — so `${[Pair({ … }), Pair({ … })]}` behaves the same as two interpolations side by side. A group that resolves to no nodes at all keeps an invisible placeholder at its position, so it can fill in later without disturbing its siblings.
+
+#### Keyed reconciliation
+
+Keys give repeated items an identity (see The `key` prop, under Composing components); for a fragment-rooted item, that identity covers the whole group:
+
+```ts
+import { activity, component } from '@loom-js/core';
+
+// The fragment-rooted `Pair` from the first example, in its own module.
+import { Pair } from './pair';
+
+type Entry = { definition: string; id: string; term: string };
+
+const entries = activity<Entry[]>([]);
+
+export const Glossary = component(
+    (html) => html`
+        <dl>
+            ${entries.effect(({ value: items }) =>
+                items.map((item) =>
+                    Pair({
+                        definition: item.definition,
+                        key: item.id,
+                        term: item.term
+                    })
+                )
+            )}
+        </dl>
+    `
+);
+```
+
+On an update the reconciler applies the group rules:
+
+- **Reorder moves the group.** Every top-level node of a keyed fragment relocates together, in its original internal order, and each node keeps its identity — an input's value, focus, or scroll position rides along. The group is recognized by its first node, so a persistent instance reuses its live nodes instead of re-rendering.
+- **Removal removes the group.** Dropping an item — including truncation, when the new array is shorter — removes every node of that item's group, leaving no orphans.
+- **Order is exact.** An array mixing single elements, text values, and fragment groups renders its children in the array's order, with each group contiguous.
+- **A kind change replaces the rendering.** An item that was a fragment group and becomes a single element or text value (or the reverse) has its previous nodes fully removed before the new value renders at the same position.
+- **Empty groups hold their place.** An item resolving to zero nodes keeps its placeholder, so a later update that gives it content renders between the same siblings.
+
+Children of a keyed fragment need no keys of their own — they move with their parent.
+
+#### Named regions are fragments
+
+A named slot region arrives with no wrapper element: interpolating `slots.name` drops the labelled nodes in place as bare siblings, and the region reconciles as its own unit — a fragment in everything but name. The labelling rules live under Named slots (Composing components).
+
+**See also** — Components: Defining a component (the single-root rule and its exception), Built-in props (`node()` as a node array), the "Access the rendered component node" example (hook handlers on a fragment); Composing components: the inference paragraph, Markup vs. the functional form (fragments in value positions), The `key` prop, Named slots, No `$` sigil on component tags (why a fragment root can't take `$click`); core's `fragment-array-reconciliation` spec.
+
 ### Custom elements
 
 `component()` defines a component for use inside loom templates. It does **not** define a custom element. When you want a component to be consumable from a non-loom page as `<some-element>`, define it with `defineElement()` instead — it is `component()` plus registration, and returns the same callable `Component`.
@@ -857,6 +1166,8 @@ const SaveControls = component(
 ```
 
 Child nodes of the host element arrive as the `children` prop.
+
+This `$name` form is the custom-element side of the `$` sigil. On plain elements, `$` marks loom's own element bindings instead (see Element bindings, under Components) — and `$props=${object}` hands a custom element several properties at once.
 
 #### Light DOM vs. shadow DOM
 
@@ -982,6 +1293,21 @@ Async transforms can overlap — a second `update()` can dispatch before the fir
 
 In every mode a rejected run releases its turn, and superseded runs stay settlement-tracked — `settled()` (and so `renderToString` / `hydrate`) waits for them to actually settle, which is why wiring `signal` matters: an aborted fetch settles immediately instead of holding the swap open. One boundary to know: the gate covers only the run's own `update` — writes a transform makes to _other_ activities (a fan-out pipeline feeding siblings) are ordinary calls core cannot attribute to the run, so guard them the same way: check `signal.aborted` after each `await` before writing elsewhere.
 
+#### The settlement signal
+
+Every async transform run is _tracked_: the promise it returns registers with a per-window signal, and `settled()` — importable from core — resolves once nothing tracked is pending, confirmed by one macrotask of continued quiet, so chained work (a route page whose import then dispatches a fetch) is awaited to quiescence. That signal is what the framework's boot and render paths gate on:
+
+- `renderToString` waits on it before serializing, so route pages, lazy content, and activity data land in the markup (Server rendering).
+- `hydrate` waits on it before its single swap (Client hydration); `settled()` itself is the test await point (`settled`, under Client hydration).
+- The router's deferred hash scroll fires once it resolves (Routing › Hash / anchor navigation).
+- `lazyImport` and `createRoutes` page imports are activities with transforms, so they are tracked for free (Lazy imports).
+
+**The tracking boundary.** Only work that passes through a transform counts: the thenable a transform returns, and every `resource()` awaited inside one (Dehydrated state › `resource`). Async work outside that path — a raw `fetch` in a `watch` callback, a `setTimeout`, a promise created in a life-cycle hook — is invisible to the signal. On the client, hand it to `hydrate` via `ready`; on the server, move it into a transform. The gate also covers only the run's own `update`: writes a transform makes to _other_ activities after an `await` are ordinary calls, so guard them with `signal.aborted` (Transform concurrency, above).
+
+**Bounds.** Superseded and retired runs stay tracked until they actually settle — wiring `signal` into cancellable work is what lets an aborted fetch settle immediately. A run that never resolves is bounded per activity by the `timeout` option (below); the waiters are bounded by their own `maxWait` (`renderToString`, `hydrate`), whose expiry warning enumerates the labelled activities still pending (Diagnostics).
+
+**See also** — Transforms (the async-data path); Transform concurrency (`signal`, `timeout`); Lazy imports; Routing › Hash / anchor navigation; Server rendering › `renderToString` (`maxWait`); Client hydration › `settled` and Semantics worth knowing (`ready`); Dehydrated state › `resource`; Diagnostics (pending enumeration).
+
 #### Options (`ActivityOptions`)
 
 - `concurrency?: 'latest' | 'ordered' | 'serial'` - [Default: `'latest'`] Dispatch semantics for overlapping async transform runs — see Transform concurrency, above.
@@ -1087,6 +1413,21 @@ In the browser there is exactly one router for the lifetime of the page; on a se
 - `watchLocation(handler)` - The non-rendering watcher form of `locationEffect`; returns an unsubscriber.
 - `redirect(href)` - Programmatic replace-state navigation.
 - `RouteLink` - A pre-wired SPA anchor — see Element Components.
+- `routeProps` - The reserved prop page components receive: the matched route as a `RouteValue` — `params` (dynamic segments by name), `matchedRoute` (the pattern that matched), `pathname`, & `raw` (the `Location`). The same shape reaches `guard` & the `routeEffect` / `watchRoute` callbacks. See Built-in props.
+
+```ts
+// pages/docs.ts — the module `() => import('@app/pages/docs')` resolves;
+// its default export is the page component the router renders.
+import { component } from '@loom-js/core';
+
+export default component(
+    (html, { routeProps }) => html`
+        <article>
+            <h1>${routeProps?.params.slug}</h1>
+        </article>
+    `
+);
+```
 
 **Inclusion** `import { createRoutes, locationEffect, route } from '@loom-js/core';`
 
@@ -1116,7 +1457,7 @@ export const App = component(
 );
 ```
 
-Pages receive the matched route as `routeProps` (a `RouteValue`) — e.g. `/docs/:slug` exposes `routeProps.params.slug`.
+The page components those importers resolve receive the match as `routeProps` (above) — e.g. `/docs/:slug` exposes `routeProps.params.slug`.
 
 **Route guard.** A guarded-out navigation still moves the URL: `route()` pushes history before the match transform runs, so the guard suppresses content, not the address bar. An auth-style flow handles that by redirecting inside the guard — `redirect()` replace-states over the suppressed entry:
 
@@ -1376,7 +1717,7 @@ Serve `./dist` statically and every listed route is a real page. Two notes close
 
 **Semantics worth knowing**
 
-- `renderToString` gates on the same settlement signal `hydrate` does: framework-tracked async work ([async activity transforms](#transforms-the-async-data-path), route pages, lazy imports) serializes; async work outside a transform (a raw `fetch` in a `watch` callback, a `setTimeout`) is invisible to the signal & belongs to the client — boot it with `hydrate` (see Client hydration) to make the takeover invisible.
+- `renderToString` gates on [the settlement signal](#the-settlement-signal) (Activities): framework-tracked async work — activity transforms, route pages, lazy imports — serializes; async work outside a transform (a raw `fetch` in a `watch` callback, a `setTimeout`) is invisible to the signal & belongs to the client — boot it with `hydrate` (see Client hydration) to make the takeover invisible.
 - `onCreated`, `onBeforeRender` & `onRendered` fire as usual; `onMounted` & `onUnmounted` never fire on the server — they describe a live, observed browser document.
 - Custom elements need no server-side wiring: each injected window has its own `customElements` registry, so core replays every `defineElement` registration into it automatically — including registrations made at module scope, before any window existed.
 - Importing `@loom-js/core` off-browser is safe - browser-coupled state (router location, history listeners) initializes lazily on first use.
@@ -1394,7 +1735,7 @@ Serve `./dist` statically and every listed route is a real page. Two notes close
         - `ready?: Promise<unknown>` - Optional caller-owned gate: the swap awaits it alongside settlement. Use it for async work the framework cannot track (see the tracking boundary below).
         - `maxWait?: number` - Upper bound in ms (default `4000`) on how long the swap waits. On expiry the swap runs with whatever has rendered & a framework console warning names the still-pending count. `Infinity` disables the bound.
         - `replayEvents?: boolean | string[]` - Opt-in event replay for the settle window: `true` enables the default set (`click` & `submit`); an array names event types explicitly. Recorded interactions re-dispatch after the swap — see Pre-swap inertness below. Off by default.
-- `settled(): Promise<void>` - The signal `hydrate` gates on, importable directly: resolves once no framework-mediated async work is pending for the current DOM window, confirmed by one macrotask of continued quiet (so chained lazy work is awaited to quiescence). Useful as a test await point or anywhere "the app is done booting" matters.
+- `settled(): Promise<void>` - The signal `hydrate` gates on, importable directly: resolves once no framework-mediated async work is pending for the current DOM window, confirmed by one macrotask of continued quiet (so chained lazy work is awaited to quiescence). Useful as a test await point or anywhere "the app is done booting" matters. What counts as tracked — and what doesn't — is The settlement signal's subject, under Activities.
 
 **Quick Example**
 
@@ -1450,7 +1791,7 @@ The mechanism behind the invisibility is worth naming precisely. While the serve
 
 **Semantics worth knowing**
 
-- **The tracking boundary:** settlement counts every thenable returned by an [activity transform](#transforms-the-async-data-path) — lazy imports, `createRoutes` page imports, async data transforms. That's the idiomatic data path, & it's tracked end-to-end. Async work that never passes through a transform (a raw `fetch` inside a `watch` callback, a `setTimeout`) is invisible to the signal — hand it to `hydrate` via `ready`.
+- **The tracking boundary:** settlement counts only work that passes through an [activity transform](#the-settlement-signal) — the full rule lives under The settlement signal (Activities). Anything outside it (a raw `fetch` inside a `watch` callback, a `setTimeout`) is invisible to the swap's gate — hand it to `hydrate` via `ready`.
 - **Pre-swap inertness:** event listeners attach only to the app, rendering detached — the served DOM never gets any. Anchors still work regardless, because they're real `<a href>` elements: clicking one before the swap triggers an ordinary browser navigation (a full page load) to the target, so a user who clicks early still gets where they were going — just without client-side routing. Anything that needs a framework handler — a `$click` button, an intercepted form — does nothing until the swap; that gap lasts until settlement or at most `maxWait` (4s by default). **`replayEvents` closes that gap:** opt in & interactions of the chosen types (default `click` & `submit`) landing during the window are recorded — their native action cancelled — & re-dispatched in order to the structurally corresponding client nodes after the swap, so an early click or submit is honored instead of lost. Anchor clicks are exempt: native navigation stays untouched even with replay on. A recorded event whose target no longer resolves in the hydrated tree (e.g. after a `maxWait`-expired swap) is dropped with a console warning rather than mis-delivered. One caveat: replays are real constructed events dispatched with `isTrusted: false` — analytics or dedupe logic that keys on trusted events should expect them.
 - **Lifecycle timing matches real attachment:** `onCreated` & `onRendered` fire during the detached render exactly as under `init`; `onMounted` fires at the swap — the client tree's attachment (see The swap above); `onAppMounted` follows it.
 - **An empty root mounts immediately** (e.g. a dev server without pre-rendered markup): with nothing to preserve there's no reason to gate — the app renders progressively exactly as under `init`, so loading states paint while async work is pending.
@@ -1672,22 +2013,9 @@ export const Button = component<ButtonProps>(
         </button>
     `
 );
-
-/*
- * A component can be a plain function without using the framework `component` method,
- * and is considered as such so long as it returns a `ContextFunction`.
- * Since `Button` is created using the `component` method, it will return a `ContextFunction` when called.
- * Below, `SuperButton` will return the `ContextFunction` of the `Button` output when called - so we're good here.
- */
-export const SuperButton = ({ label }: { label: string }) =>
-    Button({
-        className: 'super-button',
-        label
-    });
-
-// `simple` wraps exactly this pattern, adding the component typing —
-// reserved props (`key`, `className`, …) and the propless-call rules.
 ```
+
+Wrapping `Button` in a plain function — pre-filling `className`, say — needs no `component()` call at all: see Functional components.
 
 **Access the rendered component node**
 
@@ -1717,10 +2045,13 @@ export const Button = component((html, { node }) => {
 import { component } from '@loom-js/core';
 
 // Life-cycle handlers receive the rendered node directly — no getter needed.
-// The `<>` prefix makes this fragment-rooted, so the handler gets an array.
+// The `<>` prefix makes this fragment-rooted, so the handler gets an array of
+// every top-level node — whitespace text nodes included (see Fragments).
 export const Pair = component((html, { onMounted }) => {
     onMounted((nodes) => {
-        console.log((nodes as Node[]).length); // => 2
+        const elements = (nodes as Node[]).filter((n) => n instanceof Element);
+
+        console.log(elements.length); // => 2
     });
 
     return html`

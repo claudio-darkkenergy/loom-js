@@ -36,7 +36,7 @@ The maintainer signed off this partition of the listing order into named concept
 (contiguous over the table order below; trailing utility topics join the final group):
 
 1. **Onboarding** — `getting-started`, `bootstrapping`, `configuration`
-2. **Templating** — `components`, `element-syntax`, `custom-elements`
+2. **Templating** — `components`, `element-syntax`, `fragments` (added 2026-09-26 by `docs-ia-discoverability`), `custom-elements`
 3. **Reactivity** — `activities`, `routing`, `lazy-imports` (shortened from "Reactivity & Routing", 2026-09-26)
 4. **Server-first** — `server-rendering`, `hydration`, `dehydrated-state`
 5. **Reference** — `diagnostics` (+ trailing: `feedback`, `build-tool` when it lands)
@@ -47,9 +47,25 @@ open, server markup included. A group is a `content` entry whose
 `content[]` links its topics (non-empty `content[]` is the group signal — a listed entry
 with links renders as a group, one with a body as a topic; an entry with both flags a review).
 
-## Deferred restructures (noted 2026-09-02, not in this change)
+## docs-ia-discoverability amendments (2026-09-26)
 
-Maintainer notes from draft review — now owned by the `docs-ia-discoverability` proposal (2026-09-02), which also carries the systematic sweep:
+Restructures applied by `docs-ia-discoverability` (sweep verdicts in that change's `sweep.md`; maintainer sign-off 2026-09-26). Each is recorded inline in the topic outlines below and summarized here:
+
+- **`fragments` topic** (5a below) — new concept topic in the Templating group after `element-syntax`; README gains the consolidated `### Fragments` section; eight vacating sites in Components / Element Syntax keep one-line pointers. The Components `Pair` example's `// => 2` annotation was wrong (hook handlers receive whitespace text nodes too) and now filters for elements — README + topic.
+- **Components › Functional components** (h2; h3 Plain functions, h3 Simple components) replaces the h2 Simple components.
+- **Components › Element bindings** (h2; h3s `$event`, `$attrs`, `$on`, `$props`) — new, after Attribute and text values; closes the coverage gap (sweep S1). README gains `#### Element bindings`. Pointers added from Element Syntax › No `$` sigil, Custom Elements › Passing props, Configuration › `appendEvents`; Built-in props' See also gains it.
+- **Element Syntax › Transform time** (h2) — new, after Composing in markup; Errors points at it (sweep S5). README gains `#### Transform time`.
+- **Activities › The settlement signal** (h2) — new, between Transform concurrency and Options; owns the concept + tracking boundary + bounds (sweep S4). README gains `#### The settlement signal`. Hydration › `settled` keeps the API entry and links up; the Hydration and Server Rendering "tracking boundary" bullets shrink to pointer + consequence.
+- **Activities › Component-scoped state** promoted h3 → h2 (out of Examples, before it) — sweep N3. README keeps it as the bold-led label inside Examples › Activity example (the map records the README-example → topic-h2 mapping).
+- **Activities › Options** gains the `label` bullet (parity, sweep P4).
+- **Routing › API › `routeProps`** (h3, after `RouteLink`) — the `RouteValue` shape in one place (sweep N2); README gains the matching bullet. Anchor `#route-props` (camelCase splits — sweep P6).
+- **Server Rendering › Choosing a DOM implementation** re-sourced from the README (Happy DOM verified; jsdom `window.location` note) — parity, sweep P5.
+- **Outline sync (sweep P3):** `hydration` h2 The swap, `server-rendering` h2 Choosing a DOM implementation, `diagnostics` h2s The line anatomy / Naming subjects with label recorded below.
+- **Cross-link registry** (anchors this change introduces or relies on): `/docs/components#element-bindings`, `#functional-components`, `#attribute-and-text-values`, `#built-in-props`, `#accessing-the-rendered-node` (h3); `/docs/element-syntax#transform-time`, `#composing-in-markup`, `#the-key-prop` (h3), `#no--sigil-on-component-tags` (h3), `#named-slots`, `#element-components`; `/docs/activities#the-settlement-signal`, `#transform-concurrency`, `#component-scoped-state` (h2 now); `/docs/routing#route-props` (h3), `#hash-and-anchor-navigation`; `/docs/server-rendering#render-to-string`, `#render-to-string-sync`; `/docs/hydration#settled`, `#settle-and-swap`, `#semantics-worth-knowing`; `/docs/dehydrated-state#resource` (h3); `/docs/diagnostics#naming-subjects-with-label`; `/docs/configuration#append-events`; `/docs/custom-elements#passing-props-from-a-consuming-page`. h3 anchors depend on `toc-sub-section-links` landing before this change's 4.2 (maintainer decision 2026-09-26). **See also sets** (D2b): Element bindings, The settlement signal, Fragments — each block's link list _is_ its registry entry; Built-in props' set gained Element bindings. **Redirect note:** anchor `/docs/components#simple-components` retired → `/docs/components#functional-components` (no inbound links existed in topics, README, or app). The `SuperButton` plain-function example moved out of Examples › Props and interpolation into Plain functions.
+
+## Deferred restructures (noted 2026-09-02 — resolved 2026-09-26 by `docs-ia-discoverability`)
+
+Maintainer notes from draft review — owned by the `docs-ia-discoverability` proposal (2026-09-02), which also carries the systematic sweep. Both items below landed; see the amendments section above:
 
 1. **"Functional components" topic or Components section** — gathers `simple` components and plain functional components (the `SuperButton` pattern) under one discoverable heading, instead of the pass-through living as a Components subsection and the plain-function contract living in an example comment.
 2. **"Fragments" topic or section** — the fragment material is currently spread across Components (root forms, `node()` arrays), Element Syntax (lone-tag inference, `<>` prefix, rootless values in children arrays), and slots; one home would carry the root rules, the `<>` token, reconciliation-as-a-group, and the interpolation nuance.
@@ -109,6 +125,7 @@ numbers refer to the pinned commit above.
 | 3   | `configuration`    | Configuration    |
 | 4   | `components`       | Components       |
 | 5   | `element-syntax`   | Element Syntax   |
+| 5a  | `fragments`        | Fragments        |
 | 6   | `custom-elements`  | Custom Elements  |
 | 7   | `activities`       | Activities       |
 | 8   | `routing`          | Routing          |
@@ -171,7 +188,8 @@ topic (noted per topic below).
     - h2 Life-cycle hooks — the five-hook table; server caveat for `onMounted`/`onUnmounted`.
     - h2 Built-in props — one prose entry per reserved prop (`children`, `slots`, `key`, `ref`, `attrs`, `on`, `onClick`, `className`/`id`/`style`, `routeProps`) and utility (`node()`, `createRef()`, `ctxRefs()`, `own()`); definitions here, owned depth pointed to (Element Syntax for authoring mechanics, Routing for `routeProps`, Activities for `own`). h3 Refs nested inside, `ref`-adjacent (placement per `document-component-refs` D1: after Life-cycle hooks, before Attribute and text values); closes with the See also block. Note: this section _is_ the prop-surface table's replacement — per-prop prose, no summary table (`document-component-refs` D2, added 2026-09-20).
     - h2 Attribute and text values — truthy/falsy application, the `0` exception.
-    - h2 Simple components — `simple()` pass-through, when to reach for it.
+    - h2 Element bindings — the `$` vocabulary on real elements: h3 `$event`, h3 `$attrs`, h3 `$on`, h3 `$props`; the reserved-prop forwarding example (`ToggleButton`); See also block (added 2026-09-26, sweep S1).
+    - h2 Functional components — the `ContextFunction` contract (any function returning one is a component); h3 Plain functions (the `SuperButton` example, moved here from Examples › Props and interpolation); h3 Simple components — `simple()`, when to reach for it (restructured 2026-09-26 by `docs-ia-discoverability` D1; replaces the former h2 Simple components).
     - h2 Using components — both forms shown (call + markup) plus calls as plain values; renders in any value slot (added at draft review 2026-09-01).
     - h2 Examples — h3 Basic example; h3 Props and interpolation; h3 Accessing the rendered node; h3 Life cycles.
 - **Code samples:** Button quick example (148–160), `simple` Button (178–187), basic example (renamed from "Simple example" at draft review, to avoid clashing with the `simple` API)
@@ -187,6 +205,7 @@ topic (noted per topic below).
   (265–282).
 - **Outline:**
     - h2 Composing in markup — sugar-over-functional-form framing, both compiled forms shown.
+    - h2 Transform time — the template transform as a named phase: once per call site on first render, before the native parser, cached; what resolves/throws then (added 2026-09-26, sweep S5).
     - h2 Markup vs. the functional form — primary authoring surface; value positions with examples
       (split out at draft review 2026-09-02 to deliver the hand-off's promise by name).
     - h2 Props — the four forms (table); h3 Spread props; h3 No `$` sigil on component tags.
@@ -196,7 +215,7 @@ topic (noted per topic below).
     - h3 The `key` prop (under Props; moved + expanded at draft review 2026-09-04) — keyed
       `.map` example, move-not-rebuild identity, fragment groups; deep reconciliation
       mechanics deferred to the future fragments topic.
-    - h2 Errors — first-render throws for malformed syntax.
+    - h2 Errors — first-render throws for malformed syntax (points at Transform time).
     - h2 Template comments — HTML comments vs. the `${'' /* … */}` no-trace idiom
       (added at draft review 2026-09-05).
     - h2 Element components — h3 `RouteLink`; h3 `Svg`; h3 `Picture`; h3 `el(tagName)`.
@@ -205,6 +224,24 @@ topic (noted per topic below).
 - **Tables:** prop forms (209–215).
 - **Cross-links:** `components` (functional form), `routing` (`RouteLink` behavior),
   `custom-elements` (`$`-prefix keeps its element-only meaning).
+
+### 5a. `fragments` — Fragments
+
+Added 2026-09-26 by `docs-ia-discoverability` (D2) — the first deliberate exception to one-section-per-topic: a concept topic justified by discoverability, **sourced from multiple README passages** and consolidated into the README's own `### Fragments` section (placed between Element components and Custom elements, so parity still reads section ↔ topic).
+
+- **Source (many-to-one):** README `### Fragments` (the consolidated section, added in the same change), gathered from — Components ¶3 (single-root rule + fragment exception + top-level-interpolation rule); Components › Built-in props › `node()` ("node group"); Examples › Components › "Access the rendered component node" (`Pair`, hook handlers receive an array); Composing components ¶3–4 (component-tags-only inference, `<>` prefix, lone-value rule); Markup vs. the functional form last ¶ (fragments travel as one group); The `key` prop last ¶ (keyed fragment-rooted item moves as a group); Named slots ¶ (a region renders as its own unit, like any fragment); No `$` sigil ¶ ("a fragment root has none"). Reconciliation rules from core's `fragment-array-reconciliation` spec (archived 2026-08-18). Each vacating site keeps its local rule plus a one-line pointer into the topic.
+- **Outline:**
+    - Lead — the concept; disambiguates the URL `#fragment` (Routing) and HTML-snippet (`renderToStringSync`) senses.
+    - h2 The `<>` token — prefix, no closing form, leading whitespace allowed, never reaches the DOM; `Pair`/`Glossary` example; when to reach for a fragment.
+    - h2 Root forms and inference — single element / explicit `<>` / inferred (component-tags-only); lone top-level interpolation renders nothing without `<>`.
+    - h2 Fragments as values — `node()` and hook handlers receive the top-level node array (whitespace text nodes included — verified 2026-09-26 under jsdom + linkedom; the former `// => 2` annotation in Components was corrected to filter for elements); travel as one group in text slots, children arrays, slot regions; empty-group placeholder.
+    - h2 Keyed reconciliation — keyed `.map` of `Pair`s; the five group rules (reorder, removal/truncation, exact order, kind change, empty groups); children of keyed fragments need no keys.
+    - h2 Named regions are fragments — pointer to Named slots.
+    - See also block (D2b) — the eight sites above.
+    - Closing hand-off → `custom-elements`.
+- **Code samples:** `Pair` + `Glossary` (`<>` token), `MenuButton` (inferred), `Pair` with `onMounted` element filter, keyed `Glossary` over an `entries` activity.
+- **Cross-links:** `components` (Defining a component, Built-in props, Examples), `element-syntax` (Composing in markup, Markup vs. the functional form, The `key` prop, Named slots, No `$` sigil, Transform time), `routing` (hash navigation — homonym), `server-rendering` (`renderToStringSync` — homonym), `custom-elements` (hand-off).
+- **Listing:** joins the Templating group between `element-syntax` and `custom-elements`; `TopicPagination` follows.
 
 ### 6. `custom-elements` — Custom Elements
 
@@ -234,13 +271,13 @@ topic (noted per topic below).
     - h2 Transform concurrency — `'latest'` / `'ordered'` / `'serial'` dispatch semantics with
       the when-to-use guide (added 2026-09-09 by `activity-transform-concurrency`; README gains
       the matching subsection).
+    - h2 The settlement signal — what is tracked, who gates on it, the tracking boundary, bounds (`timeout`, `maxWait`); See also block (added 2026-09-26, sweep S4).
     - h2 Options — `deep`, `force`, `transform`; `concurrency` + `timeout` added 2026-09-09 by
-      `activity-transform-concurrency`.
+      `activity-transform-concurrency`; `label` added to the topic 2026-09-26 (parity with the README).
     - h2 The returned interface — `initialValue`; h3 `effect`; h3 `bind`; h3 `reset`;
       h3 `update`; h3 `value`; h3 `watch`.
-    - h2 Examples — h3 Attribute binding; h3 Counter (quick example + effect example);
-      h3 Component-scoped state (local activity + the parent-re-render boundary, added
-      at draft review 2026-09-07).
+    - h2 Component-scoped state — local activity + the parent-re-render boundary + `own` (added at draft review 2026-09-07 as an Examples h3; promoted to h2 2026-09-26, sweep N3 — README keeps it under Examples › Activity example).
+    - h2 Examples — h3 Attribute binding; h3 Counter (quick example + effect example).
 - **Code samples:** transform example (399–411), attribute binding (451–465), quick example
   (469–480), activity effect example (945–981).
 - **Cross-links:** `components` (effects in templates), `server-rendering` / `hydration` /
@@ -252,7 +289,7 @@ topic (noted per topic below).
 - **Outline:**
     - h2 The two-layer pipeline — location layer, route layer; one router per window.
     - h2 API — h3 `createRoutes` (`config`, `fallback`, `guard`); h3 `route`; h3 `routeEffect` /
-      `watchRoute`; h3 `locationEffect` / `watchLocation`; h3 `redirect`; h3 `RouteLink`.
+      `watchRoute`; h3 `locationEffect` / `watchLocation`; h3 `redirect`; h3 `RouteLink`; h3 `routeProps` (the `RouteValue` shape — added 2026-09-26, sweep N2; anchor `#route-props`).
     - h2 Route guard — URL-moves-anyway semantics, auth redirect pattern, caller-owned loop
       avoidance.
     - h2 Hash and anchor navigation — same-page / cross-page / initial-load, single-attempt
@@ -283,6 +320,7 @@ topic (noted per topic below).
       globals.
     - h2 `renderToString` — options (`window`, `url`, `maxWait`), settlement gating.
     - h2 `renderToStringSync` — the synchronous primitive and when it's right.
+    - h2 Choosing a DOM implementation — linkedom recommended; jsdom verified (+ `window.location` note); Happy DOM verified (`server-dom-compat`); one implementation per process no longer a constraint (outline synced 2026-09-26; topic re-sourced from the README).
     - h2 Semantics worth knowing — tracking boundary, lifecycle hooks off-browser, custom
       elements per window, safe off-browser import, separate server entry.
     - h2 Prerendering (SSG) — the complete enumerate/loop/emit build script (router-driven;
@@ -299,7 +337,8 @@ topic (noted per topic below).
 - **Outline:**
     - h2 Settle-and-swap — contrast with `init`, the single atomic swap, no flashes.
     - h2 `hydrate` — props (`ready`, `maxWait`, the rest as `init`).
-    - h2 `settled` — the exported signal, test await point.
+    - h2 `settled` — the exported signal, test await point; links up to Activities › The settlement signal (2026-09-26).
+    - h2 The swap — the detached render + single synchronous replace; three consequences (added by `hydration-event-replay`; outline synced 2026-09-26).
     - h2 Semantics worth knowing — tracking boundary, pre-swap inertness, lifecycle timing,
       empty-root degradation, tree-shaking, skip-the-refetch pointer.
 - **Code samples:** quick example (700–710).
@@ -327,6 +366,8 @@ topic (noted per topic below).
 - **Source:** Diagnostics (README 783–795).
 - **Outline:**
     - h2 Two lanes — always-on warnings/errors vs. opt-in debug narration.
+    - h2 The line anatomy — badge / scope / subject / event / detail; remedy clause on warnings (added by `diagnostics-output-quality`; outline synced 2026-09-26).
+    - h2 Naming subjects with label — the activity `label` option in diagnostics; pending enumeration (same; anchor target for Activities › Options and The settlement signal).
     - h2 `setDebug` and scopes — `activity`, `creation`, `mutations`, `updates`; boot-time
       equivalents.
     - h2 Semantics worth knowing — real console attribution, gate-read-at-access (don't cache
@@ -342,7 +383,7 @@ Every consumer-facing README section has a home: intro/highlights/install/inclus
 bootstrapping → 2; framework configuration → 3; components + simple components → 4; composing
 components + element components → 5; custom elements → 6; activities → 7; routing → 8; lazy
 imports → 9; server rendering → 10; client hydration → 11; dehydrated state → 12;
-diagnostics → 13. Examples: app initialization → 2 + 10; components (all four) → 4; activity →
+diagnostics → 13; fragments (the consolidated README section, added 2026-09-26) → 5a. Examples: app initialization → 2 + 10; components (all four) → 4; activity →
 7; routing → 8. The Recognition section is repo credits, not consumer docs — no topic.
 
 ## Open points for map review (task 1.3)

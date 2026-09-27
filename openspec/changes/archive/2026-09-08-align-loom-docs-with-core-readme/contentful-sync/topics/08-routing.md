@@ -55,6 +55,31 @@ In the browser there is exactly one router for the lifetime of the page; on a se
 
 A pre-wired SPA anchor — see [Element components](/docs/element-syntax#element-components).
 
+### `routeProps`
+
+Page components — the modules `createRoutes` imports — receive the matched route as the reserved `routeProps` prop, a `RouteValue`:
+
+- `params` — the dynamic segments, by name: `/docs/:slug` gives `routeProps.params.slug`.
+- `matchedRoute` — the route pattern that matched, as written in `config`.
+- `pathname` — the matched pathname.
+- `raw` — the `Location` the match was computed from.
+
+The same shape reaches `guard` and the `routeEffect` / `watchRoute` callbacks. `routeProps` is one of the framework's reserved props — see [Built-in props](/docs/components#built-in-props).
+
+```ts
+// pages/docs.ts — the module `() => import('@app/pages/docs')` resolves;
+// its default export is the page component the router renders.
+import { component } from '@loom-js/core';
+
+export default component(
+    (html, { routeProps }) => html`
+        <article>
+            <h1>${routeProps?.params.slug}</h1>
+        </article>
+    `
+);
+```
+
 **Quick Example**
 
 ```ts
@@ -81,7 +106,7 @@ export const App = component(
 );
 ```
 
-Pages receive the matched route as `routeProps` (a `RouteValue`) — e.g. `/docs/:slug` exposes `routeProps.params.slug`.
+The page components those importers resolve receive the match as [`routeProps`](/docs/routing#route-props) — e.g. `/docs/:slug` exposes `routeProps.params.slug`.
 
 ## Route guard
 

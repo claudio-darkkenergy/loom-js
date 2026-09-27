@@ -2,7 +2,7 @@
 slug: components
 title: Components
 ---
-Components are loom's unit of UI: a render function around a tagged template, registered with `component`. This topic covers defining components, the template function and its props, the life-cycle hooks, how interpolated values apply, and the pass-through `simple` form.
+Components are loom's unit of UI: a render function around a tagged template, registered with `component`. This topic covers defining components, the template function and its props, the life-cycle hooks, how interpolated values apply, and the functional forms — plain functions and `simple`.
 
 ## Defining a component
 
@@ -10,7 +10,7 @@ A component uses a "tagged template" (w/ [template literal](https://developer.mo
 
 Use `component` to register a template render function. It takes a render function as its argument, passing Loom's template renderer to the render function along with some props, and a getter for the component's rendered node. A template context is bound to the renderer to achieve optimal rerenders.
 
-When using `component`, the tagged template's template string typically contains a single top-level element (one opening & closing tag pair wrapping the whole template). Fragment-rooted templates — starting with `<>`, or whose top level is only component elements — are the exception (see [Element Syntax](/docs/element-syntax)). An interpolated value at the top level doesn't qualify — give it the `<>` prefix.
+When using `component`, the tagged template's template string typically contains a single top-level element (one opening & closing tag pair wrapping the whole template). Fragment-rooted templates — starting with `<>`, or whose top level is only component elements — are the exception (see [Fragments](/docs/fragments)). An interpolated value at the top level doesn't qualify — give it the `<>` prefix.
 
 **API** `component<Props>(templateFunction)`
 
@@ -71,11 +71,11 @@ Beside the caller's own props, every render function receives a built-in surface
 - `on` — a bag of event name → listener pairs; forward it to the root element's `$on` binding (`$on=${on}`).
 - `onClick` — the single-listener click convention; forward it to the root element's `$click` binding (`$click=${onClick}`).
 - `className`, `id`, `style` — root-element identity & styling; forward them onto the root (`class=${className}`, `id=${id}`, `style=${style}`). `style` accepts a string, an object of declarations, or an array of those; a style value that resolves to nothing should be omitted rather than passed empty.
-- `routeProps` — the matched route (a `RouteValue`: `params`, `matchedRoute`, `pathname`, the raw `Location`) that the router passes to page components; see [Routing](/docs/routing).
+- `routeProps` — the matched route (a `RouteValue`: `params`, `matchedRoute`, `pathname`, the raw `Location`) that the router passes to page components; see [Routing › `routeProps`](/docs/routing#route-props).
 
 **Utilities**
 
-- `node()` — the component's rendered root node (or node group, for fragment-rooted templates). Meaningful from `onCreated` time onward; see the life-cycle table above for when handlers receive it.
+- `node()` — the component's rendered root node (or, for a fragment-rooted template, the array of its top-level nodes — see [Fragments](/docs/fragments#fragments-as-values)). Meaningful from `onCreated` time onward; see the life-cycle table above for when handlers receive it.
 - `createRef()` — mints a `RefContext` for reaching a child component's node & hooks; see Refs below.
 - `ctxRefs()` — an iterator over every `RefContext` this component has minted, in creation order.
 - `own(create)` — instance-memoized values: the first render invokes `create` & caches the result per instance; every re-render returns the cached value, so locally created state survives parent-triggered re-renders. Depth under [Component-scoped state](/docs/activities#component-scoped-state).
@@ -107,7 +107,7 @@ export const Form = component((html, { createRef }) => {
 
 Reach for a ref when the parent needs a child's rendered node (focus, measurement, wiring a third-party library to it) or its life-cycle timing; reach for your own `node()` when the node you need is your own root. `ctxRefs()` complements `createRef()` on the minting side: it iterates every ref the component has created, in creation order — useful when a render loop mints one ref per item.
 
-**See also** — [Children](/docs/element-syntax#children), [Named slots](/docs/element-syntax#named-slots), [The `key` prop](/docs/element-syntax#the-key-prop) & [the `$`-sigil rule](/docs/element-syntax#no--sigil-on-component-tags) (component tags take props verbatim); Attribute and text values, below (how forwarded values apply to real elements); [Routing](/docs/routing) (`routeProps`); [Component-scoped state](/docs/activities#component-scoped-state) (`own`).
+**See also** — [Children](/docs/element-syntax#children), [Named slots](/docs/element-syntax#named-slots), [The `key` prop](/docs/element-syntax#the-key-prop) & [the `$`-sigil rule](/docs/element-syntax#no--sigil-on-component-tags) (component tags take props verbatim); [Attribute and text values](/docs/components#attribute-and-text-values) (how forwarded values apply to real elements) and [Element bindings](/docs/components#element-bindings) (where forwarded `attrs`/`on`/`onClick` land); [Routing](/docs/routing) (`routeProps`); [Component-scoped state](/docs/activities#component-scoped-state) (`own`).
 
 ## Attribute and text values
 
@@ -152,9 +152,176 @@ export const Counter = component(
 );
 ```
 
-## Simple components
+## Element bindings
 
-`simple` is the pass-through counterpart to `component()`: it wraps a render function that composes _other_ components — no template, no component context of its own. Reach for it when a component's output is entirely another component's output: choosers, prop-mapping wrappers, convenience façades (core's own `Picture` is one — a `<picture>` component when `sources` is present, a bare `<img>` component when not).
+Real elements carry a small vocabulary of `$`-prefixed attributes that are loom's own — bindings the renderer resolves, not attributes the browser sees.
+
+A `$` attribute never reaches the DOM: it is consumed during the render, and its target is always _that_ element. Four forms exist. On a component tag, `$` means nothing and throws (see [No `$` sigil on component tags](/docs/element-syntax#no--sigil-on-component-tags)).
+
+### `$event`
+
+`$click=${handler}`, `$input=${handler}`, `$submit=${handler}` — any recognized event name attaches `handler` as a listener on the element.
+
+- The recognized set is the standard `GlobalEventHandlers` list (`click`, `input`, `change`, `keydown`, …). Extend it at boot with `globalConfig.events`, or at runtime with `appendEvents` (see [Configuration](/docs/configuration#append-events)).
+- One listener per `$event` per element: a re-render with a new handler replaces the previous listener rather than stacking a second.
+- A falsy value binds nothing; any other non-function value is skipped with a console warning.
+
+```ts
+import { activity, component } from '@loom-js/core';
+
+const query = activity('');
+
+export const SearchBox = component(
+    (html) => html`
+        <form $submit=${(event: Event) => event.preventDefault()}>
+            <input
+                $input=${(event: Event) =>
+                    query.update((event.target as HTMLInputElement).value)}
+                type="search"
+            />
+        </form>
+    `
+);
+```
+
+### `$attrs`
+
+`$attrs=${object}` spreads an object of attribute name → value pairs onto the element.
+
+- Each entry applies with the same rule as a directly written attribute ([Attribute and text values](/docs/components#attribute-and-text-values), above): truthy sets, falsy removes, `0` is a real value.
+- `className` maps to `class`; `style` accepts a string, an object of declarations, or an array of those.
+- An entry may itself be a `bind()` value, so one attribute inside the bag tracks an activity without re-rendering.
+- A non-object value is ignored with a console warning.
+
+```ts
+import { activity, component } from '@loom-js/core';
+
+const isBusy = activity(false);
+
+export const SaveButton = component(
+    (html) => html`
+        <button
+            $attrs=${{
+                'aria-busy': isBusy.bind((busy) => String(busy)),
+                'data-action': 'save',
+                tabindex: 0
+            }}
+            type="button"
+        >
+            Save
+        </button>
+    `
+);
+// => <button aria-busy="false" data-action="save" tabindex="0" type="button">Save</button>
+```
+
+### `$on`
+
+`$on=${object}` attaches one listener per entry — event name → handler.
+
+- Only recognized event names bind; unrecognized names are skipped silently.
+- Each entry follows the same replace-not-stack rule as `$event`.
+- A non-object value is ignored with a console warning.
+
+```ts
+import { component } from '@loom-js/core';
+
+const log = (event: Event) => console.log(event.type);
+
+export const TrackedInput = component(
+    (html) => html`
+        <input $on=${{ blur: log, focus: log, input: log }} type="text" />
+    `
+);
+```
+
+### `$props`
+
+`$props=${object}` hands a whole object of JS properties to a **registered custom element** — the multi-property form of the `$name=${value}` attribute [Custom Elements](/docs/custom-elements#passing-props-from-a-consuming-page) documents.
+
+- Values arrive uncoerced: objects, arrays, and functions stay what they are.
+- On anything that isn't a registered custom element the value is ignored with a warning naming the element.
+
+```ts
+import { component } from '@loom-js/core';
+
+const chartProps = {
+    onSelect: (point: { x: number; y: number }) => console.log(point),
+    series: [3, 1, 4, 1, 5]
+};
+
+// <data-chart> is registered with defineElement elsewhere in the app.
+export const Report = component(
+    (html) => html`
+        <data-chart $props=${chartProps}></data-chart>
+    `
+);
+```
+
+The reserved props and the bindings pair up: a component forwards `attrs`, `on`, and `onClick` to its root element's `$attrs`, `$on`, and `$click`, and callers reach the element without the component naming every attribute or event:
+
+```ts
+import { activity, component } from '@loom-js/core';
+
+export const ToggleButton = component<{ label: string }>(
+    (html, { attrs, label, on, onClick }) => html`
+        <button $attrs=${attrs} $click=${onClick} $on=${on} type="button">
+            ${label}
+        </button>
+    `
+);
+
+const isBold = activity(false);
+const toggleBold = () => isBold.update(!isBold.value());
+const announce = (event: Event) => console.log(event.type);
+
+export const Toolbar = component(
+    (html) => html`
+        <${ToggleButton}
+            attrs=${{ 'aria-pressed': isBold.bind((bold) => String(bold)) }}
+            label="Bold"
+            on=${{ blur: announce, focus: announce }}
+            onClick=${toggleBold}
+        />
+    `
+);
+```
+
+**See also** — [Built-in props](/docs/components#built-in-props) (the `attrs`/`on`/`onClick` props these bindings receive) · [Attribute and text values](/docs/components#attribute-and-text-values) · [No `$` sigil on component tags](/docs/element-syntax#no--sigil-on-component-tags) · [Configuration › `appendEvents`](/docs/configuration#append-events) · [Custom Elements › Passing props from a consuming page](/docs/custom-elements#passing-props-from-a-consuming-page) (the custom-element `$name` form) · [Client Hydration › Semantics worth knowing](/docs/hydration#semantics-worth-knowing) (bindings are inert until the swap; `replayEvents`).
+
+## Functional components
+
+Not every component needs `component()`. A component is any function that returns a `ContextFunction` — the renderable value a `component()` call produces — so any function meeting that contract composes like the components core builds for you — callable in value positions, writable as a component tag. Two forms cover the ground: a plain function, and `simple`, its typed wrapper.
+
+### Plain functions
+
+A plain function that returns another component's output is a component in its own right — no `component()` call, no template of its own:
+
+```ts
+import { component } from '@loom-js/core';
+
+import { Button } from './button';
+
+// Returns `Button`'s `ContextFunction`, so it *is* a component — call it,
+// or write it as a tag.
+export const SuperButton = ({ label }: { label: string }) =>
+    Button({ className: 'super-button', label });
+
+export const Toolbar = component(
+    (html) => html`
+        <div role="toolbar">
+            <${SuperButton} label="Save" />
+            ${SuperButton({ label: 'Cancel' })}
+        </div>
+    `
+);
+```
+
+What the plain form lacks is the framework's typing: nothing declares the reserved props (`key`, `className`, `ref`, …) on `SuperButton`, and a direct propless call passes nothing at all (`SuperButton()` sees `undefined`). `simple` adds exactly that.
+
+### Simple components
+
+`simple` is the typed counterpart to the plain function above — a pass-through around a render function that composes _other_ components, with no template and no component context of its own. Reach for it when a component's output is entirely another component's output: choosers, prop-mapping wrappers, convenience façades (core's own `Picture` is one — a `<picture>` component when `sources` is present, a bare `<img>` component when not).
 
 **API** `simple<Props>(render)`
 
@@ -196,7 +363,7 @@ export const Toolbar = component(
 
 ## Using components
 
-A defined component is just a function: calling it with props returns a `ContextFunction`, and a `ContextFunction` renders wherever a template accepts a value. The same component composes in two interchangeable forms — as a call, or as markup.
+A defined component is just a function: calling it with props returns a `ContextFunction` (the contract [Functional components](/docs/components#functional-components) spells out), and a `ContextFunction` renders wherever a template accepts a value. The same component composes in two interchangeable forms — as a call, or as markup.
 
 The call form, in a text slot:
 
@@ -282,22 +449,9 @@ export const Button = component<ButtonProps>(
         </button>
     `
 );
-
-/*
- * A component can be a plain function without using the framework `component` method,
- * and is considered as such so long as it returns a `ContextFunction`.
- * Since `Button` is created using the `component` method, it will return a `ContextFunction` when called.
- * Below, `SuperButton` will return the `ContextFunction` of the `Button` output when called - so we're good here.
- */
-export const SuperButton = ({ label }: { label: string }) =>
-    Button({
-        className: 'super-button',
-        label
-    });
-
-// `simple` wraps exactly this pattern, adding the component typing —
-// reserved props (`key`, `className`, …) and the propless-call rules.
 ```
+
+Wrapping `Button` in a plain function — pre-filling `className`, say — needs no `component()` call at all: see [Functional components](/docs/components#functional-components).
 
 ### Accessing the rendered node
 
@@ -321,16 +475,19 @@ export const Button = component((html, { node }) => {
 });
 ```
 
-`node()` is the pull-based path — for access at life-cycle moments, the hooks hand their handler the rendered node directly. A fragment-rooted template has no single node, so the handler receives the top-level nodes as an array, in DOM order:
+`node()` is the pull-based path — for access at life-cycle moments, the hooks hand their handler the rendered node directly. A fragment-rooted template has no single node, so the handler receives the top-level nodes as an array, in DOM order (whitespace text nodes included — see [Fragments](/docs/fragments#fragments-as-values)):
 
 ```ts
 import { component } from '@loom-js/core';
 
 // Life-cycle handlers receive the rendered node directly — no getter needed.
-// The `<>` prefix makes this fragment-rooted, so the handler gets an array.
+// The `<>` prefix makes this fragment-rooted, so the handler gets an array of
+// every top-level node — whitespace text nodes included.
 export const Pair = component((html, { onMounted }) => {
     onMounted((nodes) => {
-        console.log((nodes as Node[]).length); // => 2
+        const elements = (nodes as Node[]).filter((n) => n instanceof Element);
+
+        console.log(elements.length); // => 2
     });
 
     return html`

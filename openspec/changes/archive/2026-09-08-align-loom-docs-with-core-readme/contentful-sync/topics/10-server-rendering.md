@@ -85,7 +85,7 @@ That's the go-to path — settlement-gated, so async content serializes in place
 
 ## Choosing a DOM implementation
 
-Any window-shaped DOM implementation can back a server render — loom touches only standard surface (document parsing, `importNode`, tree walking, per-window `customElements`). **linkedom stays the recommendation**: small, fast, and purpose-built for exactly this. [jsdom](https://github.com/jsdom/jsdom) is also verified — heavier, but the most spec-complete, and a natural fit when your server tests already run on it:
+Any window-shaped DOM implementation can back a server render — loom touches only standard surface (document parsing, `importNode`, tree walking, per-window `customElements`), templates parse per document, and the server test suite continuously verifies [linkedom](https://github.com/WebReflection/linkedom), [jsdom](https://github.com/jsdom/jsdom), and [Happy DOM](https://github.com/capricorn86/happy-dom) — including any mix of them in one process. **linkedom stays the recommendation**: small, fast, and purpose-built for exactly this. jsdom is heavier but the most spec-complete, and a natural fit when your server tests already run on it:
 
 ```ts
 import { JSDOM } from 'jsdom';
@@ -99,14 +99,11 @@ export const handleRequest = async (request: Request) => {
 };
 ```
 
-Two honest boundaries:
-
-- [Happy DOM](https://github.com/capricorn86/happy-dom) does not work today — its strict attribute validation trips a known loom bug (tracked; support is planned).
-- Pick **one implementation per process**: parsed templates cache against the first render's document, so mixing implementations in a single process hands one library's nodes to another's APIs.
+One honest boundary: jsdom's `window.location` is spec-unforgeable, so the `url` render option cannot replace it. Loom's own routing (`createRoutes`, `locationEffect`, `watchRoute`) resolves the `url`-derived location regardless — but anything in the render path that bypasses loom and reads `window.location` itself (a third-party script, a canonical-URL or absolute-link helper) sees jsdom's default `about:blank` and builds wrong URLs. If your render path has code like that, construct the window at the request URL instead: `new JSDOM(html, { url: request.url })`.
 
 ## Semantics worth knowing
 
-- `renderToString` gates on the same settlement signal `hydrate` does: framework-tracked async work ([async activity transforms](/docs/activities#transforms-the-async-data-path), route pages, lazy imports) serializes; async work outside a transform (a raw `fetch` in a `watch` callback, a `setTimeout`) is invisible to the signal & belongs to the client — boot it with `hydrate` (see [Client Hydration](/docs/hydration)) to make the takeover invisible.
+- `renderToString` gates on [the settlement signal](/docs/activities#the-settlement-signal): framework-tracked async work — activity transforms, route pages, lazy imports — serializes; async work outside a transform (a raw `fetch` in a `watch` callback, a `setTimeout`) is invisible to the signal & belongs to the client — boot it with `hydrate` (see [Client Hydration](/docs/hydration)) to make the takeover invisible.
 - `onCreated`, `onBeforeRender` & `onRendered` fire as usual; `onMounted` & `onUnmounted` never fire on the server — they describe a live, observed browser document (see [Components](/docs/components)).
 - Custom elements need no server-side wiring: each injected window has its own `customElements` registry, so core replays every `defineElement` registration into it automatically — including registrations made at module scope, before any window existed.
 - Importing `@loom-js/core` off-browser is safe - browser-coupled state (router location, history listeners) initializes lazily on first use.

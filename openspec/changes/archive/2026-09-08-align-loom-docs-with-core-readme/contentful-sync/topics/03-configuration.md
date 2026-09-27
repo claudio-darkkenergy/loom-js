@@ -15,7 +15,7 @@ Boot-time configuration rides in on `init`'s (& `hydrate`'s) `globalConfig` — 
 
 ## appendEvents
 
-**`appendEvents(eventsToAppend)`** - The template renderer recognizes `$event` bindings for the standard [`GlobalEventHandlers`](https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers) set (`click`, `input`, `change`, …). If an event you bind isn't in that list — a custom event, or a newer DOM event — append it before the binding template renders:
+**`appendEvents(eventsToAppend)`** - The template renderer recognizes `$event` bindings (see [Element bindings](/docs/components#element-bindings)) for the standard [`GlobalEventHandlers`](https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers) set (`click`, `input`, `change`, …). If an event you bind isn't in that list — a custom event, or a newer DOM event — append it before the binding template renders:
 
 ```ts
 import { appendEvents } from '@loom-js/core';

@@ -39,7 +39,7 @@ const MenuButton = component(
 );
 ```
 
-Only component *tags* earn that inference — a lone interpolated value at the top level still needs the `<>` prefix.
+Only component *tags* earn that inference — a lone interpolated value at the top level still needs the `<>` prefix. The root forms — single element, explicit `<>`, inferred — are gathered under [Fragments](/docs/fragments#root-forms-and-inference).
 
 When the tag sits inside a real element, no inference is needed — the call simply takes its place and the root is untouched:
 
@@ -63,6 +63,16 @@ const Menu = component(
 ```
 
 The two forms mix freely in one template and render identically. The compile step is cheap where it matters: templates with no component tags pass through byte-identical, and the transform runs once per template call site and is cached.
+
+## Transform time
+
+That compile step has a name worth owning, because several rules hang off it. The **template transform** is the phase that rewrites component tags into their calls. It runs once per template call site — the first time that tagged template renders — before the native HTML parser sees the string, and its result is cached, so every later render of that site skips it (templates with no component tags pass through untouched). Anything the transform must know is fixed at that moment, and anything it can reject is rejected then:
+
+- Slot labels are read by the transform, before any JS value exists — so a label must be literal text in the template. An interpolated `slot=${name}` throws, and a `slot` key that only appears inside a spread object at render time is invisible to the transform, so it arrives as an ordinary prop, never as a label ([Named slots](/docs/element-syntax#named-slots)).
+- On a component tag, `slot` is consumed at transform time and never reaches the component as a prop.
+- Malformed component syntax throws at transform time — the "first render" the [Errors](/docs/element-syntax#errors) section describes is exactly this phase.
+
+Both phrases name the same moment. Rules stated from the transform's point of view say "transform time"; rules stated from the renderer's say "first render" — one phase, two vantage points.
 
 ## Markup vs. the functional form
 
@@ -94,7 +104,7 @@ const Main = component(
 );
 ```
 
-An `is=` prop — a polymorphic root takes its component as a value, with `el(tagName)` covering plain tags:
+An `is=` prop — a polymorphic root takes its component as a value, with [`el(tagName)`](/docs/element-syntax#element-components) covering plain tags:
 
 ```ts
 const DocsCard = component(
@@ -106,7 +116,7 @@ const DocsCard = component(
 );
 ```
 
-The functional form is not a legacy mode — it is exactly the compiled call shown above. Fragment-rooted components travel the same way anywhere a value goes: interpolated or in a children array, the reconciler moves their nodes as one group.
+The functional form is not a legacy mode — it is exactly the compiled call shown above. Fragment-rooted components travel the same way anywhere a value goes: interpolated or in a children array, the reconciler moves their nodes as one group (see [Fragments](/docs/fragments#fragments-as-values)).
 
 ## Props
 
@@ -165,7 +175,7 @@ const SpreadCard = component(
 
 ### No `$` sigil on component tags
 
-On a component tag, write `onClick=${fn}` — never `$onClick=${fn}`. The `$` sigil belongs to real elements, where it marks the renderer's own bindings — `$click`, `$attrs`, `$on`, `$props` — and to the `$`-prefixed attributes of [custom elements](/docs/custom-elements). A component element needs no marker: every attribute is already a prop, so a `$`-prefixed prop there carries no meaning, and throws.
+On a component tag, write `onClick=${fn}` — never `$onClick=${fn}`. The `$` sigil belongs to real elements, where it marks the renderer's own [element bindings](/docs/components#element-bindings) — `$click`, `$attrs`, `$on`, `$props` — and to the `$`-prefixed attributes of [custom elements](/docs/custom-elements). A component element needs no marker: every attribute is already a prop, so a `$`-prefixed prop there carries no meaning, and throws.
 
 ```ts
 // Component tag: every attribute is a prop — no sigil.
@@ -244,7 +254,7 @@ const TodoList = component(
 
 Keys are what make reordering cheap and safe: on an update, a keyed item's rendered nodes are *moved*, not rebuilt — node identity survives, so an item's input value, focus, or scroll position rides along with it. Without keys, a reorder re-renders items in place instead.
 
-Children of keyed items move with their parents automatically; no `key` is needed on inner component elements — and a keyed *fragment-rooted* item moves as one group, every top-level node relocating together.
+Children of keyed items move with their parents automatically; no `key` is needed on inner component elements — and a keyed *fragment-rooted* item moves as one group, every top-level node relocating together (the group rules live under [Fragments › Keyed reconciliation](/docs/fragments#keyed-reconciliation)).
 
 ## Children
 
@@ -309,7 +319,7 @@ Card({
 });
 ```
 
-A named region arrives with no wrapper element: interpolating it drops the labeled nodes in place as bare siblings, and the region renders as its own unit — its nodes reconcile and move together, like any fragment. An absent region simply renders nothing. Multiple same-label siblings concatenate in source order.
+A named region arrives with no wrapper element: interpolating it drops the labeled nodes in place as bare siblings, and the region renders as its own unit — its nodes reconcile and move together, like any [fragment](/docs/fragments#named-regions-are-fragments). An absent region simply renders nothing. Multiple same-label siblings concatenate in source order.
 
 The label itself leaves different traces. A plain element keeps its `slot` attribute in the rendered DOM — inert, exactly as the platform leaves it on natively assigned nodes. On a component element, `slot` exists only to name the region its content belongs to — consumed at transform time, never reaching the component as a prop:
 
@@ -359,7 +369,7 @@ const MixedCard = component(
 
 ## Errors
 
-Malformed component syntax throws on the template's first render — naming the offending construct and quoting the surrounding template text — rather than falling through to the native parser and silently mis-rendering. This covers unclosed tags, unmatched `</>`, `$`-prefixed props, unquoted attribute values (`a=b`), interpolations inside quoted values (`a="x ${y}"` — use ``a=${`x ${y}`}`` instead), and `...` not immediately before an interpolation.
+Malformed component syntax throws on the template's first render — at [transform time](/docs/element-syntax#transform-time) — naming the offending construct and quoting the surrounding template text — rather than falling through to the native parser and silently mis-rendering. This covers unclosed tags, unmatched `</>`, `$`-prefixed props, unquoted attribute values (`a=b`), interpolations inside quoted values (`a="x ${y}"` — use ``a=${`x ${y}`}`` instead), and `...` not immediately before an interpolation.
 
 ## Template comments
 
@@ -510,3 +520,5 @@ const StatusLine = component(
     `
 );
 ```
+
+Everything above assumes a template with a root to hang props and children on. Templates with no single root — and how their node groups render and move — are [Fragments](/docs/fragments)' subject, next.

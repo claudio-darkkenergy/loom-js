@@ -63,6 +63,8 @@ const SaveControls = component(
 
 Child nodes of the host element arrive as the `children` prop.
 
+This `$name` form is the custom-element side of the `$` sigil. On plain elements, `$` marks loom's own [element bindings](/docs/components#element-bindings) instead — and `$props=${object}` hands a custom element several properties at once.
+
 ## Light DOM vs. shadow DOM
 
 By default a registered element renders into the **light DOM** — its content is an ordinary part of the document tree, and your application and design-system CSS applies to it with no extra work.

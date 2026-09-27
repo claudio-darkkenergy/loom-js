@@ -95,6 +95,21 @@ Async transforms can overlap — a second `update()` can dispatch before the fir
 
 In every mode a rejected run releases its turn, and superseded runs stay settlement-tracked — `settled()` (and so `renderToString` / `hydrate`) waits for them to actually settle, which is why wiring `signal` matters: an aborted fetch settles immediately instead of holding the swap open. One boundary to know: the gate covers only the run's own `update` — writes a transform makes to *other* activities (a fan-out pipeline feeding siblings) are ordinary calls core cannot attribute to the run, so guard them the same way: check `signal.aborted` after each `await` before writing elsewhere.
 
+## The settlement signal
+
+Every async transform run is _tracked_: the promise it returns registers with a per-window signal, and `settled()` — importable from core — resolves once nothing tracked is pending, confirmed by one macrotask of continued quiet, so chained work (a route page whose import then dispatches a fetch) is awaited to quiescence. That signal is what the framework's boot and render paths gate on:
+
+- `renderToString` waits on it before serializing, so route pages, lazy content, and activity data land in the markup ([Server Rendering](/docs/server-rendering#render-to-string)).
+- `hydrate` waits on it before its single swap ([Client Hydration](/docs/hydration#settle-and-swap)); `settled()` itself is the test await point ([`settled`](/docs/hydration#settled)).
+- The router's deferred hash scroll fires once it resolves ([Routing › Hash and anchor navigation](/docs/routing#hash-and-anchor-navigation)).
+- `lazyImport` and `createRoutes` page imports are activities with transforms, so they are tracked for free ([Lazy Imports](/docs/lazy-imports)).
+
+**The tracking boundary.** Only work that passes through a transform counts: the thenable a transform returns, and every `resource()` awaited inside one ([Dehydrated State › `resource`](/docs/dehydrated-state#resource)). Async work outside that path — a raw `fetch` in a `watch` callback, a `setTimeout`, a promise created in a life-cycle hook — is invisible to the signal. On the client, hand it to `hydrate` via `ready`; on the server, move it into a transform. The gate also covers only the run's own `update`: writes a transform makes to _other_ activities after an `await` are ordinary calls, so guard them with `signal.aborted` (Transform concurrency, above).
+
+**Bounds.** Superseded and retired runs stay tracked until they actually settle — wiring `signal` into cancellable work is what lets an aborted fetch settle immediately. A run that never resolves is bounded per activity by the `timeout` option (below); the waiters are bounded by their own `maxWait` (`renderToString`, `hydrate`), whose expiry warning enumerates the labelled activities still pending ([Diagnostics › Naming subjects with label](/docs/diagnostics#naming-subjects-with-label)).
+
+**See also** — [Transforms](/docs/activities#transforms-the-async-data-path) · [Transform concurrency](/docs/activities#transform-concurrency) (`signal`, `timeout`) · [Lazy Imports](/docs/lazy-imports) · [Routing › Hash and anchor navigation](/docs/routing#hash-and-anchor-navigation) · [Server Rendering › `renderToString`](/docs/server-rendering#render-to-string) (`maxWait`) · [Client Hydration › `settled`](/docs/hydration#settled) · [Client Hydration › Semantics worth knowing](/docs/hydration#semantics-worth-knowing) (`ready`) · [Dehydrated State › `resource`](/docs/dehydrated-state#resource) · [Diagnostics › Naming subjects with label](/docs/diagnostics#naming-subjects-with-label).
+
 Transforms decide *how* a value changes; the options tune *when* a change counts.
 
 ## Options
@@ -104,6 +119,7 @@ Transforms decide *how* a value changes; the options tune *when* a change counts
 - `concurrency?: 'latest' | 'ordered' | 'serial'` - [Default: `'latest'`] Dispatch semantics for overlapping async transform runs — see Transform concurrency, above.
 - `deep?: boolean` - [Default: `false`] Compare plain objects property-by-property & arrays element-by-element (a shallow diff) instead of by reference, so a same-content update doesn't cascade to subscribed effects.
 - `force?: boolean` - [Default: `false`] Treat every update as a change, skipping comparison entirely.
+- `label?: string` - [Default: unset] Names the activity in diagnostics — narration lines, dropped-commit & timeout notices, & the pending enumeration of bounded settlement warnings all show `⟨label⟩`. Purely diagnostic, never behavioral. Unlabeled activities fall back to a stable generated tag (`activity#3`) so lines stay distinguishable — see [Diagnostics](/docs/diagnostics#naming-subjects-with-label).
 - `timeout?: number` - [Default: unset — unbounded] Upper bound (ms) per transform run. On expiry the run is retired exactly as supersession retires one — `signal` aborted, later commits dropped, any `'serial'` queue or `'ordered'` turn released — and it counts as settled for the settlement signal even if its promise never resolves, so a hung transform can't block a queue or pin `settled()`. Expiry warns on the console. With debug narration on (`setDebug(true, { activity: true })`), a long-pending run on an activity that sets no `timeout` is flagged instead — pointed at, never bounded for you.
 - `transform?: ActivityTransform<V, I>` - The transform, for when options ride in the second argument.
 
@@ -156,6 +172,57 @@ _Methods_
 
 - Subscribes a caller-managed handler: `action` runs immediately with the current value, then on every update.
 - Returns an `Unsubscriber` — cleanup is the caller's responsibility (e.g. pair it with `onUnmounted`), unlike `effect` (context-managed) and `bind` (template-managed).
+
+## Component-scoped state
+
+An activity created inside the render function is scoped to that component — each rendered instance owns its own state:
+
+```ts
+import { activity, component } from '@loom-js/core';
+
+export const Disclosure = component((html, { children, label }) => {
+    const isOpen = activity(false);
+
+    return html`
+        <section>
+            <button
+                $click=${() => isOpen.update(!isOpen.value())}
+                aria-expanded=${isOpen.bind((open) => String(open))}
+                type="button"
+            >
+                ${label}
+            </button>
+            ${isOpen.effect(({ value }) => (value ? children : undefined))}
+        </section>
+    `;
+});
+```
+
+Choose your scope. Internal reactivity — the component's own effects and binds — re-renders content without re-running the render function, so the plain local activity above persists through it. A *parent* re-rendering the component re-runs the render function, which recreates that activity and resets it. When instance state must survive parent-driven re-renders, create it through the `own` utility prop: on the instance's first render it invokes the factory and caches the result; every re-render returns the cached value.
+
+```ts
+import { activity, component } from '@loom-js/core';
+
+export const Disclosure = component((html, { children, label, own }) => {
+    // Survives parent re-renders — same activity instance every render.
+    const isOpen = own(() => activity(false));
+
+    return html`
+        <section>
+            <button
+                $click=${() => isOpen.update(!isOpen.value())}
+                aria-expanded=${isOpen.bind((open) => String(open))}
+                type="button"
+            >
+                ${label}
+            </button>
+            ${isOpen.effect(({ value }) => (value ? children : undefined))}
+        </section>
+    `;
+});
+```
+
+`own` replays cached values by call order — the same rule `createRef` already follows: call it unconditionally, in the same order, every render (a mismatched call count gets a debug-lane warning). Values live exactly as long as the component instance — released on unmount, isolated per instance and per server render — and disposing anything the factory allocated stays yours, paired with `onUnmounted`. State shared *between* instances still belongs at module scope.
 
 ## Examples
 
@@ -233,56 +300,5 @@ export const Button = component((html) => {
 ```
 
 Note the component is *called* inside the effect — an effect's return is a value position, the canonical home of the functional form: see [when each form fits](/docs/element-syntax#markup-vs-the-functional-form).
-
-### Component-scoped state
-
-An activity created inside the render function is scoped to that component — each rendered instance owns its own state:
-
-```ts
-import { activity, component } from '@loom-js/core';
-
-export const Disclosure = component((html, { children, label }) => {
-    const isOpen = activity(false);
-
-    return html`
-        <section>
-            <button
-                $click=${() => isOpen.update(!isOpen.value())}
-                aria-expanded=${isOpen.bind((open) => String(open))}
-                type="button"
-            >
-                ${label}
-            </button>
-            ${isOpen.effect(({ value }) => (value ? children : undefined))}
-        </section>
-    `;
-});
-```
-
-Choose your scope. Internal reactivity — the component's own effects and binds — re-renders content without re-running the render function, so the plain local activity above persists through it. A *parent* re-rendering the component re-runs the render function, which recreates that activity and resets it. When instance state must survive parent-driven re-renders, create it through the `own` utility prop: on the instance's first render it invokes the factory and caches the result; every re-render returns the cached value.
-
-```ts
-import { activity, component } from '@loom-js/core';
-
-export const Disclosure = component((html, { children, label, own }) => {
-    // Survives parent re-renders — same activity instance every render.
-    const isOpen = own(() => activity(false));
-
-    return html`
-        <section>
-            <button
-                $click=${() => isOpen.update(!isOpen.value())}
-                aria-expanded=${isOpen.bind((open) => String(open))}
-                type="button"
-            >
-                ${label}
-            </button>
-            ${isOpen.effect(({ value }) => (value ? children : undefined))}
-        </section>
-    `;
-});
-```
-
-`own` replays cached values by call order — the same rule `createRef` already follows: call it unconditionally, in the same order, every render (a mismatched call count gets a debug-lane warning). Values live exactly as long as the component instance — released on unmount, isolated per instance and per server render — and disposing anything the factory allocated stays yours, paired with `onUnmounted`. State shared *between* instances still belongs at module scope.
 
 The next two topics are built directly on this primitive: [Routing](/docs/routing) — its location and route layers are activities over the History API — and [Lazy Imports](/docs/lazy-imports), a dynamic `import()` wrapped in an activity.
