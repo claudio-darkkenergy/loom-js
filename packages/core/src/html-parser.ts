@@ -13,6 +13,8 @@ import { getPaths, setUpdatesForPaths } from './lib/templating';
 // Imported by path — not via the templating barrel — to avoid a barrel cycle
 // (`compile-component-tags` imports `component`, which imports this module).
 import { compileComponentTags } from './lib/templating/compile-component-tags';
+import { isFragmentRegion } from './lib/templating/compile-component-tags/regions';
+import { isFragmentRoot } from './lib/templating/root-form';
 import { scanTableScope } from './lib/templating/table-scope';
 import type {
     ComponentContext,
@@ -39,6 +41,9 @@ import type {
 // one document ever, so this stays a single cached parse.
 interface TemplateDocumentCacheEntry {
     fragment: DocumentFragment;
+    // The template's root form — a property of the statics, so it is
+    // classified once per parse.
+    isFragment: boolean;
     paths: Set<[number[], Attr | undefined]>;
 }
 
@@ -109,16 +114,6 @@ export function htmlParser(
                 .createContextualFragment(statics.join(config.TOKEN));
         }
 
-        // Check for a "rootless" component template.
-        // This will inherit its connected parent element as its root.
-        if (/^<>/.test(statics[0]?.trim() ?? '') && fragment.childNodes[0]) {
-            // Remove the fragment artifact "<>" from the renderable content.
-            // Always assign a string — a nullish assignment leaves the
-            // coercion up to the host DOM implementation.
-            fragment.childNodes[0].textContent =
-                fragment.childNodes[0].textContent?.replace('<>', '') ?? '';
-        }
-
         // Will be "walked" to obtain the dynamic paths mappings.
         const treeWalker = currentDocument.createTreeWalker(
             fragment,
@@ -126,7 +121,11 @@ export function htmlParser(
         );
 
         // Cache this document's parse of the template.
-        documentEntry = { fragment, paths: getPaths(treeWalker) };
+        documentEntry = {
+            fragment,
+            isFragment: isFragmentRegion(chunks) || isFragmentRoot(fragment),
+            paths: getPaths(treeWalker)
+        };
         documentCache.set(currentDocument, documentEntry);
     }
 
@@ -135,9 +134,7 @@ export function htmlParser(
     const values = plan
         ? plan.getters.map((get) => get(interpolations))
         : interpolations;
-    const isTemplateFragment = /^<>/.test(
-        (plan ? plan.chunks[0] : chunks[0])?.trim() ?? ''
-    );
+    const isTemplateFragment = documentEntry.isFragment;
 
     const instanceAnchor =
         (Array.isArray(ctx.root) ? ctx.root[0]?.parentElement : ctx.root) ??

@@ -31,11 +31,5 @@ export const compileComponentTags = (
 
     const root = scan(chunks, last);
 
-    // A template whose top level is only component elements (and whitespace)
-    // has no root element left — render it as a rootless fragment.
-    if (root.statics.every((text) => !text.trim())) {
-        root.statics[0] = `<>${root.statics[0]}`;
-    }
-
     return { chunks: root.statics, getters: root.getters };
 };

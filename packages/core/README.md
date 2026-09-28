@@ -102,7 +102,7 @@ A component uses a "tagged template" (w/ [template literal](https://developer.mo
 
 Use `component` to register a template render function. It takes a render function as its argument, passing Loom's template renderer to the render function along with some props, and a getter for the component's rendered node. A template context is bound to the renderer to achieve optimal rerenders.
 
-When using `component`, the tagged template's template string typically contains a single top-level element (one opening & closing tag pair wrapping the whole template). Fragment-rooted templates — starting with `<>`, or whose top level is only component elements — are the exception (see Fragments). An interpolated value at the top level doesn't qualify — give it the `<>` prefix.
+When using `component`, the tagged template's template string typically contains a single top-level element (one opening & closing tag pair wrapping the whole template). A template whose top level holds anything else — several nodes, text, or an interpolated value — is fragment-rooted (see Fragments).
 
 **API** `component<Props>(templateFunction)`
 
@@ -507,13 +507,12 @@ const MenuButton = component(
 
 This is **sugar over the functional form** — before the native parser runs, the template above compiles to the equivalent call, with no new runtime semantics.
 
-A template whose top level is only component elements (and whitespace) renders as a rootless fragment, the same as templates that start with `<>` — so here, with no element left to root the template, the compiler prepends the fragment prefix:
+A template whose top level is only component elements (and whitespace) has no element to root it, so it renders as a fragment. The tag compiles to the call and nothing is added around it:
 
 ```ts
 // Thus, the previous example compiles to exactly this:
 const MenuButton = component(
     (html) => html`
-        <>
         ${IconButton({
             isOnlyIcon: true,
             icon: 'icon-menu',
@@ -523,7 +522,7 @@ const MenuButton = component(
 );
 ```
 
-Only component _tags_ earn that inference — a lone interpolated value at the top level still needs the `<>` prefix. The root forms — single element, explicit `<>`, inferred — are gathered under Fragments.
+Any interpolated value at the top level makes a fragment the same way. The root forms are gathered under Fragments.
 
 When the tag sits inside a real element, no inference is needed — the call simply takes its place and the root is untouched:
 
@@ -981,18 +980,17 @@ const StatusLine = component(
 
 ### Fragments
 
-A fragment is a template with no single root: its top level is a list of nodes that loom renders, moves, and removes as one group. This section gathers the rules that orbit that idea — the `<>` token, when a template counts as fragment-rooted, what a fragment is as a value, and how keyed fragments reconcile. (Not the URL `#fragment` that Routing scrolls to, nor the HTML snippets `renderToStringSync` is right for.)
+A fragment is a template with no single root: its top level is a list of nodes that loom renders, moves, and removes as one group. This section gathers the rules around that idea — how a template's root form is decided, what a fragment is as a value, and how keyed fragments reconcile. (Not the URL `#fragment` that Routing scrolls to, nor the HTML snippets `renderToStringSync` is right for.)
 
-#### The `<>` token
+#### Root forms
 
-A template normally wraps everything in one top-level element, and that element is the component's root. `<>` at the start of a template declares it fragment-rooted instead: everything after the token is top-level content, rendered as siblings directly into whatever parent the component lands in. `<>` is a prefix, not an element — there is no closing form, leading whitespace before it is fine, and it never reaches the DOM:
+Loom reads a template's root form from its top level; there is no token to write. A top level that holds exactly one element is single-rooted: that element is the component's root, and `node()` returns it. Whitespace around the element doesn't count. Any other top level is fragment-rooted, and its nodes render as siblings directly into whatever parent the component lands in:
 
 ```ts
 import { component } from '@loom-js/core';
 
 export const Pair = component<{ definition: string; term: string }>(
     (html, { definition, term }) => html`
-        <>
         <dt>${term}</dt>
         <dd>${definition}</dd>
     `
@@ -1014,13 +1012,13 @@ export const Glossary = component(
 
 Reach for a fragment when the markup around the component owns the wrapper — table rows, list items, definition pairs, a run of siblings a CSS grid lays out directly.
 
-#### Root forms and inference
+A template is fragment-rooted when its top level holds any of these:
 
-A template's top level takes one of three shapes:
-
-- **A single element** — the default. One opening and closing pair wraps the whole template, and `node()` is that element.
-- **An explicit fragment** — the template starts with `<>`, as above.
-- **An inferred fragment** — the top level holds only component elements (and whitespace). With no real element left to root the template, the compiler prepends `<>` for you, so a component that renders just another component needs no wrapper and no token:
+- **Several elements** — as in `Pair` above.
+- **Text beside an element** — text that isn't just whitespace is a node of its own.
+- **A comment** — an HTML comment is a real node, so `<!-- note --><div></div>` is a fragment of two.
+- **An interpolated value** — alone or among other nodes. `` html`${Child()}` `` renders `Child` in place.
+- **Component elements** — a component tag compiles to an interpolated value, so a component that renders just another component needs no wrapper:
 
 ```ts
 import { component } from '@loom-js/core';
@@ -1029,7 +1027,7 @@ import { IconButton } from './icon-button';
 
 const toggleMenu = () => document.body.classList.toggle('menu-open');
 
-// Fragment-rooted by inference — compiles to `<>${IconButton({ … })}`.
+// Fragment-rooted — the tag compiles to `${IconButton({ … })}`.
 export const MenuButton = component(
     (html) => html`
         <${IconButton} icon="icon-menu" onClick=${toggleMenu} />
@@ -1037,7 +1035,7 @@ export const MenuButton = component(
 );
 ```
 
-Only component _tags_ earn the inference. A lone interpolated value at the top level — `` html`${Child()}` `` — is not recognized as a root and renders nothing; give it the `<>` prefix. The compile itself is Composing components' subject (Transform time); the root forms are the same whichever way you author.
+To get a single root, wrap the template in one element. The compile itself is Composing components' subject (Transform time); the root forms are the same whichever way you author.
 
 #### Fragments as values
 
@@ -1055,7 +1053,6 @@ export const Pair = component((html, { onMounted }) => {
     });
 
     return html`
-        <>
         <dt>Term</dt>
         <dd>Definition</dd>
     `;
@@ -2045,8 +2042,8 @@ export const Button = component((html, { node }) => {
 import { component } from '@loom-js/core';
 
 // Life-cycle handlers receive the rendered node directly — no getter needed.
-// The `<>` prefix makes this fragment-rooted, so the handler gets an array of
-// every top-level node — whitespace text nodes included (see Fragments).
+// Two top-level elements make this fragment-rooted, so the handler gets an
+// array of every top-level node — whitespace text nodes included (see Fragments).
 export const Pair = component((html, { onMounted }) => {
     onMounted((nodes) => {
         const elements = (nodes as Node[]).filter((n) => n instanceof Element);
@@ -2055,7 +2052,6 @@ export const Pair = component((html, { onMounted }) => {
     });
 
     return html`
-        <>
         <dt>Term</dt>
         <dd>Definition</dd>
     `;

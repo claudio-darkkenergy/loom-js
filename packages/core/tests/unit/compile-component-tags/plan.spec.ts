@@ -27,10 +27,10 @@ describe('compileComponentTags — plan shape', () => {
         expect(result).to.equal('rendered');
     });
 
-    it('should mark a component-only template as a rootless fragment', () => {
+    it('should leave the statics of a component-only template unprefixed', () => {
         const plan = compileComponentTags(['<', '/>']);
 
-        expect(plan?.chunks[0]?.trimStart().startsWith('<>')).to.be.true;
+        expect(plan?.chunks).to.deep.equal(['', '']);
     });
 
     it('should preserve surrounding markup and compile the tag into a slot', () => {
@@ -112,6 +112,20 @@ describe('compileComponentTags — plan shape', () => {
         const props = renderFake.firstCall.args[0];
         expect(typeof props.children, 'children is a ContextFunction').to.equal(
             'function'
+        );
+    });
+
+    it('should render a one-element children region as a fragment, by flag', () => {
+        const plan = compileComponentTags(['<main><', '><b>hi</b></></main>']);
+
+        plan?.getters[0]?.([renderFake]);
+
+        const region = renderFake.firstCall.args[0].children();
+
+        expect(region.fragment, 'fragment-rooted').to.be.true;
+        expect(Array.isArray(region.root), 'array root').to.be.true;
+        expect(region.chunks.join(''), 'no inserted token').to.equal(
+            '<b>hi</b>'
         );
     });
 

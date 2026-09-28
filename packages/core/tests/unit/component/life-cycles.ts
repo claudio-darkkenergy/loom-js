@@ -66,11 +66,11 @@ export const lifeCyclesSpec = () => {
                             fragmentRoot = root as TemplateRootArray;
                         });
 
-                        return html`<>
+                        return html`
                             <header></header>
                             <main></main>
                             <footer></footer>
-                        </>`;
+                        `;
                     }
                 );
 

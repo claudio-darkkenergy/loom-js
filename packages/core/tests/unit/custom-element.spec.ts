@@ -57,10 +57,8 @@ defineElement(
 defineElement<CustomElementProps>(
     'ce-fragment-unit',
     (html, { value }) => html`
-        <>
-            <h1 class="first">${value}</h1>
-            <p class="second">${value}</p>
-        </>
+        <h1 class="first">${value}</h1>
+        <p class="second">${value}</p>
     `
 );
 

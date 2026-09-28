@@ -10,7 +10,7 @@ A component uses a "tagged template" (w/ [template literal](https://developer.mo
 
 Use `component` to register a template render function. It takes a render function as its argument, passing Loom's template renderer to the render function along with some props, and a getter for the component's rendered node. A template context is bound to the renderer to achieve optimal rerenders.
 
-When using `component`, the tagged template's template string typically contains a single top-level element (one opening & closing tag pair wrapping the whole template). Fragment-rooted templates — starting with `<>`, or whose top level is only component elements — are the exception (see [Fragments](/docs/fragments)). An interpolated value at the top level doesn't qualify — give it the `<>` prefix.
+When using `component`, the tagged template's template string typically contains a single top-level element (one opening & closing tag pair wrapping the whole template). A template whose top level holds anything else — several nodes, text, or an interpolated value — is fragment-rooted (see [Fragments](/docs/fragments)).
 
 **API** `component<Props>(templateFunction)`
 
@@ -481,8 +481,8 @@ export const Button = component((html, { node }) => {
 import { component } from '@loom-js/core';
 
 // Life-cycle handlers receive the rendered node directly — no getter needed.
-// The `<>` prefix makes this fragment-rooted, so the handler gets an array of
-// every top-level node — whitespace text nodes included.
+// Two top-level elements make this fragment-rooted, so the handler gets an
+// array of every top-level node — whitespace text nodes included.
 export const Pair = component((html, { onMounted }) => {
     onMounted((nodes) => {
         const elements = (nodes as Node[]).filter((n) => n instanceof Element);
@@ -491,7 +491,6 @@ export const Pair = component((html, { onMounted }) => {
     });
 
     return html`
-        <>
         <dt>Term</dt>
         <dd>Definition</dd>
     `;

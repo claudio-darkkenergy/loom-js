@@ -5,7 +5,7 @@ import { activity } from '../../src/activity';
 import { runSetup } from '../support/run-setup';
 
 // Specs for `fix-fragment-array-reconciliation`: a fragment-rooted value
-// (named-slot region or `<>` fragment-template component) passed as an item
+// (named-slot region or fragment-template component) passed as an item
 // of a children array must render its nodes as a managed group instead of
 // stringifying to `"[object Text],[object HTMLDivElement]"`.
 
@@ -23,11 +23,10 @@ const Box = component<{ color?: string }>(
     `
 );
 
-// Fragment-template component — the `<>` prefix gives it an array root, so
-// it is a fragment-rooted children-array item when keyed into a list.
+// Fragment-template component — two top-level elements give it an array
+// root, so it is a fragment-rooted children-array item when keyed into a list.
 const Pair = component<{ label?: string }>(
     (html, { label }) => html`
-        <>
         <dt data-dt=${label}>${label}</dt>
         <dd data-dd=${label}>d</dd>
     `

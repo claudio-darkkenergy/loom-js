@@ -11,10 +11,8 @@ const SimpleComponent1 = component((html) => {
 });
 const SimpleComponent2 = component((html) => {
     return html`
-            <>
-                <h1>${'SimpleComponent2'}</h1>
-            </>
-        `;
+        <h1>${'SimpleComponent2'}</h1>
+    `;
 });
 
 const Routes = () => {
@@ -44,12 +42,13 @@ const Routes = () => {
 
 const TestComponent = component(
     (html) => html`
-<>
-    [<a $click=${route} href="/simple1">Simple 1</a> |
-    <a $click=${route} href="/simple2">Simple 2</a>]
-    <div>${Routes()}</div>
-</>
-`
+        [
+        <a $click=${route} href="/simple1">Simple 1</a>
+        |
+        <a $click=${route} href="/simple2">Simple 2</a>
+        ]
+        <div>${Routes()}</div>
+    `
 );
 
 describe('lazyImport', () => {

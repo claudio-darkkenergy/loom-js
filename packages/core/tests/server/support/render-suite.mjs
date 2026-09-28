@@ -184,6 +184,25 @@ export const defineRenderSuite = (implName, createWindow) => {
             assert.match(markup, /<div class="card">strict<\/div>/);
         });
 
+        // Every implementation asserts the same literal markup, so the
+        // matrix pins the output as identical across them.
+        it('serializes a whitespace-led fragment template with only its authored nodes', () => {
+            const Pair = component(
+                (html, { label }) => html`
+                    <dt>${label}</dt>
+                    <dd class="detail">detail</dd>
+                `
+            );
+            const markup = renderToStringSync(Pair({ label: 'term' }), {
+                window: createWindow()
+            });
+
+            assert.equal(
+                markup.replace(/\s+/g, ''),
+                '<dt>term</dt><ddclass="detail">detail</dd>'
+            );
+        });
+
         it('exposes the request url through location for route-aware rendering', () => {
             const Pathname = component(
                 (html, { pathname }) => html`

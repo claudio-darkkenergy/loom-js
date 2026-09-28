@@ -2,18 +2,17 @@
 slug: fragments
 title: Fragments
 ---
-A fragment is a template with no single root: its top level is a list of nodes that loom renders, moves, and removes as one group. This topic gathers the rules that orbit that idea — the `<>` token, when a template counts as fragment-rooted, what a fragment is as a value, and how keyed fragments reconcile. (Two homonyms live elsewhere: the URL `#fragment` that [Routing](/docs/routing#hash-and-anchor-navigation) scrolls to, and the HTML snippets `renderToStringSync` is right for under [Server Rendering](/docs/server-rendering#render-to-string-sync).)
+A fragment is a template with no single root: its top level is a list of nodes that loom renders, moves, and removes as one group. This topic gathers the rules around that idea — how a template's root form is decided, what a fragment is as a value, and how keyed fragments reconcile. (Two homonyms live elsewhere: the URL `#fragment` that [Routing](/docs/routing#hash-and-anchor-navigation) scrolls to, and the HTML snippets `renderToStringSync` is right for under [Server Rendering](/docs/server-rendering#render-to-string-sync).)
 
-## The `<>` token
+## Root forms and inference
 
-A template normally wraps everything in one top-level element, and that element is the component's root. `<>` at the start of a template declares it fragment-rooted instead: everything after the token is top-level content, rendered as siblings directly into whatever parent the component lands in. `<>` is a prefix, not an element — there is no closing form, leading whitespace before it is fine, and it never reaches the DOM:
+Loom reads a template's root form from its top level; there is no token to write. A top level that holds exactly one element is single-rooted: that element is the component's root, and `node()` returns it. Whitespace around the element doesn't count. Any other top level is fragment-rooted, and its nodes render as siblings directly into whatever parent the component lands in:
 
 ```ts
 import { component } from '@loom-js/core';
 
 export const Pair = component<{ definition: string; term: string }>(
     (html, { definition, term }) => html`
-        <>
         <dt>${term}</dt>
         <dd>${definition}</dd>
     `
@@ -32,13 +31,13 @@ export const Glossary = component(
 
 Reach for a fragment when the markup around the component owns the wrapper — table rows, list items, definition pairs, a run of siblings a CSS grid lays out directly.
 
-## Root forms and inference
+A template is fragment-rooted when its top level holds any of these:
 
-A template's top level takes one of three shapes:
-
-- **A single element** — the default. One opening and closing pair wraps the whole template, and `node()` is that element.
-- **An explicit fragment** — the template starts with `<>`, as above.
-- **An inferred fragment** — the top level holds only component elements (and whitespace). With no real element left to root the template, the compiler prepends `<>` for you, so a component that renders just another component needs no wrapper and no token:
+- **Several elements** — as in `Pair` above.
+- **Text beside an element** — text that isn't just whitespace is a node of its own.
+- **A comment** — an HTML comment is a real node, so `<!-- note --><div></div>` is a fragment of two.
+- **An interpolated value** — alone or among other nodes. `` html`${Child()}` `` renders `Child` in place.
+- **Component elements** — a component tag compiles to an interpolated value, so a component that renders just another component needs no wrapper:
 
 ```ts
 import { component } from '@loom-js/core';
@@ -47,7 +46,7 @@ import { IconButton } from './icon-button';
 
 const toggleMenu = () => document.body.classList.toggle('menu-open');
 
-// Fragment-rooted by inference — compiles to `<>${IconButton({ … })}`.
+// Fragment-rooted — the tag compiles to `${IconButton({ … })}`.
 export const MenuButton = component(
     (html) => html`
         <${IconButton} icon="icon-menu" onClick=${toggleMenu} />
@@ -55,7 +54,7 @@ export const MenuButton = component(
 );
 ```
 
-Only component _tags_ earn the inference. A lone interpolated value at the top level — `` html`${Child()}` `` — is not recognized as a root and renders nothing; give it the `<>` prefix. The compile itself is [Element Syntax](/docs/element-syntax#transform-time)'s subject; the root forms are the same whichever way you author.
+To get a single root, wrap the template in one element. The compile itself is [Element Syntax](/docs/element-syntax#transform-time)'s subject; the root forms are the same whichever way you author.
 
 ## Fragments as values
 
@@ -73,7 +72,6 @@ export const Pair = component((html, { onMounted }) => {
     });
 
     return html`
-        <>
         <dt>Term</dt>
         <dd>Definition</dd>
     `;

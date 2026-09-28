@@ -26,6 +26,8 @@ _Alternative — classify from the statics at compile time:_ rejected; the nativ
 
 `emit.ts` stops prefixing `<>`. Synthesized children/slot components carry an explicit `fragment: true` on their plan (a property beside `chunks`/`getters`), and the parser honours `plan.fragment` before classifying — so a region with a single element still renders as a fragment, exactly as today (regions reconcile as one unit regardless of node count, and `slots.name` keeps its "bare siblings" contract). Authored templates never set the flag; only the compiler does.
 
+_Implementation note (apply, 2026-09-27):_ a region's statics reach the parser as the `chunks` argument with no transform plan of their own, so the flag cannot ride on `TemplateTransformPlan`. It is a `WeakSet` keyed by the region's statics (`markFragmentRegion` / `isFragmentRegion` in `compile-component-tags/regions.ts`); the plan type is unchanged.
+
 _Alternative — let regions be classified like any template:_ rejected; a one-element region would silently become single-rooted, changing `node()` shape for the region's context and inviting subtle reconciliation differences for no gain.
 
 ### D3 — `<>` is removed without a migration path

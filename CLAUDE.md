@@ -69,7 +69,7 @@ The core is a **reactive, components-first** library with **zero runtime depende
 
 Concepts you will see across consumers:
 
-- **`component(template)`** — Defines a component as a tagged-template render function. The template literal must contain a single top-level element. The function returns a `Component` (a callable that produces a `ContextFunction`). Lifecycle hooks `onCreated` / `onRendered` and a `node()` getter are passed via the props arg.
+- **`component(template)`** — Defines a component as a tagged-template render function. The root form is inferred from the template's top level: exactly one element is a single root, anything else (several nodes, text, a top-level interpolation) is fragment-rooted — there is no `<>` token. The function returns a `Component` (a callable that produces a `ContextFunction`). Lifecycle hooks `onCreated` / `onRendered` and a `node()` getter are passed via the props arg.
 - **`activity(initialValue)`** — A pub/sub reactive primitive. `activity.effect(({ value }) => ContextFunction)` queues an effect that reruns when `update(newValue)` fires. Effects must return a `ContextFunction` (i.e. the result of calling a component).
 - **`router(cb)` + `onRoute(event, opts)`** — SPA routing built on top of `activity` and the History API. `router` reacts to `Location` changes; `onRoute` is the click handler you bind to anchors/buttons.
 - **`init({ app, root, onAppMounted })`** — Bootstraps the app by mounting the result of an `app: ContextFunction` into a DOM root.

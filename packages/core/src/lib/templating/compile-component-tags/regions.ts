@@ -6,6 +6,18 @@ import type { Frame, Region } from './types';
 
 export const createRegion = (): Region => ({ getters: [], statics: [''] });
 
+// Synthesized children/slot regions always render fragment-rooted, whatever
+// their node count. The flag is keyed by the region's statics — the chunks
+// identity the parser receives.
+const fragmentRegions = new WeakSet<ArrayLike<string>>();
+
+export const markFragmentRegion = (region: Region) => {
+    fragmentRegions.add(region.statics);
+};
+
+export const isFragmentRegion = (chunks: ArrayLike<string>) =>
+    fragmentRegions.has(chunks);
+
 export const pushText = (region: Region, text: string) => {
     region.statics[region.statics.length - 1] += text;
 };

@@ -95,7 +95,11 @@ type StyleProp = ValidAttrValue | Record<string, ValidAttrValue> | StyleProp[];
 // the `$attrs` updater already handles style strings/objects/arrays at
 // runtime (`mergeAndSetStyleValues`).
 type PossibleAttrs = {
-    [key: string]: ValidAttrValue | Record<string, ValidAttrValue> | StyleProp;
+    [key: string]:
+        | AttrBinding
+        | ValidAttrValue
+        | Record<string, ValidAttrValue>
+        | StyleProp;
 };
 
 export type AttrsTemplateTagValue = PossibleAttrs & {
@@ -131,12 +135,17 @@ export type TemplateRoot = Comment | Element | Text;
 
 export type TemplateRootArray = TemplateRoot[];
 
+// Method-shorthand for parameter bivariance: admits component callables
+// with required, optional, or no props.
+type ComponentCallable = {
+    bivarianceHack(props?: any): ContextFunction | ContextFunction[];
+}['bivarianceHack'];
+
 export type TemplateTagValueBase =
     | boolean
-    // Any component-shaped callable — covers `Component` and `SimpleComponent`
-    // with arbitrary `Props`, so components interpolate in tag position
-    // (`<${PinkButton} …/>`) without a cast.
-    | AnyComponent<any>
+    // Any component-shaped callable, so components interpolate in tag
+    // position (`<${PinkButton} …/>`) without a cast.
+    | ComponentCallable
     | ContextFunction
     | EventListenerOrEventListenerObject
     | EventListener

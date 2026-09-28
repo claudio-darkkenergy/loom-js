@@ -7,6 +7,7 @@ import type {
     TemplateTransformGetter
 } from '../../../types';
 import { fail } from './grammar';
+import { markFragmentRegion } from './regions';
 import type { Frame, Region } from './types';
 
 // Plan emission: turns fully-scanned frames into the render-time artifacts —
@@ -15,7 +16,7 @@ import type { Frame, Region } from './types';
 // A children region has no single-root guarantee (text, multiple elements),
 // so its synthesized component always renders as a rootless fragment.
 const makeChildrenComponent = (region: Region) => {
-    region.statics[0] = `<>${region.statics[0]}`;
+    markFragmentRegion(region);
 
     const childChunks = region.statics;
     const synth = component<{ values?: TemplateTagValue[] }>(

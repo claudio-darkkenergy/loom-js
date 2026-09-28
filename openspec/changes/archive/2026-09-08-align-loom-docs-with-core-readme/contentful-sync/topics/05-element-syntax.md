@@ -23,13 +23,12 @@ const MenuButton = component(
 
 This is **sugar over the functional form** — before the native parser runs, the template above compiles to the equivalent call, with no new runtime semantics.
 
-A template whose top level is only component elements (and whitespace) renders as a rootless fragment, the same as templates that start with `<>` — so here, with no element left to root the template, the compiler prepends the fragment prefix:
+A template whose top level is only component elements (and whitespace) has no element to root it, so it renders as a fragment. The tag compiles to the call and nothing is added around it:
 
 ```ts
 // Thus, the previous example compiles to exactly this:
 const MenuButton = component(
     (html) => html`
-        <>
         ${IconButton({
             isOnlyIcon: true,
             icon: 'icon-menu',
@@ -39,7 +38,7 @@ const MenuButton = component(
 );
 ```
 
-Only component *tags* earn that inference — a lone interpolated value at the top level still needs the `<>` prefix. The root forms — single element, explicit `<>`, inferred — are gathered under [Fragments](/docs/fragments#root-forms-and-inference).
+Any interpolated value at the top level makes a fragment the same way. The root forms are gathered under [Fragments](/docs/fragments#root-forms-and-inference).
 
 When the tag sits inside a real element, no inference is needed — the call simply takes its place and the root is untouched:
 
