@@ -20,9 +20,9 @@ Named for `URL.searchParams` parity. Defined as a getter on the route value (def
 
 The `routeEffect` bullet's RouteValue enumeration gains `searchParams`; the guard's `RouteValue` mention inherits it; one usage line in the routing topic (`routeValue.searchParams.get('tab')`).
 
-### D3 — Honor `sanitizeLocation`'s own deprecation
+### D3 — `sanitizeLocation` leaves the public surface
 
-The export was deprecated by its own doc comment from day one and slipped the removal; it also sits outside `core-readme-accuracy`'s export coverage (neither documented nor recorded as excluded). Un-export it, keep it internal, drop the now-moot deprecation line from its comment. Any external importer (none known) migrates by reading `location.pathname` and trimming the trailing slash — one line, noted in the changeset.
+The export was marked for removal by its own doc comment from day one and slipped it; it also sits outside `core-readme-accuracy`'s export coverage (neither documented nor recorded as excluded). Un-export it, keep it internal, drop the now-moot line from its comment. A clean break: no alias, no transition window, no migration guidance — the changeset states the removal as breaking.
 
 ## Risks / Trade-offs
 
@@ -30,7 +30,7 @@ The export was deprecated by its own doc comment from day one and slipped the re
 
 ## Migration Plan
 
-Additive minor. No consumer changes.
+Minor core release: `searchParams` is additive; the `sanitizeLocation` un-export is breaking and stated as such in the changeset.
 
 ## Open Questions
 
