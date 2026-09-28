@@ -1,5 +1,18 @@
 # @loom-js/core
 
+## 0.17.0
+
+### Minor Changes
+
+- 9382edd: Templates now collapse formatting whitespace. A static whitespace run that contains a newline becomes one space between content on separate lines, and is removed at the start or end of an element's children and of the template. Whitespace without a newline, interpolated values, whitespace inside tags, and the contents of `pre`, `textarea`, `script`, and `style` are unchanged.
+  
+  The DOM shape changes: templates produce fewer text nodes, so `childNodes` counts and `innerHTML` snapshots differ (re-record snapshot tests), and a fragment-rooted component's node list no longer starts or ends with a whitespace text node. Rendering under normal CSS looks the same. Elements styled `white-space: pre-wrap` no longer show template indentation; use `pre` or an interpolated string for content whose line breaks matter.
+- 64805bd: `RouteValue` has a `searchParams` getter that returns the location's query as a `URLSearchParams`. It is available in `routeEffect`, `watchRoute`, the route `guard`, and a page's `routeProps`: `routeValue.searchParams.get('tab')`. Nothing is built until it is read, and each read returns a new instance, so changing one does not affect other readers or the URL.
+  
+  The route value is now a class instance, not a plain object. Reading and destructuring its fields work as before; copying it with spread or `Object.assign` leaves `searchParams` out.
+  
+  **Breaking:** `sanitizeLocation` is no longer exported.
+
 ## 0.16.1
 
 ### Patch Changes
