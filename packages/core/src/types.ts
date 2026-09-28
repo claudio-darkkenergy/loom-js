@@ -429,6 +429,9 @@ export type RouteValue = {
         [key: string]: string;
     };
     pathname?: string | undefined;
+    // The location's query, parsed on access — a fresh instance per read, so
+    // mutating one never affects another reader or the URL.
+    readonly searchParams: URLSearchParams;
 };
 
 // Permanently stops a reactive subscription (`reactiveEffect`, `watch`,

@@ -26,7 +26,7 @@ In the browser there is exactly one router for the lifetime of the page; on a se
 - DOM-free at call time: calling it at module scope is safe in any runtime, including off-browser. History wiring defers to first use inside a DOM scope.
 - Calling it again replaces the route table — last call wins (a call without `guard` clears any registered one).
 - `fallback?: () => Promise<ContextFunction | undefined>` - Rendered while no page has loaded.
-- `guard?: (routeValue: RouteValue) => boolean` - A synchronous predicate run on every valid match with the candidate `RouteValue` (`matchedRoute`, `params`, `pathname`, `raw`), before the route emission. Returning `false` suppresses the emission — route effects & watchers don't fire & the page content stays put (the `fallback` on first load) — while the raw location layer (layer 1) still observes the navigation. See the guard semantics below.
+- `guard?: (routeValue: RouteValue) => boolean` - A synchronous predicate run on every valid match with the candidate `RouteValue` (`matchedRoute`, `params`, `pathname`, `raw`, `searchParams`), before the route emission. Returning `false` suppresses the emission — route effects & watchers don't fire & the page content stays put (the `fallback` on first load) — while the raw location layer (layer 1) still observes the navigation. See the guard semantics below.
 
 ### `route`
 
@@ -39,7 +39,7 @@ In the browser there is exactly one router for the lifetime of the page; on a se
 
 ### `routeEffect` / `watchRoute`
 
-- `routeEffect(routeEffectCallback)` - An effect over the matched route. The callback receives `{ value: RouteValue }` — `matchedRoute`, `params`, `pathname` & `raw` (the `Location`) — & returns what renders in the effect's slot: idiomatically a called component, though any `TemplateTagValue` is accepted (the same contract as `activity.effect`). Requires a registered route table.
+- `routeEffect(routeEffectCallback)` - An effect over the matched route. The callback receives `{ value: RouteValue }` — `matchedRoute`, `params`, `pathname`, `raw` (the `Location`) & `searchParams` (the query as a `URLSearchParams`, built new on each read) — & returns what renders in the effect's slot: idiomatically a called component, though any `TemplateTagValue` is accepted (the same contract as `activity.effect`). Requires a registered route table.
 - `watchRoute(handler)` - The non-rendering watcher form of `routeEffect`; returns an unsubscriber.
 
 ### `locationEffect` / `watchLocation`
@@ -63,6 +63,7 @@ Page components — the modules `createRoutes` imports — receive the matched r
 - `matchedRoute` — the route pattern that matched, as written in `config`.
 - `pathname` — the matched pathname.
 - `raw` — the `Location` the match was computed from.
+- `searchParams` — the query as a `URLSearchParams`: `routeValue.searchParams.get('tab')`. Each read builds a new one, so changing it affects neither other readers nor the URL.
 
 The same shape reaches `guard` and the `routeEffect` / `watchRoute` callbacks. `routeProps` is one of the framework's reserved props — see [Built-in props](/docs/components#built-in-props).
 
