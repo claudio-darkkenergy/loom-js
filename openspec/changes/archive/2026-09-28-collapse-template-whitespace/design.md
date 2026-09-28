@@ -42,6 +42,12 @@ An interpolation slot counts as a content item (never a boundary), so whitespace
 
 The parser knows tag names at static-processing time; inside `pre`/`textarea` (and their descendants for `pre`) nothing collapses. CSS-styled whitespace sensitivity (`pre-wrap` on a `code`) is invisible statically and deliberately not special-cased: such elements get their formatting collapsed, which is the correct outcome for the docs/inline-code cases, and genuinely preformatted content belongs in `pre`, an interpolation, or same-line authoring.
 
+**Implementation notes (apply phase):**
+
+- `script` and `style` are verbatim too, with `textarea` (and `title`) — their content is raw text, not markup, and collapsing a newline in a script would swallow code after a `//` comment.
+- The template's own top level counts as a child list: cross-line runs at the very start and end of a template (or of a component element's children region) are removed. Single-root templates already dropped them at mount; fragment-rooted ones no longer carry leading/trailing whitespace text nodes.
+- A component element's children region is its own template, so it does not inherit a surrounding `pre` from the parent template. Put the `pre` inside the region, or interpolate the string.
+
 ### D4 — One pass over the statics, pre-cache
 
 The collapse runs on the template's static chunks before context caching, so it costs once per call site for the life of the page and the cached statics are already normalized — server and client share the path, so `renderToString` markup and hydration DOM agree by construction. Interactions handled in the same pass: `compile-component-tags` runs first (component-element children regions get the same collapse via their own compiled templates); `table-scope`'s `<!--⚡-->` markers are content items, not whitespace; a whitespace run split across a chunk boundary by an interpolation slot is two runs (each judged against its own side, per D2's slot-as-content rule).
