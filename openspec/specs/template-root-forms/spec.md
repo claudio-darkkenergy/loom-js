@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change fragment-root-inference. Update Purpose after archive.
+Defines how `@loom-js/core` decides a template's root form: the parser classifies each template from its parsed top-level nodes — exactly one element is single-rooted, anything else is fragment-rooted — with no authoring token involved, and compiled regions (synthesized children and named slots) are always fragments by an explicit compiler-set flag rather than by altering template statics.
 
 ## Requirements
 
