@@ -89,7 +89,7 @@ The exports `ComponentArgs`, `ComponentProps`, `ComponentOptionalProps`, `Render
 
 ### Requirement: Lazy imports return a typed activity
 
-`lazyImport<ImportType>` SHALL declare its return type as the concrete activity instantiation for its import — `LazyImportActivity<ImportType>`, defined as `ReturnType<typeof activity<ImportType | undefined, () => Promise<ImportType>>>` and exported from the module — and both the cache-hit and cache-miss paths SHALL return that type, so consumers receive `ImportType | undefined` values from `effect`, `watch`, and `value()` without narrowing or casts. `importLazy` SHALL be typed as `LazyImportActivity<ContextFunction | undefined>`, resolving its standing `@TODO` by contract.
+`lazyImport<ImportType>` SHALL declare its return type as the concrete activity instantiation for its import — `LazyImportActivity<ImportType>`, defined as `ReturnType<typeof activity<ImportType | undefined, () => Promise<ImportType>>>` and exported from the module — and both the cache-hit and cache-miss paths SHALL return that type, so consumers receive `ImportType | undefined` values from `effect`, `watch`, and `value()` without narrowing or casts. `lazyContent` SHALL be typed as `LazyImportActivity<ContextFunction | undefined>`. The former name `importLazy` SHALL NOT be exported, under any form.
 
 #### Scenario: effect values are typed on the cache-miss path
 
@@ -101,7 +101,12 @@ The exports `ComponentArgs`, `ComponentProps`, `ComponentOptionalProps`, `Render
 - **WHEN** a repeat `lazyImport<Component>('key', importer)` call returns the cached activity under type-checking
 - **THEN** its static type equals the first call's `LazyImportActivity<Component>` — `value()` is `Component | undefined`, not `unknown`
 
-#### Scenario: importLazy is typed for renderable content
+#### Scenario: lazyContent is typed for renderable content
 
-- **WHEN** `importLazy(path, importer)` is consumed under type-checking
-- **THEN** it presents `LazyImportActivity<ContextFunction | undefined>` with no `@TODO` remaining on the export
+- **WHEN** `lazyContent(path, importer)` is consumed under type-checking
+- **THEN** it presents `LazyImportActivity<ContextFunction | undefined>`
+
+#### Scenario: the former name is gone
+
+- **WHEN** the package's exports and the monorepo's first-party code are searched for `importLazy`
+- **THEN** no export and no usage is found
