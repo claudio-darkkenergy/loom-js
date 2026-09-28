@@ -1,5 +1,11 @@
 # @loom-js/core
 
+## 0.16.0
+
+### Minor Changes
+
+- db7f7bb: **Breaking:** the `Aria` type is no longer exported. Core never consumed it; ARIA attributes are passed through the `attrs` reserved prop (`attrs=${{ 'aria-label': 'Close' }}`).
+
 ## 0.15.0
 
 ### Minor Changes
