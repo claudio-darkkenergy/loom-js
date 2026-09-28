@@ -1,71 +1,30 @@
 ## Purpose
 
-Defines the accuracy obligations for `packages/core/README.md`, the canonical API reference for `@loom-js/core`: every documented signature matches the source, every public export is documented or deliberately excluded on record, every code example is syntactically valid, and stale content referencing retired tooling is refreshed. Established by the `scrub-core-readme` change (2026-08-19).
+Defines the accuracy obligations for `packages/core/README.md`, the package's front door: what it states matches the current implementation, its quick example is valid, and its links resolve to the published docs topics. API coverage is the docs site's obligation (`docs-content-coverage`).
+
+Established by the `scrub-core-readme` change (2026-08-19); re-scoped to the slim README by `readme-slim-down` (2026-09-28).
 
 ## Requirements
 
-### Requirement: Documented signatures match the source
-
-Every API signature, argument, option, default value, and return shape stated in `packages/core/README.md` SHALL match the current implementation in `packages/core/src/`.
-
-#### Scenario: Activity signature is complete
-
-- **WHEN** a reader consults the Activities section
-- **THEN** it documents `activity<V, I = V>(initialValue, transformOrOptions?, options?)`, including the transform argument (`({ input, update, value })`, with async transform promises tracked by the settlement signal) and the `deep` and `force` options
-
-#### Scenario: Activity return shape is complete
-
-- **WHEN** a reader consults the Activities "Returns" block
-- **THEN** it lists every returned member — `bind`, `effect`, `initialValue`, `reset`, `update` (including its `forceUpdate` second parameter), `value` (including its shallow-copy semantics), and `watch`
-
-#### Scenario: All five lifecycle hooks are documented
-
-- **WHEN** a reader consults the Components concept
-- **THEN** all five lifecycle hooks (`onBeforeRender`, `onCreated`, `onMounted`, `onRendered`, `onUnmounted`) are documented with their timing, and no section claims only two exist
-
-#### Scenario: init props are complete
-
-- **WHEN** a reader consults the Bootstrapping section
-- **THEN** `AppInitProps` documents `app`, `append`, `globalConfig`, `onAppMounted`, and `root` (with its `document.body` default)
-
 ### Requirement: Public export coverage is deliberate
 
-Every export of `@loom-js/core` (`src/index.ts`) and `@loom-js/core/server` SHALL be either documented in the README or deliberately excluded, with the exclusion decision and reason recorded in the change (not the README). Exported types that describe the component render function's prop surface (`UtilityProps`, `ReservedProps`, `RefContext`) SHALL have every member documented or recorded as a deliberate exclusion.
+Every export of `@loom-js/core` (`src/index.ts`) and `@loom-js/core/server` SHALL be either documented on the docs site per the re-anchored content map or deliberately excluded on record; the README SHALL NOT be required to carry API coverage, and everything the slim README does state — pitch, highlights, install, the quick example, topic links — SHALL be accurate to the current implementation and SHALL link to resolving canonical topic URLs.
 
-#### Scenario: Previously undocumented public exports gain sections
+#### Scenario: the slim README stays accurate and connected
 
-- **WHEN** the audit encounters a public-intent export with no README coverage (e.g. `simple`, `lazyImport`)
-- **THEN** the README gains documentation for it
+- **WHEN** the slim README's claims, example, or topic links are audited
+- **THEN** the claims and example match the current implementation and every link resolves to its published topic
 
-#### Scenario: Internal-leaning exports are excluded on record
+#### Scenario: API coverage is the site's obligation
 
-- **WHEN** the audit encounters an export judged internal plumbing (e.g. `canDebug`, `setToken`)
-- **THEN** it is omitted from the README and listed with a reason in the change's notes for review
-
-#### Scenario: The component prop surface is fully documented
-
-- **WHEN** an exported type contributes members to the render function's props (utility getters such as `createRef`/`ctxRefs`, reserved props such as `ref`)
-- **THEN** the README documents each member — or records its deliberate exclusion — rather than describing the props object only partially
+- **WHEN** a public-intent export lacks documentation
+- **THEN** the gap is a docs-topic gap (per the re-anchored coverage spec), not a README gap
 
 ### Requirement: Code examples are valid
 
-Every code example in the README SHALL be syntactically valid and consistent with the documented API.
+The README's quick example SHALL be syntactically valid and consistent with the current API.
 
-#### Scenario: Examples compile
+#### Scenario: the quick example compiles
 
-- **WHEN** an example is extracted into a scratch TypeScript file with the package's types available
+- **WHEN** the quick example is extracted into a scratch TypeScript file with the package's types available
 - **THEN** it parses and type-checks without errors (module-resolution shims aside)
-
-#### Scenario: Known-broken examples are fixed
-
-- **WHEN** the scrub reaches the `init` Quick Example, the `node()` example, the Life Cycles example, and the Activity example
-- **THEN** their syntax errors (missing comma, malformed `/` comments, unclosed `<span>`, missing closing brace) are corrected
-
-### Requirement: Stale content is refreshed
-
-README content referencing retired tooling or obsolete conventions SHALL be replaced with the current idiom.
-
-#### Scenario: Retired tooling references are replaced
-
-- **WHEN** the scrub reaches content predating the current build story (e.g. the `PrerenderSsgWebpackPlugin` bootstrapping example, `npm i -S`)
-- **THEN** the content is rewritten to the current equivalent (`renderToString`-based SSG; plain `npm i`)

@@ -2,45 +2,55 @@
 
 ## Purpose
 
-Defines the parity contract between `packages/core/README.md` and the docs app: every consumer-facing README concept has a docs topic recorded in the change's content map (README headings → topic slug and outline), topic content matches the current API as the README documents it, and README edits either update the corresponding topic or record an explicit docs follow-up — drift is never silent.
+Defines the coverage contract between `@loom-js/core` and the docs app: every consumer-facing concept and export has a docs topic recorded in the content map (topic outline plus source and test pointers), topic content matches the API as the source implements it, and a change to pointed-to source either updates the affected topics or records an explicit docs follow-up — drift is never silent.
 
-Established by the `align-loom-docs-with-core-readme` change (2026-08-28).
+Established by the `align-loom-docs-with-core-readme` change (2026-08-28); re-anchored from the README to source by `readme-slim-down` (2026-09-28).
 
 ## Requirements
 
-### Requirement: Docs cover every consumer-facing README concept
-
-Every consumer-facing section of `packages/core/README.md` SHALL have a corresponding docs topic whose coverage is recorded in the change's content map (README headings → topic slug and outline). No README concept may lack a docs home.
-
-#### Scenario: README section has a docs home
-
-- **WHEN** a consumer-facing README section (Concepts or Examples) is checked against the content map
-- **THEN** the map names the topic slug and outline position that carries that section's content
-
-#### Scenario: README example placement
-
-- **WHEN** a README example illustrates a concept
-- **THEN** the example's content lives in that concept's topic, not in a separate examples page
-
 ### Requirement: Topic content is accurate to the current API
 
-Docs topic content SHALL describe the API as `packages/core/README.md` documents it — signatures, prop names, defaults, and behavioral caveats match. Where `core-api-follow-ups` changes the README (`placement`, route `guard`, lazy-import typing), the topics SHALL match the post-change README.
+Docs topic content SHALL describe the API as the source implements it — signatures, prop names, defaults, and behavioral caveats match the files the content map points the topic at. Code samples in topics SHALL be syntactically valid and consistent with that API.
 
-#### Scenario: Signature parity
+#### Scenario: signature parity
 
 - **WHEN** a topic documents an exported API (e.g. `init`, `activity`, `createRoutes`, `lazyImport`)
-- **THEN** the names, parameters, and defaults it shows exist in the current `@loom-js/core` type surface as the README documents them
+- **THEN** the names, parameters, and defaults it shows exist in the current `@loom-js/core` type surface
 
-#### Scenario: Follow-ups sections authored post-merge
+#### Scenario: topic samples are valid
 
-- **WHEN** the `bootstrapping`, `routing`, or `lazy-imports` topic is authored before `core-api-follow-ups` has landed
-- **THEN** the content map flags that topic for a follow-up parity pass instead of silently shipping pre-change API descriptions
+- **WHEN** a topic's code sample is extracted into a scratch TypeScript file with the package's types available
+- **THEN** it parses and type-checks without errors (module-resolution shims aside)
 
-### Requirement: README edits propagate to docs
+### Requirement: Docs cover every consumer-facing core concept
 
-When a change edits a consumer-facing section of `packages/core/README.md`, that change SHALL either update the corresponding docs topic (and content map entry) or record a docs follow-up task — README↔docs drift is never silent.
+Every consumer-facing concept of `@loom-js/core` SHALL have a docs topic recorded in the content map, which lists per topic its outline and its source pointers into `packages/core/src/**` and the tests that pin the behavior. Every export of `src/index.ts` and `src/server.ts` SHALL be assigned to a topic in the map or listed there as a deliberate exclusion with its reason. The README is not a link in this chain.
 
-#### Scenario: README section changes
+#### Scenario: a concept has a docs home
 
-- **WHEN** a change modifies a README section that the content map assigns to a topic
-- **THEN** the change's tasks include the docs-topic update or an explicit follow-up entry for it
+- **WHEN** a consumer-facing core concept is checked against the content map
+- **THEN** the map names the topic slug, the outline position, and the source files that carry it
+
+#### Scenario: an export has a docs home
+
+- **WHEN** an export of `@loom-js/core` or `@loom-js/core/server` is checked against the map's export coverage
+- **THEN** it is assigned to a topic or listed as excluded with a reason
+
+#### Scenario: example placement
+
+- **WHEN** an example illustrates a concept
+- **THEN** the example lives in that concept's topic, not in a separate examples page
+
+### Requirement: Core changes propagate to docs
+
+When a change alters consumer-visible behavior in a file the content map points a topic at, that change SHALL either update every topic listing the file (topic source, content map entry, published entry) or record a docs follow-up task — source↔docs drift is never silent.
+
+#### Scenario: a pointed-to file changes behavior
+
+- **WHEN** a change modifies consumer-visible behavior in a source file listed under one or more topics in the content map
+- **THEN** the change's tasks include the update for each of those topics, or an explicit follow-up entry for it
+
+#### Scenario: a new export lands
+
+- **WHEN** a change adds an export to `src/index.ts` or `src/server.ts`
+- **THEN** the change assigns it to a topic in the map's export coverage or records its exclusion with a reason
