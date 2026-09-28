@@ -1,5 +1,22 @@
 # @loom-js/core
 
+## 0.15.0
+
+### Minor Changes
+
+- c9ac896: **BREAKING** — the `<>` fragment token is removed. A template's root form is now read from its parsed top level: exactly one element (whitespace-only text ignored) is a single root; anything else — several elements, text, a comment, or an interpolated value — is a fragment.
+  
+  - A template that wrapped one element in `<>` is now single-rooted: `node()` and life-cycle handlers receive the element, not a one-item array.
+  - A lone top-level interpolation (`` html`${Child()}` ``) now renders its value; it used to render nothing.
+  - Fixes `&lt;&gt;` leaking into server output for whitespace-led fragment templates under linkedom.
+  
+  Types: component callables with required props are accepted in the tag position (`<${Card} heading="…" />`) for `component`, `simple`, and plain functions; `AttrsTemplateTagValue` entries accept `bind()` values.
+- 5a7945d: **Breaking:** `importLazy` is renamed to `lazyContent` — `lazyImport` lazily imports any value, `lazyContent` lazily imports renderable content. The signature is unchanged. `importLazy` is no longer exported.
+
+### Patch Changes
+
+- 0aa8747: README: named homes for concepts that lived between headings — Element bindings (`$event`/`$attrs`/`$on`/`$props`), Functional components (plain functions + `simple`), Fragments (consolidated), The settlement signal, Transform time, `routeProps`; the fragment `Pair` example now filters whitespace text nodes before counting.
+
 ## 0.14.2
 
 ### Patch Changes
