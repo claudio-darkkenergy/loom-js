@@ -3,6 +3,7 @@ import sinon from 'sinon';
 
 import { activity, settled } from '../../src';
 import { setDebug } from '../../src/config';
+import { getPendingCount } from '../../src/lib/settlement';
 
 // A promise with its settle handles inverted out — the fixture that forces
 // out-of-order resolution across concurrent dispatches.
@@ -443,6 +444,142 @@ describe('activity transform concurrency', () => {
             holdGate.resolve();
             await settled();
             expect(testActivity.value()).to.equal('A');
+        });
+    });
+
+    describe('reset()', () => {
+        it('restores the initial value without calling the transform', () => {
+            const transformSpy = sinon.spy();
+            const watchSpy = sinon.spy();
+            const testActivity = activity<number, string>(
+                0,
+                ({ input, update }) => {
+                    transformSpy(input);
+                    update(input.length);
+                }
+            );
+
+            testActivity.watch(watchSpy);
+            testActivity.update('abc');
+            expect(testActivity.value()).to.equal(3);
+
+            transformSpy.resetHistory();
+            watchSpy.resetHistory();
+            testActivity.reset();
+
+            expect(testActivity.value()).to.equal(0);
+            expect(transformSpy.called).to.be.false;
+            expect(watchSpy.calledOnceWith({ value: 0 })).to.be.true;
+        });
+
+        it('notifies nobody when the value is already the initial value', () => {
+            const watchSpy = sinon.spy();
+            const testActivity = activity<number, string>(
+                0,
+                ({ input, update }) => update(input.length)
+            );
+
+            testActivity.watch(watchSpy);
+            watchSpy.resetHistory();
+            testActivity.reset();
+
+            expect(watchSpy.called).to.be.false;
+        });
+
+        it('commits synchronously and tracks nothing when no run is in flight', async () => {
+            const testActivity = activity<number, string>(
+                0,
+                async ({ input, update }) => {
+                    await Promise.resolve();
+                    update(input.length);
+                }
+            );
+
+            testActivity.update('abc');
+            await settled();
+            expect(testActivity.value()).to.equal(3);
+
+            const pendingBefore = getPendingCount();
+
+            testActivity.reset();
+
+            expect(testActivity.value()).to.equal(0);
+            expect(getPendingCount()).to.equal(pendingBefore);
+        });
+
+        it('retires an in-flight run under the default concurrency', async () => {
+            const gate = deferred();
+            const seenSignals: AbortSignal[] = [];
+            const testActivity = activity<number, string>(
+                0,
+                async ({ input, signal, update }) => {
+                    seenSignals.push(signal);
+                    update(-1);
+                    await gate.promise;
+                    update(input.length);
+                }
+            );
+
+            testActivity.update('abc');
+            expect(testActivity.value()).to.equal(-1);
+
+            testActivity.reset();
+            expect(testActivity.value()).to.equal(0);
+            expect(seenSignals[0]!.aborted).to.be.true;
+
+            // The retired run lands late — its commit must be dropped.
+            gate.resolve();
+            await settled();
+            expect(testActivity.value()).to.equal(0);
+        });
+
+        it("lands in dispatch order under 'ordered'", async () => {
+            const gate = deferred();
+            const committed: number[] = [];
+            const testActivity = activity<number, string>(
+                0,
+                async ({ input, update }) => {
+                    await gate.promise;
+                    update(input.length);
+                },
+                { concurrency: 'ordered' }
+            );
+
+            testActivity.watch(({ value }) => committed.push(value));
+            testActivity.update('abc');
+            testActivity.reset();
+            await nextMacrotask();
+            expect(committed).to.deep.equal([0]);
+
+            gate.resolve();
+            await settled();
+            expect(committed).to.deep.equal([0, 3, 0]);
+        });
+
+        it("waits its turn under 'serial' and counts as pending work", async () => {
+            const gate = deferred();
+            const committed: number[] = [];
+            const testActivity = activity<number, string>(
+                0,
+                async ({ input, update }) => {
+                    update(-1);
+                    await gate.promise;
+                    update(input.length);
+                },
+                { concurrency: 'serial' }
+            );
+            const pendingBefore = getPendingCount();
+
+            testActivity.watch(({ value }) => committed.push(value));
+            testActivity.update('abc');
+            testActivity.reset();
+
+            expect(testActivity.value()).to.equal(-1);
+            expect(getPendingCount()).to.equal(pendingBefore + 2);
+
+            gate.resolve();
+            await settled();
+            expect(committed).to.deep.equal([0, -1, 3, 0]);
         });
     });
 
