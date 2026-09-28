@@ -305,7 +305,7 @@ Added 2026-09-26 by `docs-ia-discoverability` (D2) — the first deliberate exce
 - **Source:** Lazy imports (README 610–641).
 - **Outline:**
     - h2 `lazyImport` — activity-wrapped dynamic import, per-key cache, settlement tracking.
-    - h2 `importLazy` — the renderable-content convenience.
+    - h2 `lazyContent` — the renderable-content entry point (renamed from `importLazy`, 2026-09-27; the topic opens with the one-machinery-two-entry-points differentiator).
 - **Code samples:** Dashboard/chart example (625–639).
 - **Cross-links:** `activities` (settlement, `effect`), `routing` (`createRoutes` uses the same
   machinery), `server-rendering` / `hydration` (both wait on tracked imports).

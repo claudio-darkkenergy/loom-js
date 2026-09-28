@@ -43,12 +43,18 @@ export const lazyImport = <ImportType>(
     return importActivity;
 };
 
-// The renderable-content convenience over `lazyImport`: the importer resolves
-// a `ContextFunction | undefined` & the path doubles as the cache key.
-export const importLazy = (
+/**
+ * Lazy loads renderable content. Works like `lazyImport`, but the import
+ * path doubles as the cache key & the importer resolves content that is
+ * ready to render.
+ * @param path The import path, also used as the cache key
+ * @param importer The import function; resolves `undefined` when omitted
+ * @returns An activity for the lazily imported content.
+ */
+export const lazyContent = (
     path: string,
-    fallback: () => Promise<ContextFunction | undefined> = () =>
+    importer: () => Promise<ContextFunction | undefined> = () =>
         Promise.resolve(undefined)
 ): LazyImportActivity<ContextFunction | undefined> => {
-    return lazyImport<ContextFunction | undefined>(path, fallback);
+    return lazyImport<ContextFunction | undefined>(path, importer);
 };

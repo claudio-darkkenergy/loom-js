@@ -2,7 +2,7 @@
 
 ### Requirement: Lazy imports return a typed activity
 
-`lazyImport<ImportType>` SHALL declare its return type as the concrete activity instantiation for its import — `LazyImportActivity<ImportType>`, defined as `ReturnType<typeof activity<ImportType | undefined, () => Promise<ImportType>>>` and exported from the module — and both the cache-hit and cache-miss paths SHALL return that type, so consumers receive `ImportType | undefined` values from `effect`, `watch`, and `value()` without narrowing or casts. `lazyContent` SHALL be typed as `LazyImportActivity<ContextFunction | undefined>`; `importLazy` MAY remain only as a deprecated transitional alias of `lazyContent`, scheduled for removal.
+`lazyImport<ImportType>` SHALL declare its return type as the concrete activity instantiation for its import — `LazyImportActivity<ImportType>`, defined as `ReturnType<typeof activity<ImportType | undefined, () => Promise<ImportType>>>` and exported from the module — and both the cache-hit and cache-miss paths SHALL return that type, so consumers receive `ImportType | undefined` values from `effect`, `watch`, and `value()` without narrowing or casts. `lazyContent` SHALL be typed as `LazyImportActivity<ContextFunction | undefined>`. The former name `importLazy` SHALL NOT be exported, under any form.
 
 #### Scenario: effect values are typed on the cache-miss path
 
@@ -19,7 +19,7 @@
 - **WHEN** `lazyContent(path, importer)` is consumed under type-checking
 - **THEN** it presents `LazyImportActivity<ContextFunction | undefined>`
 
-#### Scenario: the transitional alias matches exactly
+#### Scenario: the former name is gone
 
-- **WHEN** `importLazy` is still exported during the alias window
-- **THEN** it is the same function as `lazyContent`, carries a deprecation tag naming the replacement, and first-party code does not use it
+- **WHEN** the package's exports and the monorepo's first-party code are searched for `importLazy`
+- **THEN** no export and no usage is found

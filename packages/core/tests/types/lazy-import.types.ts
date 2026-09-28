@@ -1,7 +1,7 @@
 // Compile-time assertions for the lazy-import type surface
 // (`core-api-follow-ups` design Decisions 4 & 5) — covered by
 // `type-check-tests`; never executed.
-import { importLazy, lazyImport } from '../../src';
+import { lazyContent, lazyImport } from '../../src';
 import type { LazyImportActivity } from '../../src';
 import type { Component, ContextFunction } from '../../src/types';
 
@@ -38,11 +38,10 @@ export const assertWatchValueTyped = cacheHit.watch(({ value }) => {
     return valueTyped && value && value();
 });
 
-// `importLazy` is the renderable-content instantiation — its `@TODO` is
-// resolved by contract.
-export type AssertImportLazyTyped = Expect<
+// `lazyContent` is the renderable-content instantiation.
+export type AssertLazyContentTyped = Expect<
     Equal<
-        ReturnType<typeof importLazy>,
+        ReturnType<typeof lazyContent>,
         LazyImportActivity<ContextFunction | undefined>
     >
 >;

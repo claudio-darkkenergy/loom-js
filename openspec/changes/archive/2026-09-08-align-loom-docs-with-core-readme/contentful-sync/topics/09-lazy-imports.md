@@ -2,7 +2,7 @@
 slug: lazy-imports
 title: Lazy Imports
 ---
-Code you don't need yet shouldn't block first render. This topic covers `lazyImport` — loading modules on demand as ordinary async data — and its renderable convenience, `importLazy`.
+Code you don't need yet shouldn't block first render. Lazy loading has one machinery and two entry points: `lazyImport` lazily imports any value, and `lazyContent` lazily imports renderable content. Both load modules on demand as ordinary async data, and both share one cache.
 
 ## lazyImport
 
@@ -35,20 +35,20 @@ export const Dashboard = component(
 );
 ```
 
-When the imported thing is renderable content, a convenience trims the ceremony.
+When the imported thing is renderable content, `lazyContent` trims the ceremony — the name says what resolves.
 
-## importLazy
+## lazyContent
 
-**`importLazy(path, importer?)`** - A convenience over `lazyImport` typed for renderable content: the importer resolves a `ContextFunction | undefined` (defaulting to `undefined`), & the path doubles as the cache key.
+**`lazyContent(path, importer?)`** - The same machinery & cache as `lazyImport`, typed for renderable content: the importer resolves a `ContextFunction | undefined` (defaulting to `undefined`), & the path doubles as the cache key.
 
 ```ts
-import { component, importLazy } from '@loom-js/core';
+import { component, lazyContent } from '@loom-js/core';
 
 import { Loading } from './loading';
 
 // No invented key — the path doubles as it. No undefined-dance in the
 // effect — the importer resolves content already ready to render.
-const chartPanel = importLazy('./chart-panel', async () =>
+const chartPanel = lazyContent('./chart-panel', async () =>
     (await import('./chart-panel')).ChartPanel()
 );
 

@@ -1560,16 +1560,16 @@ export const Dashboard = component(
 );
 ```
 
-**`importLazy(path, importer?)`** - A convenience over `lazyImport` typed for renderable content: the importer resolves a `ContextFunction | undefined` (defaulting to `undefined`), & the path doubles as the cache key.
+**`lazyContent(path, importer?)`** - The same machinery & cache as `lazyImport`, with a second entry point: `lazyImport` lazily imports any value, `lazyContent` lazily imports renderable content. The importer resolves a `ContextFunction | undefined` (defaulting to `undefined`), & the path doubles as the cache key.
 
 ```ts
-import { component, importLazy } from '@loom-js/core';
+import { component, lazyContent } from '@loom-js/core';
 
 import { Loading } from './loading';
 
 // No invented key — the path doubles as it. No undefined-dance in the
 // effect — the importer resolves content already ready to render.
-const chartPanel = importLazy('./chart-panel', async () =>
+const chartPanel = lazyContent('./chart-panel', async () =>
     (await import('./chart-panel')).ChartPanel()
 );
 

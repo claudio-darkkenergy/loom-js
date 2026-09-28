@@ -7,7 +7,7 @@
 ## What Changes
 
 - `importLazy` → **`lazyContent`**: family-prefix + role naming — `lazyImport` lazily imports _any value_; `lazyContent` lazily imports _renderable content_ (path-keyed, effect-ready). Signature unchanged: `lazyContent(path, importer?)`.
-- `importLazy` remains for one release as a deprecated alias (pre-1.0 courtesy; no known consumers), scheduled for removal in the next cleanup per the standing alias-removal requirement; first-party code (the type test) migrates now.
+- **BREAKING** — `importLazy` is removed outright: no alias, no deprecation window. First-party code (the type test) moves to `lazyContent` in the same change.
 - Docs: the lazy-imports topic's second section renames, opens with the one-machinery-two-entry-points differentiator, and the bridge sentence gains the naming payoff; README mirrors; **minor** core changeset.
 
 ## Capabilities
@@ -18,10 +18,10 @@ _None._
 
 ### Modified Capabilities
 
-- `core-type-surface`: the "Lazy imports return a typed activity" requirement renames its renderable-content clause to `lazyContent` (alias noted as transitional).
+- `core-type-surface`: the "Lazy imports return a typed activity" requirement renames its renderable-content clause to `lazyContent`; `importLazy` leaves the surface.
 
 ## Impact
 
-- `packages/core/src/lazy-import.ts` (rename + deprecated alias), `tests/types/lazy-import.types.ts` (migrate).
+- `packages/core/src/lazy-import.ts` (rename), `tests/types/lazy-import.types.ts` (renamed usage).
 - README + `topics/09-lazy-imports.md` (heading, differentiator, bridge, example).
 - `activity-transform-concurrency` unaffected; no sequencing constraints.
