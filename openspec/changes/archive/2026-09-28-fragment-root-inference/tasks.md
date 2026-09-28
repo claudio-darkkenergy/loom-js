@@ -24,7 +24,7 @@
 
 - [x] 5.1 README `### Fragments`: "The `<>` token" → "Root forms" (no token; comment/text/dynamic-slot roots); update Components ¶3, `node()` bullet, the Composing components inference paragraph, and the `Pair` examples; drop `<>` from every README sample
 - [x] 5.2 `fragments` topic source (`05a-fragments.md`): same restructure — h2 "The `<>` token" retired (redirect note in the content map), "Root forms and inference" absorbs it; `components` / `element-syntax` pointers re-worded; drafts pushed via `contentful-sync/push.py`; content map outline + registry updated _(2026-09-27: `components`, `element-syntax`, `fragments` pushed as drafts only — the three entries, not the full `push.py` sweep, so the other topics keep their published state)_
-- [ ] 5.3 Standing draft review; publish the three topics together
+- [x] 5.3 Standing draft review; publish the three topics together _(2026-09-27: drafts verified against the topic sources, approved, and `components`, `element-syntax`, `fragments` published together)_
 
 ## 6. Release and verification
 
