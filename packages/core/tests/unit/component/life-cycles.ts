@@ -89,7 +89,7 @@ export const lifeCyclesSpec = () => {
                             (fragmentRoot as TemplateRootArray)[0]
                                 ?.parentElement
                         ).to.be.null;
-                        expect(fragmentRoot).to.have.lengthOf(7);
+                        expect(fragmentRoot).to.have.lengthOf(5);
                         expect(Array.isArray(fragmentRoot)).to.be.true;
                     }, 0);
 

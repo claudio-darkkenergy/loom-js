@@ -12,6 +12,7 @@ import { reactive } from './lib/reactive';
 import { getPaths, setUpdatesForPaths } from './lib/templating';
 // Imported by path — not via the templating barrel — to avoid a barrel cycle
 // (`compile-component-tags` imports `component`, which imports this module).
+import { collapseWhitespace } from './lib/templating/collapse-whitespace';
 import { compileComponentTags } from './lib/templating/compile-component-tags';
 import { isFragmentRegion } from './lib/templating/compile-component-tags/regions';
 import { isFragmentRoot } from './lib/templating/root-form';
@@ -52,6 +53,8 @@ const templateCacheStore = new Map<
     {
         documentCache: WeakMap<Document, TemplateDocumentCacheEntry>;
         plan: TemplateTransformPlan | null;
+        // The final statics, formatting whitespace collapsed.
+        statics: readonly string[];
     }
 >();
 // Component Instance Context Store
@@ -69,22 +72,24 @@ export function htmlParser(
     if (!cacheEntry) {
         // Compile any component-element syntax out of the chunks before the
         // native parser sees them. A `null` plan means no component tags —
-        // the template passes through byte-identical.
+        // the template's own chunks carry on to the whitespace collapse.
+        const plan = compileComponentTags(chunks);
+
         cacheEntry = {
             documentCache: new WeakMap(),
-            plan: compileComponentTags(chunks)
+            plan,
+            statics: collapseWhitespace(plan ? plan.chunks : chunks)
         };
         templateCacheStore.set(chunks, cacheEntry);
     }
 
-    const { documentCache, plan } = cacheEntry;
+    const { documentCache, plan, statics } = cacheEntry;
     const currentDocument = getDocument();
     let documentEntry = documentCache.get(currentDocument);
 
     // This runs once per (definition, document) — each document parses the
     // template against its own realm.
     if (!documentEntry) {
-        const statics = plan ? plan.chunks : (chunks as readonly string[]);
         const tableScope = scanTableScope(statics);
         let fragment: DocumentFragment;
 

@@ -69,8 +69,11 @@ describe('component', () => {
         });
 
         it('should have one childNode of type `Text`', () => {
+            const $fragmentRoot = $container?.children[0];
+
             expect($test.childNodes.length).to.equal(1);
-            expect($container?.childNodes[0]).to.be.instanceof(Text);
+            expect($fragmentRoot?.childNodes.length).to.equal(1);
+            expect($fragmentRoot?.childNodes[0] instanceof Text).to.be.true;
         });
 
         it('`textContent` should match the test value', () => {

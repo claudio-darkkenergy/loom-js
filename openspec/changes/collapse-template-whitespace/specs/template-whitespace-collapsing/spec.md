@@ -2,7 +2,7 @@
 
 ### Requirement: Cross-line static whitespace is formatting
 
-A static whitespace run containing a newline SHALL collapse: to a single space between two content items (text, elements, or interpolation slots), and to nothing at the start or end of an element's child list. A static whitespace run containing no newline SHALL be preserved exactly as authored. Interpolated values SHALL never be altered.
+A static whitespace run containing a newline SHALL collapse: to a single space between two content items (text, elements, or interpolation slots), and to nothing at the start or end of an element's child list or of the template itself. A static whitespace run containing no newline SHALL be preserved exactly as authored. Interpolated values SHALL never be altered.
 
 #### Scenario: indentation around an element's sole child disappears
 
@@ -26,12 +26,17 @@ A static whitespace run containing a newline SHALL collapse: to a single space b
 
 ### Requirement: Preformatted elements preserve whitespace verbatim
 
-Static whitespace inside `pre` and `textarea` elements (including `pre` descendants) SHALL be preserved exactly as authored.
+Static whitespace inside `pre` and `textarea` elements (including `pre` descendants) SHALL be preserved exactly as authored. The raw-text elements `script` and `style` SHALL be preserved the same way.
 
 #### Scenario: pre content keeps its layout
 
 - **WHEN** a template authors multi-line content inside `<pre>` (directly or nested below it)
 - **THEN** every newline and indent renders exactly as written
+
+#### Scenario: script and style content is untouched
+
+- **WHEN** a template authors multi-line content inside `<script>` or `<style>`
+- **THEN** the content reaches the parser exactly as written
 
 ### Requirement: Collapsing is static, cached, and parity-safe
 

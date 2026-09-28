@@ -157,6 +157,30 @@ export const Button = component<ButtonProps>(
 );
 ```
 
+#### Template whitespace
+
+A run of whitespace that contains a newline is formatting, not content. Between two pieces of content on separate lines (text, elements, or interpolated values) it becomes one space, and at the start or end of an element's children, or of the template, it is removed. Inside `pre` and `textarea` nothing is touched, and the same goes for `script` and `style`.
+
+Whitespace without a newline is yours: `Hello <b>world</b>` and `<span> ${value}</span>` keep their spaces exactly. Interpolated values are never trimmed, and whitespace inside a tag (between attributes, inside attribute values) is left alone.
+
+```ts
+const Summary = component<{ count: number; name: string }>(
+    (html, { count, name }) => html`
+        <p>
+            ${name} has
+            <b>${count}</b>
+            items
+        </p>
+    `
+);
+
+// Renders <p>Ada has <b>3</b> items</p>
+```
+
+There is no escape hatch, and none is needed. Put two items on separate lines for one space between them, on the same line with a space to keep that space, and on the same line with no space for none. The result looks the same as it did under normal CSS; an element styled `white-space: pre-wrap` now shows your content without your indentation. To keep line breaks and indentation, use `pre` or interpolate the string.
+
+The collapse runs once per template, when it is first parsed, so re-renders pay nothing and server markup matches the browser's.
+
 #### Built-in props
 
 Beside the caller's own props, every render function receives a built-in surface: the **reserved props** any component may be handed (typed on every component — the framework consumes `key` & `ref` itself; everything else arrives like any other prop) and the **utilities** the framework adds alongside them.
@@ -1039,14 +1063,14 @@ To get a single root, wrap the template in one element. The compile itself is Co
 
 #### Fragments as values
 
-Where a single-rooted component has one node, a fragment-rooted one has a node list — and loom hands you the list wherever it would hand you the node. `node()` returns an array of the top-level nodes in DOM order, and every life-cycle handler receives that same array. It holds _every_ top-level node — the whitespace text nodes between your elements included — so filter for elements when elements are what you need:
+Where a single-rooted component has one node, a fragment-rooted one has a node list — and loom hands you the list wherever it would hand you the node. `node()` returns an array of the top-level nodes in DOM order, and every life-cycle handler receives that same array. It holds _every_ top-level node — the single-space text nodes between elements written on separate lines included (see Template whitespace) — so filter for elements when elements are what you need:
 
 ```ts
 import { component } from '@loom-js/core';
 
 export const Pair = component((html, { onMounted }) => {
     onMounted((nodes) => {
-        // Whitespace text nodes ride along — filter when you need elements.
+        // The space between the two elements is a text node — filter for elements.
         const elements = (nodes as Node[]).filter((n) => n instanceof Element);
 
         console.log(elements.length); // => 2
@@ -2043,7 +2067,7 @@ import { component } from '@loom-js/core';
 
 // Life-cycle handlers receive the rendered node directly — no getter needed.
 // Two top-level elements make this fragment-rooted, so the handler gets an
-// array of every top-level node — whitespace text nodes included (see Fragments).
+// array of every top-level node — the text node between them included (see Fragments).
 export const Pair = component((html, { onMounted }) => {
     onMounted((nodes) => {
         const elements = (nodes as Node[]).filter((n) => n instanceof Element);
