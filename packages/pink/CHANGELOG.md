@@ -1,5 +1,16 @@
 # @loom-js/pink
 
+## 0.5.0
+
+### Minor Changes
+
+- db7f7bb: **Breaking:** `PinkButton` and `PinkToggleButton` items no longer take an `aria` prop. ARIA attributes are passed through `attrs` (`attrs=${{ 'aria-label': 'Close' }}`), which both components apply to the rendered element. An `aria` prop passed from untyped code is ignored, so its label stops rendering.
+
+### Patch Changes
+
+- Updated dependencies [db7f7bb]
+  - @loom-js/core@0.16.0
+
 ## 0.4.1
 
 ### Patch Changes
