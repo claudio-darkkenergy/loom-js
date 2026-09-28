@@ -1,10 +1,9 @@
-import { component, type Aria, type ComponentInputProps } from '@loom-js/core';
+import { component, type ComponentInputProps } from '@loom-js/core';
 import classNames from 'classnames';
 
 import { type WithIconProps, withIcon } from '../../modifiers/with-icon';
 
 type ToggleButtonItemProps = ComponentInputProps<{
-    aria?: Aria;
     disabled?: boolean;
     title?: string;
     type?: 'button' | 'reset' | 'submit';
@@ -23,7 +22,6 @@ const ToggleButtonItem = component<ToggleButtonItemProps>(
     (
         html,
         {
-            aria,
             attrs,
             children,
             className,
@@ -41,7 +39,6 @@ const ToggleButtonItem = component<ToggleButtonItemProps>(
                 $attrs=${attrs}
                 $click=${onClick}
                 $on=${on}
-                aria-label=${aria?.label}
                 class=${className}
                 disabled=${disabled}
                 id=${id}

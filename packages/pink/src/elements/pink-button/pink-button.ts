@@ -1,21 +1,17 @@
-import { el, type Aria, simple } from '@loom-js/core';
+import { el, simple } from '@loom-js/core';
 import classNames from 'classnames';
 
 import { type WithIconProps, withIcon } from '../../modifiers/with-icon';
 
 export interface PinkButtonProps extends WithIconProps {
-    aria?: Aria;
     // A custom button size - modifies height.
     buttonSize?: string;
     // Applies to the `<button>` root only.
     disabled?: boolean;
     // A custom font-size
     fontSize?: string;
-    // The root-element contract: with `href` set, the root is an `<a>`
-    // (taking `target`, default `_self`); without it, the root is a
-    // `<button>` (taking `type`, default `button`, plus `disabled`,
-    // `title`, and `aria`). Callers opt into the switch by supplying
-    // `href` — query/test against the root accordingly.
+    // Sets the root element: an `<a>` when supplied, a `<button>` when
+    // omitted. Root-only props are marked below.
     href?: string;
     // The classname for the icon - renders only when provided. A binding
     // (`activity.bind(...)`) drives the class live on the same node.
@@ -40,7 +36,6 @@ export interface PinkButtonProps extends WithIconProps {
 
 export const PinkButton = simple<PinkButtonProps>(
     ({
-        aria,
         attrs,
         buttonSize,
         className,
@@ -65,9 +60,6 @@ export const PinkButton = simple<PinkButtonProps>(
                     ...attrs,
                     ...(href === undefined
                         ? {
-                              ...(aria?.label === undefined
-                                  ? {}
-                                  : { 'aria-label': aria.label }),
                               ...(disabled === undefined ? {} : { disabled }),
                               ...(title === undefined ? {} : { title }),
                               type: type ?? 'button'

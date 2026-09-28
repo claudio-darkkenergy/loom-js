@@ -20,8 +20,6 @@ export type {
     AppGlobalConfig,
     AppHydrateProps,
     AppInitProps,
-    // @deprecated - use `ReservedProps['attrs']`.
-    Aria,
     AttrsTemplateTagValue,
     AnyComponent,
     Component,

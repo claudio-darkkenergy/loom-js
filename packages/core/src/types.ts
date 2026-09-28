@@ -58,12 +58,6 @@ export interface AppHydrateProps extends Omit<AppInitProps, 'placement'> {
     replayEvents?: boolean | string[];
 }
 
-export interface Aria {
-    label?: string;
-    live?: 'assertive' | 'polite';
-    role?: string;
-}
-
 // String- and symbol-keyed record — `reactive.ts` tracks symbol-keyed deps,
 // which the string-only `PlainObject` cannot carry.
 export interface Es6Object<T = unknown> {
