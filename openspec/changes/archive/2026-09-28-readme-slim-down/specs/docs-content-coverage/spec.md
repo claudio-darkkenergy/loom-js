@@ -1,26 +1,12 @@
-# docs-content-coverage Specification
+## RENAMED Requirements
 
-## Purpose
+- FROM: `### Requirement: Docs cover every consumer-facing README concept`
+- TO: `### Requirement: Docs cover every consumer-facing core concept`
 
-Defines the coverage contract between `@loom-js/core` and the docs app: every consumer-facing concept and export has a docs topic recorded in the content map (topic outline plus source and test pointers), topic content matches the API as the source implements it, and a change to pointed-to source either updates the affected topics or records an explicit docs follow-up — drift is never silent.
+- FROM: `### Requirement: README edits propagate to docs`
+- TO: `### Requirement: Core changes propagate to docs`
 
-Established by the `align-loom-docs-with-core-readme` change (2026-08-28); re-anchored from the README to source by `readme-slim-down` (2026-09-28).
-
-## Requirements
-
-### Requirement: Topic content is accurate to the current API
-
-Docs topic content SHALL describe the API as the source implements it — signatures, prop names, defaults, and behavioral caveats match the files the content map points the topic at. Code samples in topics SHALL be syntactically valid and consistent with that API.
-
-#### Scenario: signature parity
-
-- **WHEN** a topic documents an exported API (e.g. `init`, `activity`, `createRoutes`, `lazyImport`)
-- **THEN** the names, parameters, and defaults it shows exist in the current `@loom-js/core` type surface
-
-#### Scenario: topic samples are valid
-
-- **WHEN** a topic's code sample is extracted into a scratch TypeScript file with the package's types available
-- **THEN** it parses and type-checks without errors (module-resolution shims aside)
+## MODIFIED Requirements
 
 ### Requirement: Docs cover every consumer-facing core concept
 
@@ -40,6 +26,20 @@ Every consumer-facing concept of `@loom-js/core` SHALL have a docs topic recorde
 
 - **WHEN** an example illustrates a concept
 - **THEN** the example lives in that concept's topic, not in a separate examples page
+
+### Requirement: Topic content is accurate to the current API
+
+Docs topic content SHALL describe the API as the source implements it — signatures, prop names, defaults, and behavioral caveats match the files the content map points the topic at. Code samples in topics SHALL be syntactically valid and consistent with that API.
+
+#### Scenario: signature parity
+
+- **WHEN** a topic documents an exported API (e.g. `init`, `activity`, `createRoutes`, `lazyImport`)
+- **THEN** the names, parameters, and defaults it shows exist in the current `@loom-js/core` type surface
+
+#### Scenario: topic samples are valid
+
+- **WHEN** a topic's code sample is extracted into a scratch TypeScript file with the package's types available
+- **THEN** it parses and type-checks without errors (module-resolution shims aside)
 
 ### Requirement: Core changes propagate to docs
 

@@ -93,6 +93,32 @@ const routeTable: {
     routesConfig?: RoutesConfig;
 } = { fallback: defaultFallback };
 
+// Builds the route value. It is a class instance rather than a plain object
+// because the activity store copies plain objects, and a copy would run the
+// `searchParams` getter and keep its result.
+class RouteSnapshot implements RouteValue {
+    matchedRoute?: string;
+    params: RouteValue['params'];
+    pathname?: string | undefined;
+    raw: Location;
+
+    constructor({
+        matchedRoute,
+        params,
+        pathname,
+        raw
+    }: Omit<RouteValue, 'searchParams'>) {
+        this.matchedRoute = matchedRoute;
+        this.params = params;
+        this.pathname = pathname;
+        this.raw = raw;
+    }
+
+    get searchParams() {
+        return new URLSearchParams(this.raw.search);
+    }
+}
+
 class Router {
     private locationActivity: ReturnType<typeof activity<Location>>;
     private matchedRoute?: string;
@@ -399,12 +425,12 @@ class Router {
 
     // Returns the route value for the current location.
     private getRouteValue(location: Location) {
-        return {
+        return new RouteSnapshot({
             raw: location,
             matchedRoute: this.matchedRoute,
             params: this.params,
             pathname: this.pathname
-        };
+        });
     }
 
     // The activity transform logic - updates the route value & activity when a route is matched
@@ -434,12 +460,12 @@ class Router {
         // let a registered guard veto the emission before any instance state
         // commits.
         const params = extractParams(matchedRoute, segmentValues);
-        const routeValue: RouteValue = {
+        const routeValue = new RouteSnapshot({
             raw: location,
             matchedRoute,
             params,
             pathname
-        };
+        });
 
         if (routeTable.guard && !routeTable.guard(routeValue)) {
             // Suppressed — route subscribers stay silent & page content keeps
@@ -451,7 +477,6 @@ class Router {
         this.matchedRoute = matchedRoute;
         this.pathImporter = pathImporter;
         this.pathname = pathname;
-        // @TODO this.parseQuery();
         this.params = params;
 
         update(routeValue);
@@ -671,13 +696,12 @@ export const watchRoute = (arg: Parameters<Router['watchRoute']>[0]) =>
     getRouter().watchRoute(arg);
 
 /**
- * `export` DEPRECATED Automatically used within the router - will be removed as an export in the future.
  * Sanitizes the `Window.Location` object as follows:
  *      `pathname` returns "/" or `/${path}` where the trailing slash is trimmed.
  * @param location The current state of `Window.Location`.
  * @returns A sanitized `Location` object shallow copy.
  */
-export const sanitizeLocation = ({ pathname, ...loc }: Location) => ({
+const sanitizeLocation = ({ pathname, ...loc }: Location) => ({
     ...loc,
     pathname:
         pathname.length > 1 && pathname[pathname.length - 1] === '/'

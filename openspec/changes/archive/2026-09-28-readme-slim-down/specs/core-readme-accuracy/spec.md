@@ -1,10 +1,4 @@
-## Purpose
-
-Defines the accuracy obligations for `packages/core/README.md`, the package's front door: what it states matches the current implementation, its quick example is valid, and its links resolve to the published docs topics. API coverage is the docs site's obligation (`docs-content-coverage`).
-
-Established by the `scrub-core-readme` change (2026-08-19); re-scoped to the slim README by `readme-slim-down` (2026-09-28).
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Public export coverage is deliberate
 
@@ -28,3 +22,17 @@ The README's quick example SHALL be syntactically valid and consistent with the 
 
 - **WHEN** the quick example is extracted into a scratch TypeScript file with the package's types available
 - **THEN** it parses and type-checks without errors (module-resolution shims aside)
+
+## REMOVED Requirements
+
+### Requirement: Documented signatures match the source
+
+**Reason**: The slim README carries no API signatures; the docs site is the canonical reference.
+
+**Migration**: Signature accuracy is `docs-content-coverage`'s "Topic content is accurate to the current API", checked against the content map's source pointers.
+
+### Requirement: Stale content is refreshed
+
+**Reason**: Its scenarios describe the one-time scrub of sections the slim README no longer has.
+
+**Migration**: What remains in the README is covered by "Public export coverage is deliberate", which requires everything the README states to match the current implementation.
