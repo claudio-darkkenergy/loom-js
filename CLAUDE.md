@@ -65,7 +65,7 @@ Tests live in `packages/core` only (the framework). They use `@web/test-runner` 
 
 ### `@loom-js/core` — the framework
 
-The core is a **reactive, components-first** library with **zero runtime dependencies**. Mental model and API surface are documented in detail in `packages/core/README.md`; a future Claude Code instance editing this package should read that file first. Key entry point: `packages/core/src/index.ts` re-exports from `activity`, `app`, `component`, `config`, `hydrate`, `lazy-import`, `router`, `settled`, plus the `types` module.
+The core is a **reactive, components-first** library with **zero runtime dependencies**. Mental model and API surface are documented on the docs site (`https://loom-js-docs.vercel.app/docs`); the topic sources live in `openspec/changes/archive/2026-09-08-align-loom-docs-with-core-readme/contentful-sync/topics/`, and the content map (`openspec/changes/archive/2026-09-28-readme-slim-down/content-map.md`) points each topic at its source files. A future Claude Code instance editing this package should read the relevant topic first. `packages/core/README.md` is the short front door, not the reference. Key entry point: `packages/core/src/index.ts` re-exports from `activity`, `app`, `component`, `config`, `hydrate`, `lazy-import`, `router`, `settled`, plus the `types` module.
 
 Concepts you will see across consumers:
 

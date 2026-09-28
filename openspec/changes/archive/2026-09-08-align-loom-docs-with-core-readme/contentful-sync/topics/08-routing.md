@@ -21,11 +21,12 @@ In the browser there is exactly one router for the lifetime of the page; on a se
 
 ### `createRoutes`
 
-`createRoutes({ config, fallback, guard })` - Registers the app's route table & returns the routes component to compose into your layout tree. Each `config` entry maps a route path (dynamic segments via `/:param`) to an importer of the page component — `() => import('@app/pages/about')`, matched on the module's default export. Route pages load through the same machinery as [Lazy Imports](/docs/lazy-imports).
+`createRoutes({ config, fallback, guard, assets })` - Registers the app's route table & returns the routes component to compose into your layout tree. Each `config` entry maps a route path (dynamic segments via `/:param`) to an importer of the page component — `() => import('@app/pages/about')`, matched on the module's default export. Route pages load through the same machinery as [Lazy Imports](/docs/lazy-imports).
 
 - DOM-free at call time: calling it at module scope is safe in any runtime, including off-browser. History wiring defers to first use inside a DOM scope.
 - Calling it again replaces the route table — last call wins (a call without `guard` clears any registered one).
 - `fallback?: () => Promise<ContextFunction | undefined>` - Rendered while no page has loaded.
+- `assets?: { [routePattern]: string[] }` - Stylesheet URLs to have loaded before each route renders, keyed like `config`. The URLs load concurrently with the route's chunk import; a URL already linked in the document counts as loaded, and a failed load logs on the debug lane and renders the route anyway. Omit it (or any route) for today's behavior; server renders skip asset loading entirely. Typically fed by a build-generated manifest — core treats the URLs as opaque.
 - `guard?: (routeValue: RouteValue) => boolean` - A synchronous predicate run on every valid match with the candidate `RouteValue` (`matchedRoute`, `params`, `pathname`, `raw`, `searchParams`), before the route emission. Returning `false` suppresses the emission — route effects & watchers don't fire & the page content stays put (the `fallback` on first load) — while the raw location layer (layer 1) still observes the navigation. See the guard semantics below.
 
 ### `route`
