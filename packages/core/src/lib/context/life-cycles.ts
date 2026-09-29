@@ -213,6 +213,8 @@ const domChanged: MutationCallback = (diffNodes) => {
     // Batch-end resolution: only genuinely detached candidates unmount and
     // tear down — moved-but-still-attached nodes keep their registration
     // and subscriptions.
+    const detachedContexts: ComponentContextPartial[] = [];
+
     removalCandidates.forEach((ctx, node) => {
         if (getDocument().contains(node)) {
             return;
@@ -224,7 +226,7 @@ const domChanged: MutationCallback = (diffNodes) => {
             ctx.lifeCycleState.value = 'unmounted';
         }
 
-        teardownContext(ctx);
+        detachedContexts.push(ctx);
         canDebugMutations &&
             loomConsole.info(
                 ...formatDiagnostic({
@@ -238,6 +240,10 @@ const domChanged: MutationCallback = (diffNodes) => {
                 getShareableContext(ctx)
             );
     });
+
+    // Teardown waits until every `onUnmounted` has fired — it cascades into
+    // child contexts and drops their handlers.
+    detachedContexts.forEach(teardownContext);
 
     canDebugMutations && loomConsole.groupEnd();
 };
@@ -253,6 +259,13 @@ const teardownContext = (ctx: ComponentContextPartial) => {
     // Owned values (`own`) live exactly as long as the mounted context — a
     // remount re-creates them through a fresh first render.
     delete ctx.owned;
+    // Handlers close over the render that registered them, so a remount
+    // registers its own. Handlers given through a `ref` stay.
+    ctx.beforeRender = ctx.ref?.beforeRender;
+    ctx.created = ctx.ref?.created;
+    ctx.mounted = ctx.ref?.mounted;
+    ctx.rendered = ctx.ref?.rendered;
+    ctx.unmounted = ctx.ref?.unmounted;
     ctx.children?.forEach((childCtx) => teardownContext(childCtx));
 };
 

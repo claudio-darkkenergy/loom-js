@@ -57,6 +57,8 @@ That's a complete component. Its render function receives more than props, thoug
 
 `onMounted` & `onUnmounted` describe a live, observed browser document — they never fire on the server (see [Server Rendering](/docs/server-rendering)).
 
+A component that is unmounted and then mounted again is created again. Its render function runs, the handlers it registers replace the ones from before the unmount, and `onCreated` fires once more. Handlers registered through a `ref` carry over.
+
 ## Built-in props
 
 Beside the caller's own props, every render function receives a built-in surface: the **reserved props** any component may be handed (typed on every component — the framework consumes `key` & `ref` itself; everything else arrives like any other prop) and the **utilities** the framework adds alongside them.
