@@ -1,5 +1,12 @@
 # @loom-js/core
 
+## 0.17.1
+
+### Patch Changes
+
+- 4342d4b: The package ships `llms-full.txt`: the full documentation for the installed version as one markdown file, for AI agents working from `node_modules`. The README links to the same file on the docs site.
+- d461875: A component that unmounts and mounts again now runs the life-cycle handlers registered by its new render. Before, the handlers from its first render kept firing, so an `onCreated` that updated a locally created activity updated the old one and the remounted template never changed.
+
 ## 0.17.0
 
 ### Minor Changes
