@@ -1,4 +1,4 @@
-# Content map — readme-slim-down
+# Content map
 
 The docs site is the canonical documentation for `@loom-js/core`. This map is the drift anchor:
 per topic, the published outline plus the source and tests the topic describes. A change that
@@ -10,7 +10,7 @@ stays the record for everything that is not anchoring: slug immutability, redire
 rich-text conventions, the side-nav groups, the cross-link registry.
 
 - **Site:** `https://loom-js-docs.vercel.app/docs/<slug>`
-- **Topic sources:** `openspec/changes/archive/2026-09-08-align-loom-docs-with-core-readme/contentful-sync/topics/`
+- **Topic sources:** `docs/topics/`, pushed to Contentful with `docs/contentful-sync/`
 - **Paths** below are relative to `packages/core/`.
 - **Outlines** were read from the live pages on 2026-09-28. Anchors are the kebab-cased heading
   text (h3s indented).

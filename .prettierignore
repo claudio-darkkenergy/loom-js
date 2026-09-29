@@ -18,5 +18,5 @@ CHANGELOG.md
 lib/codegen/src/components/
 
 # Contentful topic sources are converted verbatim by md2rich.py — never reflowed.
-openspec/changes/**/contentful-sync/topics/
-openspec/changes/**/contentful-sync/ids.json
+docs/topics/
+docs/contentful-sync/ids.json

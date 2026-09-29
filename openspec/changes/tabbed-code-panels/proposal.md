@@ -9,7 +9,7 @@ Some code samples are the same instruction in N dialects — the install block (
 - `@loom-js/pink`: `PinkCodePanel.Tabs` — a tab strip for the panel header built on pink's `.tabs`/`.tabs-button` classes (button semantics, not links), driven by a selection activity so the active variant's content and copy text swap in place. Non-breaking; panels without tabs are untouched.
 - `apps/loom` rich-text rendering: consecutive sole-code paragraphs whose directive carries a tab label merge into one tabbed panel; the active tab's code feeds the existing copy button.
 - Authoring convention (content map): the directive grammar grows one optional line — `// @tab <label> [<group>]` after `// @lang <lang>`. Blocks sharing a group sync their selection app-wide (pick pnpm once, every install block follows).
-- `contentful-sync/md2rich.py`: fence info `bash tab=npm group=pm` emits the directive, so topic sources author tabs as plain fenced blocks.
+- `docs/contentful-sync/md2rich.py`: fence info `bash tab=npm group=pm` emits the directive, so topic sources author tabs as plain fenced blocks.
 - First consumer: the getting-started install block becomes npm/yarn/pnpm tabs.
 
 ## Capabilities
@@ -26,5 +26,5 @@ _None._
 
 - `packages/pink` — `PinkCodePanel.Tabs` (+ story, **minor** changeset). Builds on existing `.tabs` CSS; no new dependency.
 - `apps/loom` — `styled-rich-text/lib/code.ts` grouping + tab wiring; a small keyed selection-activity module for group sync.
-- `openspec/changes/align-loom-docs-with-core-readme/contentful-sync/` — converter fence-meta support; getting-started source updated; map convention entry.
+- `docs/contentful-sync/` and `docs/topics/` — converter fence-meta support; getting-started source updated; map convention entry.
 - Depends on nothing in flight; the install block lands whenever this ships (drafts re-push is cheap).

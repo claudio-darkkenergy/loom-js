@@ -61,7 +61,7 @@ def request(method, path, body=None, headers=None):
 
 def main():
     ids = {**SEED_IDS, **(json.load(open(IDS_PATH)) if os.path.exists(IDS_PATH) else {})}
-    for path in sorted(glob.glob(os.path.join(os.path.dirname(IDS_PATH), 'topics', '*.md'))):
+    for path in sorted(glob.glob(os.path.join(os.path.dirname(IDS_PATH), '..', 'topics', '*.md'))):
         meta, document = load_topic(path)
         slug, title = meta['slug'], meta['title']
         fields = {
