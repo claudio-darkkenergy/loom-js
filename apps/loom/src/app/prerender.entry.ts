@@ -1,6 +1,7 @@
 // The prerender bundle: an extra entry point of the client build, so the
 // prerendered markup gets the same minified css-module class names and the
 // same core module instance as the shipped app. Only the build runner loads it.
+import { documentToMarkdown, inlineToMarkdown } from '@loom-js/contentful';
 import {
     dehydrate,
     renderToString,
@@ -8,8 +9,9 @@ import {
 } from '@loom-js/core/server';
 
 import { App } from './app';
+import { asCodeBlock } from './components/content/styled-rich-text/lib/code';
 import { pageContentResourceKey } from './logic/activity/page-content';
-import { flattenListing } from './logic/listing';
+import { flattenListing, listingSections } from './logic/listing';
 import { getPageContent } from './logic/providers/contentful';
 import { setContentfulTransport } from './logic/providers/contentful/lib/contentful-request';
 import { DOCS_PAGE_SLUG } from './pages/constants';
@@ -22,6 +24,18 @@ export interface PrerenderTransportConfig {
 export interface DocsTopicSummary {
     slug: string;
     title: string;
+}
+
+export interface DocsSectionSummary {
+    title: string;
+    topics: DocsTopicSummary[];
+}
+
+export interface DocsTopicText {
+    /** The topic's lead paragraph, as markdown. */
+    lead: string;
+    /** The whole topic body, as markdown. */
+    markdown: string;
 }
 
 /**
@@ -62,6 +76,74 @@ export const listDocsTopics = async (): Promise<DocsTopicSummary[]> => {
     }
 
     return topics;
+};
+
+/**
+ * Lists the docs topics as the side nav groups them. Ungrouped topics
+ * arrive in a section with an empty title.
+ */
+export const listDocsSections = async (): Promise<DocsSectionSummary[]> => {
+    const { data, error } = await getPageContent(DOCS_PAGE_SLUG, '');
+    const sections = listingSections(data?.page?.contentCollection?.items).map(
+        ({ items, title }) => ({
+            title: typeof title === 'string' ? title : '',
+            topics: items.flatMap(({ slug, title: topicTitle }) =>
+                typeof slug === 'string'
+                    ? [
+                          {
+                              slug,
+                              title:
+                                  typeof topicTitle === 'string'
+                                      ? topicTitle
+                                      : ''
+                          }
+                      ]
+                    : []
+            )
+        })
+    );
+
+    if (error || !sections.length) {
+        throw new Error(
+            `[prerender] docs page listing failed: ${error || 'no sections returned'}`
+        );
+    }
+
+    return sections;
+};
+
+/**
+ * Serializes one topic's body to markdown, from the same Contentful entry
+ * its page renders. Links resolve against `origin`, since the text is read
+ * away from the site.
+ */
+export const docsTopicText = async (
+    topicSlug: string,
+    origin: string
+): Promise<DocsTopicText> => {
+    const { data, error } = await getPageContent(DOCS_PAGE_SLUG, topicSlug);
+    const richTextDocument = data?.topic?.description?.json;
+
+    if (error || !richTextDocument) {
+        throw new Error(
+            `[prerender] docs topic "${topicSlug}" failed to load: ${error || 'no body returned'}`
+        );
+    }
+
+    const options = {
+        codeBlock: asCodeBlock,
+        resolveUrl: (uri: string) =>
+            uri.startsWith('/') ? origin.concat(uri) : uri
+    };
+    const [leadNode] = richTextDocument.content;
+
+    return {
+        lead:
+            leadNode?.nodeType === 'paragraph' && !asCodeBlock(leadNode)
+                ? inlineToMarkdown(leadNode, options)
+                : '',
+        markdown: documentToMarkdown(richTextDocument, options)
+    };
 };
 
 // The server entry's d.ts duplicates core's shared types, so the same

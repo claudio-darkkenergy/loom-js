@@ -51,3 +51,7 @@ jobs:
             # Browser (wtr + puppeteer Chromium) and node:test suites.
             - name: Run Core Tests
               run: pnpm -F @loom-js/core test-ci
+
+            # node:test suites behind the docs site's llms text files.
+            - name: Run Docs Text Tests
+              run: pnpm -F @loom-js/contentful -F @loom-js/loom test-ci

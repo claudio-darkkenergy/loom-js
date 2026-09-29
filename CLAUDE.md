@@ -55,6 +55,8 @@ Tests live in `packages/core` only (the framework). They use `@web/test-runner` 
 
 ### App build patterns
 
+The prerender phase also writes `llms.txt` (topic index) and `llms-full.txt` (every topic as markdown) into the build, serialized from the same Contentful entries the pages render (`documentToMarkdown` in `@loom-js/contentful`, assembled by `project/client/llms-text.mts`). `@loom-js/core`'s `build-package` writes its own `llms-full.txt` from `docs/topics/` (`packages/core/scripts/build-llms-text.mjs`), so the published package documents its own version. Both have `node --test` suites: `pnpm -F @loom-js/contentful -F @loom-js/loom test-ci`.
+
 `apps/loom` builds with **esbuild driven by `tsx`** — entry points are `./project/client/build.mts` and `./project/client/dev.mts`, which call `clientConfig` from `./project/client/config.mts`. `dev.mts` runs `esbuild.context().serve()` on port 9092 with SPA fallback. The build emits to `./build` (override with `LOOM_BUILD_DIR` for an isolated build — a running dev server rebuilds `./build` on source changes and will race a prod build there). Production builds then run an SSG phase (`prerender.mts`): the client build's extra `static/js/prerender` entry (same build = matching minified css-module names + one core instance; shells never load it) renders `/` and every docs topic against per-route linkedom windows, injecting markup + dehydrated state into the shells via the `src/app/boot-contract.ts` slots. Requires `CTF_SPACE_ID`/`CTF_TOKEN` at build time; the client boots via prime-then-`hydrate` (`bootstrap.ts`).
 
 `apps/sandbox` mirrors this layout but runs the same `.mts` entrypoints through `ts-node/esm` (`node --loader ts-node/esm`) instead of `tsx`.
