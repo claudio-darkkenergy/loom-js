@@ -108,7 +108,7 @@ Concepts you will see across consumers:
     - Tree-wide reformat commits are listed in `.git-blame-ignore-revs`; run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once locally so `git blame` skips them.
 - **TypeScript** is `strict` with `noUncheckedIndexedAccess` and `module: NodeNext` from the shared base. `target: ES2022`. Every workspace pins `typescript: ^7.0.2` (the Go-native compiler); only the four legacy-API dev tools above run on a nested TypeScript 6.
 - **Hoist patterns live in `pnpm-workspace.yaml`** (`publicHoistPattern`; pnpm 12 no longer reads them from `.npmrc`): `@aws-sdk/*` and `@smithy/*` are public-hoisted for `@vercel/node`'s deploy-time type-check, which resolves with `preserveSymlinks` and cannot traverse pnpm's symlinked store — without the hoist, `S3Client`'s base class collapses and inherited methods (`send`) vanish as TS2339 in the services build logs. Reproduce with `tsc --preserveSymlinks` in `services/`.
-- **Turbo cache**: outputs are `build/**` (apps) or `dist/**` (packages). Don't add files into those directories by hand expecting them to persist — they get cleaned each build.
+- **Turbo cache**: outputs are `build/**` (apps) or `dist/**` (packages). `@loom-js/loom#build` is uncached: its output depends on Contentful content, which turbo can't see, so a cached build would serve stale pages after a publish. Don't add files into those directories by hand expecting them to persist — they get cleaned each build.
 - **`.env.local`** at the repo root is loaded by dotenvx for `pnpm dev`. App-level env vars (`API_URL`, `CTF_IS_PREVIEW`) are listed in `turbo.json` so changing them invalidates the cache.
 
 ## Skills

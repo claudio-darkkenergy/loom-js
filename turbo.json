@@ -22,6 +22,17 @@
                 "CTF_TOKEN"
             ]
         },
+        "@loom-js/loom#build": {
+            "dependsOn": ["^build", "^build-package"],
+            "cache": false,
+            "env": [
+                "API_URL",
+                "CTF_IS_PREVIEW",
+                "NODE_ENV",
+                "CTF_SPACE_ID",
+                "CTF_TOKEN"
+            ]
+        },
         "build-package": {
             "dependsOn": ["^build-package"],
             "outputs": ["dist/**"]
