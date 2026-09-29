@@ -66,6 +66,8 @@ init({
 
 ## Documentation
 
+For AI agents: the whole manual is one markdown file, [llms-full.txt](https://loom-js-docs.vercel.app/llms-full.txt), with a topic index at [llms.txt](https://loom-js-docs.vercel.app/llms.txt). This package ships the same manual for its own version as `llms-full.txt`.
+
 The full documentation lives at [loom-js-docs.vercel.app](https://loom-js-docs.vercel.app/docs/getting-started). The topics are ordered as a learning path:
 
 **Onboarding**

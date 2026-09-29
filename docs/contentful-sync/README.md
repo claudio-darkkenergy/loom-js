@@ -1,7 +1,9 @@
-# Contentful sync (phase 4 record)
+# Contentful sync
+
+The docs topics are authored in `docs/topics/*.md` and pushed to Contentful from here. Moved out of the `align-loom-docs-with-core-readme` change (2026-09-28); the notes below are that change's record.
 
 What was entered into the `Loom JS` space (`2x238mu87414`, env `master`) for task 4.2, and the
-tooling that entered it. `topics/*.md` are the authored sources (README → map outline);
+tooling that entered it. `../topics/*.md` are the authored sources (README → map outline);
 `md2rich.py` converts them to rich-text JSON per the map's conventions; `push.py` creates/updates
 the entries **as drafts** (it never publishes). `ids.json` maps slug → entry id.
 

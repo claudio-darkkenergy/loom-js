@@ -27,7 +27,8 @@
     },
     "types": "./dist/index.d.ts",
     "files": [
-        "./dist"
+        "./dist",
+        "./llms-full.txt"
     ],
     "publishConfig": {
         "access": "public"
@@ -38,7 +39,7 @@
         "directory": "packages/core"
     },
     "scripts": {
-        "build-package": "rollup -c rollup.config.ts --configPlugin esbuild",
+        "build-package": "rollup -c rollup.config.ts --configPlugin esbuild && node scripts/build-llms-text.mjs",
         "format": "prettier",
         "test-ci": "wtr --config \"web-test-runner.config.mjs\" && pnpm test-server",
         "test-dev": "wtr --config \"web-test-runner.config.mjs\" --watch",

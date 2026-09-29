@@ -119,13 +119,14 @@ App entry files, all under `src/app/`: `bootstrap.ts` is the self-booting client
 
 ### Libraries (`lib/`)
 
-| Folder                                   | Purpose                                                                               |
-| ---------------------------------------- | ------------------------------------------------------------------------------------- |
-| `lib/utils/src/`                         | Cross-app utilities: `api/`, `cache/`, `graphql/`, `http/`, `loom-js/`, `responsive/` |
-| `lib/contentful/src/`                    | Contentful types, rich-text renderer, media URL helpers                               |
-| `lib/contentful/src/rich-text-renderer/` | Contentful rich-text → loomjs component tree                                          |
-| `lib/typescript-config/`                 | Shared tsconfig presets: `base.json`, `app.json`, `lib.json`                          |
-| `lib/storybook/src/`                     | Storybook adapter helpers for loomjs components                                       |
+| Folder                                     | Purpose                                                                               |
+| ------------------------------------------ | ------------------------------------------------------------------------------------- |
+| `lib/utils/src/`                           | Cross-app utilities: `api/`, `cache/`, `graphql/`, `http/`, `loom-js/`, `responsive/` |
+| `lib/contentful/src/`                      | Contentful types, rich-text renderer, media URL helpers                               |
+| `lib/contentful/src/rich-text-renderer/`   | Contentful rich-text → loomjs component tree                                          |
+| `lib/contentful/src/rich-text-markdown.ts` | Contentful rich-text → markdown (feeds the docs site's llms text files)               |
+| `lib/typescript-config/`                   | Shared tsconfig presets: `base.json`, `app.json`, `lib.json`                          |
+| `lib/storybook/src/`                       | Storybook adapter helpers for loomjs components                                       |
 
 ### Build & config
 

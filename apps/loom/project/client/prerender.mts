@@ -5,9 +5,12 @@ import { parseHTML } from 'linkedom';
 
 import { injectPrerender } from '../../src/app/boot-contract.js';
 import type {
+    DocsSectionSummary,
     DocsTopicSummary,
+    DocsTopicText,
     PrerenderTransportConfig
 } from '../../src/app/prerender.entry.js';
+import { assertLlmsTopics, llmsFull, llmsIndex } from './llms-text.mjs';
 import {
     copyFile,
     mkdir,
@@ -21,6 +24,11 @@ import { pathToFileURL } from 'node:url';
 interface PrerenderBundle {
     configurePrerenderTransport: (config: PrerenderTransportConfig) => void;
     docsContentResourceKey: (topicSlug: string) => string;
+    docsTopicText: (
+        topicSlug: string,
+        origin: string
+    ) => Promise<DocsTopicText>;
+    listDocsSections: () => Promise<DocsSectionSummary[]>;
     listDocsTopics: () => Promise<DocsTopicSummary[]>;
     prerenderRoute: (
         url: string,
@@ -46,6 +54,14 @@ const injectFontPreloads = (shellHtml: string, fontFiles: string[]) => {
         preloads.concat('    <link rel="dns-prefetch"')
     );
 };
+
+// Where the docs are served. The llms text files are read away from the
+// site, so their links carry the full address.
+const SITE_ORIGIN =
+    process.env.SITE_ORIGIN || 'https://loom-js-docs.vercel.app';
+
+// Utility topics that document nothing about the framework.
+const LLMS_EXCLUDED_SLUGS = ['feedback'];
 
 const freshWindow = () =>
     parseHTML('<!DOCTYPE html><html><head></head><body></body></html>')
@@ -75,6 +91,8 @@ export const prerender = async (outdir = './build') => {
     const {
         configurePrerenderTransport,
         docsContentResourceKey,
+        docsTopicText,
+        listDocsSections,
         listDocsTopics,
         prerenderRoute
     } = (await import(
@@ -164,6 +182,37 @@ export const prerender = async (outdir = './build') => {
                     );
                 }
             }
+        );
+    }
+
+    const sections = await Promise.all(
+        (await listDocsSections()).map(async ({ title, topics: listed }) => ({
+            title,
+            topics: await Promise.all(
+                listed
+                    .filter(({ slug }) => !LLMS_EXCLUDED_SLUGS.includes(slug))
+                    .map(async (topic) => ({
+                        ...topic,
+                        ...(await docsTopicText(topic.slug, SITE_ORIGIN))
+                    }))
+            )
+        }))
+    );
+    const llmsSite = {
+        name: 'loom',
+        origin: SITE_ORIGIN,
+        sections: sections.filter((section) => section.topics.length)
+    };
+
+    assertLlmsTopics(llmsSite.sections);
+
+    for (const [fileName, content] of [
+        ['llms.txt', llmsIndex(llmsSite)],
+        ['llms-full.txt', llmsFull(llmsSite)]
+    ] as const) {
+        await writeFile(path.join(buildDir, fileName), content);
+        console.info(
+            `> wrote ${fileName} (${Buffer.byteLength(content)} bytes)`
         );
     }
 

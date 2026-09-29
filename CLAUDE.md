@@ -55,6 +55,8 @@ Tests live in `packages/core` only (the framework). They use `@web/test-runner` 
 
 ### App build patterns
 
+The prerender phase also writes `llms.txt` (topic index) and `llms-full.txt` (every topic as markdown) into the build, serialized from the same Contentful entries the pages render (`documentToMarkdown` in `@loom-js/contentful`, assembled by `project/client/llms-text.mts`). `@loom-js/core`'s `build-package` writes its own `llms-full.txt` from `docs/topics/` (`packages/core/scripts/build-llms-text.mjs`), so the published package documents its own version. Both have `node --test` suites: `pnpm -F @loom-js/contentful -F @loom-js/loom test-ci`.
+
 `apps/loom` builds with **esbuild driven by `tsx`** — entry points are `./project/client/build.mts` and `./project/client/dev.mts`, which call `clientConfig` from `./project/client/config.mts`. `dev.mts` runs `esbuild.context().serve()` on port 9092 with SPA fallback. The build emits to `./build` (override with `LOOM_BUILD_DIR` for an isolated build — a running dev server rebuilds `./build` on source changes and will race a prod build there). Production builds then run an SSG phase (`prerender.mts`): the client build's extra `static/js/prerender` entry (same build = matching minified css-module names + one core instance; shells never load it) renders `/` and every docs topic against per-route linkedom windows, injecting markup + dehydrated state into the shells via the `src/app/boot-contract.ts` slots. Requires `CTF_SPACE_ID`/`CTF_TOKEN` at build time; the client boots via prime-then-`hydrate` (`bootstrap.ts`).
 
 `apps/sandbox` mirrors this layout but runs the same `.mts` entrypoints through `ts-node/esm` (`node --loader ts-node/esm`) instead of `tsx`.
@@ -65,7 +67,7 @@ Tests live in `packages/core` only (the framework). They use `@web/test-runner` 
 
 ### `@loom-js/core` — the framework
 
-The core is a **reactive, components-first** library with **zero runtime dependencies**. Mental model and API surface are documented on the docs site (`https://loom-js-docs.vercel.app/docs`); the topic sources live in `openspec/changes/archive/2026-09-08-align-loom-docs-with-core-readme/contentful-sync/topics/`, and the content map (`openspec/changes/archive/2026-09-28-readme-slim-down/content-map.md`) points each topic at its source files. A future Claude Code instance editing this package should read the relevant topic first. `packages/core/README.md` is the short front door, not the reference. Key entry point: `packages/core/src/index.ts` re-exports from `activity`, `app`, `component`, `config`, `hydrate`, `lazy-import`, `router`, `settled`, plus the `types` module.
+The core is a **reactive, components-first** library with **zero runtime dependencies**. Mental model and API surface are documented on the docs site (`https://loom-js-docs.vercel.app/docs`); the topic sources live in `docs/topics/` (pushed to Contentful with `docs/contentful-sync/`), and the content map (`docs/content-map.md`) points each topic at its source files. A future Claude Code instance editing this package should read the relevant topic first. `packages/core/README.md` is the short front door, not the reference. Key entry point: `packages/core/src/index.ts` re-exports from `activity`, `app`, `component`, `config`, `hydrate`, `lazy-import`, `router`, `settled`, plus the `types` module.
 
 Concepts you will see across consumers:
 

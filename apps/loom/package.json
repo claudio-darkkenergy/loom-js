@@ -7,6 +7,7 @@
     "description": "Loomjs Documentation Site",
     "scripts": {
         "build": "tsx ./project/client/build.mts",
+        "test-ci": "node --test \"project/client/tests/*.test.mjs\"",
         "build-manual": "pnpm type-check && pnpm build",
         "dev": "tsx ./project/client/dev.mts",
         "serve-build": "pnpx simple-server ./build",

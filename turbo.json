@@ -26,6 +26,11 @@
             "dependsOn": ["^build-package"],
             "outputs": ["dist/**"]
         },
+        "@loom-js/core#build-package": {
+            "dependsOn": ["^build-package"],
+            "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/docs/topics/**"],
+            "outputs": ["dist/**", "llms-full.txt"]
+        },
         "build-storybook": {
             "dependsOn": ["^build-package"],
             "outputs": ["storybook-static/**"]
