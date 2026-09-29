@@ -6,27 +6,24 @@
     "license": "ISC",
     "description": "",
     "scripts": {
-        "build": "pnpm ts-node/esm -- ./project/client/build.mts",
+        "build": "tsx ./project/client/build.mts",
         "build-manual": "pnpm type-check && pnpm build",
-        "ts-node/esm": "node --no-warnings=ExperimentalWarning --loader ts-node/esm",
-        "dev": "pnpm ts-node/esm -- ./project/client/dev.mts",
+        "dev": "tsx ./project/client/dev.mts",
         "serve-build": "pnpm build && pnpx serve ./build -p 1002",
         "type-check": "tsc --noEmit"
     },
     "dependencies": {
         "@loom-js/core": "workspace:*",
-        "@loom-js/monitor": "workspace:*",
-        "@loom-js/storybook": "workspace:*",
-        "@loom-js/tags": "workspace:*"
+        "@loom-js/monitor": "workspace:*"
     },
     "devDependencies": {
         "@loom-js/typescript-config": "workspace:*",
-        "@types/node": "^25.6.0",
-        "esbuild": "^0.28.0",
+        "@types/node": "^26.5.1",
+        "esbuild": "^0.28.2",
         "esbuild-plugin-clean": "^1.0.1",
         "esbuild-plugin-copy": "^2.1.1",
         "esbuild-plugin-html-split": "workspace:*",
-        "ts-node": "^10.9.2",
+        "tsx": "^4.23.13",
         "typescript": "^7.0.2"
     }
 }

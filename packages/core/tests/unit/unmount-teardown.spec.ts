@@ -212,4 +212,97 @@ describe('unmount teardown', () => {
             expect(innerSpy.callCount).to.equal(callsAfterRemount + 1);
         });
     });
+
+    describe('a remount registers fresh life-cycle handlers', () => {
+        it('should run the onCreated handler from the remount render, not the first one', async () => {
+            const show = activity(true);
+            const createdBy: number[] = [];
+            let renderCount = 0;
+            const Child = component((html, { onCreated }) => {
+                const renderNumber = ++renderCount;
+
+                onCreated(() => createdBy.push(renderNumber));
+
+                return html`
+                    <p data-child>child</p>
+                `;
+            });
+            const TestComponent = component(
+                (html) => html`
+                    <article>
+                        ${show.effect(({ value: isShown }) =>
+                            isShown ? Child({}) : 'hidden'
+                        )}
+                    </article>
+                `
+            );
+
+            await runSetup({ containerProps: { TestComponent } });
+
+            show.update(false);
+            await waitForObserver();
+            show.update(true);
+            await waitForObserver();
+
+            expect(createdBy).to.deep.equal([1, 2]);
+        });
+
+        it('should keep firing a handler given through a ref after a remount', async () => {
+            const show = activity(true);
+            const refCreatedSpy = sinon.fake();
+            const Child = component(
+                (html) => html`
+                    <p data-child>child</p>
+                `
+            );
+            const TestComponent = component((html, { createRef }) => {
+                const childRef = createRef();
+
+                childRef.onCreated(refCreatedSpy);
+
+                return html`
+                    <article>
+                        ${show.effect(({ value: isShown }) =>
+                            isShown ? Child({ ref: childRef }) : 'hidden'
+                        )}
+                    </article>
+                `;
+            });
+
+            await runSetup({ containerProps: { TestComponent } });
+
+            expect(refCreatedSpy.callCount).to.equal(1);
+
+            show.update(false);
+            await waitForObserver();
+            show.update(true);
+            await waitForObserver();
+
+            expect(refCreatedSpy.callCount).to.equal(2);
+        });
+
+        it('should fire a child onUnmounted when its parent is removed', async () => {
+            const childUnmountSpy = sinon.fake();
+            const Child = component((html, { onUnmounted }) => {
+                onUnmounted(childUnmountSpy);
+
+                return html`
+                    <p data-child>child</p>
+                `;
+            });
+            const TestComponent = component(
+                (html) => html`
+                    <article data-parent>${Child({})}</article>
+                `
+            );
+            const $test = await runSetup({
+                containerProps: { TestComponent }
+            });
+
+            $test.querySelector('[data-parent]')?.remove();
+            await waitForObserver();
+
+            expect(childUnmountSpy.callCount).to.equal(1);
+        });
+    });
 });

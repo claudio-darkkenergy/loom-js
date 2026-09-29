@@ -2,11 +2,10 @@
 // optionally, add icons
 // import '@appwrite.io/pink-icons';
 import {
-    Component,
-    ComponentProps,
-    ContextFunction,
-    init,
-    SimpleComponent
+    type AnyComponent,
+    type ComponentInputProps,
+    type ContextFunction,
+    init
 } from '@loom-js/core';
 
 // import { usePinkTheming } from '@loom-js/pink';
@@ -25,8 +24,8 @@ document.body.style.setProperty('--p-body-bg-color', bodyBgColor);
 document.body.prepend($app);
 
 export const Bootstrap = (
-    page: Component | SimpleComponent,
-    { style, ...pageProps }: ComponentProps = {}
+    page: AnyComponent,
+    { style, ...pageProps }: ComponentInputProps = {}
 ) => {
     // const themeColorHue = 301;
 

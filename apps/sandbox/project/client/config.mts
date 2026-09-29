@@ -6,16 +6,17 @@ import { htmlSplit } from 'esbuild-plugin-html-split';
 import { htmlTemplate } from './template.html.mjs';
 
 export interface ClientConfigOptions {
+    apiUrl?: string;
     isProd?: boolean;
 }
 
 export const clientConfig = (options: ClientConfigOptions = {}) => {
-    const { isProd = false } = options;
+    const { apiUrl = '', isProd = false } = options;
 
     return {
         bundle: true,
         define: {
-            __API_URL__: `'${process.env.API_URL}'`
+            __API_URL__: `'${apiUrl}'`
         },
         format: 'esm',
         entryPoints: {
@@ -44,10 +45,6 @@ export const clientConfig = (options: ClientConfigOptions = {}) => {
                     {
                         from: './public/static/**/*',
                         to: './static'
-                    },
-                    {
-                        from: './mocks/**/*',
-                        to: './mocks'
                     }
                 ]
             })
