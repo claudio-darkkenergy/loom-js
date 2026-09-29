@@ -1,4 +1,4 @@
-import { component, onRoute } from '@loom-js/core';
+import { component, route } from '@loom-js/core';
 import { track } from '@loom-js/monitor';
 
 export const EventMonitoring = component((html) => {
@@ -12,8 +12,8 @@ export const EventMonitoring = component((html) => {
     const evMonitoring = html`
         <div>
             <h1>
-                <a $click=${onRoute} href="/">Index</a>
-                <a $click=${onRoute} href="/core">Core</a>
+                <a $click=${route} href="/">Index</a>
+                <a $click=${route} href="/core">Core</a>
                 > Event Monitoring
             </h1>
 

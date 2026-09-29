@@ -9,7 +9,7 @@ pnpm + turborepo monorepo published under the `@loom-js/*` scope. Workspaces are
 - `packages/*` — published framework packages (`core`, `pink`, `highlight` — syntax highlighting inverted out of the UI libraries: Prism adapter + token vocabulary + `codeTokenizer()` lazy-import activity; UI libraries take a `tokenize` activity, never the tokenizer dependency).
 - `packages/esbuild/*` — published esbuild plugins (`esbuild-plugin-html-split`).
 - `lib/*` — internal utilities (`utils`, `contentful`, `storybook`, `typescript-config`, plus untracked `codegen`, `monitor`, `open-ai`).
-- `apps/*` — runnable apps. **Note:** `apps/docs` and `apps/sandbox` are explicitly excluded from the pnpm workspace (`!apps/docs`, `!apps/sandbox`) — only `apps/loom` (and any future siblings) are part of the install graph. Both excluded apps still exist on disk and have `package.json` files; they are not installed or built by `pnpm install` / `turbo`.
+- `apps/*` — runnable apps: `apps/loom` and `apps/sandbox`. **Note:** `apps/docs` is explicitly excluded from the pnpm workspace (`!apps/docs`). It still exists on disk and has a `package.json`; it is not installed or built by `pnpm install` / `turbo`.
 - `services` — Vercel serverless functions (under `services/api/`). Served via `vercel dev`.
 - `packages/ui-kit` is also excluded.
 
@@ -59,7 +59,7 @@ The prerender phase also writes `llms.txt` (topic index) and `llms-full.txt` (ev
 
 `apps/loom` builds with **esbuild driven by `tsx`** — entry points are `./project/client/build.mts` and `./project/client/dev.mts`, which call `clientConfig` from `./project/client/config.mts`. `dev.mts` runs `esbuild.context().serve()` on port 9092 with SPA fallback. The build emits to `./build` (override with `LOOM_BUILD_DIR` for an isolated build — a running dev server rebuilds `./build` on source changes and will race a prod build there). Production builds then run an SSG phase (`prerender.mts`): the client build's extra `static/js/prerender` entry (same build = matching minified css-module names + one core instance; shells never load it) renders `/` and every docs topic against per-route linkedom windows, injecting markup + dehydrated state into the shells via the `src/app/boot-contract.ts` slots. Requires `CTF_SPACE_ID`/`CTF_TOKEN` at build time; the client boots via prime-then-`hydrate` (`bootstrap.ts`).
 
-`apps/sandbox` mirrors this layout but runs the same `.mts` entrypoints through `ts-node/esm` (`node --loader ts-node/esm`) instead of `tsx`.
+`apps/sandbox` mirrors this layout, also through `tsx`, with its dev server on port 1001. It has no SSG phase and needs no Contentful env.
 
 `turbo.json` injects `API_URL` and `CTF_IS_PREVIEW` into both `build` and `dev` tasks. `*.stories.*` files are excluded from `build` task inputs so Storybook edits don't bust the app cache.
 
@@ -86,8 +86,9 @@ Concepts you will see across consumers:
 
 ### Apps
 
-- **`apps/loom`** (`@loom-js/loom`) — The documentation/marketing SPA. Pulls from Contentful (`@loom-js/contentful`). Lives at port 9092 in dev. It is the only `apps/*` workspace currently included in pnpm.
-- **`apps/sandbox`**, **`apps/docs`** — Excluded from the workspace (see above). Treat as scratch space; running them requires invoking their scripts manually outside pnpm.
+- **`apps/loom`** (`@loom-js/loom`) — The documentation/marketing SPA. Pulls from Contentful (`@loom-js/contentful`). Lives at port 9092 in dev.
+- **`apps/sandbox`** (`@loom-js/sandbox`) — Scratch SPA for trying core changes against a real build. A workspace member, so `type-check`, `build` and `dev` cover it and a core API change that breaks it fails in the same change. Lives at port 1001 in dev.
+- **`apps/docs`** — Excluded from the workspace (see above). Treat as scratch space; running it requires invoking its scripts manually outside pnpm.
 
 ### Services
 

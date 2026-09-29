@@ -1,4 +1,3 @@
-import { type SimpleComponent } from '@loom-js/core';
-import { Div } from '@loom-js/tags';
+import { el, simple } from '@loom-js/core';
 
-export const Container: SimpleComponent = ({ children }) => Div({ children });
+export const Container = simple(({ children }) => el('div')({ children }));

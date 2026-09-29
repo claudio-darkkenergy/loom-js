@@ -1,10 +1,16 @@
-import { activity, component, onRoute } from '@loom-js/core';
-import { Button, Img } from '@loom-js/tags';
+import { activity, component, el, route } from '@loom-js/core';
+
+interface Photo {
+    thumbnailUrl: string;
+}
+
+const Button = el('button');
+const Img = el('img');
 
 export const Core = component((html, { onCreated }) => {
     const colors = ['red', 'blue', 'green', 'yellow', 'orange'];
     const colorActivity = activity(colors);
-    const postsActivity = activity<any[] | undefined>(
+    const photosActivity = activity<readonly Photo[] | undefined>(
         undefined,
         ({ update, input }) => {
             console.log({ input });
@@ -40,18 +46,16 @@ export const Core = component((html, { onCreated }) => {
 
     onCreated(() => {
         console.group('onCreated');
-        fetch('https://jsonplaceholder.org/posts')
+        fetch('https://jsonplaceholder.typicode.com/photos?_limit=10')
             .then((res) => res.json())
-            .then(postsActivity.update);
+            .then(photosActivity.update);
     });
 
     return html`
         <div>
             <h1>
-                <a $click=${onRoute} href="/">Index</a>
-                <a $click=${onRoute} href="/event-monitoring">
-                    Event Monitoring
-                </a>
+                <a $click=${route} href="/">Index</a>
+                <a $click=${route} href="/event-monitoring">Event Monitoring</a>
                 > Core
             </h1>
 
@@ -89,10 +93,16 @@ export const Core = component((html, { onCreated }) => {
             <br />
             <br />
 
-            ${postsActivity.effect(({ value }) =>
+            ${photosActivity.effect(({ value }) =>
                 value
-                    ? value.map((post) =>
-                          Img({ alt: '', width: 200, src: post.image })
+                    ? value.map((photo) =>
+                          Img({
+                              attrs: {
+                                  alt: '',
+                                  src: photo.thumbnailUrl,
+                                  width: 200
+                              }
+                          })
                       )
                     : 'Loading...'
             )}
