@@ -7,9 +7,11 @@ tooling that entered it. `../topics/*.md` are the authored sources (README → m
 `md2rich.py` converts them to rich-text JSON per the map's conventions; `push.py` creates/updates
 the entries **as drafts** (it never publishes). `ids.json` maps slug → entry id.
 
-Re-run: `python3 push.py [--dry]` from this directory (reads the CMA token from the personal
-profile's Contentful MCP config; needs `curl`). Slugs in `ids.json` update in place.
+Re-run: `python3 push.py [--dry] [slug ...]` from this directory (reads the CMA token from the
+personal profile's Contentful MCP config; needs `curl`). Slugs in `ids.json` update in place; pass
+slugs to push only those topics.
 
 Code samples are re-indented 4→2 spaces at push time (`reindent`). Entered 2026-08-28: 10 created, 3 updated in place (`components`, `activities`, `routing`). `14-feedback.md` joined 2026-09-20 (`docs-feedback-topic` — a trailing utility topic outside the 13-topic parity set, mapped to the pre-existing `feedback` entry).
-Not yet done: `/docs` page listing (`1voqtWKFf2dQZWLfpnOYgd`) reorder, retiring the six
-pre-scrub topics (task 4.3), publishing.
+All 15 entries are published and grouped on the `/docs` page (`1voqtWKFf2dQZWLfpnOYgd`). The
+pre-scrub topic drafts and every pre-2026 relic entry (old site/page/video entries) were deleted
+2026-09-30; the space now holds exactly the 15 topics, the 5 nav groups and the `/docs` page.
