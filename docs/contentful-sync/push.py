@@ -1,7 +1,8 @@
-"""Create/update the 13 docs topics as DRAFTS in Contentful (never publishes).
+"""Create/update the docs topics as DRAFTS in Contentful (never publishes).
 
-Usage: python3 push.py [--dry]
+Usage: python3 push.py [--dry] [slug ...]
 Idempotent: ids.json maps slug -> entry id; known slugs update in place.
+With slugs given, only those topics are pushed; an unknown slug aborts before any request.
 """
 import glob
 import json
@@ -18,6 +19,7 @@ ENV = 'master'
 BASE = f'https://api.contentful.com/spaces/{SPACE}/environments/{ENV}'
 IDS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ids.json')
 DRY = '--dry' in sys.argv
+ONLY_SLUGS = {arg for arg in sys.argv[1:] if not arg.startswith('--')}
 
 # Existing entries whose slug already matches the map (updated in place).
 SEED_IDS = {
@@ -61,9 +63,15 @@ def request(method, path, body=None, headers=None):
 
 def main():
     ids = {**SEED_IDS, **(json.load(open(IDS_PATH)) if os.path.exists(IDS_PATH) else {})}
-    for path in sorted(glob.glob(os.path.join(os.path.dirname(IDS_PATH), '..', 'topics', '*.md'))):
-        meta, document = load_topic(path)
+    topics = [load_topic(path)
+              for path in sorted(glob.glob(os.path.join(os.path.dirname(IDS_PATH), '..', 'topics', '*.md')))]
+    unknown = ONLY_SLUGS - {meta['slug'] for meta, _ in topics}
+    if unknown:
+        raise SystemExit(f'unknown slug(s): {", ".join(sorted(unknown))}')
+    for meta, document in topics:
         slug, title = meta['slug'], meta['title']
+        if ONLY_SLUGS and slug not in ONLY_SLUGS:
+            continue
         fields = {
             'entryTitle': {'en-US': title},
             'slug': {'en-US': slug},
