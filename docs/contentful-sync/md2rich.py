@@ -1,7 +1,8 @@
 """Markdown (small subset) -> Contentful rich-text JSON, per the content map's conventions.
 
 Subset: `## h2`, `### h3`, paragraphs, `- ` / `1. ` lists (4-space nesting), ``` fences
-(lang -> `// @lang <lang>` directive line), `> ` blockquotes, `|` tables, `---` hr.
+(lang -> `// @lang <lang>` directive line; `tab=<label> [group=<key>]` after the lang ->
+`// @tab <label> [<key>]` directive line), `> ` blockquotes, `|` tables, `---` hr.
 Inline: `code` (single or double backticks), **bold**, _italic_ / *italic*, [text](href).
 """
 import re
@@ -77,8 +78,29 @@ def reindent(code):
     return '\n'.join(lines)
 
 
-def code_paragraph(code, lang):
+def parse_fence_info(info):
+    """Split a fence info string into (lang, meta): `bash tab=npm group=pm`."""
+    lang = None
+    meta = {}
+    for word in info.split():
+        key, separator, value = word.partition('=')
+        if separator:
+            meta[key] = value
+        elif lang is None:
+            lang = word
+    return lang, meta
+
+
+def code_paragraph(code, lang, meta=None):
+    meta = meta or {}
     directive = f'// @lang {lang}\n' if lang else ''
+    if 'tab' in meta:
+        # The tab directive follows the lang directive, so a tab needs a lang.
+        if not lang:
+            raise SystemExit(f'fence with tab={meta["tab"]} has no language')
+        directive += ' '.join(filter(None, ['// @tab', meta['tab'], meta.get('group')])) + '\n'
+    elif 'group' in meta:
+        raise SystemExit(f'fence with group={meta["group"]} has no tab')
     return block('paragraph', [text_node(directive + reindent(code), ('code',))])
 
 
@@ -148,14 +170,14 @@ def convert(markdown):
         if not stripped:
             index += 1
         elif stripped.startswith('```'):
-            lang = stripped[3:].strip() or None
+            lang, fence_meta = parse_fence_info(stripped[3:])
             index += 1
             code_lines = []
             while index < len(lines) and not lines[index].strip().startswith('```'):
                 code_lines.append(lines[index])
                 index += 1
             index += 1
-            content.append(code_paragraph('\n'.join(code_lines), lang))
+            content.append(code_paragraph('\n'.join(code_lines), lang, fence_meta))
         elif stripped.startswith('## '):
             content.append(block('heading-2', [text_node(stripped[3:])]))
             index += 1

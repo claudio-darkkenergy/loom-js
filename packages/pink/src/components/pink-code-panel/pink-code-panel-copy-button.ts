@@ -7,8 +7,9 @@ import {
 } from '../../elements/pink-copy-button';
 
 export type PinkCodePanelCopyButtonProps = Omit<PinkCopyButtonProps, 'text'> & {
-    // The code to copy.
-    text: string;
+    // The code to copy — or a getter, for code only known at click time
+    // (e.g. a tabbed panel's active variant).
+    text: string | (() => string);
 };
 
 /**

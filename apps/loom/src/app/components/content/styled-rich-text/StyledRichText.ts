@@ -8,7 +8,7 @@ import {
     ContentfulRichTextProps
 } from '../contentful-rich-text';
 import styles from './StyledRichText.module.css';
-import { asCodeBlock, CodeSample } from './lib/code';
+import { asCodeBlock, CodeSample, groupCodeTabs } from './lib/code';
 import { AnchoredHeading, collectHeadingAnchors } from './lib/heading';
 import { tableRenderers } from './lib/table';
 
@@ -31,6 +31,12 @@ export const StyledRichText = simple<StyledRichTextProps>(
                 },
                 renderNode: {
                     ...tableRenderers,
+                    // Consecutive tab-directive code blocks merge into one
+                    // tabbed panel.
+                    [BLOCKS.DOCUMENT]: (node, children) =>
+                        Array.isArray(children)
+                            ? groupCodeTabs(node.content, children)
+                            : children,
                     [BLOCKS.PARAGRAPH]: (node, children) => {
                         const codeBlock = asCodeBlock(node);
 

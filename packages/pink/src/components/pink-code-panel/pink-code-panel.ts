@@ -5,6 +5,13 @@ import type { PinkDynamicProps } from '../../types';
 import { PinkCodePanelContent } from './pink-code-panel-content';
 import { PinkCodePanelCopyButton } from './pink-code-panel-copy-button';
 import { PinkCodePanelHeader } from './pink-code-panel-header';
+import { PinkCodePanelTabs } from './pink-code-panel-tabs';
+
+export {
+    type CodePanelTabSelection,
+    type PinkCodePanelTabsProps,
+    resolveCodePanelTab
+} from './pink-code-panel-tabs';
 
 export type PinkCodePanelProps = PinkDynamicProps & {
     codePanelContent?: string;
@@ -42,3 +49,4 @@ export const PinkCodePanel = ({
 PinkCodePanel.Header = PinkCodePanelHeader;
 PinkCodePanel.Content = PinkCodePanelContent;
 PinkCodePanel.CopyButton = PinkCodePanelCopyButton;
+PinkCodePanel.Tabs = PinkCodePanelTabs;

@@ -21,9 +21,15 @@ loom is a reactive, components-first JavaScript framework. Components are tagged
 
 ## Install
 
-```bash
+```bash tab=npm group=pm
 npm i @loom-js/core
+```
+
+```bash tab=yarn group=pm
 yarn add @loom-js/core
+```
+
+```bash tab=pnpm group=pm
 pnpm add @loom-js/core
 ```
 

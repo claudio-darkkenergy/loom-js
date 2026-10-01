@@ -5,6 +5,7 @@ import {
     primeResources,
     type SerializedStateEnvelope
 } from '@loom-js/core';
+import '@loom-js/pink/styles/code-panel-tabs.css';
 import '@loom-js/pink/styles/code-tokens.css';
 import '@loom-js/pink/styles/side-nav.css';
 

@@ -1,12 +1,14 @@
-import { type Component, component, init } from '@loom-js/core';
+import { component, init, type TemplateTagValue } from '@loom-js/core';
 
 import { Decorator } from './types';
 
-const StoryApp = component<{ story: Component }>((html, { attrs, story }) => {
-    return html`
-        <div $attrs=${attrs} id="story-app">${story()}</div>
-    `;
-});
+const StoryApp = component<{ story: () => TemplateTagValue }>(
+    (html, { attrs, story }) => {
+        return html`
+            <div $attrs=${attrs} id="story-app">${story()}</div>
+        `;
+    }
+);
 
 export const LoomJsStorybookDecorator: Decorator = (
     story,

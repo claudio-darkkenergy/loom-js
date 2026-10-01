@@ -226,6 +226,29 @@ per topic.
 - **Tests:** `tests/unit/set-debug.spec.ts`, `tests/unit/diagnostic-format.spec.ts`,
   `tests/unit/diagnostic-logging.spec.ts`.
 
+## Code block directives
+
+A paragraph whose whole content carries the code mark is a code block. Its leading comment lines
+are directives, stripped by the renderer (`apps/loom/src/app/components/content/styled-rich-text/lib/code.ts`).
+
+| Line | Directive                   | Effect                                        |
+| ---- | --------------------------- | --------------------------------------------- |
+| 1    | `// @lang <lang>`           | Panel header label and highlighting language. |
+| 2    | `// @tab <label> [<group>]` | The block is one variant of a tabbed panel.   |
+
+- **Grammar.** `@tab` is only read on the line after `@lang`. `<label>` and `<group>` are single
+  words.
+- **Consecutive-run rule.** Two or more top-level tab blocks in a row render as one panel, one tab
+  per block, the first tab selected. Any other block between them ends the run. A tab block on its
+  own renders as a plain panel.
+- **Group sync.** Panels whose first tab names the same `<group>` share one selection across the
+  app: picking `pnpm` in one switches every `pm` panel. A panel without that label shows its first
+  tab. Panels with no group switch on their own.
+- **Languages.** Tabs in one panel may differ in `@lang`; the header shows the selected tab's.
+- **Topic sources.** Write the fence info as ` ```bash tab=npm group=pm `; `md2rich.py` emits both
+  directive lines.
+- **Markdown output.** `llms.txt` serializes each variant as its own fenced block.
+
 ## Shared pointers
 
 Internals that several topics depend on. A consumer-visible change here is checked against every

@@ -1,4 +1,4 @@
-import { lazyImport } from '@loom-js/core';
+import { activity, lazyImport } from '@loom-js/core';
 import { ArgType, type Meta, type StoryObj } from '@loom-js/storybook';
 
 import { PinkCodePanel, PinkCodePanelProps } from './pink-code-panel';
@@ -129,6 +129,41 @@ export const WithHighlightingHtml: Story = {
                 language: 'html',
                 tokenize: storyTokenizer()
             })
+        ]
+    }
+};
+
+const installVariants: Record<string, string> = {
+    npm: 'npm i @loom-js/core',
+    yarn: 'yarn add @loom-js/core',
+    pnpm: 'pnpm add @loom-js/core'
+};
+const installLabels = Object.keys(installVariants);
+const installSelection = activity('npm');
+const installCode = () => installVariants[installSelection.value()] ?? '';
+
+// One selection drives the tabs, the visible variant and the copied text.
+export const WithTabs: Story = {
+    args: {
+        children: [
+            PinkCodePanel.Header({
+                children: [
+                    'bash',
+                    PinkCodePanel.Tabs({
+                        labels: installLabels,
+                        selection: installSelection
+                    }),
+                    PinkCodePanel.CopyButton({ text: installCode })
+                ]
+            }),
+            installSelection.effect(() =>
+                PinkCodePanel.Content({
+                    children: installCode(),
+                    language: 'bash',
+                    tokenize: storyTokenizer(),
+                    useLineNumbers: false
+                })
+            )
         ]
     }
 };

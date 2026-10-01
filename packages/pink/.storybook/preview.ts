@@ -2,6 +2,7 @@ import '@appwrite.io/pink';
 import '@appwrite.io/pink-icons';
 import { LoomJsStorybookDecorator, type Preview } from '@loom-js/storybook';
 
+import '../src/styles/code-panel-tabs.css';
 import '../src/styles/code-tokens.css';
 import '../src/styles/side-nav.css';
 

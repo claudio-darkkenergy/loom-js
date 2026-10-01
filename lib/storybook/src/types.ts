@@ -1,16 +1,11 @@
-import type {
-    Component,
-    ComponentInputProps,
-    TemplateTagValue
-} from '@loom-js/core';
+import type { ComponentInputProps, TemplateTagValue } from '@loom-js/core';
 import type {
     AnnotatedStoryFn,
     Args,
     ComponentAnnotations,
+    DecoratorFunction,
     ProjectAnnotations,
-    Renderer,
     StoryAnnotations,
-    StoryContext,
     StrictArgs,
     WebRenderer
 } from '@storybook/types';
@@ -19,11 +14,9 @@ export interface LoomJsRenderer extends WebRenderer {
     storyResult: TemplateTagValue;
 }
 
-type DecoratorFunction<TRenderer extends Renderer = Renderer, TArgs = Args> = (
-    fn: Component,
-    c: StoryContext<TRenderer, TArgs>
-) => HTMLDivElement;
-
+// Storybook's own decorator shape over the loom renderer: the story fn
+// yields a `TemplateTagValue` (a `Node` is one), so a decorator may return
+// either a template value or the element it mounted into.
 export type Decorator<TArgs = StrictArgs> = DecoratorFunction<
     LoomJsRenderer,
     TArgs
