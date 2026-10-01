@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 pnpm + turborepo monorepo published under the `@loom-js/*` scope. Workspaces are defined in `pnpm-workspace.yaml`:
 
 - `packages/*` — published framework packages (`core`, `pink`, `highlight` — syntax highlighting inverted out of the UI libraries: Prism adapter + token vocabulary + `codeTokenizer()` lazy-import activity; UI libraries take a `tokenize` activity, never the tokenizer dependency).
-- `packages/esbuild/*` — published esbuild plugins (`esbuild-plugin-html-split`).
+- `packages/esbuild/*` — esbuild plugins (`esbuild-plugin-html-split`). Private: changesets versions it, but it is not published to npm.
 - `lib/*` — internal utilities (`utils`, `contentful`, `storybook`, `typescript-config`, plus untracked `codegen`, `monitor`, `open-ai`).
 - `apps/*` — runnable apps: `apps/loom` and `apps/sandbox`. **Note:** `apps/docs` is explicitly excluded from the pnpm workspace (`!apps/docs`). It still exists on disk and has a `package.json`; it is not installed or built by `pnpm install` / `turbo`.
 - `services` — Vercel serverless functions (under `services/api/`). Served via `vercel dev`.
@@ -79,10 +79,10 @@ Concepts you will see across consumers:
 
 `@loom-js/core` builds with rollup (ES + CJS bundles + a consolidated `index.d.ts` via `rollup-plugin-dts`). Output lands in `dist/`.
 
-### Other published packages
+### Other packages
 
 - **`@loom-js/pink`** — Design system layered on `@appwrite.io/pink`. Has Storybook at port 6006 and is the only package with a `build` script (alias for `build-storybook`). peerDep: `@loom-js/core`.
-- **`packages/esbuild/esbuild-plugin-html-split`** — esbuild plugin used by the apps to split the HTML template per route at build time. The `htmlSplit({ routes, template, spa, ... })` plugin call lives in each app's `project/client/config.mts`.
+- **`packages/esbuild/esbuild-plugin-html-split`** — private (workspace-only) esbuild plugin used by the apps to split the HTML template per route at build time. The `htmlSplit({ routes, template, spa, ... })` plugin call lives in each app's `project/client/config.mts`.
 
 ### Apps
 
