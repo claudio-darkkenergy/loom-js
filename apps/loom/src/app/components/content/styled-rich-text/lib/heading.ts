@@ -1,6 +1,8 @@
 import { el, route, simple, type SyntheticRouteEvent } from '@loom-js/core';
 import { withAnchorLink } from '@loom-js/pink';
 
+import { syncActiveFragment } from '@/app/logic/activity/active-fragment';
+
 // Re-exported from the pure module so existing imports keep resolving.
 export {
     collectHeadingAnchors,
@@ -9,13 +11,13 @@ export {
     type HeadingAnchors
 } from './heading-anchors';
 
-// The anchor routes through loom so a same-page fragment stays a quiet
-// `pushState` — a native hash jump fires `popstate`, which re-renders the
-// docs content and would drop the copied state mid-feedback. `scroll: false`
-// because the reader is already at the heading they're copying: the URL
-// updates, the viewport stays put.
-const routeToAnchor = (event: Event) =>
+// A quiet `pushState` via loom (a native jump's `popstate` re-renders the
+// content) with no scroll (the reader is already here); the quiet push
+// emits nothing, so the fragment activity is mirrored by hand.
+const routeToAnchor = (event: Event) => {
     route(event as SyntheticRouteEvent<HTMLAnchorElement>, { scroll: false });
+    syncActiveFragment(window);
+};
 
 export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
 

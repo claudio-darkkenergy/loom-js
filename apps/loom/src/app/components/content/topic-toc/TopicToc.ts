@@ -3,6 +3,7 @@ import { simple } from '@loom-js/core';
 
 import { collectHeadingAnchors } from '../styled-rich-text/lib/heading';
 import { Toc, type TocItem } from '../toc';
+import { activeFragment } from '@/app/logic/activity/active-fragment';
 
 export type TopicTocProps = {
     json?: ContentfulDocument;
@@ -37,9 +38,11 @@ const toTocItems = (json?: ContentfulDocument): TocItem[] => {
     return items;
 };
 
+// The indicator follows the URL fragment however it arrived.
 export const TopicToc = simple<TopicTocProps>(({ json, ...props }) =>
     Toc({
         ...props,
+        activeId: activeFragment,
         title: 'On this page',
         items: toTocItems(json)
     })

@@ -8,3 +8,20 @@
         margin-block-start: 0.4rem;
     }
 }
+
+/* The active entry — the one the URL fragment names: heavier type and an
+   accent rule in the gutter, so the text doesn't shift when it moves. */
+.active {
+    font-weight: 600;
+    position: relative;
+
+    &::before {
+        background: currentColor;
+        border-radius: 0.0625rem;
+        content: '';
+        inline-size: 0.125rem;
+        inset-block: 0.15em;
+        inset-inline-start: -0.5rem;
+        position: absolute;
+    }
+}
