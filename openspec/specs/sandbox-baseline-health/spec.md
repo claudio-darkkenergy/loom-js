@@ -38,7 +38,7 @@ Established by the `restore-sandbox-build` change (2026-09-29).
 
 ### Requirement: The sandbox builds and serves
 
-`pnpm -F @loom-js/sandbox build` SHALL emit a build, and `pnpm -F @loom-js/sandbox dev` SHALL serve it with every configured route rendering.
+`pnpm -F @loom-js/sandbox build` SHALL emit a build through `loom build`, and `pnpm -F @loom-js/sandbox dev` SHALL serve it through `loom dev` with every configured route rendering — the sandbox owns a `loom.config.ts` and no build scripts of its own.
 
 #### Scenario: build emits a shell per route
 
@@ -54,3 +54,8 @@ Established by the `restore-sandbox-build` change (2026-09-29).
 
 - **WHEN** a link on one sandbox page is clicked
 - **THEN** the target page renders without a full page load
+
+#### Scenario: no per-app build wiring
+
+- **WHEN** `apps/sandbox/project/client/` is inspected
+- **THEN** it contains no `build.mts`, `dev.mts`, `config.mts` or `template.html.mts`
