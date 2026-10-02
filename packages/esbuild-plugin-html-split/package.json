@@ -1,6 +1,6 @@
 {
     "name": "@loom-js/esbuild-plugin-html-split",
-    "version": "0.0.5",
+    "version": "0.1.0",
     "author": "Claudio Nunez Jr",
     "license": "MIT",
     "description": "esbuild plugin that emits one HTML shell per route from a metafile-aware template: shared, route-scoped and dynamic chunks classified, per-route CSS split and hashed.",
