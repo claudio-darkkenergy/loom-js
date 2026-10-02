@@ -1,8 +1,8 @@
 import { canDebug } from '../../config';
 import type {
     ComponentContextPartial,
+    LifeCycleEvent,
     LifeCycleHandler,
-    LifeCycleHandlerProps,
     LifeCycleHookProps,
     LifeCycleState
 } from '../../types';
@@ -17,6 +17,14 @@ import { getContextRootAnchor, getShareableContext } from './helpers';
 
 // Holds reference to the life-cycle handlers for each component node.
 const lifeCycleNodes = new Map<Node, ComponentContextPartial>();
+
+const lifeCycleEvents: LifeCycleEvent[] = [
+    'beforeRender',
+    'created',
+    'mounted',
+    'rendered',
+    'unmounted'
+];
 
 /*
  * Life-cycle hooks occur in the following order:
@@ -260,12 +268,8 @@ const teardownContext = (ctx: ComponentContextPartial) => {
     // remount re-creates them through a fresh first render.
     delete ctx.owned;
     // Handlers close over the render that registered them, so a remount
-    // registers its own. Handlers given through a `ref` stay.
-    ctx.beforeRender = ctx.ref?.beforeRender;
-    ctx.created = ctx.ref?.created;
-    ctx.mounted = ctx.ref?.mounted;
-    ctx.rendered = ctx.ref?.rendered;
-    ctx.unmounted = ctx.ref?.unmounted;
+    // registers its own. Handlers given through a `ref` live on the ref.
+    lifeCycleEvents.forEach((event) => (ctx[event] = []));
     ctx.children?.forEach((childCtx) => teardownContext(childCtx));
 };
 
@@ -294,70 +298,60 @@ export const lifeCycles: (
         lifeCycleState
     );
     ctx.lifeCycleState = lifeCycleState;
+    lifeCycleEvents.forEach((event) => (ctx[event] = []));
 
     return {
         onBeforeRender(handler) {
-            !ctx.beforeRender &&
-                createLifeCycleHook('beforeRender', { ctx, handler });
+            registerLifeCycleHandler('beforeRender', { ctx, handler });
         },
         onCreated(handler) {
-            !ctx.created && createLifeCycleHook('created', { ctx, handler });
+            registerLifeCycleHandler('created', { ctx, handler });
         },
         onMounted(handler) {
-            !ctx.mounted && createLifeCycleHook('mounted', { ctx, handler });
+            registerLifeCycleHandler('mounted', { ctx, handler });
         },
         onRendered(handler) {
-            !ctx.rendered && createLifeCycleHook('rendered', { ctx, handler });
+            registerLifeCycleHandler('rendered', { ctx, handler });
         },
         onUnmounted(handler) {
-            !ctx.unmounted &&
-                createLifeCycleHook('unmounted', { ctx, handler });
+            registerLifeCycleHandler('unmounted', { ctx, handler });
         }
     };
 };
 
-// Creates the hook which will wrap life-cycle handler
-// or handler group (when a parent component registers a handler for a child-`RefContext`.)
-// When a handler group is included, the scoped component handler will be triggered,
-// then the child-`RefContext` handler will be.
-const createLifeCycleHook = (
-    eventName: keyof LifeCycleHandlerProps,
+// Appends while the event's list is open: empty, or already filled by the
+// render in progress (`registering` is reset per render by `component`).
+// A later render's call against a filled list is a no-op, so the list locks
+// once its registering render ends.
+const registerLifeCycleHandler = (
+    event: LifeCycleEvent,
     {
         ctx,
         handler
     }: { ctx: ComponentContextPartial; handler: LifeCycleHandler }
 ) => {
-    const event = ctx.ref?.[eventName];
-    ctx[eventName] =
-        typeof event === 'function'
-            ? (root) => {
-                  handler(root);
-                  event(root);
-              }
-            : handler;
+    const handlers = ctx[event];
+
+    if (!handlers || (handlers.length && !ctx.registering?.has(event))) {
+        return;
+    }
+
+    handlers.push(handler);
+    ctx.registering?.add(event);
 };
 
+// Runs the component's own handlers in registration order, then the
+// handler a parent registered through the component's `ref`.
 const lifeCycleStateUpdateEffect = (
     ctx: ComponentContextPartial,
     state: LifeCycleState
 ) => {
-    const currentState = state.value;
+    const event = state.value;
 
-    switch (currentState) {
-        case 'created':
-            ctx.created?.(ctx.root);
-            break;
-        case 'beforeRender':
-            ctx.beforeRender?.(ctx.root);
-            break;
-        case 'rendered':
-            ctx.rendered?.(ctx.root);
-            break;
-        case 'mounted':
-            ctx.mounted?.(ctx.root);
-            break;
-        case 'unmounted':
-            ctx.unmounted?.(ctx.root);
-            break;
+    if (!event) {
+        return;
     }
+
+    ctx[event]?.forEach((handler) => handler(ctx.root));
+    ctx.ref?.[event]?.(ctx.root);
 };

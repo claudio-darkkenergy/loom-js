@@ -229,6 +229,10 @@ export interface ComponentContext<Props extends object = {}>
     owned: OwnedValueStore;
     parent: ComponentContextPartial;
     props: ComponentInputProps<Props>;
+    // Internal — the events the render in progress has registered. A setter
+    // appends to a non-empty list only for these, so each list locks once
+    // the render that filled it ends.
+    registering: Set<LifeCycleEvent>;
     render: TaggedTemplate;
     refs: Set<RefContext>;
     root: TemplateRoot | TemplateRootArray;
@@ -313,15 +317,12 @@ export type LifeCycleHandler = (
     root?: TemplateRoot | TemplateRootArray
 ) => void;
 
-// Life-cycle handlers counterparts for caching the handlers.
-// The handler will never change once set for a component.
-export interface LifeCycleHandlerProps {
-    beforeRender: LifeCycleHandler;
-    created: LifeCycleHandler;
-    mounted: LifeCycleHandler;
-    rendered: LifeCycleHandler;
-    unmounted: LifeCycleHandler;
-}
+export type LifeCycleEvent =
+    'beforeRender' | 'created' | 'mounted' | 'rendered' | 'unmounted';
+
+// A component's own handlers per event, in registration order. The list
+// locks once the render that filled it ends; a teardown clears it.
+export type LifeCycleHandlerProps = Record<LifeCycleEvent, LifeCycleHandler[]>;
 
 // Life-cycle hooks are passed to each component as default props.
 export interface LifeCycleHookProps {
@@ -335,15 +336,18 @@ export interface LifeCycleHookProps {
 export type LifeCycleHook = (handler: LifeCycleHandler) => void;
 
 export type LifeCycleState = {
-    value: keyof LifeCycleHandlerProps | null;
+    value: LifeCycleEvent | null;
 };
 
 export interface ReactiveComponent<T = unknown, P = TemplateTagValue> {
     (transform?: (props?: T) => P): ContextFunction;
 }
 
+// A ref holds one handler per event; it fires after the component's own.
 export interface RefContext
-    extends Partial<LifeCycleHandlerProps>, LifeCycleHookProps {
+    extends
+        Partial<Record<LifeCycleEvent, LifeCycleHandler>>,
+        LifeCycleHookProps {
     node?: ContextNodeGetter;
 }
 

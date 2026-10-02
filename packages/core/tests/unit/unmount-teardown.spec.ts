@@ -3,6 +3,7 @@ import sinon from 'sinon';
 
 import { component } from '../../src';
 import { activity } from '../../src/activity';
+import type { LifeCycleHook } from '../../src/types';
 import { runSetup } from '../support/run-setup';
 
 // Specs for the `unmount-teardown` capability (`add-unmount-teardown`):
@@ -214,14 +215,19 @@ describe('unmount teardown', () => {
     });
 
     describe('a remount registers fresh life-cycle handlers', () => {
-        it('should run the onCreated handler from the remount render, not the first one', async () => {
+        it('should run the onCreated handlers from the remount render, not the first one', async () => {
             const show = activity(true);
-            const createdBy: number[] = [];
+            const createdBy: string[] = [];
             let renderCount = 0;
+            const useCreatedLog = (
+                onCreated: LifeCycleHook,
+                renderNumber: number
+            ) => onCreated(() => createdBy.push(`hook-${renderNumber}`));
             const Child = component((html, { onCreated }) => {
                 const renderNumber = ++renderCount;
 
-                onCreated(() => createdBy.push(renderNumber));
+                onCreated(() => createdBy.push(`own-${renderNumber}`));
+                useCreatedLog(onCreated, renderNumber);
 
                 return html`
                     <p data-child>child</p>
@@ -244,7 +250,12 @@ describe('unmount teardown', () => {
             show.update(true);
             await waitForObserver();
 
-            expect(createdBy).to.deep.equal([1, 2]);
+            expect(createdBy).to.deep.equal([
+                'own-1',
+                'hook-1',
+                'own-2',
+                'hook-2'
+            ]);
         });
 
         it('should keep firing a handler given through a ref after a remount', async () => {

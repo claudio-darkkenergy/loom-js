@@ -57,6 +57,8 @@ That's a complete component. Its render function receives more than props, thoug
 
 `onMounted` & `onUnmounted` describe a live, observed browser document — they never fire on the server (see [Server Rendering](/docs/server-rendering)).
 
+Handlers stack. Every call to a hook during a render appends to that event's list, and the event runs the list in registration order — so a component and any hooks it calls (a reusable function handed `onMounted`, say) can each register for the same event without one displacing the other. The list locks once the render that filled it ends: a re-render calls the hooks again, and those calls are no-ops. An event with no handlers yet accepts registrations from any render, so a handler first registered on a later render still takes. Handlers given through a `ref` run after the component's own.
+
 A component that is unmounted and then mounted again is created again. Its render function runs, the handlers it registers replace the ones from before the unmount, and `onCreated` fires once more. Handlers registered through a `ref` carry over.
 
 ## Built-in props

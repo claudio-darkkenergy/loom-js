@@ -1,12 +1,17 @@
 import { expect } from '@esm-bundle/chai';
 
 import { component } from '../../../src';
+import { activity } from '../../../src/activity';
 import type {
+    LifeCycleHook,
     LifeCycleHookProps,
     TemplateRoot,
     TemplateRootArray
 } from '../../../src/types';
 import { runSetup } from '../../support/run-setup';
+
+// MutationObserver delivery is a microtask; a macrotask hop runs after it.
+const waitForObserver = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 export const lifeCyclesSpec = () => {
     let $test: HTMLElement;
@@ -107,6 +112,140 @@ export const lifeCyclesSpec = () => {
                         expect($container?.contains(node)).to.be.true
                 );
             });
+        });
+    });
+
+    // Specs for the `life-cycle-handler-stacking` capability: every setter
+    // call in the registering render appends, the list locks after that
+    // render, and `ref` handlers run after the component's own.
+    describe('handler stacking', () => {
+        it('should run a component handler and a hook handler for the same event, in order', async () => {
+            const calls: string[] = [];
+            const useMountLog = (onMounted: LifeCycleHook) =>
+                onMounted(() => calls.push('hook'));
+            const TestComponent = component((html, { onMounted }) => {
+                onMounted(() => calls.push('component'));
+                useMountLog(onMounted);
+
+                return html`
+                    <div class=${className}></div>
+                `;
+            });
+
+            await runSetup({ containerProps: { TestComponent } });
+
+            expect(calls).to.deep.equal(['component', 'hook']);
+        });
+
+        it('should run two hook handlers for the same event, in hook call order', async () => {
+            const calls: string[] = [];
+            const useFirst = (onUnmounted: LifeCycleHook) =>
+                onUnmounted(() => calls.push('first'));
+            const useSecond = (onUnmounted: LifeCycleHook) =>
+                onUnmounted(() => calls.push('second'));
+            const TestComponent = component((html, { onUnmounted }) => {
+                useFirst(onUnmounted);
+                useSecond(onUnmounted);
+
+                return html`
+                    <div class=${className}></div>
+                `;
+            });
+
+            $test = await runSetup({ containerProps: { TestComponent } });
+            $test.querySelector(`.${className}`)?.remove();
+            await waitForObserver();
+
+            expect(calls).to.deep.equal(['first', 'second']);
+        });
+
+        it('should ignore registrations made by a re-render', async () => {
+            const tick = activity(0);
+            const calls: string[] = [];
+            let renderCount = 0;
+            const Child = component((html, { onRendered }) => {
+                renderCount += 1;
+                onRendered(() => calls.push(`render-${renderCount}`));
+
+                return html`
+                    <p>child</p>
+                `;
+            });
+            const TestComponent = component(
+                (html) => html`
+                    <div class=${className}>
+                        ${tick.effect(() => Child({}))}
+                    </div>
+                `
+            );
+
+            await runSetup({ containerProps: { TestComponent } });
+
+            expect(renderCount).to.equal(1);
+
+            tick.update(1);
+
+            expect(renderCount).to.equal(2);
+            // The first render's handler runs on every render; the second
+            // render's registration never does.
+            expect(calls).to.deep.equal(['render-1', 'render-2']);
+        });
+
+        it('should honor an event first registered on a later render', async () => {
+            const tick = activity(0);
+            const calls: number[] = [];
+            let renderCount = 0;
+            const Child = component((html, { onRendered }) => {
+                renderCount += 1;
+                renderCount > 1 && onRendered(() => calls.push(renderCount));
+
+                return html`
+                    <p>child</p>
+                `;
+            });
+            const TestComponent = component(
+                (html) => html`
+                    <div class=${className}>
+                        ${tick.effect(() => Child({}))}
+                    </div>
+                `
+            );
+
+            await runSetup({ containerProps: { TestComponent } });
+
+            expect(calls).to.deep.equal([]);
+
+            tick.update(1);
+
+            expect(calls).to.deep.equal([2]);
+
+            tick.update(2);
+
+            expect(calls).to.deep.equal([2, 3]);
+        });
+
+        it('should run a child handler and then the parent-ref handler for the same event', async () => {
+            const calls: string[] = [];
+            const Child = component((html, { onMounted }) => {
+                onMounted(() => calls.push('child'));
+
+                return html`
+                    <p>child</p>
+                `;
+            });
+            const TestComponent = component((html, { createRef }) => {
+                const childRef = createRef();
+
+                childRef.onMounted(() => calls.push('ref'));
+
+                return html`
+                    <div class=${className}>${Child({ ref: childRef })}</div>
+                `;
+            });
+
+            await runSetup({ containerProps: { TestComponent } });
+
+            expect(calls).to.deep.equal(['child', 'ref']);
         });
     });
 };

@@ -66,11 +66,6 @@ export const component: ComponentFactory = <Props extends object = {}>(
                     // a reference to it.
                     ctx.ref = ref;
                     ctx.ref.node = ctx.node;
-                    ctx.beforeRender = ctx.ref.beforeRender;
-                    ctx.created = ctx.ref.created;
-                    ctx.mounted = ctx.ref.mounted;
-                    ctx.rendered = ctx.ref.rendered;
-                    ctx.unmounted = ctx.ref.unmounted;
                     !dryRun && delete props.ref;
                 }
 
@@ -101,6 +96,10 @@ export const component: ComponentFactory = <Props extends object = {}>(
 
             const ownedValues = memoizedOwnedValues(ctx);
 
+            // Life-cycle setters append only while this render runs; the
+            // set closes with the render so later registrations are no-ops.
+            ctx.registering = new Set();
+
             /*
              * ```
              * component(
@@ -119,6 +118,7 @@ export const component: ComponentFactory = <Props extends object = {}>(
             });
 
             ownedValues.settle();
+            delete ctx.registering;
 
             return template;
         }
