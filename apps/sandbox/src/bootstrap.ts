@@ -2,6 +2,7 @@
 // optionally, add icons
 // import '@appwrite.io/pink-icons';
 import {
+    APP_ROOT_ID,
     type AnyComponent,
     type ComponentInputProps,
     type ContextFunction,
@@ -12,16 +13,15 @@ import {
 
 new EventSource('/esbuild').addEventListener('change', () => location.reload());
 
-// Bootstrap the app.
+// Bootstrap the app onto the shell-owned root.
 const bodyBgColor = '0, 0%, 93%';
-const $app = document.createElement('div');
+const $app = document.getElementById(APP_ROOT_ID) as HTMLElement;
 
 $app.style.padding = '0 1.25rem';
 $app.innerText = 'loading...';
 
 document.body.classList.add('theme-custom');
 document.body.style.setProperty('--p-body-bg-color', bodyBgColor);
-document.body.prepend($app);
 
 export const Bootstrap = (
     page: AnyComponent,

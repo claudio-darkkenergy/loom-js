@@ -1,8 +1,10 @@
 import '@appwrite.io/pink';
 import '@appwrite.io/pink-icons';
 import {
+    APP_ROOT_ID,
     hydrate,
     primeResources,
+    STATE_SCRIPT_ID,
     type SerializedStateEnvelope
 } from '@loom-js/core';
 import '@loom-js/pink/styles/code-panel-tabs.css';
@@ -10,7 +12,6 @@ import '@loom-js/pink/styles/code-tokens.css';
 import '@loom-js/pink/styles/side-nav.css';
 
 import { App } from './app';
-import { APP_ROOT_ID, STATE_SCRIPT_ID } from './boot-contract';
 
 if (__DEV__) {
     // esbuild's live-reload hook. The define makes this dead code in prod,

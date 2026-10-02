@@ -1,7 +1,7 @@
+import { htmlSplit } from '@loom-js/esbuild-plugin-html-split';
 import { BuildOptions } from 'esbuild';
 import { clean } from 'esbuild-plugin-clean';
 import { copy } from 'esbuild-plugin-copy';
-import { htmlSplit } from 'esbuild-plugin-html-split';
 
 import { htmlTemplate } from './html-template.mjs';
 

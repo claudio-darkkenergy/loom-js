@@ -6,6 +6,6 @@
             "@/*": ["./src/*"]
         }
     },
-    "include": ["src", "project"],
+    "include": ["src", "project", "loom.config.ts"],
     "exclude": ["build", "node_modules"]
 }

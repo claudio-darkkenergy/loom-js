@@ -58,7 +58,7 @@ export default defineConfig(({ mode }) => ({
 
 - `mode` is `'production' | 'development'`: `loom build` is production unless `--mode development` / `NODE_ENV=development`; `loom dev` is always development. `minify`, `sourcemap`, `logLevel`, `twoPassCss`, route-scoped shells and `__DEV__` all key off it — `__DEV__` is defined by the tool.
 - `outDir` defaults to `build`; `--outDir` / `LOOM_BUILD_DIR` override it. The tool wipes `outDir` itself (`rm -rf`), replacing `esbuild-plugin-clean` and its "inside cwd only" quirk.
-- Route scopes: the plugin needs each route's chunk prefix (`/` → `/pages` in the loom app). Config takes `routes` as strings or `{ path, scope }`; the default scope is the route path — defaults never encode one app's layout, so the loom app declares `{ path: '/', scope: '/pages' }`.
+- Route scopes: the plugin already owns the chunk-prefix convention (`routeScopeOf`: the route path, `/` → `/pages`) and exports it (found at 2.1 — it was hardcoded in `route-css.ts`, the loom app's `routeScopes` define merely mirrored it). `routes` stays `string[]`; the tool's default template derives scopes with `routeScopeOf`, no scope option.
 - `loader` for fonts/svg, `format: 'esm'`, `splitting`, `keepNames`, `bundle` are fixed tool defaults; `esbuild(options)` is the only way to touch them.
 - `publicDir` + `copy` replace `esbuild-plugin-copy` (kept as an internal dep).
 

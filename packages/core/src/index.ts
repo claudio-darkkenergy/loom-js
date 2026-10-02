@@ -2,6 +2,13 @@ export * from './activity';
 export { isAttrBinding } from './lib/attr-binding';
 export type { AttrBinding } from './lib/attr-binding';
 export * from './app';
+export {
+    APP_ROOT_ID,
+    STATE_SCRIPT_ID,
+    appRootSlot,
+    stateScriptSlot
+} from './boot-contract';
+export type { PrerenderPayload } from './boot-contract';
 export * from './component';
 export * from './config';
 export * from './define-element';

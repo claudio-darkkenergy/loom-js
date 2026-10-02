@@ -209,13 +209,13 @@ per topic.
 - **Outline:**
     - Paying for data once
     - API
-        - `resource` · `primeResources` · `dehydrate` · `serializeState`
+        - `resource` · `primeResources` · `dehydrate` · `serializeState` · Boot contract
     - Example
     - Semantics worth knowing
-- **Source:** `src/resource.ts`, `src/dehydrate.ts`, `src/lib/resource-cache.ts`, `src/types.ts`
-  (`SerializedStateEnvelope`).
+- **Source:** `src/resource.ts`, `src/dehydrate.ts`, `src/boot-contract.ts`,
+  `src/lib/resource-cache.ts`, `src/types.ts` (`SerializedStateEnvelope`).
 - **Tests:** `tests/unit/resource.spec.ts`, `tests/unit/dehydrated-state-e2e.spec.ts`,
-  `tests/server/dehydrate.test.mjs`.
+  `tests/server/dehydrate.test.mjs`, `tests/server/boot-contract.test.mjs`.
 
 ### 13. `diagnostics`
 

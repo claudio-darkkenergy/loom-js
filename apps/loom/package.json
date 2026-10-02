@@ -6,10 +6,10 @@
     "license": "ISC",
     "description": "Loomjs Documentation Site",
     "scripts": {
-        "build": "tsx ./project/client/build.mts",
+        "build": "loom build",
         "test-ci": "node --test \"project/client/tests/*.test.mjs\"",
         "build-manual": "pnpm type-check && pnpm build",
-        "dev": "tsx ./project/client/dev.mts",
+        "dev": "loom dev",
         "serve-build": "pnpx simple-server ./build",
         "type-check": "tsc --noEmit"
     },
@@ -26,14 +26,9 @@
         "contentful": "^11.12.10"
     },
     "devDependencies": {
+        "@loom-js/build": "workspace:*",
         "@loom-js/typescript-config": "workspace:*",
         "@types/node": "^26.5.1",
-        "esbuild": "^0.28.2",
-        "esbuild-plugin-clean": "^1.0.1",
-        "esbuild-plugin-copy": "^2.1.1",
-        "esbuild-plugin-html-split": "workspace:*",
-        "linkedom": "^0.18.13",
-        "tsx": "^4.23.13",
         "typescript": "^7.0.2"
     }
 }

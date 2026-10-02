@@ -30,6 +30,10 @@ The full story: `renderToString` → `dehydrate` → embed → `primeResources` 
 
 `serializeState(state: DehydratedState): string` (server entry) - Serializes the state to a JSON string safe to inline inside an HTML script element: `<`, U+2028 & U+2029 are escaped, & `JSON.parse` reproduces a versioned envelope — `{ __loom: 1, state }` — carrying the state exactly. Hand-rolling `JSON.stringify` into inline HTML is a known XSS footgun (`</script>` smuggled through content) — always embed through this helper, & the other end enforces it: a payload without the envelope primes nothing & warns. The envelope is misuse detection, **not a trust layer** — a breakout executes at HTML parse time, before any client check runs, so the escaping here remains the XSS defense.
 
+### Boot contract
+
+The JSON script tag & the app root are a convention, so loom names them once: `APP_ROOT_ID` (`loom-app`) & `STATE_SCRIPT_ID` (`loom-state`) are the element ids, & `appRootSlot` / `stateScriptSlot` are the empty elements exactly as a shell template should emit them - all four from the browser entry, so the client boot reads the same ids the shell wrote. `injectPrerender(shellHtml, { appHtml, stateJson }): string` (server entry) fills both slots with a rendered route's markup & `serializeState` output, & throws when either slot is missing - a shell that drifted from the contract fails the build instead of shipping an empty page. `@loom-js/build` emits the slots in its default shell & injects through this helper; a hand-written shell can use the same exports.
+
 ## Example
 
 Funnel the app's data-loads through `resource` (namespace keys `<domain>:<id>`):

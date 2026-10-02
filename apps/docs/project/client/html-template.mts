@@ -1,4 +1,4 @@
-import { HtmlTemplateArgs } from 'esbuild-plugin-html-split';
+import { HtmlTemplateArgs } from '@loom-js/esbuild-plugin-html-split';
 
 export const htmlTemplate = ({
     common,

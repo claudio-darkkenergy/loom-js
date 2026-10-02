@@ -5,6 +5,8 @@
 # Generated directories & files
 .turbo
 build
+# The build tool's workspace, not build output.
+!/packages/build/
 coverage
 dist
 node_modules

@@ -6,8 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 pnpm + turborepo monorepo published under the `@loom-js/*` scope. Workspaces are defined in `pnpm-workspace.yaml`:
 
-- `packages/*` — published framework packages (`core`, `pink`, `highlight` — syntax highlighting inverted out of the UI libraries: Prism adapter + token vocabulary + `codeTokenizer()` lazy-import activity; UI libraries take a `tokenize` activity, never the tokenizer dependency).
-- `packages/esbuild/*` — esbuild plugins (`esbuild-plugin-html-split`). Private: changesets versions it, but it is not published to npm.
+- `packages/*` — published framework packages (`core`, `pink`, `highlight` — syntax highlighting inverted out of the UI libraries: Prism adapter + token vocabulary + `codeTokenizer()` lazy-import activity; UI libraries take a `tokenize` activity, never the tokenizer dependency; `build` — the loom build tool, `loom build` / `loom dev` / `loom prerender` over `loom.config.ts`; `esbuild-plugin-html-split` — the shell-per-route esbuild plugin under it).
 - `lib/*` — internal utilities (`utils`, `contentful`, `storybook`, `typescript-config`, plus untracked `codegen`, `monitor`, `open-ai`).
 - `apps/*` — runnable apps: `apps/loom` and `apps/sandbox`. **Note:** `apps/docs` is explicitly excluded from the pnpm workspace (`!apps/docs`). It still exists on disk and has a `package.json`; it is not installed or built by `pnpm install` / `turbo`.
 - `services` — Vercel serverless functions (under `services/api/`). Served via `vercel dev`.
@@ -44,7 +43,7 @@ Use `pnpm -F <workspace-name> <command>`. Workspace names are the `name` from ea
 
 ### Tests
 
-Tests live in `packages/core` only (the framework). They use `@web/test-runner` + puppeteer.
+The framework tests live in `packages/core` and use `@web/test-runner` + puppeteer; `@loom-js/build`, `@loom-js/contentful` and `@loom-js/loom` carry `node --test` suites (`test-ci` in each).
 
 - `pnpm -F @loom-js/core test-ci` — single run.
 - `pnpm -F @loom-js/core test-dev` — watch mode.
@@ -57,9 +56,9 @@ Tests live in `packages/core` only (the framework). They use `@web/test-runner` 
 
 The prerender phase also writes `llms.txt` (topic index) and `llms-full.txt` (every topic as markdown) into the build, serialized from the same Contentful entries the pages render (`documentToMarkdown` in `@loom-js/contentful`, assembled by `project/client/llms-text.mts`). `@loom-js/core`'s `build-package` writes its own `llms-full.txt` from `docs/topics/` (`packages/core/scripts/build-llms-text.mjs`), so the published package documents its own version. Both have `node --test` suites: `pnpm -F @loom-js/contentful -F @loom-js/loom test-ci`.
 
-`apps/loom` builds with **esbuild driven by `tsx`** — entry points are `./project/client/build.mts` and `./project/client/dev.mts`, which call `clientConfig` from `./project/client/config.mts`. `dev.mts` runs `esbuild.context().serve()` on port 9092 with SPA fallback. The build emits to `./build` (override with `LOOM_BUILD_DIR` for an isolated build — a running dev server rebuilds `./build` on source changes and will race a prod build there). Production builds then run an SSG phase (`prerender.mts`): the client build's extra `static/js/prerender` entry (same build = matching minified css-module names + one core instance; shells never load it) renders `/` and every docs topic against per-route linkedom windows, injecting markup + dehydrated state into the shells via the `src/app/boot-contract.ts` slots. Requires `CTF_SPACE_ID`/`CTF_TOKEN` at build time; the client boots via prime-then-`hydrate` (`bootstrap.ts`).
+`apps/loom` builds with **`@loom-js/build`** — `loom build` / `loom dev` read `apps/loom/loom.config.ts` (`defineConfig`): entry, styles, routes (`/`, `/docs`), defines, `publicDir`/`copy`, the `html` layering (title, head, body class) and the `prerender` hooks. The tool wipes and emits to `build/` (override with `--outDir` / `LOOM_BUILD_DIR` for an isolated build — a running dev server rebuilds `build/` on source changes and will race a prod build there); dev serves on port 9092 with SPA fallback. Production builds then run the prerender phase: the client build's extra `static/js/prerender` entry (same build = matching minified css-module names + one core instance; shells never load it) renders `/` and every docs topic against per-route linkedom windows, injecting markup + dehydrated state into the shells through core's boot contract (`APP_ROOT_ID` / `STATE_SCRIPT_ID` / `injectPrerender`). The loom-specific parts are the config's hooks: `setup` points the providers at Contentful (`CTF_SPACE_ID`/`CTF_TOKEN` required at build time), `routes` enumerates topics from the page listing, `validate` checks each topic's title and state key, `after` writes the llms text files (`project/client/llms-text.mts`). The client boots via prime-then-`hydrate` (`bootstrap.ts`). `loom prerender` re-runs only the prerender phase against an existing `build/`.
 
-`apps/sandbox` mirrors this layout, also through `tsx`, with its dev server on port 1001. It has no SSG phase and needs no Contentful env.
+`apps/sandbox` mirrors this layout (`apps/sandbox/loom.config.ts`), with its dev server on port 1001. It has no prerender section and needs no Contentful env.
 
 `turbo.json` injects `API_URL` and `CTF_IS_PREVIEW` into both `build` and `dev` tasks. `*.stories.*` files are excluded from `build` task inputs so Storybook edits don't bust the app cache.
 
@@ -82,7 +81,8 @@ Concepts you will see across consumers:
 ### Other packages
 
 - **`@loom-js/pink`** — Design system layered on `@appwrite.io/pink`. Has Storybook at port 6006 and is the only package with a `build` script (alias for `build-storybook`). peerDep: `@loom-js/core`.
-- **`packages/esbuild/esbuild-plugin-html-split`** — private (workspace-only) esbuild plugin used by the apps to split the HTML template per route at build time. The `htmlSplit({ routes, template, spa, ... })` plugin call lives in each app's `project/client/config.mts`.
+- **`@loom-js/build`** (`packages/build`) — the build tool: CLI + `defineConfig`, the default shell template, the esbuild assembly and the prerender pipeline (`src/prerender.ts`). `node --test` suite drives the fixture app under `tests/fixtures/app`: `pnpm -F @loom-js/build test-ci`. Consumer-visible changes here update the `build-tool` docs topic.
+- **`@loom-js/esbuild-plugin-html-split`** (`packages/esbuild-plugin-html-split`) — the shell-per-route esbuild plugin `@loom-js/build` wraps; published for raw-esbuild users. Its README documents options, template args and chunk classification.
 
 ### Apps
 

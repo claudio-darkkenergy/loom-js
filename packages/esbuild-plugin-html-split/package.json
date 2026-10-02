@@ -1,0 +1,56 @@
+{
+    "name": "@loom-js/esbuild-plugin-html-split",
+    "version": "0.0.5",
+    "author": "Claudio Nunez Jr",
+    "license": "MIT",
+    "description": "esbuild plugin that emits one HTML shell per route from a metafile-aware template: shared, route-scoped and dynamic chunks classified, per-route CSS split and hashed.",
+    "keywords": [
+        "loomjs",
+        "esbuild",
+        "esbuild-plugin",
+        "html",
+        "code splitting"
+    ],
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.js"
+        }
+    },
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
+    "files": [
+        "dist"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/claudio-darkkenergy/loom-js.git",
+        "directory": "packages/esbuild-plugin-html-split"
+    },
+    "scripts": {
+        "build-package": "rollup -c rollup.config.ts --configPlugin esbuild",
+        "format": "prettier",
+        "type-check": "tsc --noEmit"
+    },
+    "devDependencies": {
+        "@loom-js/typescript-config": "workspace:*",
+        "@rollup/plugin-terser": "^1.0.0",
+        "@rollup/plugin-typescript": "^12.3.0",
+        "@types/node": "^26.5.1",
+        "esbuild": "^0.28.2",
+        "rollup": "^4.63.3",
+        "rollup-plugin-delete": "^3.0.2",
+        "rollup-plugin-dts": "^6.5.1",
+        "rollup-plugin-esbuild": "^6.2.1",
+        "tslib": "^2.8.1",
+        "typescript": "^7.0.2"
+    },
+    "peerDependencies": {
+        "esbuild": ">=0.25.0"
+    }
+}

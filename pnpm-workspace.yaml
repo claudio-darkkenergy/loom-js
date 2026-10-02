@@ -4,7 +4,6 @@ packages:
     - '!apps/docs'
     - 'lib/*'
     - 'packages/*'
-    - 'packages/esbuild/*'
     - 'packages/eslint/*'
     - 'services'
     - '!packages/ui-kit'

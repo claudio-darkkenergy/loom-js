@@ -1,0 +1,68 @@
+{
+    "name": "@loom-js/build",
+    "version": "0.0.0",
+    "author": "Claudio Nunez Jr",
+    "license": "MIT",
+    "description": "The loom build tool: `loom build` / `loom dev` / `loom prerender` over a declarative `loom.config.ts` \u2014 esbuild assembly, one HTML shell per route, and a prerender phase with app hooks.",
+    "keywords": [
+        "loomjs",
+        "build",
+        "cli",
+        "esbuild",
+        "prerender",
+        "ssg"
+    ],
+    "bin": {
+        "loom": "./bin/loom.mjs"
+    },
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.js"
+        }
+    },
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
+    "files": [
+        "bin",
+        "dist"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/claudio-darkkenergy/loom-js.git",
+        "directory": "packages/build"
+    },
+    "scripts": {
+        "build-package": "rollup -c rollup.config.ts --configPlugin esbuild",
+        "format": "prettier",
+        "test-ci": "pnpm build-package && node --test \"tests/*.test.mjs\"",
+        "type-check": "tsc --noEmit && tsc --noEmit -p tests/fixtures/app/tsconfig.json"
+    },
+    "dependencies": {
+        "@loom-js/esbuild-plugin-html-split": "workspace:*",
+        "@types/node": "^26.5.1",
+        "esbuild": "^0.28.2",
+        "esbuild-plugin-copy": "^2.1.1",
+        "linkedom": "^0.18.13"
+    },
+    "devDependencies": {
+        "@loom-js/core": "workspace:*",
+        "@loom-js/typescript-config": "workspace:*",
+        "@rollup/plugin-terser": "^1.0.0",
+        "@rollup/plugin-typescript": "^12.3.0",
+        "rollup": "^4.63.3",
+        "rollup-plugin-delete": "^3.0.2",
+        "rollup-plugin-dts": "^6.5.1",
+        "rollup-plugin-esbuild": "^6.2.1",
+        "tslib": "^2.8.1",
+        "typescript": "^7.0.2"
+    },
+    "peerDependencies": {
+        "@loom-js/core": ">=0.18.0 <1.0.0"
+    }
+}

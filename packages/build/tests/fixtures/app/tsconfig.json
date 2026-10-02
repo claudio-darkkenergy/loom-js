@@ -1,0 +1,8 @@
+{
+    "extends": "@loom-js/typescript-config/app.json",
+    "compilerOptions": {
+        "paths": {}
+    },
+    "include": ["src", "loom.config.ts", "prerender-hooks.ts"],
+    "exclude": ["build", "node_modules"]
+}

@@ -3,6 +3,7 @@
 // uses, and returns the serialized markup. loom never imports the DOM
 // implementation itself; the caller supplies a window, which keeps this entry
 // dependency-free and the browser bundle untouched.
+export * from './boot-contract';
 export * from './dehydrate';
 
 import { _lifeCycles } from './lib/context/life-cycles';

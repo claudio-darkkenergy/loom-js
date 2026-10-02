@@ -23,10 +23,10 @@
         "lib/storybook/package.json",
         "lib/typescript-config/package.json",
         "lib/utils/package.json",
+        "packages/build/package.json",
         "packages/core/package.json",
-        "packages/esbuild/esbuild-plugin-html-split/package.json",
+        "packages/esbuild-plugin-html-split/package.json",
         "packages/eslint/eslint-plugin/package.json",
-        "packages/highlight/package.json",
         "packages/highlight/package.json",
         "packages/pink/package.json",
         "services/package.json"
