@@ -1,0 +1,10 @@
+{
+    "extends": "@loom-js/typescript-config/app.json",
+    "compilerOptions": {
+        "jsx": "react-jsx",
+        "noEmit": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true
+    },
+    "include": ["./**/*", "../../shared/**/*"]
+}

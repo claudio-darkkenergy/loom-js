@@ -1,0 +1,105 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-inline-size: 72rem;
+    margin-inline: auto;
+}
+
+.lead {
+    max-inline-size: 48rem;
+}
+
+.caption {
+    color: hsl(var(--color-neutral-50));
+    font-size: var(--font-size-0);
+}
+
+.caption dl {
+    display: grid;
+    gap: 0.25rem 1rem;
+    grid-template-columns: max-content 1fr;
+    margin: 0;
+}
+
+.caption dt {
+    color: hsl(var(--color-neutral-30));
+}
+
+.caption dd {
+    margin: 0;
+}
+
+.tableWrapper {
+    overflow-x: auto;
+}
+
+.numeric {
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+    white-space: nowrap;
+}
+
+/* One hue, light to dark: the shade tracks the ratio's magnitude. The brand
+   token is comma-separated, so the legacy alpha form is the one that parses. */
+.shaded {
+    background: hsla(var(--brand-color-1), calc(var(--shade) * 0.45));
+}
+
+.ratio {
+    color: hsl(var(--color-neutral-50));
+    display: block;
+    font-size: var(--font-size-0);
+}
+
+/* On a shaded cell the muted gray loses contrast; use the cell's own ink. */
+.shaded .ratio {
+    color: inherit;
+    opacity: 0.85;
+}
+
+.summaryRow {
+    font-weight: 600;
+}
+
+.versions {
+    color: hsl(var(--color-neutral-50));
+    display: block;
+    font-size: var(--font-size-0);
+    font-weight: 400;
+}
+
+.bars {
+    display: grid;
+    gap: 0.5rem;
+    grid-template-columns: max-content 1fr max-content;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.barTrack {
+    block-size: 1rem;
+}
+
+.bar {
+    background: hsl(var(--brand-color-1));
+    block-size: 100%;
+    border-radius: 0 4px 4px 0;
+    inline-size: calc(var(--share) * 100%);
+    min-inline-size: 2px;
+}
+
+.barLabel {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.method p {
+    max-inline-size: 48rem;
+}
+
+.method p + p {
+    margin-block-start: 1rem;
+}

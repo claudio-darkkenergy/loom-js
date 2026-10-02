@@ -1,0 +1,11 @@
+{
+    "extends": "@loom-js/typescript-config/app.json",
+    "compilerOptions": {
+        "jsx": "preserve",
+        "jsxImportSource": "solid-js",
+        "noEmit": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true
+    },
+    "include": ["./**/*", "../../shared/**/*"]
+}

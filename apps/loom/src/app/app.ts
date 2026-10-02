@@ -12,10 +12,12 @@ const manifest =
 const Routes = createRoutes({
     assets: manifest && {
         [RoutePath.Home]: manifest['/'] ?? [],
+        [RoutePath.Benchmarks]: manifest['/benchmarks'] ?? [],
         [RoutePath.Docs]: manifest['/docs'] ?? []
     },
     config: {
         [RoutePath.Home]: () => import('@/app/pages/'),
+        [RoutePath.Benchmarks]: () => import('@/app/pages/benchmarks/'),
         [RoutePath.Docs]: () => import('@/app/pages/docs/')
     }
 });

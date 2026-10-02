@@ -1,6 +1,7 @@
 // Route-config keys — `RouteValue.matchedRoute` carries these exact strings,
 // so route-scoped watchers can guard against them.
 export enum RoutePath {
+    Benchmarks = '/benchmarks',
     Docs = '/docs/:topic',
     Home = '/'
 }

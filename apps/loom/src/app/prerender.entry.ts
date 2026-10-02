@@ -10,11 +10,17 @@ import {
 
 import { App } from './app';
 import { asCodeBlock } from './components/content/styled-rich-text/lib/code';
+import { BENCH_RESULTS_RESOURCE_KEY } from './logic/activity/bench-results';
 import { pageContentResourceKey } from './logic/activity/page-content';
 import { flattenListing, listingSections } from './logic/listing';
 import { getPageContent } from './logic/providers/contentful';
 import { setContentfulTransport } from './logic/providers/contentful/lib/contentful-request';
 import { DOCS_PAGE_SLUG } from './pages/constants';
+
+// The build runner seeds the benchmark results into this bundle before
+// rendering, and checks the key in the route's dehydrated state after.
+export { seedBenchResults } from './logic/providers/bench-results';
+export const benchResultsResourceKey = BENCH_RESULTS_RESOURCE_KEY;
 
 export interface PrerenderTransportConfig {
     spaceId: string;

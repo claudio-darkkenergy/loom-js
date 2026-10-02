@@ -1,0 +1,40 @@
+{
+    "name": "@loom-js/bench",
+    "private": true,
+    "version": "0.0.0",
+    "author": "Claudio Nunez Jr.",
+    "license": "ISC",
+    "description": "Framework benchmarks: one bench app per framework, a puppeteer runner, and the results the docs site renders at /benchmarks.",
+    "type": "module",
+    "exports": {
+        ".": "./src/types.ts"
+    },
+    "scripts": {
+        "bench": "tsx ./src/runner/index.ts",
+        "build-bench": "tsx ./src/runner/index.ts --build-only",
+        "test-ci": "node --test \"tests/*.test.mjs\"",
+        "type-check": "tsc --noEmit && tsc --noEmit -p src/apps/react/tsconfig.json && tsc --noEmit -p src/apps/solid/tsconfig.json"
+    },
+    "dependencies": {
+        "@loom-js/core": "workspace:*",
+        "react": "^19.3.0",
+        "react-dom": "^19.3.0",
+        "solid-js": "^1.9.15",
+        "svelte": "^5.57.1",
+        "vue": "^3.5.43"
+    },
+    "devDependencies": {
+        "@loom-js/typescript-config": "workspace:*",
+        "@sparticuz/chromium": "^153.0.0",
+        "@types/node": "^26.5.1",
+        "@types/react": "^19.3.0",
+        "@types/react-dom": "^19.3.0",
+        "esbuild": "^0.28.2",
+        "esbuild-plugin-solid": "^0.6.0",
+        "esbuild-svelte": "^0.9.5",
+        "puppeteer": "^25.11.0",
+        "puppeteer-core": "^25.11.0",
+        "tsx": "^4.23.13",
+        "typescript": "^7.0.2"
+    }
+}

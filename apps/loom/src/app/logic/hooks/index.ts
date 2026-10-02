@@ -1,3 +1,4 @@
+export * from './use-bench-results';
 export * from './use-default-topic-redirect';
 export * from './use-docs-layout';
 export * from './use-fragment-sync';

@@ -8,6 +8,8 @@
     "scripts": {
         "api": "pnpm vercel dev --listen 2000",
         "build": "turbo build",
+        "bench": "turbo run bench",
+        "bench:update": "node apps/bench/scripts/update-frameworks.mjs",
         "build-packages": "turbo build-package --cache-dir=.turbo",
         "changeset": "changeset",
         "clean": "find ./ -name node_modules -type d -exec rm -rf {} +",

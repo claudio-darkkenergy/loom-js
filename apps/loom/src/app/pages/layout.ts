@@ -59,6 +59,7 @@ const PageLayout = component((html, { children, className, style: theme }) => {
                     className=${classNames(styles.topNav, 'grid-header-col-2')}
                     items=${[
                         { children: 'Docs', href: '/docs' },
+                        { children: 'Benchmarks', href: '/benchmarks' },
                         {
                             className: classNames(
                                 styles.socialLink,

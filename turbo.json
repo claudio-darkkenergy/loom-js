@@ -23,7 +23,7 @@
             ]
         },
         "@loom-js/loom#build": {
-            "dependsOn": ["^build", "^build-package"],
+            "dependsOn": ["^build", "^build-package", "@loom-js/bench#bench"],
             "cache": false,
             "env": [
                 "API_URL",
@@ -41,6 +41,10 @@
             "dependsOn": ["^build-package"],
             "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/docs/topics/**"],
             "outputs": ["dist/**", "llms-full.txt"]
+        },
+        "@loom-js/bench#bench": {
+            "dependsOn": ["^build-package"],
+            "outputs": ["results/**"]
         },
         "build-storybook": {
             "dependsOn": ["^build-package"],

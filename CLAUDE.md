@@ -8,7 +8,7 @@ pnpm + turborepo monorepo published under the `@loom-js/*` scope. Workspaces are
 
 - `packages/*` — published framework packages (`core`, `pink`, `highlight` — syntax highlighting inverted out of the UI libraries: Prism adapter + token vocabulary + `codeTokenizer()` lazy-import activity; UI libraries take a `tokenize` activity, never the tokenizer dependency; `build` — the loom build tool, `loom build` / `loom dev` / `loom prerender` over `loom.config.ts`; `esbuild-plugin-html-split` — the shell-per-route esbuild plugin under it).
 - `lib/*` — internal utilities (`utils`, `contentful`, `storybook`, `typescript-config`, plus untracked `codegen`, `monitor`, `open-ai`).
-- `apps/*` — runnable apps: `apps/loom` and `apps/sandbox`. **Note:** `apps/docs` is explicitly excluded from the pnpm workspace (`!apps/docs`). It still exists on disk and has a `package.json`; it is not installed or built by `pnpm install` / `turbo`.
+- `apps/*` — runnable apps: `apps/loom` and `apps/sandbox`, plus `apps/bench` (`@loom-js/bench`, private): the framework benchmarks — one bench app per framework (loom, react, vue, svelte, solid, vanilla), a puppeteer runner, and `results/latest.json` (gitignored turbo output) that the loom app's `/benchmarks` page renders. **Note:** `apps/docs` is explicitly excluded from the pnpm workspace (`!apps/docs`). It still exists on disk and has a `package.json`; it is not installed or built by `pnpm install` / `turbo`.
 - `services` — Vercel serverless functions (under `services/api/`). Served via `vercel dev`.
 - `packages/ui-kit` is also excluded.
 
@@ -18,19 +18,21 @@ Engines: Node ≥ 20, pnpm ≥ 9. The committed package manager is pnpm@12.4.1. 
 
 Run from the repo root unless stated otherwise.
 
-| Command                                   | What it does                                                                                                                                                    |
-| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm install`                            | Install all workspaces.                                                                                                                                         |
-| `pnpm dev`                                | Starts the API (`vercel dev -p 2000`) **and** `turbo dev` for all apps in parallel, with `.env.local` loaded via dotenvx. This is the standard dev entry point. |
-| `pnpm api`                                | Just the API: `vercel dev -p 2000`.                                                                                                                             |
-| `pnpm build`                              | `turbo build` — builds apps. Depends on `^build` and `^build-package` (so packages compile first).                                                              |
-| `pnpm build-packages`                     | `turbo build-package` only — compiles publishable packages to `dist/`.                                                                                          |
-| `pnpm storybook`                          | `turbo storybook` — runs Storybook for `@loom-js/pink` (port 6006).                                                                                             |
-| `pnpm changeset`                          | Add a changeset describing a release.                                                                                                                           |
-| `pnpm status-packages`                    | `changeset status` — preview pending releases.                                                                                                                  |
-| `pnpm publish-packages`                   | Build packages + version + `changeset publish`. CI runs this on push to `main`.                                                                                 |
-| `pnpm clean`                              | Recursively delete every `node_modules/` in the tree.                                                                                                           |
-| `pnpm outdated-deps` / `pnpm update-deps` | Recursive interactive dependency check / update.                                                                                                                |
+| Command                                   | What it does                                                                                                                                                               |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm install`                            | Install all workspaces.                                                                                                                                                    |
+| `pnpm dev`                                | Starts the API (`vercel dev -p 2000`) **and** `turbo dev` for all apps in parallel, with `.env.local` loaded via dotenvx. This is the standard dev entry point.            |
+| `pnpm api`                                | Just the API: `vercel dev -p 2000`.                                                                                                                                        |
+| `pnpm build`                              | `turbo build` — builds apps. Depends on `^build` and `^build-package` (so packages compile first).                                                                         |
+| `pnpm build-packages`                     | `turbo build-package` only — compiles publishable packages to `dist/`.                                                                                                     |
+| `pnpm storybook`                          | `turbo storybook` — runs Storybook for `@loom-js/pink` (port 6006).                                                                                                        |
+| `pnpm bench`                              | `turbo run bench` — measures every framework in headless Chrome and writes `apps/bench/results/latest.json`. Cached: reruns only when a framework version or core changes. |
+| `pnpm bench:update`                       | Bumps react/vue/svelte/solid (+ their esbuild plugins) to latest in `apps/bench`; commit the manifest + lockfile and the next build remeasures.                            |
+| `pnpm changeset`                          | Add a changeset describing a release.                                                                                                                                      |
+| `pnpm status-packages`                    | `changeset status` — preview pending releases.                                                                                                                             |
+| `pnpm publish-packages`                   | Build packages + version + `changeset publish`. CI runs this on push to `main`.                                                                                            |
+| `pnpm clean`                              | Recursively delete every `node_modules/` in the tree.                                                                                                                      |
+| `pnpm outdated-deps` / `pnpm update-deps` | Recursive interactive dependency check / update.                                                                                                                           |
 
 ### Filtering to a workspace
 
@@ -59,6 +61,8 @@ The prerender phase also writes `llms.txt` (topic index) and `llms-full.txt` (ev
 `apps/loom` builds with **`@loom-js/build`** — `loom build` / `loom dev` read `apps/loom/loom.config.ts` (`defineConfig`): entry, styles, routes (`/`, `/docs`), defines, `publicDir`/`copy`, the `html` layering (title, head, body class) and the `prerender` hooks. The tool wipes and emits to `build/` (override with `--outDir` / `LOOM_BUILD_DIR` for an isolated build — a running dev server rebuilds `build/` on source changes and will race a prod build there); dev serves on port 9092 with SPA fallback. Production builds then run the prerender phase: the client build's extra `static/js/prerender` entry (same build = matching minified css-module names + one core instance; shells never load it) renders `/` and every docs topic against per-route linkedom windows, injecting markup + dehydrated state into the shells through core's boot contract (`APP_ROOT_ID` / `STATE_SCRIPT_ID` / `injectPrerender`). The loom-specific parts are the config's hooks: `setup` points the providers at Contentful (`CTF_SPACE_ID`/`CTF_TOKEN` required at build time), `routes` enumerates topics from the page listing, `validate` checks each topic's title and state key, `after` writes the llms text files (`project/client/llms-text.mts`). The client boots via prime-then-`hydrate` (`bootstrap.ts`). `loom prerender` re-runs only the prerender phase against an existing `build/`.
 
 `apps/sandbox` mirrors this layout (`apps/sandbox/loom.config.ts`), with its dev server on port 1001. It has no prerender section and needs no Contentful env.
+
+`@loom-js/loom#build` depends on `@loom-js/bench#bench` (turbo.json), so the first `pnpm build` on a fresh cache runs the benchmark (about a minute, needs Chrome — puppeteer's locally, `@sparticuz/chromium` when `VERCEL=1`); later builds restore `results/latest.json` from cache unless the bench manifest/lockfile or core changed. The loom config copies the file to `static/bench/latest.json`, seeds it into the prerender bundle in `setup`, adds `/benchmarks` to `routes`, and `validate` checks every framework name and the `bench:results` state key. The loom app imports only `@loom-js/bench`'s types (`src/types.ts`), so `type-check` never needs a results file.
 
 `turbo.json` injects `API_URL` and `CTF_IS_PREVIEW` into both `build` and `dev` tasks. `*.stories.*` files are excluded from `build` task inputs so Storybook edits don't bust the app cache.
 

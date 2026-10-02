@@ -12,6 +12,7 @@
     "stripNewlines": true,
     "packageJSONFiles": [
         "package.json",
+        "apps/bench/package.json",
         "apps/docs/package.json",
         "apps/examples/activity-effect-nested-array/package.json",
         "apps/loom/package.json",

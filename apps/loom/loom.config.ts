@@ -1,3 +1,4 @@
+import type { BenchResults } from '@loom-js/bench';
 import { defineConfig, type PrerenderBundle } from '@loom-js/build';
 import type { SerializedStateEnvelope } from '@loom-js/core';
 
@@ -12,11 +13,12 @@ import type {
     DocsTopicText,
     PrerenderTransportConfig
 } from './src/app/prerender.entry';
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 // What `src/app/prerender.entry.ts` exports, for the hooks below.
 interface LoomPrerenderBundle extends PrerenderBundle {
+    benchResultsResourceKey: string;
     configurePrerenderTransport: (config: PrerenderTransportConfig) => void;
     docsContentResourceKey: (topicSlug: string) => string;
     docsTopicText: (
@@ -25,7 +27,40 @@ interface LoomPrerenderBundle extends PrerenderBundle {
     ) => Promise<DocsTopicText>;
     listDocsSections: () => Promise<DocsSectionSummary[]>;
     listDocsTopics: () => Promise<DocsTopicSummary[]>;
+    seedBenchResults: (results: BenchResults) => void;
 }
+
+// The bench workspace's output — a turbo task output `@loom-js/loom#build`
+// depends on, so it is fresh or cache-restored before this runs.
+const BENCH_RESULTS_PATH = path.resolve(
+    import.meta.dirname,
+    '../bench/results/latest.json'
+);
+const BENCH_ROUTE = '/benchmarks';
+
+const readBenchResults = async (): Promise<BenchResults> => {
+    let results: Partial<BenchResults>;
+
+    try {
+        results = JSON.parse(
+            await readFile(BENCH_RESULTS_PATH, 'utf8')
+        ) as Partial<BenchResults>;
+    } catch (error) {
+        throw new Error(
+            `[prerender] ${BENCH_RESULTS_PATH} could not be read (${
+                error instanceof Error ? error.message : String(error)
+            }) — run \`pnpm bench\` or let turbo restore it.`
+        );
+    }
+
+    if (results.schemaVersion !== 1 || !results.frameworks?.length) {
+        throw new Error(
+            `[prerender] ${BENCH_RESULTS_PATH} is not a schema-1 results document with frameworks — failing the build.`
+        );
+    }
+
+    return results as BenchResults;
+};
 
 // Where the docs are served. The llms text files are read away from the
 // site, so their links carry the full address.
@@ -42,9 +77,14 @@ const ctfIsPreview = process.env.CTF_IS_PREVIEW === 'true';
 
 // The topic listing, captured by `routes` for `validate`.
 let topicTitles = new Map<string, string>();
+// The measured framework names, captured by `setup` for `validate`.
+let benchFrameworkNames: string[] = [];
 
 export default defineConfig<LoomPrerenderBundle>({
-    copy: [{ from: './mocks/**/*', to: './mocks' }],
+    copy: [
+        { from: './mocks/**/*', to: './mocks' },
+        { from: '../bench/results/latest.json', to: './static/bench' }
+    ],
     define: {
         __API_URL__: apiUrl,
         __CTF_IS_PREVIEW__: ctfIsPreview
@@ -56,7 +96,11 @@ export default defineConfig<LoomPrerenderBundle>({
         head: () =>
             `    <link rel="dns-prefetch" href="${apiUrl}/api/contentful/graphql" />`,
         title: (scope) =>
-            scope === '/docs' ? 'Docs | Loomjs' : 'Home | Loomjs'
+            scope === '/docs'
+                ? 'Docs | Loomjs'
+                : scope === BENCH_ROUTE
+                  ? 'Benchmarks | Loomjs'
+                  : 'Home | Loomjs'
     },
     prerender: {
         after: async ({ bundle, outDir }) => {
@@ -108,11 +152,15 @@ export default defineConfig<LoomPrerenderBundle>({
                 topics.map(({ slug, title }) => [slug, title])
             );
 
-            return ['/', ...topics.map(({ slug }) => `/docs/${slug}`)];
+            return [
+                '/',
+                BENCH_ROUTE,
+                ...topics.map(({ slug }) => `/docs/${slug}`)
+            ];
         },
         // The `/api` proxy only exists at runtime: build-time renders call
         // Contentful itself, authorized with the Delivery token.
-        setup: (bundle) => {
+        setup: async (bundle) => {
             const spaceId = process.env.CTF_SPACE_ID;
             const token = process.env.CTF_TOKEN;
 
@@ -123,12 +171,46 @@ export default defineConfig<LoomPrerenderBundle>({
             }
 
             bundle.configurePrerenderTransport({ spaceId, token });
+
+            const benchResults = await readBenchResults();
+
+            benchFrameworkNames = benchResults.frameworks.map(
+                ({ name }) => name
+            );
+            bundle.seedBenchResults(benchResults);
         },
         validate: (route, { html, state }, bundle) => {
             if (route === '/') {
                 if (html.length < 1000) {
                     throw new Error(
                         '[prerender] home route rendered suspiciously little markup — failing the build.'
+                    );
+                }
+
+                return;
+            }
+
+            // `serializeState` wraps the resource values in a versioned
+            // envelope — the keys live under its `state` field.
+            const envelope = JSON.parse(
+                state
+            ) as Partial<SerializedStateEnvelope>;
+            const stateKeys = Object.keys(envelope.state ?? {});
+
+            if (route === BENCH_ROUTE) {
+                const missing = benchFrameworkNames.filter(
+                    (name) => !html.includes(name)
+                );
+
+                if (missing.length) {
+                    throw new Error(
+                        `[prerender] ${route} rendered without ${missing.join(', ')} — failing the build.`
+                    );
+                }
+
+                if (!stateKeys.includes(bundle.benchResultsResourceKey)) {
+                    throw new Error(
+                        `[prerender] ${route} state is missing its results resource — failing the build.`
                     );
                 }
 
@@ -146,13 +228,6 @@ export default defineConfig<LoomPrerenderBundle>({
                 );
             }
 
-            // `serializeState` wraps the resource values in a versioned
-            // envelope — the keys live under its `state` field.
-            const envelope = JSON.parse(
-                state
-            ) as Partial<SerializedStateEnvelope>;
-            const stateKeys = Object.keys(envelope.state ?? {});
-
             if (!stateKeys.includes(bundle.docsContentResourceKey(slug))) {
                 throw new Error(
                     `[prerender] ${route} state is missing its page-content resource — failing the build.`
@@ -161,7 +236,7 @@ export default defineConfig<LoomPrerenderBundle>({
         }
     },
     publicDir: './public/static',
-    routes: ['/', '/docs'],
+    routes: ['/', BENCH_ROUTE, '/docs'],
     server: { port: 9092 },
     styles: ['./public/styles/base.css']
 });

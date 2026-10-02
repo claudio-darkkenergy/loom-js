@@ -1,0 +1,41 @@
+/* One stylesheet for every implementation — identical layout work per op. */
+body {
+    font:
+        14px/1.4 system-ui,
+        sans-serif;
+    margin: 16px;
+}
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.bench-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.bench-row td {
+    border-bottom: 1px solid #ddd;
+    padding: 4px 8px;
+}
+
+.bench-row.selected {
+    background: #f9e0e0;
+}
+
+.col-id {
+    width: 6em;
+}
+
+.col-action {
+    width: 6em;
+    text-align: right;
+}
+
+.lbl {
+    cursor: pointer;
+}
