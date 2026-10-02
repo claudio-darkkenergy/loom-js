@@ -45,4 +45,3 @@ The behavior SHALL attach on mount and detach on unmount, perform no work off-br
 
 - **WHEN** a topic renders via `renderToString`
 - **THEN** the sync module observes nothing and the serialized markup matches the browser's pre-scroll initial render
-
