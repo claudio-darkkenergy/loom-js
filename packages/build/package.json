@@ -1,6 +1,6 @@
 {
     "name": "@loom-js/build",
-    "version": "0.0.0",
+    "version": "0.1.0",
     "author": "Claudio Nunez Jr",
     "license": "MIT",
     "description": "The loom build tool: `loom build` / `loom dev` / `loom prerender` over a declarative `loom.config.ts` \u2014 esbuild assembly, one HTML shell per route, and a prerender phase with app hooks.",
