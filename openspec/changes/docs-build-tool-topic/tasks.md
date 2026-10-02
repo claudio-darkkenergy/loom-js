@@ -2,11 +2,12 @@
 
 ## 1. Gate
 
-- [ ] 1.1 Confirm `server-first-loom-app` has landed and the build pipeline is stable (do not proceed before)
+- [x] 1.1 Confirm `server-first-loom-app` has landed and the build pipeline is stable (do not proceed before) _(2026-10-01: archived 2026-09-15; `restore-sandbox-build` 2026-09-29 was the last build touch)_
+- [ ] 1.2 Confirm `loom-build-tool` has landed (`@loom-js/build` and `@loom-js/esbuild-plugin-html-split` published) — the topic's source (D2, resolved 2026-10-01)
 
 ## 2. Content
 
-- [ ] 2.1 Resolve the wrapper question first (design D2: build-package proposal or current wiring), then outline the topic from whichever shipped (entrypoints, `htmlSplit` shells + dynamic chunks, prerender + state scripts); maintainer reviews the outline
+- [ ] 2.1 Outline the topic from `@loom-js/build` (`loom.config.ts` + `defineConfig`, `loom build` / `loom dev` / `loom prerender`, mode, routes + shells, prerender hooks, `esbuild` escape hatch, the plugin as the raw path, one pointer to future bundler adapters); maintainer reviews the outline
 - [ ] 2.2 Author in `docs/topics/`, re-slug the entry to `build-tool`, push as draft; maintainer reviews
 - [ ] 2.3 Insert into the `/docs` listing tail before `feedback`; publish
 

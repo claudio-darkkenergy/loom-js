@@ -6,9 +6,9 @@ The pre-scrub `build-tools` topic was unlinked by the README-parity scope, but t
 
 ## What Changes
 
-- The existing entry (`2GJgubYMdwZokIK2ZRZ3LA`) is rewritten as the `build-tool` topic (singular slug, per maintainer): the app build entrypoints (tsx-driven esbuild), `htmlSplit` (routes, shells, dynamic chunks), and the prerender pipeline as shipped by `server-first-loom-app` — sourced from the plugin/app reality, not the core README.
+- The existing entry (`2GJgubYMdwZokIK2ZRZ3LA`) is rewritten as the `build-tool` topic (singular slug, per maintainer): `@loom-js/build` — the config, the `loom` commands, routes and shells, the prerender hooks — with `@loom-js/esbuild-plugin-html-split` as the raw-esbuild path; sourced from the package reality, not the core README.
 - It joins the nav's trailing-utility tail (before `feedback`), riding the IA allowance introduced by `docs-feedback-topic`.
-- **Blocked on:** `server-first-loom-app` landing; revisit then.
+- **Blocked on:** `loom-build-tool` landing (the package is the topic's source); `server-first-loom-app` landed 2026-09-15.
 
 ## Capabilities
 
@@ -23,5 +23,5 @@ _None — the trailing-topics IA change belongs to `docs-feedback-topic`._
 ## Impact
 
 - Contentful: rewrite + re-slug of one entry; `/docs` listing tail.
-- Depends on `docs-feedback-topic` (IA allowance) and `server-first-loom-app` (content source).
+- Depends on `docs-feedback-topic` (IA allowance, landed) and `loom-build-tool` (content source).
 - No app or package code.

@@ -16,9 +16,11 @@ Deferred by design: the topic's source material is the build setup `server-first
 
 Maintainer-named. The entry is reused for history; the slug changes at rewrite time — safe because the topic is unlisted/unpublished until this change, and old `/docs/build-tools` deep-link support was already declined (consistent with `get-started`).
 
-### D2 — Source of truth is the shipped tooling; a build-package wrapper is the preferred shape
+### D2 — Source of truth is `@loom-js/build` (resolved 2026-10-01)
 
-Maintainer lean (2026-08-30): ship the build story as a new loom package wrapping the esbuild assembly + `esbuild-plugin-html-split` (+ the prerender seam from `server-first-loom-app`) behind a simplified config — if the wrapper genuinely simplifies (the test: a minimal app's config shrinks, with a raw-esbuild escape hatch; if it mostly re-exposes options, it's indirection and the wrapper is dropped). That package would be its own tooling proposal after `server-first-loom-app`. This topic then documents the package's public config with the plugin as an internal; failing the wrapper, it documents the current wiring (`apps/loom/project/client/*` + the plugin), mirroring how README topics cite README headings — the future drift check diffs against whichever source ships.
+Maintainer lean (2026-08-30): ship the build story as a new loom package wrapping the esbuild assembly + `esbuild-plugin-html-split` (+ the prerender seam from `server-first-loom-app`) behind a simplified config — if the wrapper genuinely simplifies (the test: a minimal app's config shrinks, with a raw-esbuild escape hatch; if it mostly re-exposes options, it's indirection and the wrapper is dropped).
+
+**Resolved:** the wrapper is `@loom-js/build` (CLI `loom build` / `loom dev` + `loom.config.ts`), proposed as `loom-build-tool`; the plugin publishes as `@loom-js/esbuild-plugin-html-split`. This topic documents the package's config, commands and prerender hooks, with the plugin covered as the raw-esbuild path and pointed at its own README. Drift anchor: `packages/build/src/` and the plugin's option types. Other bundlers (vite, webpack) are future adapters with their own topics; this topic carries one pointer line.
 
 ### D3 — Tail placement before `feedback`
 
