@@ -1,5 +1,15 @@
 # @loom-js/core
 
+## 0.20.0
+
+### Minor Changes
+
+- 6bd03e4: Keyed lists reconcile with a key index and minimal moves: a swap moves two nodes, a removal moves none, an append inserts only the new items, and a key that leaves releases its child context. A component context function carries its `key` as a property, so the reconciler reads keys without rendering. A mounted component re-invoked with unchanged props (shallow-equal, `children` by reference) keeps its rendering — a parent's re-render alone no longer re-runs a child's template; its own activities still drive their effects. Attribute bindings skip the DOM write when the projected value is unchanged. Fix: context functions are detected by their kind marker everywhere, so a minified build without `keepNames` reuses keyed items like any other build.
+
+### Patch Changes
+
+- ee31880: Rendering a component instance is cheaper: dynamic paths update through a plain per-instance updater list diffed on re-render instead of one reactive effect per slot, life-cycle events dispatch directly instead of through a reactive proxy per instance, the mount/unmount scan uses one native element collection per mutated node, and per-instance collections are created on first use. Same behavior; 1 000 bench rows render in about 35 % less time and hold about half the heap.
+
 ## 0.19.0
 
 ### Minor Changes
