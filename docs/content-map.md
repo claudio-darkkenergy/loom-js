@@ -42,8 +42,11 @@ per topic.
 | 11  | `hydration`        | Client Hydration |
 | 12  | `dehydrated-state` | Dehydrated State |
 | 13  | `diagnostics`      | Diagnostics      |
+| 14  | `build-tool`       | Build Tool       |
 
-`feedback` is a trailing utility topic with no core source; it is outside this map.
+`feedback` is a trailing utility topic with no core source; it is outside this map. `build-tool` is
+anchored on `packages/build` and the html-split plugin rather than core — its pointers below are
+repo-relative.
 
 ### 1. `getting-started`
 
@@ -248,6 +251,26 @@ are directives, stripped by the renderer (`apps/loom/src/app/components/content/
 - **Topic sources.** Write the fence info as ` ```bash tab=npm group=pm `; `md2rich.py` emits both
   directive lines.
 - **Markdown output.** `llms.txt` serializes each variant as its own fenced block.
+
+### 14. `build-tool`
+
+- **Outline:**
+    - The blessed build
+    - Quick start
+    - Commands
+    - Config
+        - Routes and shells · HTML · Defines, copies, server · The `esbuild` escape hatch
+    - Prerendering
+    - TypeScript
+    - Programmatic use
+    - Raw esbuild and other bundlers
+- **Source (repo-relative):** `packages/build/src/config.ts` (the option surface and hook
+  types), `src/cli.ts`, `src/resolve-config.ts` (`resolveMode`, defaults), `src/esbuild-options.ts`
+  (layout names, mode defaults, escape hatch), `src/template.ts` (default shell),
+  `src/prerender.ts` (pipeline, `shellRouteOf`, `ROOT_SHELL_FILE`), `src/load-config.ts`;
+  `packages/esbuild-plugin-html-split/src/types.ts`, `src/route-css.ts` (`routeScopeOf`);
+  `packages/core/src/boot-contract.ts`. `apps/loom/loom.config.ts` is the reference consumer.
+- **Tests:** `packages/build/tests/build.test.mjs`.
 
 ## Shared pointers
 

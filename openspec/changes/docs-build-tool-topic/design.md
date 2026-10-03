@@ -14,7 +14,7 @@ Deferred by design: the topic's source material is the build setup `server-first
 
 ### D1 — Slug `build-tool` (singular), rewriting the existing entry
 
-Maintainer-named. The entry is reused for history; the slug changes at rewrite time — safe because the topic is unlisted/unpublished until this change, and old `/docs/build-tools` deep-link support was already declined (consistent with `get-started`).
+Maintainer-named. The entry was to be reused for history, but the old `build-tools` entry (`2GJgubYMdwZokIK2ZRZ3LA`) went with the 2026-09-30 relic cleanup — `push.py` creates `build-tool` fresh (2026-10-02). Old `/docs/build-tools` deep-link support was already declined (consistent with `get-started`).
 
 ### D2 — Source of truth is `@loom-js/build` (resolved 2026-10-01)
 
