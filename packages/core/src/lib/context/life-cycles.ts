@@ -126,17 +126,27 @@ export const _lifeCycles = {
     }
 };
 
-// Visits a mutated node and every element under it — the places a context
-// root can be registered. One native collection per node, no walker.
+// Visits a mutated node and every element under it, in document order —
+// the places a context root can be registered. A plain element walk, so
+// nothing is allocated per node.
 const forEachRegistrable = (node: Node, visit: (node: Node) => void) => {
     visit(node);
 
-    if (node.nodeType === 1) {
-        const descendants = (node as Element).getElementsByTagName('*');
+    let current =
+        node.nodeType === 1 ? (node as Element).firstElementChild : null;
 
-        for (let index = 0; index < descendants.length; index++) {
-            visit(descendants[index] as Element);
+    while (current) {
+        // Read the successor before the visit — a visit may run handlers.
+        let next = current.firstElementChild;
+        let ancestor: Element | null = current;
+
+        while (!next && ancestor && ancestor !== node) {
+            next = ancestor.nextElementSibling;
+            ancestor = ancestor.parentElement;
         }
+
+        visit(current);
+        current = next;
     }
 };
 
@@ -259,11 +269,12 @@ const teardownContext = (ctx: ComponentContextPartial) => {
     ctx.teardowns?.clear();
     // Owned values (`own`) live exactly as long as the mounted context — a
     // remount re-creates them through a fresh first render.
-    delete ctx.owned;
+    ctx.owned &&= undefined;
     // Handlers close over the render that registered them, so a remount
     // registers its own. Handlers given through a `ref` live on the ref.
     dropLifeCycleHandlers(ctx);
-    ctx.children?.forEach((childCtx) => teardownContext(childCtx));
+    ctx.children?.forEach(teardownContext);
+    ctx.arrayChildren?.forEach(teardownContext);
 };
 
 // Clears every handler list the context holds without adding properties

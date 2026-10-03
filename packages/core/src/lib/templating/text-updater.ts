@@ -94,9 +94,27 @@ interface LiveItem {
     ownsContext: boolean;
 }
 
-// Items per reconciled array, keyed by the flat node array callers receive.
-// A flat array with no stored items reconciles per node, by index.
-const liveItemsStore = new WeakMap<TemplateRootArray, LiveItem[]>();
+// One reconciled array's state: its items in order and each key's position,
+// kept so the next pass needs no index of its own.
+interface LiveList {
+    indexByKey: Map<number | string, number>;
+    items: LiveItem[];
+}
+
+// Lists per reconciled array, keyed by the flat node array callers receive.
+const liveListStore = new WeakMap<TemplateRootArray, LiveList>();
+
+const emptyList: LiveList = { indexByKey: new Map(), items: [] };
+
+// A flat array with no stored list reconciles per node, by index.
+const listOfNodes = (nodes: TemplateRootArray): LiveList => ({
+    indexByKey: new Map(nodes.map((_node, index) => [index, index])),
+    items: nodes.map((node, index) => ({
+        entry: node,
+        key: index,
+        ownsContext: false
+    }))
+});
 
 const firstNodeOf = (entry: LiveEntry) =>
     Array.isArray(entry) ? (entry[0] as TemplateRoot) : entry;
@@ -177,16 +195,14 @@ const stablePositions = (previousIndices: number[]) => {
 };
 
 // Whether an entry's nodes already sit, in order, right before `anchor`.
-const isPlacedBefore = (
-    nodes: TemplateRootArray,
-    anchor: Node | null,
-    parent: Node
-) =>
-    nodes.every(
-        (node, index) =>
-            node.parentNode === parent &&
-            node.nextSibling === (nodes[index + 1] ?? anchor)
-    );
+const isPlacedBefore = (entry: LiveEntry, anchor: Node | null, parent: Node) =>
+    Array.isArray(entry)
+        ? entry.every(
+              (node, index) =>
+                  node.parentNode === parent &&
+                  node.nextSibling === (entry[index + 1] ?? anchor)
+          )
+        : entry.parentNode === parent && entry.nextSibling === anchor;
 
 const handleArrayValue = (
     [liveNode, valueArray]: [
@@ -198,14 +214,10 @@ const handleArrayValue = (
     const liveNodeIsArray = Array.isArray(liveNode);
     // The previous pass's items — reconciliation is per item, not per node,
     // so groups move and leave as a unit.
-    const previousItems: LiveItem[] = liveNodeIsArray
-        ? (liveItemsStore.get(liveNode) ??
-          liveNode.map((node, index) => ({
-              entry: node,
-              key: index,
-              ownsContext: false
-          })))
-        : [];
+    const previousList = liveNodeIsArray
+        ? (liveListStore.get(liveNode) ?? listOfNodes(liveNode))
+        : emptyList;
+    const previousItems = previousList.items;
     // `parentNode`, not `parentElement` — a top-level slot of a fragment
     // template has a `DocumentFragment` parent, which can host insertions
     // but is not an `Element`.
@@ -226,112 +238,148 @@ const handleArrayValue = (
         valueArray.push(getDocument().createTextNode(''));
     }
 
-    // Index the previous pass once: by key, and by first node for values
-    // that arrive already resolved (an effect root re-visited by its slot
-    // carries nodes, not keys).
-    const previousIndexByKey = new Map<number | string, number>();
-    const previousIndexByNode = new Map<Node, number>();
+    // Previous items by first node, for values that arrive already resolved
+    // (an effect root re-visited by its slot carries nodes, not keys). Built
+    // on the first key miss — a pass that matches every key never needs it.
+    let previousIndexByNode: Map<Node, number> | undefined;
+    const previousIndexOfNode = (node: Node) => {
+        // A node with no parent was never placed, so it continues nothing.
+        if (!node.parentNode) {
+            return -1;
+        }
 
-    previousItems.forEach(({ entry, key }, index) => {
-        previousIndexByKey.set(key, index);
-        previousIndexByNode.set(firstNodeOf(entry), index);
-    });
+        if (!previousIndexByNode) {
+            previousIndexByNode = new Map();
+            previousItems.forEach(({ entry }, index) =>
+                previousIndexByNode!.set(firstNodeOf(entry), index)
+            );
+        }
+
+        return previousIndexByNode.get(node) ?? -1;
+    };
 
     // Render every item against its persistent child context, and find the
     // previous item it continues: same key and same first node, or the same
     // first node under another key. Anything else is a new rendering.
     const previousIndices: number[] = [];
-    const reused = new Set<number>();
+    const reused = new Uint8Array(previousItems.length);
+    let reusedCount = 0;
+    // Whether the reused items arrive in their previous order.
+    let inOrder = true;
+    let lastPreviousIndex = -1;
+    const indexByKey = new Map<number | string, number>();
+    // Callers receive the flat node list; item boundaries live in the store.
+    const nextLiveNode: TemplateRootArray = [];
     const nextItems = valueArray.map((newVal, index): LiveItem => {
         const key = keyOf(newVal, index);
         const childCtx = appendChildContext(parentCtx, newVal, key);
         const entry = toLiveEntry(resolveValue(newVal, childCtx));
         const firstNode = firstNodeOf(entry);
-        const byKey = previousIndexByKey.get(key);
+        const byKey = previousList.indexByKey.get(key);
         const previousIndex =
             byKey !== undefined &&
             firstNodeOf(previousItems[byKey]!.entry) === firstNode
                 ? byKey
-                : (previousIndexByNode.get(firstNode) ?? -1);
+                : previousIndexOfNode(firstNode);
+        const ownsContext = ownsChildContext(newVal);
 
-        if (previousIndex > -1 && !reused.has(previousIndex)) {
-            reused.add(previousIndex);
-            previousIndices.push(previousIndex);
-        } else {
+        indexByKey.set(key, index);
+        Array.isArray(entry)
+            ? nextLiveNode.push(...entry)
+            : nextLiveNode.push(entry);
+
+        if (previousIndex < 0 || reused[previousIndex]) {
             previousIndices.push(-1);
+
+            return { entry, key, ownsContext };
         }
 
-        return { entry, key, ownsContext: ownsChildContext(newVal) };
+        const previousItem = previousItems[previousIndex]!;
+
+        reused[previousIndex] = 1;
+        reusedCount += 1;
+        previousIndices.push(previousIndex);
+        inOrder &&= previousIndex > lastPreviousIndex;
+        lastPreviousIndex = previousIndex;
+
+        // An unchanged item keeps its record.
+        return previousItem.entry === entry &&
+            previousItem.key === key &&
+            previousItem.ownsContext === ownsContext
+            ? previousItem
+            : { entry, key, ownsContext };
     });
 
-    // Items that left: remove their nodes, and release the child context of
-    // a key that is gone altogether (a key re-rendered to new nodes keeps
-    // its context — the pass above already renewed it).
-    const nextKeys = new Set(nextItems.map(({ key }) => key));
-    // Callers receive the flat node list; item boundaries live in the store.
-    const nextLiveNode = nextItems.flatMap(({ entry }) => nodesOf(entry));
-    const leavingNodes: Node[] = liveNodeIsArray
-        ? liveNode
-        : liveNode
-          ? [liveNode]
-          : [];
+    liveListStore.set(nextLiveNode, { indexByKey, items: nextItems });
 
-    previousItems.forEach(({ key, ownsContext }, index) => {
-        !reused.has(index) &&
-            ownsContext &&
-            !nextKeys.has(key) &&
-            parentCtx &&
-            releaseChildContext(parentCtx, key);
-    });
+    if (reusedCount < previousItems.length) {
+        // Items that left release the child context of a key that is gone
+        // altogether — a key re-rendered to new nodes keeps its context, the
+        // pass above already renewed it.
+        previousItems.forEach(({ key, ownsContext }, index) => {
+            !reused[index] &&
+                ownsContext &&
+                !indexByKey.has(key) &&
+                parentCtx &&
+                releaseChildContext(parentCtx, key);
+        });
+    }
 
     if (
+        !reusedCount &&
         liveNodeParent &&
         isWholeListReplacement(
             liveNodeParent,
-            leavingNodes,
-            nextLiveNode,
-            reused
+            liveNodeIsArray ? liveNode : liveNode ? [liveNode] : [],
+            nextLiveNode
         )
     ) {
         // Nothing stays: one replacement of the parent's children instead of
         // a removal and an insertion per node.
         liveNodeParent.replaceChildren(toFragment(nextLiveNode));
-        liveItemsStore.set(nextLiveNode, nextItems);
         return nextLiveNode;
     }
 
-    previousItems.forEach(({ entry }, index) => {
-        !reused.has(index) && nodesOf(entry).forEach((node) => node.remove());
-    });
+    if (reusedCount < previousItems.length) {
+        // …and their nodes leave one by one.
+        previousItems.forEach(({ entry }, index) => {
+            !reused[index] && nodesOf(entry).forEach((node) => node.remove());
+        });
+    }
 
-    // Place the rest, walking from the end: items in the longest run of
-    // preserved relative order stay; every other item goes before the item
-    // that follows it in the new order, consecutive ones as one insertion.
-    const stable = stablePositions(previousIndices);
+    // Place the rest, walking from the end: items that keep their relative
+    // order stay; every other item goes before the item that follows it in
+    // the new order, consecutive ones as one insertion.
+    const stable = inOrder ? undefined : stablePositions(previousIndices);
     let anchor = tailAnchor;
     // The entries awaiting insertion before `anchor`, last first.
-    let pending: LiveEntry[] = [];
+    const pending: LiveEntry[] = [];
     const placePending = () => {
-        if (pending.length && liveNodeParent) {
-            liveNodeParent.insertBefore(
-                toFragment(pending.reverse().flatMap(nodesOf)),
-                anchor
-            );
-            pending = [];
+        if (!pending.length || !liveNodeParent) {
+            return;
         }
+
+        const [only] = pending;
+
+        liveNodeParent.insertBefore(
+            pending.length === 1 && only && !Array.isArray(only)
+                ? only
+                : toFragment(pending.reverse().flatMap(nodesOf)),
+            anchor
+        );
+        pending.length = 0;
     };
 
     for (let index = nextItems.length - 1; index >= 0; index--) {
         const { entry } = nextItems[index]!;
-        const nodes = nodesOf(entry);
 
         if (
-            stable.has(index) ||
+            (stable ? stable.has(index) : previousIndices[index]! > -1) ||
             !liveNodeParent ||
-            isPlacedBefore(nodes, anchor, liveNodeParent)
+            isPlacedBefore(entry, anchor, liveNodeParent)
         ) {
             placePending();
-            anchor = nodes[0] ?? anchor;
+            anchor = firstNodeOf(entry) ?? anchor;
         } else {
             pending.push(entry);
         }
@@ -342,11 +390,9 @@ const handleArrayValue = (
     if (!liveNodeIsArray && liveNode && anchor !== liveNode) {
         // The single live node was the placeholder the list replaced — unless
         // it is itself the first item now.
-        !nextItems.some(({ entry }) => nodesOf(entry).includes(liveNode)) &&
-            liveNode.remove();
+        !nextLiveNode.includes(liveNode) && liveNode.remove();
     }
 
-    liveItemsStore.set(nextLiveNode, nextItems);
     return nextLiveNode;
 };
 
@@ -362,16 +408,14 @@ const toFragment = (nodes: Node[]) => {
     return fragment;
 };
 
-// Whether a pass replaces the parent's children wholesale: no previous item
-// continues, the leaving nodes are exactly the parent's children, and no
-// next node is among them.
+// Whether a pass that reuses nothing can replace the parent's children
+// wholesale: the leaving nodes are exactly those children, and no next node
+// is among them.
 const isWholeListReplacement = (
     parent: ParentNode,
     leavingNodes: Node[],
-    nextNodes: Node[],
-    reused: Set<number>
+    nextNodes: Node[]
 ) =>
-    reused.size === 0 &&
     leavingNodes.length > 0 &&
     leavingNodes.length === parent.childNodes.length &&
     leavingNodes.every((node) => node.parentNode === parent) &&

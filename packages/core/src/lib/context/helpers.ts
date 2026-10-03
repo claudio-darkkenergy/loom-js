@@ -7,15 +7,17 @@ import type {
 import { getDocument, getWindow } from '../dom';
 import { isWithinHydratingRoot } from '../hydrating-roots';
 
-// Array-slot contexts live under a derived key so a slot changing kind
-// (component ⇄ array) can never hand one kind's context state to the other.
-const arraySlotKey = (key: number | string) => `${key}[]`;
+// A slot's child contexts by kind: component (and activity) contexts in
+// `children`, array-slot contexts in `arrayChildren` — separate maps, so a
+// slot changing kind can never hand one kind's context state to the other.
+type ChildContextMap = 'arrayChildren' | 'children';
 
 const getPersistentChildContext = (
     parentCtx: ComponentContextPartial,
+    map: ChildContextMap,
     key: number | string
 ) => {
-    const children = (parentCtx.children ??= new Map());
+    const children = (parentCtx[map] ??= new Map());
     let childCtx = children.get(key);
 
     if (!childCtx) {
@@ -35,16 +37,19 @@ export const appendChildContext = (
     if (isContextFunction(value)) {
         // A context function replaced any array previously in this slot, so the
         // array's slot context is stale — drop it.
-        parentCtx.children?.delete(arraySlotKey(key));
-        return getPersistentChildContext(parentCtx, key);
+        parentCtx.arrayChildren?.delete(key);
+        return getPersistentChildContext(parentCtx, 'children', key);
     } else if (Array.isArray(value)) {
         // Array values need a persistent context too: it carries the `children`
         // map of per-item contexts, so re-reconciling the array reuses each
         // item's live context (& DOM) instead of rebuilding from scratch.
         // An array also replaces whatever component held the plain key.
         parentCtx.children?.delete(key);
-        return getPersistentChildContext(parentCtx, arraySlotKey(key));
-    } else if (!(value instanceof getWindow().Node)) {
+        return getPersistentChildContext(parentCtx, 'arrayChildren', key);
+    } else if (
+        (parentCtx.children || parentCtx.arrayChildren) &&
+        !(value instanceof getWindow().Node)
+    ) {
         // A primitive value replaced a component or array in this slot, so
         // either child context is stale — drop both.
         //
@@ -55,7 +60,7 @@ export const appendChildContext = (
         // index keyspace & would otherwise delete the child context of a keyed
         // item whose key happens to equal an index (e.g. numeric keys).
         parentCtx.children?.delete(key);
-        parentCtx.children?.delete(arraySlotKey(key));
+        parentCtx.arrayChildren?.delete(key);
     }
 };
 
@@ -65,7 +70,7 @@ export const releaseChildContext = (
     key: number | string
 ) => {
     parentCtx.children?.delete(key);
-    parentCtx.children?.delete(arraySlotKey(key));
+    parentCtx.arrayChildren?.delete(key);
 };
 
 // Resolves which kind of context function a template value is, if any. The

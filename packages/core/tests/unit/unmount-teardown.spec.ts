@@ -370,6 +370,79 @@ describe('unmount scan', () => {
         expect(unmounted.sort()).to.deep.equal(['deep', 'pair']);
     });
 
+    it('should find nested and fragment-rooted roots without a collection or walker per node', async () => {
+        const events: string[] = [];
+        const Deep = component((html, { onMounted, onUnmounted }) => {
+            onMounted(() => events.push('deep mounted'));
+            onUnmounted(() => events.push('deep unmounted'));
+
+            return html`
+                <b>deep</b>
+            `;
+        });
+        // Two top-level nodes — a fragment root whose first node is text.
+        const Pair = component((html, { onMounted, onUnmounted }) => {
+            onMounted(() => events.push('pair mounted'));
+            onUnmounted(() => events.push('pair unmounted'));
+
+            return html`
+                lead
+                <i>trail</i>
+            `;
+        });
+        const Shell = component(
+            (html) => html`
+                <section>
+                    <div>
+                        <span>${Deep({})}</span>
+                    </div>
+                </section>
+            `
+        );
+        const show = activity(true);
+        const TestComponent = component(
+            (html) => html`
+                <article>
+                    ${show.effect(({ value }) =>
+                        value ? [Pair({}), Shell({})] : 'hidden'
+                    )}
+                </article>
+            `
+        );
+
+        // The first pass parses the templates; the spies watch the second.
+        await runSetup({ containerProps: { TestComponent } });
+        show.update(false);
+        await waitForObserver();
+        events.length = 0;
+
+        const byTag = sinon.spy(Element.prototype, 'getElementsByTagName');
+        const bySelector = sinon.spy(Element.prototype, 'querySelectorAll');
+        const walker = sinon.spy(document, 'createTreeWalker');
+
+        try {
+            show.update(true);
+            await waitForObserver();
+            show.update(false);
+            await waitForObserver();
+
+            expect(events.sort()).to.deep.equal([
+                'deep mounted',
+                'deep unmounted',
+                'pair mounted',
+                'pair unmounted'
+            ]);
+            expect(
+                byTag.callCount + bySelector.callCount + walker.callCount,
+                'no collection or walker'
+            ).to.equal(0);
+        } finally {
+            byTag.restore();
+            bySelector.restore();
+            walker.restore();
+        }
+    });
+
     it('should not scan subtrees while no context is registered', async () => {
         const Host = component(
             (html) => html`
@@ -387,22 +460,37 @@ describe('unmount scan', () => {
         const byTag = sinon.spy(Element.prototype, 'getElementsByTagName');
         const bySelector = sinon.spy(Element.prototype, 'querySelectorAll');
         const walker = sinon.spy(document, 'createTreeWalker');
+        const firstElementChild = Object.getOwnPropertyDescriptor(
+            Element.prototype,
+            'firstElementChild'
+        )!;
+        const descendantReads = sinon.fake();
+
+        sinon.stub(Element.prototype, 'firstElementChild').get(function (
+            this: Element
+        ) {
+            descendantReads();
+
+            return firstElementChild.get!.call(this);
+        });
 
         try {
             const node = document.createElement('p');
 
+            node.innerHTML = '<b><i>nested</i></b>';
             $host.appendChild(node);
             await waitForObserver();
             node.remove();
             await waitForObserver();
 
             expect(
-                byTag.callCount + bySelector.callCount + walker.callCount
+                byTag.callCount +
+                    bySelector.callCount +
+                    walker.callCount +
+                    descendantReads.callCount
             ).to.equal(0);
         } finally {
-            byTag.restore();
-            bySelector.restore();
-            walker.restore();
+            sinon.restore();
         }
     });
 });

@@ -78,7 +78,7 @@ Concepts you will see across consumers:
 - **`activity(initialValue)`** — A pub/sub reactive primitive. `activity.effect(({ value }) => ContextFunction)` queues an effect that reruns when `update(newValue)` fires. Effects must return a `ContextFunction` (i.e. the result of calling a component).
 - **`router(cb)` + `onRoute(event, opts)`** — SPA routing built on top of `activity` and the History API. `router` reacts to `Location` changes; `onRoute` is the click handler you bind to anchors/buttons.
 - **`init({ app, root, onAppMounted })`** — Bootstraps the app by mounting the result of an `app: ContextFunction` into a DOM root.
-- The `core/src/lib/` tree contains the internals: `templating/` (HTML parsing, custom-element registration, attribute updates), `context/`, `reactive.ts`, `mount.ts`, `memo.ts`. Edits in `templating/` affect every consumer.
+- The `core/src/lib/` tree contains the internals: `templating/` (HTML parsing, the per-template plan and per-instance slots, custom-element registration, attribute updates), `context/`, `reactive.ts`, `mount.ts`. Edits in `templating/` affect every consumer.
 
 `@loom-js/core` builds with rollup (ES + CJS bundles + a consolidated `index.d.ts` via `rollup-plugin-dts`). Output lands in `dist/`.
 

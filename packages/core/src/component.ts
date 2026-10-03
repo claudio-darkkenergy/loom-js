@@ -4,40 +4,49 @@ import {
     lifeCycleHooks,
     memoizedOwnedValues,
     memoizedRefContext,
+    noRefs,
     resetLifeCycles
 } from './lib/context';
 import type {
     ComponentContextPartial,
     ComponentFactory,
     ComponentInputProps,
-    RefContext,
     TemplateFunction
 } from './types';
 
-// Stands in for an instance that has created no refs yet.
-const noRefs: ReadonlySet<RefContext> = new Set();
-
 // The props each live context last rendered with, as the caller passed them
 // (`children` unflattened), so a re-invocation can compare by reference.
-const lastRenderedProps = new WeakMap<ComponentContextPartial, object>();
+const lastRenderedProps = new WeakMap<
+    ComponentContextPartial,
+    Record<string, unknown>
+>();
 
 // Shallow-equal over own keys, `ref` excluded: a `ref` is consumed by the
 // render that receives it, so it is not part of what the output depends on.
-const haveEqualProps = (previous: object, next: object) => {
-    const previousKeys = Object.keys(previous).filter((key) => key !== 'ref');
-    const nextKeys = Object.keys(next).filter((key) => key !== 'ref');
+// Compared in place — this runs for every item of every keyed pass.
+const haveEqualProps = (
+    previous: Record<string, unknown>,
+    next: Record<string, unknown>
+) => {
+    let unmatched = 0;
 
-    return (
-        previousKeys.length === nextKeys.length &&
-        nextKeys.every(
-            (key) =>
-                key in previous &&
-                Object.is(
-                    (previous as Record<string, unknown>)[key],
-                    (next as Record<string, unknown>)[key]
-                )
-        )
-    );
+    for (const key in next) {
+        if (key === 'ref' || !Object.hasOwn(next, key)) {
+            continue;
+        }
+
+        if (!(key in previous) || !Object.is(previous[key], next[key])) {
+            return false;
+        }
+
+        unmatched += 1;
+    }
+
+    for (const key in previous) {
+        key !== 'ref' && Object.hasOwn(previous, key) && (unmatched -= 1);
+    }
+
+    return unmatched === 0;
 };
 
 export const component: ComponentFactory = <Props extends object = {}>(
@@ -68,8 +77,6 @@ export const component: ComponentFactory = <Props extends object = {}>(
                 ? liveCtx.ctxScopes.get(templateFunction)
                 : null;
             const ctx = scopedCtx || (!liveCtx.ctxScopes ? liveCtx : {});
-            // Holds any possible child `RefContext`s.
-            let refIterator: IterableIterator<RefContext>;
             const isFresh = !liveCtx.root || scopedCtx === undefined;
             const previousProps = lastRenderedProps.get(ctx);
 
@@ -92,9 +99,11 @@ export const component: ComponentFactory = <Props extends object = {}>(
             if (isFresh) {
                 const ref = props.ref;
 
-                // Collections are created on first use.
-                delete ctx.children;
-                delete ctx.refs;
+                // Collections are created on first use; a refreshed context
+                // drops the ones it holds.
+                ctx.arrayChildren &&= undefined;
+                ctx.children &&= undefined;
+                ctx.refs &&= undefined;
                 ctx.fragment = false;
                 ctx.fingerPrint = templateFunction;
                 resetLifeCycles(ctx);
@@ -103,7 +112,7 @@ export const component: ComponentFactory = <Props extends object = {}>(
                 ctx.render = htmlParser.bind(ctx);
                 // A refreshed context must not replay another template's
                 // owned values.
-                delete ctx.owned;
+                ctx.owned &&= undefined;
 
                 if (ref) {
                     // Set component's received `RefContext` prop onto the the current component's `ComponentContext`.
@@ -137,13 +146,11 @@ export const component: ComponentFactory = <Props extends object = {}>(
                 return ctx;
             }
 
-            refIterator = (ctx.refs ?? noRefs).values();
-
             const ownedValues = memoizedOwnedValues(ctx);
 
             // Life-cycle setters append only while this render runs; the
             // set closes with the render so later registrations are no-ops.
-            delete ctx.registering;
+            ctx.registering &&= undefined;
 
             /*
              * ```
@@ -156,14 +163,14 @@ export const component: ComponentFactory = <Props extends object = {}>(
             const template = templateFunction(ctx.render!, {
                 ...inputProps,
                 ...lifeCycleHooks(ctx),
-                createRef: memoizedRefContext(ctx, refIterator),
+                createRef: memoizedRefContext(ctx),
                 ctxRefs: () => (ctx.refs ?? noRefs).values(),
                 node: ctx.node!,
                 own: ownedValues.own
             });
 
             ownedValues.settle();
-            delete ctx.registering;
+            ctx.registering &&= undefined;
             lastRenderedProps.set(ctx, props);
 
             return template;

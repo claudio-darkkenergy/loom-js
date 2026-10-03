@@ -84,6 +84,28 @@ const mountKeyedList = (initial: string[]) => {
     };
 };
 
+// The same harness over values that arrive as resolved nodes: no keys, so
+// the reconciler matches them by index and then by node.
+const mountNodeList = (initial: HTMLElement[]) => {
+    const nodes = activity(initial);
+    const host = document.createElement('main');
+    const anchor = document.createTextNode('');
+    const ctx: ComponentContextPartial = { root: anchor };
+
+    host.append(anchor);
+    document.body.prepend(host);
+    nodes.effect(({ value }) => value)(ctx);
+
+    return {
+        host,
+        teardown: () => host.remove(),
+        update: (next: HTMLElement[]) => nodes.update(next)
+    };
+};
+
+const colorsOf = (host: HTMLElement) =>
+    [...host.children].map((el) => el.getAttribute('data-color'));
+
 // MutationObserver delivery is a microtask; a macrotask hop runs after it.
 const waitForObserver = () => new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -157,6 +179,170 @@ describe('keyed-list diffing', () => {
             ).to.deep.equal(['4', '3', '2', '1', '0']);
             expect(boxByColor(list.host, '0'), 'node reused').to.equal(first);
             list.teardown();
+        });
+    });
+
+    describe('order-preserving passes', () => {
+        it('should touch nothing when a pass changes nothing', () => {
+            const list = mountKeyedList(range(5));
+            const before = [...list.host.children];
+            const measure = observeChildList(list.host);
+
+            list.update(range(5));
+
+            expect(measure()).to.deep.equal({
+                insertions: 0,
+                moves: 0,
+                removals: 0
+            });
+            expect([...list.host.children]).to.deep.equal(before);
+            list.teardown();
+        });
+
+        it('should insert a new item mid-list without moving its neighbors', () => {
+            const list = mountKeyedList(range(5));
+            const measure = observeChildList(list.host);
+
+            list.update(['0', '1', 'new', '2', '3', '4']);
+
+            expect(measure()).to.deep.equal({
+                insertions: 1,
+                moves: 0,
+                removals: 0
+            });
+            expect(colorsOf(list.host)).to.deep.equal([
+                '0',
+                '1',
+                'new',
+                '2',
+                '3',
+                '4'
+            ]);
+            list.teardown();
+        });
+
+        it('should handle a removal and an append in one pass', () => {
+            const list = mountKeyedList(range(5));
+            const kept = boxByColor(list.host, '3');
+            const measure = observeChildList(list.host);
+
+            list.update(['0', '2', '3', '4', '5']);
+
+            expect(measure()).to.deep.equal({
+                insertions: 1,
+                moves: 0,
+                removals: 1
+            });
+            expect(colorsOf(list.host)).to.deep.equal([
+                '0',
+                '2',
+                '3',
+                '4',
+                '5'
+            ]);
+            expect(boxByColor(list.host, '3'), 'node kept').to.equal(kept);
+            expect(list.ctx.children?.size, 'one context per item').to.equal(5);
+            list.teardown();
+        });
+
+        it('should move a single item with one re-insertion and keep its node', () => {
+            const list = mountKeyedList(range(5));
+            const first = boxByColor(list.host, '0');
+            const measure = observeChildList(list.host);
+
+            list.update(['1', '2', '3', '4', '0']);
+
+            expect(measure()).to.deep.equal({
+                insertions: 0,
+                moves: 1,
+                removals: 0
+            });
+            expect(colorsOf(list.host)).to.deep.equal([
+                '1',
+                '2',
+                '3',
+                '4',
+                '0'
+            ]);
+            expect(boxByColor(list.host, '0'), 'node kept').to.equal(first);
+            list.teardown();
+        });
+
+        it('should reuse resolved nodes found under another index', () => {
+            const coloredNode = (color: string) => {
+                const node = document.createElement('div');
+
+                node.setAttribute('data-color', color);
+
+                return node;
+            };
+            const first = coloredNode('a');
+            const second = coloredNode('b');
+            const third = coloredNode('c');
+            const list = mountNodeList([first, second, third]);
+            const measure = observeChildList(list.host);
+
+            list.update([second, third]);
+
+            expect(measure()).to.deep.equal({
+                insertions: 0,
+                moves: 0,
+                removals: 1
+            });
+            expect([...list.host.children]).to.deep.equal([second, third]);
+
+            list.update([third, second, first]);
+
+            expect([...list.host.children]).to.deep.equal([
+                third,
+                second,
+                first
+            ]);
+            list.teardown();
+        });
+    });
+
+    describe('an effect list re-visited by its host slot', () => {
+        it('should keep the list intact when the host re-renders after the first item left', async () => {
+            const labels = activity(['a', 'b', 'c'], { deep: true });
+            const tick = activity(0);
+            const Host = component<{ tick?: number }>(
+                (html, { tick }) => html`
+                    <ul data-tick=${tick}>
+                        ${labels.effect(({ value }) =>
+                            value.map((label) =>
+                                Box({ key: label, color: label })
+                            )
+                        )}
+                    </ul>
+                `
+            );
+            const TestComponent = component(
+                (html) => html`
+                    <main>
+                        ${tick.effect(({ value }) => Host({ tick: value }))}
+                    </main>
+                `
+            );
+            const $test = await runSetup({ containerProps: { TestComponent } });
+            const $list = $test.querySelector('ul')!;
+
+            // The effect alone reconciles; the host's slot still holds the
+            // previous nodes, the first of them now detached.
+            labels.update(['b', 'c']);
+
+            const kept = [...$list.children];
+            const measure = observeChildList($list);
+
+            tick.update(1);
+
+            expect(measure()).to.deep.equal({
+                insertions: 0,
+                moves: 0,
+                removals: 0
+            });
+            expect([...$list.children]).to.deep.equal(kept);
+            expect(colorsOf($list as HTMLElement)).to.deep.equal(['b', 'c']);
         });
     });
 

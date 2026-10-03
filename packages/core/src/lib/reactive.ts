@@ -10,50 +10,56 @@ type Effect = {
     memberships?: Set<Set<Effect>>;
 };
 
-// Holds the active effect per reactive proxy.
-const activeEffects = new WeakMap<object, null | Effect>();
-// Holds the prop dependency effects per reactive proxy.
-const deps = new WeakMap<Es6Object, Map<string | symbol, Set<Effect>>>();
+// What one reactive proxy tracks: the effect running against it right now
+// and, per property of its target, the effects that read it.
+interface ReactiveState {
+    active: Effect | null;
+    deps: Map<string | symbol, Set<Effect>>;
+}
 
-const getDepsForProp = (obj: Es6Object, prop: string | symbol) => {
-    const objDeps = deps.get(obj) || new Map<string | symbol, Set<Effect>>();
-    const propDeps = objDeps.get(prop) || new Set<Effect>();
+// The state behind each reactive proxy — looked up once per effect, so a
+// run or a tracked read touches no weak map.
+const states = new WeakMap<object, ReactiveState>();
+// The dependency sets per target, shared by every proxy over it.
+const targetDeps = new WeakMap<Es6Object, Map<string | symbol, Set<Effect>>>();
 
-    objDeps.set(prop, propDeps);
-    deps.set(obj, objDeps);
+const track = (state: ReactiveState, prop: string | symbol) => {
+    const effect = state.active;
 
-    return propDeps;
-};
-const track = <T extends object>(
-    obj: Es6Object,
-    prop: string | symbol,
-    proxy: T
-) => {
-    const effect = activeEffects.get(proxy);
+    if (!effect || effect.disposed) {
+        return;
+    }
 
-    if (effect && !effect.disposed) {
-        const propDeps = getDepsForProp(obj, prop);
+    let propDeps = state.deps.get(prop);
+
+    if (!propDeps) {
+        propDeps = new Set<Effect>();
+        state.deps.set(prop, propDeps);
+    }
+
+    if (!propDeps.has(effect)) {
         propDeps.add(effect);
         effect.memberships?.add(propDeps);
     }
 };
-const trigger = (obj: Es6Object, prop: string | symbol) => {
-    const propDeps = getDepsForProp(obj, prop);
-    propDeps.forEach((effect) => effect());
+const trigger = (state: ReactiveState, prop: string | symbol) => {
+    state.deps.get(prop)?.forEach((effect) => effect());
 };
 
 export const reactiveEffect = <T extends object>(
     update: (proxy: T) => void,
     proxy: T
 ): Unsubscriber => {
+    // A proxy `reactive` did not make tracks nothing; its effect still runs.
+    const state = states.get(proxy);
     const effect: Effect = () => {
         if (effect.disposed) {
             return;
         }
 
-        activeEffects.set(proxy, effect);
+        state && (state.active = effect);
         update(proxy);
-        activeEffects.set(proxy, null);
+        state && (state.active = null);
     };
 
     effect.memberships = new Set<Set<Effect>>();
@@ -79,9 +85,17 @@ export const reactive = <T>(
         newValue
     ) => oldValue !== newValue
 ) => {
+    let deps = targetDeps.get(origObj);
+
+    if (!deps) {
+        deps = new Map();
+        targetDeps.set(origObj, deps);
+    }
+
+    const state: ReactiveState = { active: null, deps };
     const reactiveProxy = new Proxy(origObj, {
         get: function (obj, prop) {
-            track(obj, prop, reactiveProxy);
+            track(state, prop);
             return obj[prop];
         },
         set: function (obj, prop, newValue) {
@@ -89,12 +103,14 @@ export const reactive = <T>(
 
             if (shouldUpdate(oldValue, newValue)) {
                 obj[prop] = newValue;
-                trigger(obj, prop);
+                trigger(state, prop);
             }
 
             return true;
         }
     });
+
+    states.set(reactiveProxy, state);
 
     return reactiveProxy;
 };

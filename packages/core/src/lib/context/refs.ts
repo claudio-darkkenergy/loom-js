@@ -1,18 +1,26 @@
 import type { ComponentContextPartial, RefContext } from '../../types';
 
+/** Stands in for an instance that has created no refs yet. */
+export const noRefs: ReadonlySet<RefContext> = new Set();
+
 /**
  * Creates a `RefContext` & ensures the ref context is never lost (memoized.)
  * This allows a component to create many ref contexts w/o losing them on re-renders.
+ * The render's refs replay in creation order from the first `createRef` call;
+ * once the cached ones run out, new ones are created & cached for future renders.
  * @param ctx The cached/scoped template context
- * @param iterator This is the `Iterator` of cached refs to traverse & return.
- *      If the list is empty, new ones will be created & cached for future renders.
  * @returns RefContext
  */
-export const memoizedRefContext =
-    (ctx: ComponentContextPartial, iterator: IterableIterator<RefContext>) =>
+export const memoizedRefContext = (ctx: ComponentContextPartial) => {
+    // Traverses the refs cached before this render. Opened by the first
+    // call, before the render adds any, so it never replays a new one.
+    let cachedRefs: IterableIterator<RefContext> | undefined;
+
     // This is the `createRef` prop which is provided to each component & returns the `RefContext`.
-    () => {
-        let ref: RefContext = iterator.next().value;
+    return () => {
+        cachedRefs ??= (ctx.refs ?? noRefs).values();
+
+        let ref: RefContext | undefined = cachedRefs.next().value;
 
         if (ref) {
             return ref;
@@ -23,6 +31,7 @@ export const memoizedRefContext =
 
         return ref;
     };
+};
 
 /**
  * Creates a reference which can be hooked into by the nested component which receives

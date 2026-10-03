@@ -208,6 +208,8 @@ export type ComponentOutputProps<Props extends object = {}> =
 // which essentially provides caching capabilities w/ associated meta-data.
 export interface ComponentContext<Props extends object = {}>
     extends LifeCycleHandlerProps, Pick<ReservedProps, 'key' | 'ref'> {
+    // Internal — the contexts of array-valued slots, by slot or item key.
+    arrayChildren?: Map<number | string, ComponentContextPartial>;
     // Created on first use, like `refs`, `registering` and `teardowns`.
     children?: Map<number | string, ComponentContextPartial>;
     chunks: TemplateStringsArray;
