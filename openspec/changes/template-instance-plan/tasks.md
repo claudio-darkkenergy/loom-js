@@ -86,3 +86,37 @@ Met: heap, createRows (at the line), every "not above before" ratio (swapRows's 
 - [ ] 6.1 `pnpm bench` after (dist rebuilt): createRows/replaceAll/appendRows < 1.3×, clearRows < 1.4×, geometric mean < 1.5×, nothing above its "before" ratio; heap snapshot per row before/after — record next to the analysis record; profile any miss before closing
 - [x] 6.2 `turbo build --filter=@loom-js/sandbox --filter=@loom-js/loom` passes; `/benchmarks` carries the new run
 - [x] 6.3 Changeset: patch `@loom-js/core`; `pnpm format:check`; `turbo run type-check`; `.claude/skills/skill-config.md` and `docs/content-map.md` for the templating module changes
+
+## 7. Scope extension (D7–D9)
+
+- [x] 7.1 Second analysis pass on the landed tree: one CPU profile per op (50 µs sampling) and micro-benchmarks of the scan variants, the node-list tax and the observer tax; recorded below
+- [ ] 7.2 `compile-plan.spec.ts` — the plan compiler pinned directly, as `table-scope` and `collapse-whitespace` are: classification precedence, token split, comment markers, special-attribute strip, relative steps
+- [ ] 7.3 Red: `unmount-teardown` delta — the scan creates no collection or walker per node, nested and fragment-rooted roots are still found, an empty registry reads nothing. Green: element walk in `forEachRegistrable` (D8)
+- [ ] 7.4 Red: keyed-pass pins — a mid-list insert, a removal plus an append in one pass and a single move keep order and node identity. Green: D7 — in-place `haveEqualProps`, array-slot key only under a parent holding an array-slot context, kept key index with a lazy by-node index, in-order shortcut before the LIS, reused item records, no single-node arrays, direct one-node insert
+- [ ] 7.5 D9 — guarded resets instead of `delete` in `component` and `teardownContext`; ref iterator on first `createRef`
+- [ ] 7.6 Whole `packages/core` suite green (`test-ci` + `type-check` + `type-check-tests`)
+- [ ] 7.7 `pnpm bench` after (dist rebuilt), three runs, against the gates in 6.1; per-op profiles recorded next to 7.1's; closes 6.1 or records what is left
+- [ ] 7.8 Changeset text, `skill-config.md`, audit report for the touched files; `pnpm format:check`; `turbo run type-check`; app builds
+
+### Second analysis record (2026-10-03, landed tree `9aa8cc8`)
+
+Per-op script, unminified, profiler on only around the timed click (ms per op, 1 000 rows):
+
+| op            | timed window | layout | script | where the script goes                                                                                                                                 |
+| ------------- | -----------: | -----: | -----: | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| swapRows      |         2.40 |   1.52 |   0.94 | `handleArrayValue` self 0.19, `appendChildContext` 0.13, `haveEqualProps` 0.13, GC 0.10, index maps 0.07, LIS 0.06, fragment for a one-node move 0.09 |
+| removeRow     |         2.30 |   1.28 |   0.89 | same shape; `haveEqualProps` 0.14, `appendChildContext` 0.09                                                                                          |
+| partialUpdate |         4.20 |   2.62 |   1.52 | the same ~0.9 per-item pass, plus 100 re-renders 0.45 (listener swap 0.13)                                                                            |
+| selectRow     |         0.20 |   0.08 |   0.14 | 1 000 binding effects: `track` 0.05, the binding callback 0.02 — activity system, left                                                                |
+| clearRows     |         4.00 |   0.08 |   3.88 | `replaceChildren` 2.31, observer callback 1.06 (scan 0.48, teardown 0.30, candidates 0.22), reconciler 0.51 (context release 0.15, index maps 0.11)   |
+| createRows    |        24.50 |  16.28 |    8.2 | `importNode` 1.44, `contextFunction` self 0.77, step walk 0.60, DOM writes 1.1, `replaceChildren` + fragment 0.83, mount scan 0.8                     |
+
+Micro-benchmarks (same Chrome, medians of 15, 0.1 ms timer):
+
+| case                                 | collection (`getElementsByTagName`) | `querySelectorAll` | element walk | `TreeWalker` |
+| ------------------------------------ | ----------------------------------: | -----------------: | -----------: | -----------: |
+| scan 1 000 row-sized nodes, detached |                                0.70 |               0.60 |         0.40 |         0.50 |
+| scan 1 000 row-sized nodes, attached |                                0.60 |               0.50 |         0.40 |         0.40 |
+| scan one subtree of 6 000 elements   |                                0.26 |               0.22 |         0.18 |         0.24 |
+
+`replaceChildren()` of 1 000 rows: 1.3 ms bare, 1.5 under a `childList`+`subtree` observer, 1.4 with two listeners and wrappers per row; 1 000 text writes (0.2) and attribute writes (0.1) cost the same with or without collections left by a scan.

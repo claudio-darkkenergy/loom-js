@@ -18,7 +18,9 @@ D0 result. The V8 heap grows 2 756 B per row (JSHeapUsedSize +2 992 B/row). 51 %
 
 The createRows click's script is 15.2 ms (unminified, 100 µs sampling) plus 1.3 ms of mutation-observer microtask and 1.3 ms of GC, next to 17.3 ms of layout. Ranked: path resolution 2.9 ms (memo + `childNodes[i]`), per-path wiring 3.0 (classification 0.9, text split and fragment swap 1.3, special-attribute `removeAttribute` 0.3, closure construction), initial-apply overhead 2.3 (`slotUpdater` dispatch 0.8, `canDebug` per slot 0.5, `appendChildContext` for attribute slots 0.4, text `createTextNode` + `replaceWith` 0.7), `importNode` 1.6, DOM writes 1.4 (`setAttribute` ×6, `addEventListener` ×2, `bindAttr`), mount scan 1.3, hook surface and context setup 1.1, placement `insertBefore` ×1 000 1.0. clearRows: `node.remove()` ×1 000 is 2.8 ms of its 3.3 ms handler, then the unmount scan and a teardown that allocates five handler arrays per row.
 
-Constraints: no public API or template-syntax change; every observable rule stays — one listener per event per element, one binding subscription per slot (replaced on re-render, torn down on unmount), `bind` skipping unchanged projections, `$attrs`/`$on`/`$props` merge semantics, style replacement semantics, custom-element props, table-content comment markers, fragment roots, hydration's detached-tree rendering, server rendering, the unmount scan's one-query-per-node rule.
+Scope extension (after D1–D6 landed at heap 2.50 MB, createRows ~1.3×, replaceAll 1.33×, appendRows 1.37×, clearRows 1.8×, geometric mean ~1.6×). A second pass — one CPU profile per op at 50 µs, plus micro-benchmarks in the same Chrome — found: a keyed pass costs ~0.9 ms per 1 000 unchanged items (swapRows 0.94 ms of script, removeRow 0.89, partialUpdate 1.5 with its 100 re-renders): `handleArrayValue` itself 0.19, `appendChildContext` 0.13 (a `${key}[]` string and a `Map` delete per item), `haveEqualProps` 0.15 (four arrays and two closures per item), the two index maps 0.06, the LIS 0.06, GC 0.10. A fresh instance spends 0.77 µs in `contextFunction` itself, most of it five `delete`s of properties that are not there. The scan's collection per node costs 0.6–0.7 ms per 1 000 row-sized nodes against 0.4 for an element walk, and 0.26 against 0.18 ms for one 6 000-element subtree. clearRows is `replaceChildren` 2.3 ms (1.3 for bare rows in isolation, +0.2 for the observer's transient registrations, +0.1 for listeners), the observer callback 1.06 (scan 0.48, teardown 0.30) and the reconciler 0.5. One hypothesis was rejected: node-list caches left by the scan do not tax later text or attribute writes.
+
+Constraints: no public API or template-syntax change; every observable rule stays — one listener per event per element, one binding subscription per slot (replaced on re-render, torn down on unmount), `bind` skipping unchanged projections, `$attrs`/`$on`/`$props` merge semantics, style replacement semantics, custom-element props, table-content comment markers, fragment roots, hydration's detached-tree rendering, server rendering, what the unmount scan finds (the node itself, then every element under it, in document order).
 
 ## Goals / Non-Goals
 
@@ -28,14 +30,15 @@ Constraints: no public API or template-syntax change; every observable rule stay
 - Per-instance allocation is the slot array plus whatever state a kind genuinely needs (a listener, a binding unsubscriber, a bindings map for `$attrs`).
 - No per-instance hook closures stored on the context, no eager handler arrays, no allocation in teardown.
 - A whole-list replacement is one DOM operation.
+- A keyed pass allocates nothing per unchanged item; the mount/unmount scan allocates nothing per node; resetting a context never deletes a property.
 - Bench: createRows/replaceAll/appendRows < 1.3×, clearRows < 1.4×, heap < 3 MB, geometric mean < 1.5×. Vanilla's layout is ~17 of its 18–20 ms on the creation ops, so 1.3× leaves loom about 5 ms of script for 1 000 rows; clearRows at 1.4× leaves ~0.8 ms over vanilla's one-call clear for the unmount batch and teardown.
 
 **Non-Goals:**
 
 - A build-time compiler or template transform.
-- The render skip, the activity system (its ~350 B per bound attribute stays), the reconciler beyond D6.
-- Changing what any hook or attribute does.
-- The mount scan: a script-stepped walk would save ≤ 0.5 ms (3 %) and the unmount-teardown spec requires the one-query form.
+- The activity system: its ~350 B per bound attribute stays, and so does the per-subscriber `track` on every update (selectRow's 0.1 ms for 1 000 bindings).
+- Changing what any hook or attribute does, when a render is skipped, or which nodes a keyed pass moves.
+- Replacing the mutation observer as the mount/unmount detector — clearRows's native share (transient registrations on 1 000 removed rows) stays.
 
 ## Decisions
 
@@ -61,13 +64,25 @@ The five hooks are created per render from one factory that closes over `ctx` on
 
 Before/after runs in one session; the targets in Goals gate the change; a heap snapshot after confirms the per-row footprint.
 
-### D5 — (dropped) mount scan
+### D5 — (dropped, then reopened as D8) mount scan
 
-Measured at 1.3 ms, but a script-stepped walk saves at most 0.5 ms and the `unmount-teardown` spec fixes the one-query-per-node form. Left as is.
+Measured at 1.3 ms in D0 and left alone: under 5 % and fixed by the `unmount-teardown` spec's one-query-per-node rule. The scope extension reopened it with a direct measurement — see D8.
 
 ### D6 — Whole-list replacement and runs of placements are one DOM operation each
 
 In `handleArrayValue`, when no previous item is reused and the previous nodes (or the placeholder) are exactly their parent's children, the pass calls `parent.replaceChildren(fragment)` instead of N `remove()` and M `insertBefore` calls; otherwise consecutive items that need placing before the same following item travel through one fragment and one `insertBefore` (an append of 1 000 is one insertion). Context release, item keys and the LIS placement are otherwise unchanged, and the mutation batches still reach the observer. Measured: clearRows's `remove()` loop was 2.8 ms of a 5.0 ms op, createRows's `insertBefore` loop 1.0 ms. `replaceChildren` exists in Chrome, linkedom, happy-dom and jsdom.
+
+### D7 — A keyed pass allocates nothing per unchanged item
+
+`handleArrayValue` and the render-skip check keep their results and lose their per-item garbage: `haveEqualProps` compares own keys in place (no key arrays, no closures); the array-slot key (`${key}[]`) is built only under a parent that has created an array-slot context; the pass's key index is kept with its live items and serves the next pass (one `Map` per pass instead of two `Map`s and a `Set`), with the by-node index built only when a key lookup misses; a pass whose reused items arrive in their previous order skips the LIS; a reused item keeps its item record, single nodes are never wrapped in arrays and a one-node run is inserted directly. What moves, what is reused and what is released are unchanged — `keyed-list-diffing` and `render-skip-on-equal-props` are the regression suite.
+
+### D8 — The mount/unmount scan walks elements
+
+`forEachRegistrable` checks the node, then walks its descendant elements with `firstElementChild`/`nextElementSibling` — the collection's document order, no `HTMLCollection` per scanned node. The `unmount-teardown` delta replaces "one element query … never a script-stepped walk": that rule came from replacing a `TreeWalker` per node, and the measurements above put the element walk ahead of the collection in both regimes.
+
+### D9 — Resetting a context assigns, never deletes
+
+`children`, `refs`, `owned` and `registering` are set to `undefined` only when present (in `component` and `teardownContext`): an absent property costs a read instead of a runtime call, and a present one no longer drops the context into dictionary mode — which `delete ctx.registering` did to every instance that registered a hook on its first render. The ref iterator behind `createRef` is created on first use.
 
 ## Risks / Trade-offs
 
@@ -76,6 +91,9 @@ In `handleArrayValue`, when no previous item is reused and the previous nodes (o
 - [Normalizing the cached fragment changes what `importNode` copies] → the clone is what today's wire step produced anyway (split text nodes, stripped special attributes); hydration and server renders operate on clones.
 - [Plan cache keyed per document grows] → it lives on the existing per-document `WeakMap` entry.
 - [`replaceChildren` on a parent that holds foreign nodes] → the fast path requires the previous nodes to be all of the parent's children; otherwise the per-node path runs as today.
+- [A kept key index goes stale] → it is written with the live items at the end of each pass and read only with them; a node list with no stored record builds its index as before.
+- [The in-order shortcut misjudges a reorder] → it applies only when every reused item's previous position exceeds the one before it; any inversion falls back to the LIS.
+- [A reset by assignment leaves a key behind] → every reader already treats `undefined` as absent (`?.`, `??`, `??=`); nothing enumerates a context's keys.
 
 ## Migration Plan
 
@@ -83,8 +101,10 @@ In `handleArrayValue`, when no previous item is reused and the previous nodes (o
 2. D1 + D2 behind the existing templating specs; new plan specs. — done
 3. D3; life-cycle specs. — done
 4. D6; keyed-list spec. — done
-5. Bench before/after; changeset (patch); archive on the user's word.
-6. Rollback: revert; nothing persisted.
+5. Bench before/after; changeset (patch). — done, gates partly missed
+6. Scope extension: second analysis pass, then D7–D9 with their specs; bench again.
+7. Archive on the user's word.
+8. Rollback: revert; nothing persisted.
 
 ## Open Questions
 

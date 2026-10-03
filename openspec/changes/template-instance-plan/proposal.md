@@ -13,6 +13,7 @@ This change moves loom to that shape without a compiler: a template compiles onc
 - **Instances hold slots, not closures** — an instance's dynamic state is an array of `{ node, value, state? }` slots in plan order; the render applies values through shared per-kind update functions that take the slot, so no per-path closure exists. Bindings, listeners and style application keep their observable behavior (one listener per event per element, one binding per slot, `bind` skipping unchanged projections).
 - **Per-instance life-cycle surface is not stored** — the five hook functions are created per render for the props object and kept nowhere, instead of five closures stored on each context; handler arrays are created on first registration and teardown allocates nothing.
 - **A whole-list replacement is one DOM operation** — when a reconciled array keeps no previous item and its nodes are all of their parent's children, the pass calls `replaceChildren` once instead of removing and inserting node by node (the analysis found clearRows's per-node `remove()` loop to be most of that op).
+- **Scope extension, after a second measurement pass** — a keyed pass allocates nothing per unchanged item (in-place props comparison, a kept key index, no LIS when order is preserved); the mount/unmount scan walks elements instead of creating a collection per node; resetting a context assigns instead of deleting properties. The render skip's rule, what a keyed pass moves and what the scan finds are unchanged.
 - **The bench is the acceptance gauge** — createRows, replaceAll and appendRows under 1.3× vanilla; clearRows under 1.4×; heap for 1 000 rows under 3 MB; geometric mean under 1.5×; nothing regresses past its current ratio.
 
 ## Capabilities
@@ -25,10 +26,11 @@ This change moves loom to that shape without a compiler: a template compiles onc
 
 - `template-slot-updates`: "Each dynamic path has one updater" becomes "each dynamic path has one slot" — the updater is a shared per-kind function, not a per-instance closure; the change-predicate requirement is unchanged.
 - `life-cycle-handler-stacking`: handler lists exist from the first registration, not from instance creation; stacking, locking and the "first registered on a later render" rule are unchanged.
-- `keyed-list-diffing`: replacing every item of a list is one `replaceChildren` call; reorders, removals and appends keep the per-item path.
+- `keyed-list-diffing`: replacing every item of a list is one `replaceChildren` call and consecutive placements are one insertion; reorders, removals and appends keep the per-item path.
+- `unmount-teardown`: registered roots are found by walking a mutated node's descendant elements, with no collection or walker per node (replaces the one-query-per-node rule).
 
 ## Impact
 
-- `packages/core/src/html-parser.ts` (fragment normalized and plan compiled at parse, slot array per instance), `src/lib/templating/get-paths.ts` → the plan compiler, `set-updates-for-paths.ts`/`slot-updater.ts`/`get-live-text-nodes.ts`/`get-dynamic-element.ts` → removed, `get-attr-update.ts` and `get-text-update.ts` → per-kind apply functions taking a slot (plus the whole-list fast path in `handleArrayValue`), `src/lib/context/life-cycles.ts` (per-render hooks, lazy handler arrays), `src/component.ts`, `src/types.ts` (`ComponentContext.updaters`/`values` → `slots`, `lifeCycles` removed).
+- `packages/core/src/html-parser.ts` (fragment normalized and plan compiled at parse, slot array per instance), `src/lib/templating/get-paths.ts` → the plan compiler, `set-updates-for-paths.ts`/`slot-updater.ts`/`get-live-text-nodes.ts`/`get-dynamic-element.ts` → removed, `get-attr-update.ts` and `get-text-update.ts` → per-kind apply functions taking a slot (plus the whole-list fast path in `handleArrayValue`), `src/lib/context/life-cycles.ts` (per-render hooks, lazy handler arrays, element-walk scan), `src/lib/context/helpers.ts` (array-slot key on demand), `src/component.ts` (guarded resets, in-place props comparison), `src/types.ts` (`ComponentContext.updaters`/`values` → `slots`, `lifeCycles` removed).
 - `packages/core/tests/**`: new specs for the plan; every templating, binding, event, custom-element, life-cycle, hydration and server spec stays green.
 - Changeset: patch `@loom-js/core` — internal mechanics, no API or behavior change.
