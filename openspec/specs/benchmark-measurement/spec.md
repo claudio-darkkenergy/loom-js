@@ -55,7 +55,7 @@ The runner SHALL record, per framework: `startupMs` as the `bench:ready` perform
 
 ### Requirement: Results are written as a validated JSON document
 
-The runner SHALL aggregate every metric as `{ median, samples }` and write `results/latest.json` conforming to the `BenchResults` type (`schemaVersion: 1`, `generatedAt`, `environment`, `frameworks[]`), validating the object before writing. The environment SHALL record platform, arch, CPU model, CPU count, memory, Chrome version, Node version and `runner` (`local` | `vercel` | `github`).
+The runner SHALL aggregate every metric as `{ median, samples }` and write `results/latest.json` conforming to the `BenchResults` type (`schemaVersion: 1`, `generatedAt` as the UTC instant, `generatedDate` as the `YYYY-MM-DD` day at that instant in the westernmost time zone (UTC-12), so the day is not in the future for any reader, `environment`, `frameworks[]`), validating the object before writing. The environment SHALL record platform, arch, CPU model, CPU count, memory, Chrome version, Node version and `runner` (`local` | `vercel` | `github`).
 
 #### Scenario: Invalid results are not written
 

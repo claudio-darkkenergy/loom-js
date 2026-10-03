@@ -62,6 +62,13 @@ export const assertBenchResults = (value: unknown): BenchResults => {
         return fail('generatedAt is not an ISO timestamp');
     }
 
+    if (
+        typeof value.generatedDate !== 'string' ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(value.generatedDate)
+    ) {
+        return fail('generatedDate is not a YYYY-MM-DD day');
+    }
+
     const environment = value.environment;
 
     if (!isRecord(environment)) {

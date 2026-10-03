@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 
 import {
     formatBytes,
+    formatDate,
     formatMs,
     formatRatio,
     geometricMean,
@@ -95,6 +96,11 @@ describe('formatting', () => {
         assert.equal(formatRatio(1.5), '1.50×');
         assert.equal(formatRatio(22.9), '22.9×');
         assert.equal(formatRatio(NaN), '—');
+    });
+
+    it('formats the run day without a time-zone shift', () => {
+        assert.equal(formatDate('2026-10-02'), 'October 2, 2026');
+        assert.equal(formatDate('2026-01-31'), 'January 31, 2026');
     });
 
     it('formats bytes in the nearest unit', () => {

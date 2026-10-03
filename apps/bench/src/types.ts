@@ -55,8 +55,10 @@ export interface FrameworkResult {
 
 export interface BenchResults {
     schemaVersion: 1;
-    /** ISO timestamp of the run. */
+    /** ISO timestamp of the run (UTC instant). */
     generatedAt: string;
+    /** The run's day as `YYYY-MM-DD`, taken in the westernmost time zone (UTC-12) so it is not in the future for anyone. */
+    generatedDate: string;
     environment: BenchEnvironment;
     frameworks: FrameworkResult[];
 }

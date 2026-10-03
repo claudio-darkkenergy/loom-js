@@ -16,9 +16,9 @@ const RUNNER_LABELS: Record<BenchResults['environment']['runner'], string> = {
 
 /** Where, when and on what the numbers were measured. */
 export const RunCaption: SimpleComponent<RunCaptionProps> = ({ results }) => {
-    const { environment, frameworks, generatedAt } = results;
+    const { environment, frameworks, generatedDate } = results;
     const entries: Array<[string, string]> = [
-        ['Measured', formatDate(generatedAt)],
+        ['Measured', formatDate(generatedDate)],
         [
             'Machine',
             `${environment.cpuModel}, ${environment.cpus} cores, ${environment.memoryGb} GB (${RUNNER_LABELS[environment.runner]})`

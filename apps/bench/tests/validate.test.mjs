@@ -17,7 +17,8 @@ const framework = (overrides = {}) => ({
 });
 const results = (overrides = {}) => ({
     schemaVersion: 1,
-    generatedAt: '2026-10-02T00:00:00.000Z',
+    generatedAt: '2026-10-03T00:25:58.000Z',
+    generatedDate: '2026-10-02',
     environment: {
         platform: 'darwin',
         arch: 'arm64',
@@ -40,6 +41,13 @@ describe('assertBenchResults', () => {
         const document = results();
 
         assert.equal(assertBenchResults(document), document);
+    });
+
+    it('rejects a missing run day', () => {
+        assert.throws(
+            () => assertBenchResults(results({ generatedDate: '10/02/2026' })),
+            /generatedDate/
+        );
     });
 
     it('rejects another schema version', () => {

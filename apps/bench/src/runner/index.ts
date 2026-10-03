@@ -19,6 +19,11 @@ const root = path.resolve(
 );
 const distDir = path.join(root, '.bench-dist');
 
+// The calendar day in the westernmost time zone (UTC-12) at the run's
+// instant: a date nobody on Earth is behind, so it never reads as the future.
+const westernmostDay = (date: Date) =>
+    new Date(date.getTime() - 12 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
 const readFlag = (name: string) => {
     const index = process.argv.indexOf(name);
 
@@ -80,9 +85,11 @@ const run = async () => {
             );
         }
 
+        const ranAt = new Date();
         const results: BenchResults = {
             schemaVersion: 1,
-            generatedAt: new Date().toISOString(),
+            generatedAt: ranAt.toISOString(),
+            generatedDate: westernmostDay(ranAt),
             environment,
             frameworks
         };

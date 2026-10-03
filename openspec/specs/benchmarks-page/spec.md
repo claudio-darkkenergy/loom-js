@@ -59,7 +59,7 @@ The page SHALL show each framework's gzip and raw bundle size as proportional ba
 
 ### Requirement: The page states its provenance and method
 
-The page SHALL show the run's date, `environment` (CPU, memory, Chrome, runner) and every framework's measured version, and SHALL include a Methodology section describing the click-to-settled-frame timing, sampling counts and what the method does not capture, with a link to the `apps/bench` source.
+The page SHALL show the run's day (`generatedDate`, the run's day in the westernmost time zone, formatted without any time-zone conversion), `environment` (CPU, memory, Chrome, runner) and every framework's measured version, and SHALL include a Methodology section describing the click-to-settled-frame timing, sampling counts and what the method does not capture, with a link to the `apps/bench` source.
 
 #### Scenario: Caption matches the data
 

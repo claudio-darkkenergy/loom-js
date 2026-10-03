@@ -93,10 +93,27 @@ export const formatBytes = (bytes: number): string => {
     return bytes >= 1024 ? `${(bytes / 1024).toFixed(1)} kB` : `${bytes} B`;
 };
 
-export const formatDate = (iso: string): string =>
-    new Date(iso).toLocaleDateString('en-US', {
-        day: 'numeric',
-        month: 'long',
-        timeZone: 'UTC',
-        year: 'numeric'
-    });
+const MONTHS = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+];
+
+/**
+ * A `YYYY-MM-DD` day as "October 2, 2026". No `Date` round-trip: the day was
+ * chosen by the runner and must not shift with any time zone.
+ */
+export const formatDate = (day: string): string => {
+    const [year, month, date] = day.split('-').map(Number);
+
+    return `${MONTHS[(month ?? 1) - 1]} ${date}, ${year}`;
+};

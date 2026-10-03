@@ -6,6 +6,9 @@ build/
 .vercel/
 coverage/
 storybook-static/
+# Bench pages and measured results — written by `pnpm bench`, restored by turbo
+apps/bench/.bench-dist/
+apps/bench/results/
 
 # Managed by pnpm — regenerated in its own style
 pnpm-lock.yaml
