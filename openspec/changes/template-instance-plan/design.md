@@ -36,7 +36,7 @@ Constraints: no public API or template-syntax change; every observable rule stay
 **Non-Goals:**
 
 - A build-time compiler or template transform.
-- The activity system: its ~350 B per bound attribute stays, and so does the per-subscriber `track` on every update (selectRow's 0.1 ms for 1 000 bindings).
+- The activity system's model: one subscription record per bound attribute (~350 B) and one effect run per subscriber on every update stay. Only how a reactive proxy finds its own state changes (D10).
 - Changing what any hook or attribute does, when a render is skipped, or which nodes a keyed pass moves.
 - Replacing the mutation observer as the mount/unmount detector — clearRows's native share (transient registrations on 1 000 removed rows) stays.
 
@@ -74,7 +74,7 @@ In `handleArrayValue`, when no previous item is reused and the previous nodes (o
 
 ### D7 — A keyed pass allocates nothing per unchanged item
 
-`handleArrayValue` and the render-skip check keep their results and lose their per-item garbage: `haveEqualProps` compares own keys in place (no key arrays, no closures); the array-slot key (`${key}[]`) is built only under a parent that has created an array-slot context; the pass's key index is kept with its live items and serves the next pass (one `Map` per pass instead of two `Map`s and a `Set`), with the by-node index built only when a key lookup misses; a pass whose reused items arrive in their previous order skips the LIS; a reused item keeps its item record, single nodes are never wrapped in arrays and a one-node run is inserted directly. What moves, what is reused and what is released are unchanged — `keyed-list-diffing` and `render-skip-on-equal-props` are the regression suite.
+`handleArrayValue` and the render-skip check keep their results and lose their per-item garbage: `haveEqualProps` compares own keys in place (no key arrays, no closures); array-slot contexts move to their own map (`arrayChildren`), so no `${key}[]` key is built and no miss is looked up per item; the pass's key index is kept with its live items and serves the next pass (one `Map` per pass instead of two `Map`s and a `Set`), with the by-node index built only when a key lookup misses; a pass whose reused items arrive in their previous order skips the LIS; a reused item keeps its item record, single nodes are never wrapped in arrays and a one-node run is inserted directly. What moves, what is reused and what is released are unchanged — `keyed-list-diffing` and `render-skip-on-equal-props` are the regression suite.
 
 ### D8 — The mount/unmount scan walks elements
 
@@ -82,7 +82,11 @@ In `handleArrayValue`, when no previous item is reused and the previous nodes (o
 
 ### D9 — Resetting a context assigns, never deletes
 
-`children`, `refs`, `owned` and `registering` are set to `undefined` only when present (in `component` and `teardownContext`): an absent property costs a read instead of a runtime call, and a present one no longer drops the context into dictionary mode — which `delete ctx.registering` did to every instance that registered a hook on its first render. The ref iterator behind `createRef` is created on first use.
+`children`, `arrayChildren`, `refs`, `owned` and `registering` are set to `undefined` only when present (in `component` and `teardownContext`): an absent property costs a read instead of a runtime call (five absent `delete`s: ~100 ns per instance, against ~4 ns), and a present one no longer drops the context into dictionary mode — which `delete ctx.registering` did to every instance that registered a hook on its first render. The ref iterator behind `createRef` is opened by its first call.
+
+### D10 — A reactive proxy keeps its state in one record
+
+`reactive` gives each proxy one state record — the effect running against it and its target's dependency sets — that its traps close over and `reactiveEffect` looks up once. An effect run and a tracked read then touch no weak map (they did five weak-map or map operations each, two of them writes), and a read that is already tracked adds nothing. Which effects a read tracks and when they run are unchanged. Measured on the bench's select path, minified: 88 → 70 µs per update over 1 000 subscribers — enough to keep selectRow on the 0.2 ms side of the bench's 0.1 ms timer, which the geometric mean is sensitive to.
 
 ## Risks / Trade-offs
 
@@ -93,6 +97,7 @@ In `handleArrayValue`, when no previous item is reused and the previous nodes (o
 - [`replaceChildren` on a parent that holds foreign nodes] → the fast path requires the previous nodes to be all of the parent's children; otherwise the per-node path runs as today.
 - [A kept key index goes stale] → it is written with the live items at the end of each pass and read only with them; a node list with no stored record builds its index as before.
 - [The in-order shortcut misjudges a reorder] → it applies only when every reused item's previous position exceeds the one before it; any inversion falls back to the LIS.
+- [The state record changes what a nested or cross-proxy read tracks] → the record is per proxy, as the active-effect map was, and dependency sets stay per target; `reactive-unsubscribe`, the activity specs and the binding specs are the regression suite.
 - [A reset by assignment leaves a key behind] → every reader already treats `undefined` as absent (`?.`, `??`, `??=`); nothing enumerates a context's keys.
 
 ## Migration Plan

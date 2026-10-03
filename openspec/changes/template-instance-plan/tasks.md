@@ -87,16 +87,16 @@ Met: heap, createRows (at the line), every "not above before" ratio (swapRows's 
 - [x] 6.2 `turbo build --filter=@loom-js/sandbox --filter=@loom-js/loom` passes; `/benchmarks` carries the new run
 - [x] 6.3 Changeset: patch `@loom-js/core`; `pnpm format:check`; `turbo run type-check`; `.claude/skills/skill-config.md` and `docs/content-map.md` for the templating module changes
 
-## 7. Scope extension (D7–D9)
+## 7. Scope extension (D7–D10)
 
 - [x] 7.1 Second analysis pass on the landed tree: one CPU profile per op (50 µs sampling) and micro-benchmarks of the scan variants, the node-list tax and the observer tax; recorded below
-- [ ] 7.2 `compile-plan.spec.ts` — the plan compiler pinned directly, as `table-scope` and `collapse-whitespace` are: classification precedence, token split, comment markers, special-attribute strip, relative steps
-- [ ] 7.3 Red: `unmount-teardown` delta — the scan creates no collection or walker per node, nested and fragment-rooted roots are still found, an empty registry reads nothing. Green: element walk in `forEachRegistrable` (D8)
-- [ ] 7.4 Red: keyed-pass pins — a mid-list insert, a removal plus an append in one pass and a single move keep order and node identity. Green: D7 — in-place `haveEqualProps`, array-slot key only under a parent holding an array-slot context, kept key index with a lazy by-node index, in-order shortcut before the LIS, reused item records, no single-node arrays, direct one-node insert
-- [ ] 7.5 D9 — guarded resets instead of `delete` in `component` and `teardownContext`; ref iterator on first `createRef`
-- [ ] 7.6 Whole `packages/core` suite green (`test-ci` + `type-check` + `type-check-tests`)
-- [ ] 7.7 `pnpm bench` after (dist rebuilt), three runs, against the gates in 6.1; per-op profiles recorded next to 7.1's; closes 6.1 or records what is left
-- [ ] 7.8 Changeset text, `skill-config.md`, audit report for the touched files; `pnpm format:check`; `turbo run type-check`; app builds
+- [x] 7.2 `compile-plan.spec.ts` — the plan compiler pinned directly, as `table-scope` and `collapse-whitespace` are: classification precedence, token split, comment markers, special-attribute strip, relative steps
+- [x] 7.3 Red: `unmount-teardown` delta — the scan creates no collection or walker per node, nested and fragment-rooted roots are still found, an empty registry reads nothing. Green: element walk in `forEachRegistrable` (D8)
+- [x] 7.4 Red: keyed-pass pins — a mid-list insert, a removal plus an append in one pass and a single move keep order and node identity. Green: D7 — in-place `haveEqualProps`, array-slot contexts in their own map (`arrayChildren`), kept key index with a lazy by-node index, in-order shortcut before the LIS, reused item records, no single-node arrays, direct one-node insert
+- [x] 7.5 D9 — guarded resets instead of `delete` in `component` and `teardownContext`; ref iterator on first `createRef`; the unused `lib/memo.ts` removed. D10 — one state record per reactive proxy
+- [x] 7.6 Whole `packages/core` suite green (`test-ci` + `type-check` + `type-check-tests`)
+- [x] 7.7 `pnpm bench` after (dist rebuilt), three runs, against the gates in 6.1; per-op profiles recorded next to 7.1's; closes 6.1 or records what is left
+- [x] 7.8 Changeset text, `skill-config.md`, audit report for the touched files; `pnpm format:check`; `turbo run type-check`; app builds
 
 ### Second analysis record (2026-10-03, landed tree `9aa8cc8`)
 
@@ -120,3 +120,22 @@ Micro-benchmarks (same Chrome, medians of 15, 0.1 ms timer):
 | scan one subtree of 6 000 elements   |                                0.26 |               0.22 |         0.18 |         0.24 |
 
 `replaceChildren()` of 1 000 rows: 1.3 ms bare, 1.5 under a `childList`+`subtree` observer, 1.4 with two listeners and wrappers per row; 1 000 text writes (0.2) and attribute writes (0.1) cost the same with or without collections left by a scan.
+
+### After the extension (2026-10-03, three runs)
+
+Per-op script, same harness as the second analysis record (unminified, profiler on): swapRows 0.94 → 0.65 ms, removeRow 0.89 → 0.62, partialUpdate 1.52 → 1.01, createRows 8.2 → 7.6, clearRows 3.88 → 4.0 (its script is `replaceChildren` 2.46, scan 0.44, teardown and unsubscribe 0.39, reconciler 0.3). Select path, minified, 400 selections per block: 88 → 70 µs per update over 1 000 subscribers. Heap: +0.02 MB for the kept key index (one `Map` entry per list item).
+
+| op (loom / vanilla, ratio) | run 1      | run 2      | run 3      | gate           |
+| -------------------------- | ---------- | ---------- | ---------- | -------------- |
+| createRows                 | 21.7 1.19× | 22.3 1.27× | 21.5 1.19× | < 1.3×         |
+| replaceAll                 | 25.6 1.27× | 24.9 1.28× | 25.0 1.26× | < 1.3×         |
+| appendRows                 | 25.2 1.29× | 25.5 1.30× | 23.8 1.20× | < 1.3×         |
+| clearRows                  | 3.0 1.58×  | 3.1 1.63×  | 3.2 1.78×  | < 1.4×         |
+| partialUpdate              | 3.4 1.31×  | 3.5 1.35×  | 3.5 1.25×  | ≤ before 1.78× |
+| selectRow                  | 0.2 2.00×  | 0.2 2.00×  | 0.2 2.00×  | ≤ before 3.00× |
+| swapRows                   | 2.1 1.40×  | 2.1 1.40×  | 2.0 1.25×  | ≤ before 1.69× |
+| removeRow                  | 1.9 1.27×  | 1.8 1.13×  | 1.8 1.20×  | ≤ before 1.80× |
+| geometric mean             | 1.39×      | 1.40×      | 1.36×      | < 1.5×         |
+| heap                       | 2.52 MB    | 2.52 MB    | 2.52 MB    | < 3 MB         |
+
+Met: heap, createRows, replaceAll, the geometric mean, every "not above before" ratio; appendRows in two runs and at 1.30× in the third. Missed: clearRows, at 1.6–1.8× against 1.4×. What is left of it is not script loom can drop: vanilla's whole clear is 1.9 ms; loom's `replaceChildren` of the same rows costs ~0.3 ms more (the observer's transient registrations on 1 000 removed nodes, two listeners per row), the observer callback ~0.5 ms (a walk over 6 000 elements to find registered roots, then 1 000 unsubscribes and teardowns) and the reconciler ~0.15 ms — a floor near 1.5× while a mutation observer detects unmounts. One of ten bench runs in this session lost its browser connection mid-run (no page error) and was rerun.
