@@ -123,9 +123,8 @@ export const component: ComponentFactory = <Props extends object = {}>(
             return template;
         }
 
-        // The name checks in `resolveValue`/`getContextForValue` are not
-        // minification-safe (a minifier may rename the function), so mark
-        // the value explicitly.
+        // Detection goes by this marker (see `contextFunctionKind`) — a
+        // minifier may rename the function.
         contextFunction.contextFunctionKind = 'component' as const;
 
         return contextFunction;

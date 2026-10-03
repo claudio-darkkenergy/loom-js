@@ -1,5 +1,9 @@
 import { canDebug, config } from './config';
-import { _lifeCycles, getShareableContext } from './lib/context';
+import {
+    _lifeCycles,
+    getShareableContext,
+    isContextFunction
+} from './lib/context';
 import { getDocument, getWindow } from './lib/dom';
 import {
     createDiagnosticSubject,
@@ -175,10 +179,6 @@ export function htmlParser(
         ctx.chunks = chunks;
         // Create the interpolations' reactive `Proxy`.
         ctx.values = reactive(valueObj, (oldValue, newValue) => {
-            const isContextFunction = (value: TemplateTagValue) =>
-                typeof value === 'function' &&
-                value.name.toLowerCase().endsWith('contextfunction');
-
             switch (true) {
                 // Handle DOM Nodes.
                 case oldValue instanceof getWindow().Node &&

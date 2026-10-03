@@ -11,6 +11,7 @@ import type {
     Unsubscriber
 } from '../../types';
 import { bindAttr, isAttrBinding } from '../attr-binding';
+import { isContextFunction } from '../context/helpers';
 import {
     createDiagnosticSubject,
     formatDiagnostic
@@ -206,7 +207,7 @@ const mergeAndSetStyleValues = (
             });
         } else if (
             typeof styleArg === 'function' &&
-            !styleArg.name.toLowerCase().endsWith('contextfunction')
+            !isContextFunction(styleArg)
         ) {
             handleStyleArg((styleArg as TemplateTagValueFunction)());
         } else if (isObject(styleArg)) {

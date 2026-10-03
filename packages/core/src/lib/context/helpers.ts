@@ -36,10 +36,7 @@ export const appendChildContext = (
 ) => {
     parentCtx.children = parentCtx.children || new Map();
 
-    if (
-        typeof value === 'function' &&
-        value.name.toLowerCase().endsWith('contextfunction')
-    ) {
+    if (isContextFunction(value)) {
         // A context function replaced any array previously in this slot, so the
         // array's slot context is stale — drop it.
         parentCtx.children.delete(arraySlotKey(key));
