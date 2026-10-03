@@ -13,6 +13,9 @@ import type {
     TemplateFunction
 } from './types';
 
+// Stands in for an instance that has created no refs yet.
+const noRefs: ReadonlySet<RefContext> = new Set();
+
 // The props each live context last rendered with, as the caller passed them
 // (`children` unflattened), so a re-invocation can compare by reference.
 const lastRenderedProps = new WeakMap<ComponentContextPartial, object>();
@@ -88,12 +91,13 @@ export const component: ComponentFactory = <Props extends object = {}>(
             if (isFresh) {
                 const ref = props.ref;
 
-                ctx.children = new Map();
+                // Collections are created on first use.
+                delete ctx.children;
+                delete ctx.refs;
                 ctx.fragment = false;
                 ctx.fingerPrint = templateFunction;
                 ctx.lifeCycles = lifeCycles(ctx);
                 ctx.node = () => ctx.root!;
-                ctx.refs = new Set<RefContext>();
                 // ctx.render = htmlParser.bind(ctx);
                 ctx.render = htmlParser.bind(ctx);
                 // A refreshed context must not replay another template's
@@ -132,13 +136,13 @@ export const component: ComponentFactory = <Props extends object = {}>(
                 return ctx;
             }
 
-            refIterator = ctx.refs!.values();
+            refIterator = (ctx.refs ?? noRefs).values();
 
             const ownedValues = memoizedOwnedValues(ctx);
 
             // Life-cycle setters append only while this render runs; the
             // set closes with the render so later registrations are no-ops.
-            ctx.registering = new Set();
+            delete ctx.registering;
 
             /*
              * ```
@@ -152,7 +156,7 @@ export const component: ComponentFactory = <Props extends object = {}>(
                 ...inputProps,
                 ...ctx.lifeCycles!,
                 createRef: memoizedRefContext(ctx, refIterator),
-                ctxRefs: () => ctx.refs!.values(),
+                ctxRefs: () => (ctx.refs ?? noRefs).values(),
                 node: ctx.node!,
                 own: ownedValues.own
             });

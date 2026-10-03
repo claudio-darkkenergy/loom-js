@@ -3,6 +3,7 @@ import sinon from 'sinon';
 
 import { component } from '../../src';
 import { activity } from '../../src/activity';
+import { _lifeCycles } from '../../src/lib/context/life-cycles';
 import type { LifeCycleHook } from '../../src/types';
 import { runSetup } from '../support/run-setup';
 
@@ -315,5 +316,93 @@ describe('unmount teardown', () => {
 
             expect(childUnmountSpy.callCount).to.equal(1);
         });
+    });
+});
+
+describe('unmount scan', () => {
+    it('should tear down nested and fragment-rooted components in one removed subtree', async () => {
+        const unmounted: string[] = [];
+        const Deep = component((html, { onUnmounted }) => {
+            onUnmounted(() => unmounted.push('deep'));
+
+            return html`
+                <b data-deep>deep</b>
+            `;
+        });
+        // Two top-level nodes — a fragment root whose first node is text.
+        const Pair = component((html, { onUnmounted }) => {
+            onUnmounted(() => unmounted.push('pair'));
+
+            return html`
+                lead
+                <i>trail</i>
+            `;
+        });
+        const show = activity(true);
+        const TestComponent = component(
+            (html) => html`
+                <article>
+                    ${show.effect(({ value }) =>
+                        value
+                            ? [
+                                  Pair({}),
+                                  component(
+                                      (html) => html`
+                                          <section>
+                                              <div>
+                                                  <span>${Deep({})}</span>
+                                              </div>
+                                          </section>
+                                      `
+                                  )({})
+                              ]
+                            : 'hidden'
+                    )}
+                </article>
+            `
+        );
+
+        await runSetup({ containerProps: { TestComponent } });
+
+        show.update(false);
+        await waitForObserver();
+
+        expect(unmounted.sort()).to.deep.equal(['deep', 'pair']);
+    });
+
+    it('should not scan subtrees while no context is registered', async () => {
+        const Host = component(
+            (html) => html`
+                <article data-scan-host></article>
+            `
+        );
+        const $test = await runSetup({
+            containerProps: { TestComponent: Host }
+        });
+        const $host = $test.querySelector('[data-scan-host]')!;
+
+        // Empty the registry under a live observer, then mutate.
+        _lifeCycles.release(document);
+
+        const byTag = sinon.spy(Element.prototype, 'getElementsByTagName');
+        const bySelector = sinon.spy(Element.prototype, 'querySelectorAll');
+        const walker = sinon.spy(document, 'createTreeWalker');
+
+        try {
+            const node = document.createElement('p');
+
+            $host.appendChild(node);
+            await waitForObserver();
+            node.remove();
+            await waitForObserver();
+
+            expect(
+                byTag.callCount + bySelector.callCount + walker.callCount
+            ).to.equal(0);
+        } finally {
+            byTag.restore();
+            bySelector.restore();
+            walker.restore();
+        }
     });
 });

@@ -3,8 +3,7 @@ import type {
     ComponentContextPartial,
     LifeCycleEvent,
     LifeCycleHandler,
-    LifeCycleHookProps,
-    LifeCycleState
+    LifeCycleHookProps
 } from '../../types';
 import { getDocument, getWindow } from '../dom';
 import {
@@ -12,7 +11,6 @@ import {
     formatDiagnostic
 } from '../globals/diagnostic-format';
 import { loomConsole } from '../globals/loom-console';
-import { reactive, reactiveEffect } from '../reactive';
 import { getContextRootAnchor, getShareableContext } from './helpers';
 
 // Holds reference to the life-cycle handlers for each component node.
@@ -54,7 +52,7 @@ export const _lifeCycles = {
             if (root && !lifeCycleNodes.has(root)) {
                 lifeCycleNodes.set(root, ctx);
 
-                ctx.lifeCycleState.value = 'created';
+                dispatchLifeCycle(ctx, 'created');
             }
         }
     },
@@ -78,7 +76,7 @@ export const _lifeCycles = {
             const root = getContextRootAnchor(ctx);
 
             if (root && getDocument().contains(root) && ctx.lifeCycleState) {
-                ctx.lifeCycleState.value = 'mounted';
+                dispatchLifeCycle(ctx, 'mounted');
                 canDebugMutations &&
                     loomConsole.info(
                         ...formatDiagnostic({
@@ -117,13 +115,27 @@ export const _lifeCycles = {
     preRender(ctx: ComponentContextPartial) {
         // Before-rendered life-cycle handler - called on every render.
         if (ctx.lifeCycleState) {
-            ctx.lifeCycleState.value = 'beforeRender';
+            dispatchLifeCycle(ctx, 'beforeRender');
         }
     },
     postRender(ctx: ComponentContextPartial) {
         // Rendered life-cycle handler - called on every render.
         if (ctx.lifeCycleState) {
-            ctx.lifeCycleState.value = 'rendered';
+            dispatchLifeCycle(ctx, 'rendered');
+        }
+    }
+};
+
+// Visits a mutated node and every element under it — the places a context
+// root can be registered. One native collection per node, no walker.
+const forEachRegistrable = (node: Node, visit: (node: Node) => void) => {
+    visit(node);
+
+    if (node.nodeType === 1) {
+        const descendants = (node as Element).getElementsByTagName('*');
+
+        for (let index = 0; index < descendants.length; index++) {
+            visit(descendants[index] as Element);
         }
     }
 };
@@ -133,6 +145,11 @@ export const _lifeCycles = {
  * @param diffNodes The nodes which have been added or removed from the DOM.
  */
 const domChanged: MutationCallback = (diffNodes) => {
+    // Nothing registered — nothing in this batch can mount or unmount.
+    if (!lifeCycleNodes.size) {
+        return;
+    }
+
     const canDebugMutations = canDebug('mutations');
     // Removal candidates collected across the whole batch — a node that is
     // removed and re-inserted within the same batch (a move, e.g. an array
@@ -156,21 +173,9 @@ const domChanged: MutationCallback = (diffNodes) => {
                         ctx?.lifeCycleState && removalCandidates.set(node, ctx);
                     };
 
-                    removedNodes.forEach((node) => {
-                        const treeWalker = getDocument().createTreeWalker(
-                            node,
-                            getWindow().NodeFilter.SHOW_ELEMENT
-                        );
-
-                        // Collect this node...
-                        collect(treeWalker.currentNode);
-
-                        // ...and all of its children.
-                        while (treeWalker.nextNode()) {
-                            const currentNode = treeWalker.currentNode;
-                            collect(currentNode);
-                        }
-                    });
+                    removedNodes.forEach((node) =>
+                        forEachRegistrable(node, collect)
+                    );
                 }
 
                 // Handle added nodes.
@@ -179,7 +184,7 @@ const domChanged: MutationCallback = (diffNodes) => {
                         const ctx = lifeCycleNodes.get(node);
 
                         if (ctx?.lifeCycleState) {
-                            ctx.lifeCycleState.value = 'mounted';
+                            dispatchLifeCycle(ctx, 'mounted');
                             canDebugMutations &&
                                 loomConsole.info(
                                     ...formatDiagnostic({
@@ -199,21 +204,9 @@ const domChanged: MutationCallback = (diffNodes) => {
                     };
 
                     // Calls the `onMounted` life-cycle handler for each added node if defined.
-                    addedNodes.forEach((node) => {
-                        const treeWalker = getDocument().createTreeWalker(
-                            node,
-                            getWindow().NodeFilter.SHOW_ELEMENT
-                        );
-
-                        // Handle the mount of this node...
-                        handleMount(treeWalker.currentNode);
-
-                        // ...and all of its children.
-                        while (treeWalker.nextNode()) {
-                            const currentNode = treeWalker.currentNode;
-                            handleMount(currentNode);
-                        }
-                    });
+                    addedNodes.forEach((node) =>
+                        forEachRegistrable(node, handleMount)
+                    );
                 }
         }
     });
@@ -231,7 +224,7 @@ const domChanged: MutationCallback = (diffNodes) => {
         lifeCycleNodes.delete(node);
 
         if (ctx.lifeCycleState) {
-            ctx.lifeCycleState.value = 'unmounted';
+            dispatchLifeCycle(ctx, 'unmounted');
         }
 
         detachedContexts.push(ctx);
@@ -289,15 +282,7 @@ const teardownContext = (ctx: ComponentContextPartial) => {
 export const lifeCycles: (
     ctx: ComponentContextPartial
 ) => LifeCycleHookProps = (ctx) => {
-    const lifeCycleState = reactive({
-        value: null
-    }) as LifeCycleState;
-
-    reactiveEffect(
-        (state) => lifeCycleStateUpdateEffect(ctx, state),
-        lifeCycleState
-    );
-    ctx.lifeCycleState = lifeCycleState;
+    ctx.lifeCycleState = { value: null };
     lifeCycleEvents.forEach((event) => (ctx[event] = []));
 
     return {
@@ -337,21 +322,23 @@ const registerLifeCycleHandler = (
     }
 
     handlers.push(handler);
-    ctx.registering?.add(event);
+    (ctx.registering ??= new Set()).add(event);
 };
 
-// Runs the component's own handlers in registration order, then the
-// handler a parent registered through the component's `ref`.
-const lifeCycleStateUpdateEffect = (
+// Moves the instance to `event` and runs its handlers in registration
+// order, then the handler a parent registered through the component's
+// `ref`. Setting the state it already holds runs nothing.
+const dispatchLifeCycle = (
     ctx: ComponentContextPartial,
-    state: LifeCycleState
+    event: LifeCycleEvent
 ) => {
-    const event = state.value;
+    const state = ctx.lifeCycleState;
 
-    if (!event) {
+    if (!state || state.value === event) {
         return;
     }
 
+    state.value = event;
     ctx[event]?.forEach((handler) => handler(ctx.root));
     ctx.ref?.[event]?.(ctx.root);
 };

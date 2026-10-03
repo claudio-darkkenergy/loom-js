@@ -1,11 +1,11 @@
-import { ComponentContext } from '../../types';
+import type { ComponentContext, SlotUpdater } from '../../types';
 import { getDocument } from '../dom';
 import { memo } from '../memo';
 import { getAttrUpdate } from './get-attr-update';
 import { getDynamicElement } from './get-dynamic-element';
 import { getLiveTextNodes } from './get-live-text-nodes';
 import { getTextUpdate } from './get-text-update';
-import { setReactiveUpdates } from './set-reactive-updates';
+import { slotUpdater } from './slot-updater';
 import type { DynamicNode } from './types';
 
 // `Node.TEXT_NODE` / `Node.COMMENT_NODE` — literal so no window resolution is
@@ -19,11 +19,17 @@ const COMMENT_NODE = 8;
 const isSlotTextNode = (node: DynamicNode): node is Comment | Text =>
     node.nodeType === TEXT_NODE || node.nodeType === COMMENT_NODE;
 
+/**
+ * Wires every dynamic path of a freshly cloned template to its live node and
+ * returns the slot updaters in path order — the caller applies the render's
+ * values through them, now and on every re-render.
+ */
 export const setUpdatesForPaths = (
     paths: Set<[number[], Attr | undefined]>,
     ctx: ComponentContext,
     liveFragment: DocumentFragment
-) => {
+): SlotUpdater[] => {
+    const updaters: SlotUpdater[] = [];
     // Keyed by the path array itself: the cached parse hands out one array
     // per path, and this memo lives for one fragment.
     const getDynamicElementMemo = memo<
@@ -55,8 +61,8 @@ export const setUpdatesForPaths = (
             // When the dynamic node is `Text` it can have 1 or more dynamic slot
             if (dynamicAttr) {
                 const update = getAttrUpdate(dynamicNode, dynamicAttr, ctx);
-                // Setup effect udpate.
-                setReactiveUpdates(update, i, ctx);
+
+                updaters[i] = slotUpdater(update, i, ctx);
             } else if (
                 // A comment marker stands in for a slot token in table content
                 // — `replaceWith` below swaps the marker clone for its token text
@@ -82,8 +88,7 @@ export const setUpdatesForPaths = (
                     // Replace the dynamic single text node w/ all the parsed text nodes,
                     // which includes static (glue/joints) & dynamic (tokenized) nodes.
                     dynamicNode?.replaceWith(textFragment);
-                    // Setup effect update.
-                    setReactiveUpdates(update, i, ctx);
+                    updaters[i] = slotUpdater(update, i, ctx);
                 } else {
                     console.warn(
                         '[Template Update Warning] The live node is undefined, therefore the update could not be created.'
@@ -91,4 +96,6 @@ export const setUpdatesForPaths = (
                 }
             }
         });
+
+    return updaters;
 };

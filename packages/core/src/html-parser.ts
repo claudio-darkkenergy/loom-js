@@ -12,7 +12,6 @@ import {
 import { loomConsole } from './lib/globals/loom-console';
 import { deepDiffObject, isObject } from './lib/helpers';
 import { isWithinHydratingRoot } from './lib/hydrating-roots';
-import { reactive } from './lib/reactive';
 import { getPaths, setUpdatesForPaths } from './lib/templating';
 // Imported by path — not via the templating barrel — to avoid a barrel cycle
 // (`compile-component-tags` imports `component`, which imports this module).
@@ -63,6 +62,31 @@ const templateCacheStore = new Map<
 >();
 // Component Instance Context Store
 const instanceContextStore = new WeakSet<ComponentContextPartial>();
+
+// Whether a re-render's interpolation differs from the one its slot holds.
+const hasSlotValueChanged = (
+    oldValue: TemplateTagValue,
+    newValue: TemplateTagValue
+) => {
+    switch (true) {
+        // Handle DOM Nodes.
+        case oldValue instanceof getWindow().Node &&
+            newValue instanceof getWindow().Node:
+            return !(oldValue as Node).isSameNode(newValue as Node);
+        // Handle `ContextFunction`s.
+        case isContextFunction(oldValue) && isContextFunction(newValue):
+            return true;
+        // Handle object literals.
+        case isObject(oldValue) && isObject(newValue):
+            return deepDiffObject(
+                oldValue as PlainObject,
+                newValue as PlainObject
+            );
+        // Handle primitives & everything else using strict comparison.
+        default:
+            return oldValue !== newValue;
+    }
+};
 
 export function htmlParser(
     this: ComponentContextPartial,
@@ -167,37 +191,9 @@ export function htmlParser(
         // this clone never crosses documents; `importNode` stays as the
         // spec-neutral spelling of "clone into this document".
         const liveFragment = currentDocument.importNode(fragment, true);
-        // Convert `values[]` to object.
-        const valueObj = values.reduce(
-            (acc: { [key: number]: TemplateTagValue }, value, i) => {
-                acc[i] = value;
-                return acc;
-            },
-            {}
-        );
 
         ctx.chunks = chunks;
-        // Create the interpolations' reactive `Proxy`.
-        ctx.values = reactive(valueObj, (oldValue, newValue) => {
-            switch (true) {
-                // Handle DOM Nodes.
-                case oldValue instanceof getWindow().Node &&
-                    newValue instanceof getWindow().Node:
-                    return !(oldValue as Node).isSameNode(newValue as Node);
-                // Handle `ContextFunction`s.
-                case isContextFunction(oldValue) && isContextFunction(newValue):
-                    return true;
-                // Handle object literals.
-                case isObject(oldValue) && isObject(newValue):
-                    return deepDiffObject(
-                        oldValue as PlainObject,
-                        newValue as PlainObject
-                    );
-                // Handle primitives & everything else using strict comparison.
-                default:
-                    return oldValue !== newValue;
-            }
-        });
+        ctx.values = [...values];
 
         // Update the context root with the latest nodes.
         if (isTemplateFragment) {
@@ -211,8 +207,9 @@ export function htmlParser(
         _lifeCycles.creation(ctx);
         // Pre-render hook
         _lifeCycles.preRender(ctx);
-        // Set all the updaters for each dynamic node path & calls them.
-        setUpdatesForPaths(paths, ctx, liveFragment);
+        // Wire each dynamic path to its live node, then apply every value.
+        ctx.updaters = setUpdatesForPaths(paths, ctx, liveFragment);
+        ctx.updaters.forEach((update, i) => update(values[i]));
 
         if (isTemplateFragment) {
             // Re-capture the root node-list: wiring a top-level dynamic slot
@@ -240,14 +237,16 @@ export function htmlParser(
                 getShareableContext(ctx)
             );
 
-        // Set the derived interpolations as new values of the `props` proxy object.
+        // Apply the slots whose values changed.
         values.forEach((value, i) => {
-            canDebugUpdates &&
-                loomConsole.info({
-                    newValue: value,
-                    oldValue: ctx.values[i]
-                });
-            ctx.values[i] = value;
+            const oldValue = ctx.values[i];
+
+            canDebugUpdates && loomConsole.info({ newValue: value, oldValue });
+
+            if (hasSlotValueChanged(oldValue, value)) {
+                ctx.values[i] = value;
+                ctx.updaters[i]?.(value);
+            }
         });
 
         canDebugUpdates &&

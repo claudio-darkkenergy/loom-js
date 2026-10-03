@@ -1,21 +1,28 @@
 import { canDebug } from '../../config';
-import type { ComponentContext, TemplateNodeUpdate } from '../../types';
+import type {
+    ComponentContext,
+    SlotUpdater,
+    TemplateNodeUpdate,
+    TemplateTagValue
+} from '../../types';
 import { appendChildContext, getShareableContext } from '../context';
 import {
     createDiagnosticSubject,
     formatDiagnostic
 } from '../globals/diagnostic-format';
 import { loomConsole } from '../globals/loom-console';
-import { reactiveEffect } from '../reactive';
 
-export const setReactiveUpdates = (
-    update: TemplateNodeUpdate,
-    i: number,
-    ctx: ComponentContext
-) =>
-    reactiveEffect((values) => {
-        const updateValue = values[i];
-        const childCtx = appendChildContext(ctx, updateValue, i);
+// Wraps one dynamic path's node update as the slot's updater: it resolves
+// the slot's child context and applies the value. No subscription — the
+// instance's render loop calls it when the slot's value changes.
+export const slotUpdater =
+    (
+        update: TemplateNodeUpdate,
+        index: number,
+        ctx: ComponentContext
+    ): SlotUpdater =>
+    (updateValue: TemplateTagValue) => {
+        const childCtx = appendChildContext(ctx, updateValue, index);
         const canDebugUpdates = canDebug('updates');
 
         // Fold the per-value detail into a collapsed group per update cycle —
@@ -33,8 +40,7 @@ export const setReactiveUpdates = (
             );
         canDebugUpdates && loomConsole.info('should update', { updateValue });
 
-        // Call all the updates for the component for every render cycle.
         update(updateValue, childCtx);
 
         canDebugUpdates && loomConsole.groupEnd();
-    }, ctx.values);
+    };

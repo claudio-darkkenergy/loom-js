@@ -15,15 +15,12 @@ const getPersistentChildContext = (
     parentCtx: ComponentContextPartial,
     key: number | string
 ) => {
-    let childCtx = (
-        parentCtx.children as Map<number | string, ComponentContextPartial>
-    ).get(key);
+    const children = (parentCtx.children ??= new Map());
+    let childCtx = children.get(key);
 
     if (!childCtx) {
         childCtx = {} as ComponentContextPartial;
-        (
-            parentCtx.children as Map<number | string, ComponentContextPartial>
-        ).set(key, childCtx);
+        children.set(key, childCtx);
     }
 
     childCtx.parent = parentCtx;
@@ -35,19 +32,17 @@ export const appendChildContext = (
     value: TemplateTagValue,
     key: number | string
 ) => {
-    parentCtx.children = parentCtx.children || new Map();
-
     if (isContextFunction(value)) {
         // A context function replaced any array previously in this slot, so the
         // array's slot context is stale — drop it.
-        parentCtx.children.delete(arraySlotKey(key));
+        parentCtx.children?.delete(arraySlotKey(key));
         return getPersistentChildContext(parentCtx, key);
     } else if (Array.isArray(value)) {
         // Array values need a persistent context too: it carries the `children`
         // map of per-item contexts, so re-reconciling the array reuses each
         // item's live context (& DOM) instead of rebuilding from scratch.
         // An array also replaces whatever component held the plain key.
-        parentCtx.children.delete(key);
+        parentCtx.children?.delete(key);
         return getPersistentChildContext(parentCtx, arraySlotKey(key));
     } else if (!(value instanceof getWindow().Node)) {
         // A primitive value replaced a component or array in this slot, so
@@ -59,8 +54,8 @@ export const appendChildContext = (
         // resolved* nodes. That 2nd pass carries no keys, so it falls back to the
         // index keyspace & would otherwise delete the child context of a keyed
         // item whose key happens to equal an index (e.g. numeric keys).
-        parentCtx.children.delete(key);
-        parentCtx.children.delete(arraySlotKey(key));
+        parentCtx.children?.delete(key);
+        parentCtx.children?.delete(arraySlotKey(key));
     }
 };
 

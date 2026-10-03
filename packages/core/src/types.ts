@@ -212,7 +212,8 @@ export type ComponentOutputProps<Props extends object = {}> =
 // which essentially provides caching capabilities w/ associated meta-data.
 export interface ComponentContext<Props extends object = {}>
     extends LifeCycleHandlerProps, Pick<ReservedProps, 'key' | 'ref'> {
-    children: Map<number | string, ComponentContextPartial>;
+    // Created on first use, like `refs`, `registering` and `teardowns`.
+    children?: Map<number | string, ComponentContextPartial>;
     chunks: TemplateStringsArray;
     // `TemplateFunction<any>` is a deliberate variance escape: the scope map
     // and fingerprint store *every* component's template function regardless
@@ -232,15 +233,21 @@ export interface ComponentContext<Props extends object = {}>
     // Internal — the events the render in progress has registered. A setter
     // appends to a non-empty list only for these, so each list locks once
     // the render that filled it ends.
-    registering: Set<LifeCycleEvent>;
+    registering?: Set<LifeCycleEvent>;
     render: TaggedTemplate;
-    refs: Set<RefContext>;
+    refs?: Set<RefContext>;
     root: TemplateRoot | TemplateRootArray;
     // Internal — cleanup callbacks run when this context's subtree is
     // genuinely detached (unmount teardown); cleared after running.
-    teardowns: Set<Unsubscriber>;
-    values: Es6Object<TemplateTagValue>;
+    teardowns?: Set<Unsubscriber>;
+    // Internal — one updater per dynamic path, in path order, and the values
+    // last applied through them.
+    updaters: SlotUpdater[];
+    values: TemplateTagValue[];
 }
+
+// Applies a new value to one dynamic path of a rendered template.
+export type SlotUpdater = (value: TemplateTagValue) => void;
 
 export type ComponentContextPartial = Partial<ComponentContext>;
 

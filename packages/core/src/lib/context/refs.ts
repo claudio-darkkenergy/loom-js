@@ -19,7 +19,7 @@ export const memoizedRefContext =
         }
 
         ref = refContext();
-        ctx.refs?.add(ref);
+        (ctx.refs ??= new Set()).add(ref);
 
         return ref;
     };
