@@ -38,7 +38,7 @@
 
 - [x] 5.1 Red: specs for the skip (900 of 1 000 rows' `onRendered` silent on a 10 % label change), the forced cases (first render, remount, fingerprint change, changed prop, new `children` reference) and an own-activity effect still updating a skipped instance
 - [x] 5.2 Green: props compare in `contextFunction` on a live context; return the context before the template call
-- [ ] 5.3 Docs: Components topic rendering section states the rule; `docs/content-map.md` entry; push the topic draft to Contentful — `04-components.md` gained "When a component re-renders"; `05-element-syntax.md` key paragraph names minimal moves and the skip; content map outline updated. Push pending the copy review.
+- [x] 5.3 Docs: Components topic rendering section states the rule; `docs/content-map.md` entry; push the topic draft to Contentful — `04-components.md` gained "When a component re-renders"; `05-element-syntax.md` key paragraph names minimal moves and the skip; content map outline updated. Pushed and published (components v983, element-syntax v149).
 
 ## 6. Evidence and release
 
