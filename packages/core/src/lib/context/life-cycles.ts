@@ -262,66 +262,61 @@ const teardownContext = (ctx: ComponentContextPartial) => {
     delete ctx.owned;
     // Handlers close over the render that registered them, so a remount
     // registers its own. Handlers given through a `ref` live on the ref.
-    lifeCycleEvents.forEach((event) => (ctx[event] = []));
+    dropLifeCycleHandlers(ctx);
     ctx.children?.forEach((childCtx) => teardownContext(childCtx));
 };
 
-/*
- * Life-cycle hooks occur in the following order:
- *      1. Created - once per component creation.
- *      2. Before Render - called before the component renders.
- *      3. Rendered - 1st time a component is rendered,
- *                  - again for every `effect` update after the 1st one.
- *      -- Note: `onAppMounted` is called here before the next life-cycle hooks are called.
- *      4. Mounted - nodes are connected to the DOM,
- *                 - processed for each component from the queue, 1st-in/out, during the 1st mounted cycle,
- *                 - & again when new nodes are mounted, observed by the `MutationObserver`.
- *      5. Unmounted - nodes are disconnected from the DOM,
- *                   - processed for each component, observed by the `MutationObserver`.
- */
-export const lifeCycles: (
-    ctx: ComponentContextPartial
-) => LifeCycleHookProps = (ctx) => {
-    ctx.lifeCycleState = { value: null };
-    lifeCycleEvents.forEach((event) => (ctx[event] = []));
-
-    return {
-        onBeforeRender(handler) {
-            registerLifeCycleHandler('beforeRender', { ctx, handler });
-        },
-        onCreated(handler) {
-            registerLifeCycleHandler('created', { ctx, handler });
-        },
-        onMounted(handler) {
-            registerLifeCycleHandler('mounted', { ctx, handler });
-        },
-        onRendered(handler) {
-            registerLifeCycleHandler('rendered', { ctx, handler });
-        },
-        onUnmounted(handler) {
-            registerLifeCycleHandler('unmounted', { ctx, handler });
-        }
-    };
+// Clears every handler list the context holds without adding properties
+// to a context that holds none.
+const dropLifeCycleHandlers = (ctx: ComponentContextPartial) => {
+    lifeCycleEvents.forEach((event) => {
+        ctx[event] && (ctx[event] = undefined);
+    });
 };
 
-// Appends while the event's list is open: empty, or already filled by the
-// render in progress (`registering` is reset per render by `component`).
-// A later render's call against a filled list is a no-op, so the list locks
-// once its registering render ends.
+/**
+ * Starts a context's life-cycle state afresh: no event dispatched yet, no
+ * handler registered. A context being refreshed drops the lists its
+ * previous template registered.
+ * @param ctx The component context about to render for the first time.
+ */
+export const resetLifeCycles = (ctx: ComponentContextPartial) => {
+    ctx.lifeCycleState = { value: null };
+    dropLifeCycleHandlers(ctx);
+};
+
+/**
+ * The five life-cycle setters a render hands its template, created per
+ * render and kept nowhere: a template that stores none retains none.
+ * @param ctx The component context the setters register handlers on.
+ */
+export const lifeCycleHooks = (
+    ctx: ComponentContextPartial
+): LifeCycleHookProps => ({
+    onBeforeRender: (handler) =>
+        registerLifeCycleHandler(ctx, 'beforeRender', handler),
+    onCreated: (handler) => registerLifeCycleHandler(ctx, 'created', handler),
+    onMounted: (handler) => registerLifeCycleHandler(ctx, 'mounted', handler),
+    onRendered: (handler) => registerLifeCycleHandler(ctx, 'rendered', handler),
+    onUnmounted: (handler) =>
+        registerLifeCycleHandler(ctx, 'unmounted', handler)
+});
+
+// Appends while the event's list is open: absent, or filled by the render
+// in progress (`registering` is reset per render by `component`). A later
+// render's call against a filled list is a no-op — the list has locked.
 const registerLifeCycleHandler = (
+    ctx: ComponentContextPartial,
     event: LifeCycleEvent,
-    {
-        ctx,
-        handler
-    }: { ctx: ComponentContextPartial; handler: LifeCycleHandler }
+    handler: LifeCycleHandler
 ) => {
     const handlers = ctx[event];
 
-    if (!handlers || (handlers.length && !ctx.registering?.has(event))) {
+    if (handlers?.length && !ctx.registering?.has(event)) {
         return;
     }
 
-    handlers.push(handler);
+    (ctx[event] ??= []).push(handler);
     (ctx.registering ??= new Set()).add(event);
 };
 

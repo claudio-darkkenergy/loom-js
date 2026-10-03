@@ -9,6 +9,45 @@ export const callCountException = (count: number) =>
     `actually called ${count} ${count === 1 ? 'time' : 'times'}`;
 export const randomNumber = (size = 1000) => Math.round(Math.random() * size);
 
+/**
+ * Counts the functions reachable from a value through own enumerable
+ * properties and collection entries; DOM nodes are not entered.
+ */
+export const countReachableFunctions = (value: unknown) => {
+    const seen = new Set<object>();
+    let count = 0;
+    const visit = (candidate: unknown) => {
+        if (typeof candidate === 'function') {
+            count += 1;
+
+            return;
+        }
+
+        if (
+            typeof candidate !== 'object' ||
+            candidate === null ||
+            candidate instanceof Node ||
+            seen.has(candidate)
+        ) {
+            return;
+        }
+
+        seen.add(candidate);
+
+        if (candidate instanceof Map || candidate instanceof Set) {
+            candidate.forEach((entry) => visit(entry));
+
+            return;
+        }
+
+        Object.values(candidate).forEach(visit);
+    };
+
+    visit(value);
+
+    return count;
+};
+
 export const injectArgsToEventHandler = (
     on: OnTemplateTagValue = {},
     eventName: string,

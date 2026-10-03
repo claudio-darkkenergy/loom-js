@@ -5,7 +5,7 @@ import { appendChildContext, isActivityContextFunction } from './lib/context';
 import { createDiagnosticSubject } from './lib/globals/diagnostic-format';
 import { isObject } from './lib/helpers';
 import { reactiveEffect } from './lib/reactive';
-import { textUpdater } from './lib/templating/get-text-update';
+import { textUpdater } from './lib/templating/text-updater';
 import type {
     ActivityEffectAction,
     ActivityOptions,

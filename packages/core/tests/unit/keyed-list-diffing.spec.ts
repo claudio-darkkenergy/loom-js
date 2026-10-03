@@ -1,4 +1,5 @@
 import { expect } from '@esm-bundle/chai';
+import sinon from 'sinon';
 
 import { component } from '../../src';
 import { activity } from '../../src/activity';
@@ -200,6 +201,125 @@ describe('keyed-list diffing', () => {
             await waitForObserver();
 
             expect(unmounted).to.deep.equal(['b']);
+        });
+    });
+
+    describe('whole-list replacement', () => {
+        afterEach(() => sinon.restore());
+
+        it('should clear a list that fills its parent in one call, releasing every context', () => {
+            const list = mountKeyedList(range(1000));
+            const replaceChildren = sinon.spy(
+                Element.prototype,
+                'replaceChildren'
+            );
+            const remove = sinon.spy(Element.prototype, 'remove');
+
+            list.update([]);
+
+            expect(replaceChildren.callCount, 'one replacement').to.equal(1);
+            expect(remove.callCount, 'no per-node removal').to.equal(0);
+            expect(list.host.children.length).to.equal(0);
+            expect(list.ctx.children?.size, 'contexts released').to.equal(0);
+            list.teardown();
+        });
+
+        it('should run every unmount handler of a cleared list', async () => {
+            const unmounted: string[] = [];
+            const Item = component<{ label?: string }>(
+                (html, { label, onUnmounted }) => {
+                    onUnmounted(() => unmounted.push(label!));
+
+                    return html`
+                        <li data-item=${label}></li>
+                    `;
+                }
+            );
+            const labels = activity(['a', 'b', 'c'], { deep: true });
+            const TestComponent = component(
+                (html) => html`
+                    <ul>
+                        ${labels.effect(({ value }) =>
+                            value.map((label) => Item({ key: label, label }))
+                        )}
+                    </ul>
+                `
+            );
+
+            await runSetup({ containerProps: { TestComponent } });
+
+            labels.update([]);
+            await waitForObserver();
+
+            expect(unmounted).to.deep.equal(['a', 'b', 'c']);
+        });
+
+        it('should replace every key of a list that fills its parent in one call', () => {
+            const list = mountKeyedList(range(1000));
+            const replaceChildren = sinon.spy(
+                Element.prototype,
+                'replaceChildren'
+            );
+            const insertBefore = sinon.spy(Node.prototype, 'insertBefore');
+            const remove = sinon.spy(Element.prototype, 'remove');
+
+            list.update(range(1000, 1000));
+
+            expect(replaceChildren.callCount, 'one replacement').to.equal(1);
+            expect(insertBefore.callCount, 'no per-node insertion').to.equal(0);
+            expect(remove.callCount, 'no per-node removal').to.equal(0);
+            expect(list.host.children.length).to.equal(1000);
+            expect(
+                boxByColor(list.host, '1999'),
+                'new keys rendered'
+            ).to.not.equal(null);
+            expect(list.ctx.children?.size, 'old contexts released').to.equal(
+                1000
+            );
+            list.teardown();
+        });
+
+        it('should append 1 000 items with one insertion', () => {
+            const list = mountKeyedList(range(1000));
+            const insertBefore = sinon.spy(Node.prototype, 'insertBefore');
+            const replaceChildren = sinon.spy(
+                Element.prototype,
+                'replaceChildren'
+            );
+
+            list.update(range(2000));
+
+            expect(insertBefore.callCount, 'one insertion').to.equal(1);
+            expect(replaceChildren.callCount, 'no replacement').to.equal(0);
+            expect(list.host.children.length).to.equal(2000);
+            expect(
+                boxByColor(list.host, '999')?.nextElementSibling,
+                'appended in order'
+            ).to.equal(boxByColor(list.host, '1000'));
+            list.teardown();
+        });
+
+        it('should keep the per-item path when the parent holds other nodes', () => {
+            const list = mountKeyedList(range(3));
+            const footer = document.createElement('footer');
+
+            list.host.append(footer);
+
+            const replaceChildren = sinon.spy(
+                Element.prototype,
+                'replaceChildren'
+            );
+
+            list.update(range(3, 3));
+
+            expect(replaceChildren.callCount, 'no replacement').to.equal(0);
+            expect(list.host.lastElementChild, 'footer kept').to.equal(footer);
+            expect(
+                [...list.host.children].map((el) =>
+                    el.getAttribute('data-color')
+                )
+            ).to.deep.equal(['3', '4', '5', null]);
+            list.teardown();
         });
     });
 

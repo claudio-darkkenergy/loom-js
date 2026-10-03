@@ -11,36 +11,69 @@ import {
 } from '../context';
 import { getDocument, getWindow } from '../dom';
 import { resolveValue } from './resolve-value';
+import type { SlotApplier } from './types';
 import { updateLiveNode } from './update-live-node';
 
-export function getTextUpdate(liveNode: Text) {
-    let currentLiveNode: TemplateRoot | TemplateRootArray = liveNode;
-    return (...args: [TemplateTagValue, ComponentContextPartial | undefined]) =>
-        (currentLiveNode = textUpdater(currentLiveNode, ...args));
-}
+// Places a resolved value as the live node(s): an element one for one, an
+// array through the list reconciler, anything else as a text node.
+const placeValue = (
+    currentLiveNode: TemplateRoot | TemplateRootArray,
+    value: unknown,
+    valueCtx?: ComponentContextPartial
+) => {
+    if (value instanceof getWindow().Element) {
+        return updateLiveNode([currentLiveNode, value]);
+    }
 
+    if (Array.isArray(value)) {
+        return handleArrayValue([currentLiveNode, value], valueCtx);
+    }
+
+    return updateLiveNode([currentLiveNode, getNewTextValue(value)]);
+};
+
+/**
+ * Reconciles a live node (or node list) with a new template value, resolved
+ * against `valueCtx`, and returns what is live afterwards.
+ */
 export const textUpdater = (
     currentLiveNode: TemplateRoot | TemplateRootArray,
     newValue: TemplateTagValue,
     valueCtx?: ComponentContextPartial
-) => {
-    // Update for each `LiveNode`.
-    const value = resolveValue(newValue, valueCtx);
+) => placeValue(currentLiveNode, resolveValue(newValue, valueCtx), valueCtx);
 
-    if (value instanceof getWindow().Element) {
-        // Handle `Element` nodes.
-        currentLiveNode = updateLiveNode([currentLiveNode, value]);
-    } else if (Array.isArray(value)) {
-        // console.log('Array value', { value });
-        currentLiveNode = handleArrayValue([currentLiveNode, value], valueCtx);
-    } else {
-        // Handle `Text` nodes.
-        // Coerce to a valid `LiveNode` as if not already.
-        const newTextValue = getNewTextValue(value);
-        currentLiveNode = updateLiveNode([currentLiveNode, newTextValue]);
+/**
+ * Applies a text slot: the value resolves against the slot's child context,
+ * a primitive is written into the text node the slot owns, and anything
+ * else replaces the live node(s) — a text node loom creates becomes the
+ * owned one, a node the caller supplied is never written to.
+ */
+export const applyText: SlotApplier = (slot, _entry, newValue, ctx, index) => {
+    const childCtx = appendChildContext(ctx, newValue, index);
+    const value = resolveValue(newValue, childCtx);
+    const { Element, Text } = getWindow();
+
+    if (
+        value instanceof Element ||
+        value instanceof Text ||
+        Array.isArray(value)
+    ) {
+        slot.node = placeValue(slot.node, value, childCtx);
+        slot.state = undefined;
+        return;
     }
 
-    return currentLiveNode;
+    const ownedText = slot.state as Text | undefined;
+
+    if (ownedText && slot.node === ownedText) {
+        ownedText.data = String(value);
+        return;
+    }
+
+    const text = getDocument().createTextNode(String(value));
+
+    slot.node = updateLiveNode([slot.node, text]);
+    slot.state = text;
 };
 
 const getNewTextValue = (value: Text | unknown) =>
@@ -235,38 +268,76 @@ const handleArrayValue = (
     // a key that is gone altogether (a key re-rendered to new nodes keeps
     // its context — the pass above already renewed it).
     const nextKeys = new Set(nextItems.map(({ key }) => key));
+    // Callers receive the flat node list; item boundaries live in the store.
+    const nextLiveNode = nextItems.flatMap(({ entry }) => nodesOf(entry));
+    const leavingNodes: Node[] = liveNodeIsArray
+        ? liveNode
+        : liveNode
+          ? [liveNode]
+          : [];
 
-    previousItems.forEach(({ entry, key, ownsContext }, index) => {
-        if (reused.has(index)) {
-            return;
-        }
-
-        nodesOf(entry).forEach((node) => node.remove());
-        ownsContext &&
+    previousItems.forEach(({ key, ownsContext }, index) => {
+        !reused.has(index) &&
+            ownsContext &&
             !nextKeys.has(key) &&
             parentCtx &&
             releaseChildContext(parentCtx, key);
     });
 
-    // Place the rest. Items in the longest run of preserved relative order
-    // stay where they are; every other item is inserted before the item
-    // that follows it in the new order, walking from the end.
+    if (
+        liveNodeParent &&
+        isWholeListReplacement(
+            liveNodeParent,
+            leavingNodes,
+            nextLiveNode,
+            reused
+        )
+    ) {
+        // Nothing stays: one replacement of the parent's children instead of
+        // a removal and an insertion per node.
+        liveNodeParent.replaceChildren(toFragment(nextLiveNode));
+        liveItemsStore.set(nextLiveNode, nextItems);
+        return nextLiveNode;
+    }
+
+    previousItems.forEach(({ entry }, index) => {
+        !reused.has(index) && nodesOf(entry).forEach((node) => node.remove());
+    });
+
+    // Place the rest, walking from the end: items in the longest run of
+    // preserved relative order stay; every other item goes before the item
+    // that follows it in the new order, consecutive ones as one insertion.
     const stable = stablePositions(previousIndices);
     let anchor = tailAnchor;
+    // The entries awaiting insertion before `anchor`, last first.
+    let pending: LiveEntry[] = [];
+    const placePending = () => {
+        if (pending.length && liveNodeParent) {
+            liveNodeParent.insertBefore(
+                toFragment(pending.reverse().flatMap(nodesOf)),
+                anchor
+            );
+            pending = [];
+        }
+    };
 
     for (let index = nextItems.length - 1; index >= 0; index--) {
-        const nodes = nodesOf(nextItems[index]!.entry);
+        const { entry } = nextItems[index]!;
+        const nodes = nodesOf(entry);
 
         if (
-            !stable.has(index) &&
-            liveNodeParent &&
-            !isPlacedBefore(nodes, anchor, liveNodeParent)
+            stable.has(index) ||
+            !liveNodeParent ||
+            isPlacedBefore(nodes, anchor, liveNodeParent)
         ) {
-            nodes.forEach((node) => liveNodeParent.insertBefore(node, anchor));
+            placePending();
+            anchor = nodes[0] ?? anchor;
+        } else {
+            pending.push(entry);
         }
-
-        anchor = nodes[0] ?? anchor;
     }
+
+    placePending();
 
     if (!liveNodeIsArray && liveNode && anchor !== liveNode) {
         // The single live node was the placeholder the list replaced — unless
@@ -275,9 +346,33 @@ const handleArrayValue = (
             liveNode.remove();
     }
 
-    // Callers receive the flat node list; item boundaries live in the store.
-    const nextLiveNode = nextItems.flatMap(({ entry }) => nodesOf(entry));
-
     liveItemsStore.set(nextLiveNode, nextItems);
     return nextLiveNode;
 };
+
+// Gathers nodes into a fragment, so they insert in one operation; bounded
+// slices keep each `append` call within the engine's argument limit.
+const toFragment = (nodes: Node[]) => {
+    const fragment = getDocument().createDocumentFragment();
+
+    for (let start = 0; start < nodes.length; start += 1024) {
+        fragment.append(...nodes.slice(start, start + 1024));
+    }
+
+    return fragment;
+};
+
+// Whether a pass replaces the parent's children wholesale: no previous item
+// continues, the leaving nodes are exactly the parent's children, and no
+// next node is among them.
+const isWholeListReplacement = (
+    parent: ParentNode,
+    leavingNodes: Node[],
+    nextNodes: Node[],
+    reused: Set<number>
+) =>
+    reused.size === 0 &&
+    leavingNodes.length > 0 &&
+    leavingNodes.length === parent.childNodes.length &&
+    leavingNodes.every((node) => node.parentNode === parent) &&
+    nextNodes.every((node) => node.parentNode !== parent);

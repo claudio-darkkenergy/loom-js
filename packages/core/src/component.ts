@@ -1,9 +1,10 @@
 import { htmlParser } from './html-parser';
 import {
     isLiveContext,
-    lifeCycles,
+    lifeCycleHooks,
     memoizedOwnedValues,
-    memoizedRefContext
+    memoizedRefContext,
+    resetLifeCycles
 } from './lib/context';
 import type {
     ComponentContextPartial,
@@ -96,7 +97,7 @@ export const component: ComponentFactory = <Props extends object = {}>(
                 delete ctx.refs;
                 ctx.fragment = false;
                 ctx.fingerPrint = templateFunction;
-                ctx.lifeCycles = lifeCycles(ctx);
+                resetLifeCycles(ctx);
                 ctx.node = () => ctx.root!;
                 // ctx.render = htmlParser.bind(ctx);
                 ctx.render = htmlParser.bind(ctx);
@@ -154,7 +155,7 @@ export const component: ComponentFactory = <Props extends object = {}>(
              */
             const template = templateFunction(ctx.render!, {
                 ...inputProps,
-                ...ctx.lifeCycles!,
+                ...lifeCycleHooks(ctx),
                 createRef: memoizedRefContext(ctx, refIterator),
                 ctxRefs: () => (ctx.refs ?? noRefs).values(),
                 node: ctx.node!,

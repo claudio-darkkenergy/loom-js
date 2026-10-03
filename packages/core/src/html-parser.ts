@@ -12,7 +12,7 @@ import {
 import { loomConsole } from './lib/globals/loom-console';
 import { deepDiffObject, isObject } from './lib/helpers';
 import { isWithinHydratingRoot } from './lib/hydrating-roots';
-import { getPaths, setUpdatesForPaths } from './lib/templating';
+import { applySlot, compilePlan, createSlots } from './lib/templating';
 // Imported by path — not via the templating barrel — to avoid a barrel cycle
 // (`compile-component-tags` imports `component`, which imports this module).
 import { collapseWhitespace } from './lib/templating/collapse-whitespace';
@@ -20,35 +20,29 @@ import { compileComponentTags } from './lib/templating/compile-component-tags';
 import { isFragmentRegion } from './lib/templating/compile-component-tags/regions';
 import { isFragmentRoot } from './lib/templating/root-form';
 import { scanTableScope } from './lib/templating/table-scope';
+import type { TemplatePlan } from './lib/templating/types';
 import type {
     ComponentContext,
     ComponentContextPartial,
     PlainObject,
-    TemplateRoot, // TemplateNodeUpdate,
+    TemplateRoot,
     TemplateRootArray,
     TemplateTagValue,
     TemplateTransformPlan
 } from './types';
 
-// Component Template Cache Store
-// Keyed by chunks identity — the call site's `TemplateStringsArray`, or a
-// transform-synthesized chunks array (both are one stable identity for the
-// life of the process). A synthesized children template's derived sub-chunks
-// live on its parent's cached plan, never in a separate keyed store.
-//
-// The compile plan is pure string work and shared across documents; the
-// parsed fragment and its `paths` (which hold `Attr` references into that
-// fragment) live per document — templates parse against each document that
-// renders them, so any number of injected windows (of any DOM
-// implementation) can render in one process, and a server window's
-// fragments release with its document (`WeakMap`). In the browser there is
-// one document ever, so this stays a single cached parse.
+// Component Template Cache Store — keyed by chunks identity (the call site's
+// `TemplateStringsArray` or a transform-synthesized chunks array, both stable
+// for the life of the process). The compile plan is shared across documents.
 interface TemplateDocumentCacheEntry {
+    // Per document, so injected windows render in one process and a server
+    // window's fragments release with its document (`WeakMap`). Normalized
+    // by `compilePlan`: token text split, special attributes stripped.
     fragment: DocumentFragment;
     // The template's root form — a property of the statics, so it is
     // classified once per parse.
     isFragment: boolean;
-    paths: Set<[number[], Attr | undefined]>;
+    plan: TemplatePlan;
 }
 
 const templateCacheStore = new Map<
@@ -124,7 +118,7 @@ export function htmlParser(
         if (tableScope.hasTableMarkup) {
             // Template-element parsing preserves table-part roots, and
             // table-content tokens become comment markers (safe from foster
-            // parenting) that `setUpdatesForPaths` swaps back at wire time.
+            // parenting) that `compilePlan` swaps back for text nodes.
             const templateElement = currentDocument.createElement(
                 'template'
             ) as HTMLTemplateElement;
@@ -147,17 +141,12 @@ export function htmlParser(
                 .createContextualFragment(statics.join(config.TOKEN));
         }
 
-        // Will be "walked" to obtain the dynamic paths mappings.
-        const treeWalker = currentDocument.createTreeWalker(
-            fragment,
-            getWindow().NodeFilter.SHOW_ALL
-        );
-
-        // Cache this document's parse of the template.
+        // Cache this document's parse of the template. The root form is read
+        // before the plan normalizes the fragment.
         documentEntry = {
             fragment,
             isFragment: isFragmentRegion(chunks) || isFragmentRoot(fragment),
-            paths: getPaths(treeWalker)
+            plan: compilePlan(fragment)
         };
         documentCache.set(currentDocument, documentEntry);
     }
@@ -167,7 +156,11 @@ export function htmlParser(
     const values = plan
         ? plan.getters.map((get) => get(interpolations))
         : interpolations;
-    const isTemplateFragment = documentEntry.isFragment;
+    const {
+        fragment,
+        isFragment: isTemplateFragment,
+        plan: templatePlan
+    } = documentEntry;
 
     const instanceAnchor =
         (Array.isArray(ctx.root) ? ctx.root[0]?.parentElement : ctx.root) ??
@@ -184,7 +177,6 @@ export function htmlParser(
             isWithinHydratingRoot(instanceAnchor)
         )
     ) {
-        const { fragment, paths } = documentEntry;
         // The live fragment - the `DocumentFragment`
         // which will contain all the live nodes which will exist in the DOM.
         // The cached fragment is per document (see `templateCacheStore`), so
@@ -193,14 +185,13 @@ export function htmlParser(
         const liveFragment = currentDocument.importNode(fragment, true);
 
         ctx.chunks = chunks;
-        ctx.values = [...values];
 
         // Update the context root with the latest nodes.
         if (isTemplateFragment) {
             ctx.fragment = true;
             ctx.root = Array.from(liveFragment.childNodes) as TemplateRootArray;
         } else {
-            ctx.root = liveFragment.children[0] as TemplateRoot;
+            ctx.root = liveFragment.firstElementChild as TemplateRoot;
         }
 
         // Creation hook
@@ -208,8 +199,11 @@ export function htmlParser(
         // Pre-render hook
         _lifeCycles.preRender(ctx);
         // Wire each dynamic path to its live node, then apply every value.
-        ctx.updaters = setUpdatesForPaths(paths, ctx, liveFragment);
-        ctx.updaters.forEach((update, i) => update(values[i]));
+        ctx.slots = createSlots(templatePlan, liveFragment);
+        ctx.slots.forEach((slot, i) => {
+            slot.value = values[i];
+            applySlot(slot, templatePlan.entries[i]!, slot.value, ctx, i);
+        });
 
         if (isTemplateFragment) {
             // Re-capture the root node-list: wiring a top-level dynamic slot
@@ -238,14 +232,15 @@ export function htmlParser(
             );
 
         // Apply the slots whose values changed.
-        values.forEach((value, i) => {
-            const oldValue = ctx.values[i];
+        ctx.slots.forEach((slot, i) => {
+            const value = values[i];
 
-            canDebugUpdates && loomConsole.info({ newValue: value, oldValue });
+            canDebugUpdates &&
+                loomConsole.info({ newValue: value, oldValue: slot.value });
 
-            if (hasSlotValueChanged(oldValue, value)) {
-                ctx.values[i] = value;
-                ctx.updaters[i]?.(value);
+            if (hasSlotValueChanged(slot.value, value)) {
+                slot.value = value;
+                applySlot(slot, templatePlan.entries[i]!, value, ctx, i);
             }
         });
 

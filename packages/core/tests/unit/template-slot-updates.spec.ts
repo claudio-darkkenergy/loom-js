@@ -5,6 +5,7 @@ import { component } from '../../src';
 import { activity } from '../../src/activity';
 import type { ComponentContextPartial } from '../../src/types';
 import { runSetup } from '../support/run-setup';
+import { countReachableFunctions } from '../support/utils';
 
 // Attribute and child-list mutations under `target` since the last read.
 const observeMutations = (target: Node) => {
@@ -33,8 +34,8 @@ const observeMutations = (target: Node) => {
 };
 
 describe('template slot updates', () => {
-    describe('one updater per dynamic path', () => {
-        it('should hold a plain values array and one updater per path', () => {
+    describe('one slot per dynamic path', () => {
+        it('should hold one slot per path carrying its last value', () => {
             const Box = component<{ a?: string; b?: string }>(
                 (html, { a, b }) => html`
                     <div data-a=${a} data-b=${b}>${a}</div>
@@ -44,9 +45,111 @@ describe('template slot updates', () => {
 
             Box({ a: 'x', b: 'y' })(ctx);
 
-            expect(Array.isArray(ctx.values), 'values is an array').to.be.true;
-            expect(ctx.values).to.deep.equal(['x', 'y', 'x']);
-            expect(ctx.updaters?.length, 'one updater per path').to.equal(3);
+            expect(ctx.slots?.map(({ value }) => value)).to.deep.equal([
+                'x',
+                'y',
+                'x'
+            ]);
+        });
+
+        it('should not grow the functions reachable from a context with the path count', () => {
+            const Two = component<{ a?: string }>(
+                (html, { a }) => html`
+                    <div data-a=${a}>${a}</div>
+                `
+            );
+            const Twelve = component<{ a?: string }>(
+                (html, { a }) => html`
+                    <div
+                        data-a=${a}
+                        data-b=${a}
+                        data-c=${a}
+                        data-d=${a}
+                        data-e=${a}
+                        data-f=${a}
+                    >
+                        <i>${a}</i>
+                        <i>${a}</i>
+                        <i>${a}</i>
+                        <i>${a}</i>
+                        <i>${a}</i>
+                        ${a}
+                    </div>
+                `
+            );
+            const twoCtx: ComponentContextPartial = {};
+            const twelveCtx: ComponentContextPartial = {};
+
+            Two({ a: 'x' })(twoCtx);
+            Twelve({ a: 'x' })(twelveCtx);
+
+            expect(twelveCtx.slots?.length, 'twelve paths').to.equal(12);
+            expect(countReachableFunctions(twelveCtx)).to.equal(
+                countReachableFunctions(twoCtx)
+            );
+        });
+    });
+
+    describe('text slots', () => {
+        it('should write a primitive update into the same text node', async () => {
+            const text = activity('one');
+            const Box = component<{ text?: string }>(
+                (html, { text }) => html`
+                    <p data-box>${text}</p>
+                `
+            );
+            const TestComponent = component(
+                (html) => html`
+                    <main>
+                        ${text.effect(({ value }) => Box({ text: value }))}
+                    </main>
+                `
+            );
+            const $test = await runSetup({ containerProps: { TestComponent } });
+            const $box = $test.querySelector('[data-box]')!;
+            const textNode = $box.firstChild;
+            const read = observeMutations($box);
+
+            text.update('two');
+
+            expect($box.firstChild, 'same text node').to.equal(textNode);
+            expect($box.textContent).to.equal('two');
+            expect(read()).to.deep.equal({
+                attributes: 0,
+                childList: 0,
+                characterData: 1
+            });
+        });
+
+        it('should still replace the text node for a node value, then write a fresh one', async () => {
+            const element = document.createElement('b');
+            const value = activity<string | HTMLElement>('one');
+            const Box = component<{ value?: string | HTMLElement }>(
+                (html, { value }) => html`
+                    <p data-box>${value}</p>
+                `
+            );
+            const TestComponent = component(
+                (html) => html`
+                    <main>
+                        ${value.effect(({ value: current }) =>
+                            Box({ value: current })
+                        )}
+                    </main>
+                `
+            );
+            const $test = await runSetup({ containerProps: { TestComponent } });
+            const $box = $test.querySelector('[data-box]')!;
+
+            value.update(element);
+
+            expect($box.firstChild, 'element placed').to.equal(element);
+
+            value.update('two');
+
+            expect(element.textContent, 'element untouched').to.equal('');
+            expect($box.firstChild?.nodeType).to.equal(Node.TEXT_NODE);
+            expect($box.textContent).to.equal('two');
         });
     });
 

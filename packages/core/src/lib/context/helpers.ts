@@ -128,5 +128,5 @@ export const getShareableContext = (ctx: ComponentContextPartial) =>
         parent: ctx.parent,
         props: ctx.props,
         root: ctx.root,
-        values: ctx.values
+        slots: ctx.slots
     }) as ComponentContextPartial;

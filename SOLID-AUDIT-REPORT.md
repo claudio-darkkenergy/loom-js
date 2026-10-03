@@ -3,7 +3,7 @@
 _Maintained by `.claude/skills/solid-audit/SKILL.md`. Update this file using the audit skill — do not edit violation statuses manually._
 
 **Last full audit:** 2026-05-02
-**Last updated:** 2026-08-12
+**Last updated:** 2026-10-03
 
 ---
 
@@ -11,12 +11,12 @@ _Maintained by `.claude/skills/solid-audit/SKILL.md`. Update this file using the
 
 | Principle | 🔴 Critical | 🟡 Moderate | 🟢 Minor | ✅ Resolved |
 | --------- | ----------- | ----------- | -------- | ----------- |
-| SRP       | 0           | 1           | 2        | 4           |
+| SRP       | 0           | 1           | 2        | 5           |
 | OCP       | 0           | 0           | 1        | 1           |
 | LSP       | 0           | 0           | 0        | 1           |
 | ISP       | 0           | 0           | 0        | 1           |
-| DIP       | 1           | 1           | 0        | 0           |
-| **Total** | **1**       | **2**       | **3**    | **7**       |
+| DIP       | 1           | 0           | 0        | 0           |
+| **Total** | **1**       | **1**       | **3**    | **8**       |
 
 ---
 
@@ -60,23 +60,23 @@ _Low-risk drift to fix opportunistically._
 
 - **Principle violated:** SRP
 - **Severity:** 🟢 Minor
-- **Violation:** The file co-locates DOM mutation observation setup (`_lifeCycles.observe`, `domChanged`, and the `MutationObserver` callback at lines 52–180) with lifecycle hook creation and state management (`lifeCycles`, `createLifeCycleHook`, `lifeCycleStateUpdateEffect` at lines 195–270).
+- **Violation:** The file co-locates DOM mutation observation and unmount teardown (`_lifeCycles.observe`, `forEachRegistrable`, `domChanged`, `teardownContext` at lines 63–268) with lifecycle hook creation, handler registration and dispatch (`resetLifeCycles`, `lifeCycleHooks`, `registerLifeCycleHandler`, `dispatchLifeCycle` at lines 271–339).
 - **Impact:** The DOM observation concern and the lifecycle hook factory concern each have distinct reasons to change (e.g., a new browser API for mutation detection, or a new lifecycle event), making the file slightly harder to navigate and modify independently.
-- **Recommended fix:** Extract `_lifeCycles.observe` and `domChanged` into a sibling file (e.g., `mutation-observer.ts`) and import from it. See the SRP section in `.claude/skills/solid-principles/SKILL.md`.
+- **Recommended fix:** Extract `_lifeCycles.observe`, `forEachRegistrable`, `domChanged` and `teardownContext` into a sibling file (e.g., `mutation-observer.ts`) and import from it. See the SRP section in `.claude/skills/solid-principles/SKILL.md`.
 - **Status:** 🔲 Open
-- **Audited:** 2026-05-02
+- **Audited:** 2026-10-03
 
 ---
 
-### `packages/core/src/lib/templating/set-updates-for-paths.ts`
+### `packages/core/src/lib/templating/text-updater.ts`
 
 - **Principle violated:** SRP
 - **Severity:** 🟢 Minor
-- **Violation:** `setUpdatesForPaths` both sets up memoized caches for `getDynamicElement` and `getLiveTextNodes` (lines 15–30) and wires the reactive update effects for each path (lines 32–76) — cache initialization and effect wiring are distinct concerns.
-- **Impact:** If the memoization strategy changes (e.g., switching from a function-key cache to a WeakMap), the change must happen inside a function that also owns the reactive path-wiring logic, creating unnecessary coupling.
-- **Recommended fix:** Minor refactor: lift the two `memo` calls into a `buildNodeCache(paths, liveFragment)` helper and let `setUpdatesForPaths` call it. See the SRP section in `.claude/skills/solid-principles/SKILL.md`.
+- **Violation:** The file co-locates text-slot application (`applyText`, `textUpdater`, `placeValue` at lines 16–77) with the keyed list reconciler (`handleArrayValue`, `stablePositions`, `isPlacedBefore`, `toFragment`, `isWholeListReplacement` and the live-item store at lines 84–378) — carried over from `get-text-update.ts`, which this file replaces.
+- **Impact:** A change to how a text slot writes its value and a change to the list-diffing algorithm are separate reasons to edit the same file, and the reconciler (four fifths of the file) is reachable only through the text updater's module.
+- **Recommended fix:** Move the reconciler and its helpers into a sibling file (e.g., `reconcile-list.ts`) that `text-updater.ts` imports. See the SRP section in `.claude/skills/solid-principles/SKILL.md`.
 - **Status:** 🔲 Open
-- **Audited:** 2026-05-02
+- **Audited:** 2026-10-03
 
 ---
 
@@ -95,6 +95,20 @@ _Low-risk drift to fix opportunistically._
 ## ✅ Resolved
 
 _Closed violations. Do not delete these — they are a record of improvements made._
+
+### `packages/core/src/lib/templating/set-updates-for-paths.ts` → `compile-plan.ts`, `slots.ts`
+
+- **Principle violated:** SRP
+- **Severity:** 🟢 Minor
+- **Violation:** `setUpdatesForPaths` both sets up memoized caches for `getDynamicElement` and `getLiveTextNodes` (lines 15–30) and wires the reactive update effects for each path (lines 32–76) — cache initialization and effect wiring are distinct concerns.
+- **Impact:** If the memoization strategy changes (e.g., switching from a function-key cache to a WeakMap), the change must happen inside a function that also owns the reactive path-wiring logic, creating unnecessary coupling.
+- **Recommended fix:** Minor refactor: lift the two `memo` calls into a `buildNodeCache(paths, liveFragment)` helper and let `setUpdatesForPaths` call it. See the SRP section in `.claude/skills/solid-principles/SKILL.md`.
+- **Resolution:** The file no longer exists — `template-instance-plan` removed it: path resolution moved to parse time (`compile-plan.ts` compiles each dynamic node's steps once per template and document) and instance wiring to `slots.ts` (`createSlots` walks the steps, `applySlot` dispatches by kind) — no per-instance memo cache exists any more, so the two concerns live in separate modules.
+- **Status:** ✅ Resolved
+- **Audited:** 2026-05-02
+- **Resolved:** 2026-10-03
+
+---
 
 ### `packages/core/src/lib/templating/compile-component-tags.ts` → `compile-component-tags/`
 
@@ -177,14 +191,14 @@ _Closed violations. Do not delete these — they are a record of improvements ma
 
 ---
 
-### `packages/core/src/lib/templating/get-attr-update.ts`
+### `packages/core/src/lib/templating/get-attr-update.ts` → `attr-updaters.ts`
 
 - **Principle violated:** OCP
 - **Severity:** 🟡 Moderate
 - **Violation:** `getSpecialAttrUpdate` (lines 45–113) dispatched to `specialAttrUpdaters` via a `switch(true)` on hard-coded string comparisons (`nodeName === 'attrs'`, `nodeName === 'on'`, `nodeName === 'props'`). The `specialAttrUpdaters` object (lines 300–445) listed every recognized `$`-prefixed attribute. The file had grown to 514 lines by resolution time.
 - **Impact:** Adding a new special attribute type (e.g., `$ref`, `$key`, `$bind`) required editing the `switch` block and adding a new entry to `specialAttrUpdaters` — two edits in the update hot path for every dynamic node in the framework.
 - **Recommended fix:** Consider converting the switch dispatch to a lookup on `specialAttrUpdaters[nodeName]` with a `default` fallback; new attribute types then extend the map without touching the dispatch logic. See the OCP section in `.claude/skills/solid-principles/SKILL.md`.
-- **Resolution:** Landed the dispatch-map fix via `resolve-remaining-audit-items` (tasks 1.1–1.3), adapted to factories because each branch built different bind-time state: named special attributes (`attrs`, `on`, `props`) live in a `specialAttrUpdaterFactories` map whose entries own their state (fresh binding-registry Map, listener collection) and return the update closure; unmapped names fall back to `eventUpdaterFactory` (for `config.events` names — dynamic, so not map keys) then `defaultUpdaterFactory`, preserving the switch's precedence. A new special attribute type is now a single map entry with no dispatch edit; the factory typing also removed the `as BoundSpecialAttrTemplateNodeUpdate` casts. Type-check, type-check-tests, and the full suite (188 tests) green.
+- **Resolution:** Landed the dispatch-map fix via `resolve-remaining-audit-items` (tasks 1.1–1.3), adapted to factories because each branch built different bind-time state: named special attributes (`attrs`, `on`, `props`) live in a `specialAttrUpdaterFactories` map whose entries own their state (fresh binding-registry Map, listener collection) and return the update closure; unmapped names fall back to `eventUpdaterFactory` (for `config.events` names — dynamic, so not map keys) then `defaultUpdaterFactory`, preserving the switch's precedence. A new special attribute type is now a single map entry with no dispatch edit; the factory typing also removed the `as BoundSpecialAttrTemplateNodeUpdate` casts. Type-check, type-check-tests, and the full suite (188 tests) green. Since `template-instance-plan` (2026-10-03) the file is `attr-updaters.ts` and the factories are gone: `namedSpecialKinds` in `compile-plan.ts` classifies a special attribute once per template (same precedence) and the `appliers` table in `slots.ts` dispatches by kind to module-level appliers — a new special attribute is one entry in each table and one applier, still with no dispatch edit.
 - **Status:** ✅ Resolved
 - **Audited:** 2026-05-02
 - **Resolved:** 2026-08-12

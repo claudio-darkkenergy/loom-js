@@ -1,0 +1,5 @@
+---
+'@loom-js/core': patch
+---
+
+A template's dynamic wiring is compiled once per template and document and shared by every instance: the parsed fragment is normalized up front (slot tokens split into their own text nodes, special attributes stripped), and each instance keeps one slot per dynamic path — its node, last value and the little state its kind needs — applied through shared per-kind update functions instead of a closure per path. Life-cycle setters are created per render and no longer stored on the context, handler lists exist from the first registration, a text slot writes a primitive into the text node it owns, and a reconciled list that replaces every item does so with one `replaceChildren` while consecutive new items insert in one operation. Same behavior; 1 000 bench rows hold about half the heap and create, replace and clear in 25–35 % less time.

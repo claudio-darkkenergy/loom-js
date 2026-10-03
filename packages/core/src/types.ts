@@ -1,5 +1,6 @@
 import type { AttrBinding } from './lib/attr-binding';
 import type { DehydratedState } from './lib/resource-cache';
+import type { Slot } from './lib/templating/types';
 
 /**
  * The parsed form of `serializeState`'s output: a versioned envelope
@@ -167,11 +168,6 @@ export type TemplateTagValue =
 
 export type TemplateTagValueFunction = <T>(props?: T) => TemplateTagValue;
 
-export type TemplateNodeUpdate = (
-    value: TemplateTagValue,
-    valueCtx?: ComponentContextPartial
-) => void;
-
 /* Template component-element transform */
 // Maps the raw call-site interpolations to the per-render value of one
 // derived slot (an untouched pass-through or a compiled component element).
@@ -222,7 +218,6 @@ export interface ComponentContext<Props extends object = {}>
     fingerPrint: TemplateFunction<any>;
     fragment: boolean;
     lifeCycleState: LifeCycleState;
-    lifeCycles: LifeCycleHookProps;
     node: ContextNodeGetter;
     // Instance-memoized values behind the `own` utility prop — created in
     // call order on the instance's first render, replayed on re-renders,
@@ -237,17 +232,13 @@ export interface ComponentContext<Props extends object = {}>
     render: TaggedTemplate;
     refs?: Set<RefContext>;
     root: TemplateRoot | TemplateRootArray;
+    // Internal — one slot per dynamic path, in path order: its live node,
+    // the value last applied and the kind's state.
+    slots: Slot[];
     // Internal — cleanup callbacks run when this context's subtree is
     // genuinely detached (unmount teardown); cleared after running.
     teardowns?: Set<Unsubscriber>;
-    // Internal — one updater per dynamic path, in path order, and the values
-    // last applied through them.
-    updaters: SlotUpdater[];
-    values: TemplateTagValue[];
 }
-
-// Applies a new value to one dynamic path of a rendered template.
-export type SlotUpdater = (value: TemplateTagValue) => void;
 
 export type ComponentContextPartial = Partial<ComponentContext>;
 
@@ -331,9 +322,12 @@ export type LifeCycleHandler = (
 export type LifeCycleEvent =
     'beforeRender' | 'created' | 'mounted' | 'rendered' | 'unmounted';
 
-// A component's own handlers per event, in registration order. The list
-// locks once the render that filled it ends; a teardown clears it.
-export type LifeCycleHandlerProps = Record<LifeCycleEvent, LifeCycleHandler[]>;
+// A component's own handlers per event, in registration order. A list
+// exists from its first registration, locks once the render that filled it
+// ends, and is dropped by a teardown.
+export type LifeCycleHandlerProps = Partial<
+    Record<LifeCycleEvent, LifeCycleHandler[]>
+>;
 
 // Life-cycle hooks are passed to each component as default props.
 export interface LifeCycleHookProps {

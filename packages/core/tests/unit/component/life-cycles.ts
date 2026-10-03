@@ -3,12 +3,14 @@ import { expect } from '@esm-bundle/chai';
 import { component } from '../../../src';
 import { activity } from '../../../src/activity';
 import type {
+    ComponentContextPartial,
     LifeCycleHook,
     LifeCycleHookProps,
     TemplateRoot,
     TemplateRootArray
 } from '../../../src/types';
 import { runSetup } from '../../support/run-setup';
+import { countReachableFunctions } from '../../support/utils';
 
 // MutationObserver delivery is a microtask; a macrotask hop runs after it.
 const waitForObserver = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -252,6 +254,39 @@ export const lifeCyclesSpec = () => {
             await runSetup({ containerProps: { TestComponent } });
 
             expect(calls).to.deep.equal(['child', 'ref']);
+        });
+
+        it('should hold a handler list only for the events a component registered', () => {
+            const TestComponent = component((html, { onMounted }) => {
+                onMounted(() => {});
+
+                return html`
+                    <div class=${className}></div>
+                `;
+            });
+            const ctx: ComponentContextPartial = {};
+
+            TestComponent()(ctx);
+
+            expect(ctx.mounted?.length, 'mounted list').to.equal(1);
+            expect(ctx.created, 'created').to.be.undefined;
+            expect(ctx.beforeRender, 'beforeRender').to.be.undefined;
+            expect(ctx.rendered, 'rendered').to.be.undefined;
+            expect(ctx.unmounted, 'unmounted').to.be.undefined;
+        });
+
+        it('should retain no hook function on a context whose render captures none', () => {
+            const TestComponent = component(
+                (html) => html`
+                    <div class=${className}></div>
+                `
+            );
+            const ctx: ComponentContextPartial = {};
+
+            TestComponent()(ctx);
+
+            // `fingerPrint`, the `node` getter and the bound template tag.
+            expect(countReachableFunctions(ctx)).to.equal(3);
         });
     });
 };

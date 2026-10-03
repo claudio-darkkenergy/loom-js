@@ -91,7 +91,7 @@ repo-relative.
         - Basic example · Props and interpolation · Accessing the rendered node · Life cycles
 - **Source:** `src/component.ts`, `src/simple.ts`, `src/lib/context/` (`life-cycles.ts`,
   `refs.ts`, `owned-values.ts`), `src/lib/attr-binding.ts`,
-  `src/lib/templating/get-attr-update.ts`, `src/lib/templating/get-text-update.ts`,
+  `src/lib/templating/attr-updaters.ts`, `src/lib/templating/text-updater.ts`,
   `src/lib/templating/resolve-value.ts`, `src/lib/templating/collapse-whitespace.ts`, `src/types.ts` (`UtilityProps`, `ReservedProps`,
   `RefContext`, `LifeCycleHandler`, `ContextFunction`).
 - **Tests:** `tests/unit/component.spec.ts`, `tests/unit/component/*`,
@@ -278,13 +278,13 @@ are directives, stripped by the renderer (`apps/loom/src/app/components/content/
 Internals that several topics depend on. A consumer-visible change here is checked against every
 topic named.
 
-| Source                                                  | Topics                                                        |
-| ------------------------------------------------------- | ------------------------------------------------------------- |
-| `src/types.ts`                                          | every topic, by the types listed in its entry                 |
-| `src/index.ts`, `src/server.ts` (export lists)          | `getting-started`, plus the topic that owns the export        |
-| `src/lib/settlement.ts`                                 | `activities`, `lazy-imports`, `server-rendering`, `hydration` |
-| `src/lib/templating/index.ts`, `src/html-parser.ts`     | `components`, `element-syntax`, `fragments`                   |
-| `src/lib/templating/slot-updater.ts`, `src/lib/memo.ts` | `components`, `activities`                                    |
+| Source                                                              | Topics                                                        |
+| ------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `src/types.ts`                                                      | every topic, by the types listed in its entry                 |
+| `src/index.ts`, `src/server.ts` (export lists)                      | `getting-started`, plus the topic that owns the export        |
+| `src/lib/settlement.ts`                                             | `activities`, `lazy-imports`, `server-rendering`, `hydration` |
+| `src/lib/templating/index.ts`, `src/html-parser.ts`                 | `components`, `element-syntax`, `fragments`                   |
+| `src/lib/templating/compile-plan.ts`, `src/lib/templating/slots.ts` | `components`, `activities`                                    |
 
 ## Export coverage
 
