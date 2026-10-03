@@ -1,0 +1,67 @@
+# Tasks — template-instance-plan
+
+## 1. Analysis pass (D0)
+
+- [x] 1.1 Heap snapshot after 1 000 rows on the loom bench page (CDP `HeapProfiler`): retained bytes grouped by constructor and by closure function; rank; record the top entries and the per-row total here
+- [x] 1.2 CPU profile of createRows, inclusive attribution over the unminified bench bundle; rank the per-instance steps (path resolution, attr classification, closure construction, hook surface, importNode, mount scan) by ms
+- [x] 1.3 Revise `design.md` D1–D3 from 1.1/1.2 (drop anything under 5 % of bytes and ms, add anything above), decide D3's shape, re-cut sections 2–4 of this file to match; `pnpm bench` baseline on the unchanged tree recorded as "before"
+
+### Analysis record (2026-10-03, M1 Max, Chrome 153, 1 000 rows)
+
+Heap: snapshot diff 0 → 1 000 rows after GC, unminified bundle of `packages/core/src`. V8 heap +2 756 B/row (JSHeapUsedSize +2 992 B/row; a row's component context retains 2 120 B by dominator). Blink-side DOM/layout memory outside the metric: ~10.9 KB/row.
+
+| per row (before)                                                                                 | bytes | share |
+| ------------------------------------------------------------------------------------------------ | ----: | ----: |
+| 10 `slotUpdater` closures + 10 contexts `{ctx,index,update}`                                     |   560 |  20 % |
+| 6 standard-attr updaters + 6 `applyValue` + 6 contexts `{attr,dynamicNode,hostCtx,unsubscribe…}` |   552 |  20 % |
+| 2 event + 2 text updaters, 4 contexts, 2 `listenerCtx` records                                   |   240 |   9 % |
+| 5 hook closures, hooks object, 5 empty handler arrays                                            |   252 |   9 % |
+| `updaters` + `values` arrays                                                                     |   184 |   7 % |
+| activity binding per bound attr (`bind` object, `select`/`watch`, subscription closures, Set)    |  ~350 |  13 % |
+| context object + property store, `node`, bound `render`, props copies, list item, strings, datum |  ~620 |  22 % |
+
+CPU: createRows click, 100 µs sampling, 30 iterations — script 15.2 ms + mutation-observer microtask 1.3 ms + GC 1.3 ms, layout 17.3 ms (timed window median 34.3 ms unminified; 30.9 ms minified in the bench).
+
+| step (before)                                                                                                 |  ms | share of script |
+| ------------------------------------------------------------------------------------------------------------- | --: | --------------: |
+| path resolution (`memo` + `childNodes[i]` reduce; leaves a NodeList on 5 elements/row)                        | 2.9 |            16 % |
+| per-path wiring (classification 0.9, text split + fragment swap 1.3, `removeAttribute` 0.3, closures)         | 3.0 |            17 % |
+| initial-apply overhead (`slotUpdater` 0.8, `canDebug` 0.5, `appendChildContext` 0.4, text create+replace 0.7) | 2.3 |            13 % |
+| `importNode`                                                                                                  | 1.6 |             9 % |
+| DOM writes (`setAttribute` ×6, `addEventListener` ×2, `bindAttr`)                                             | 1.4 |             8 % |
+| mount scan (`domChanged`)                                                                                     | 1.3 |             7 % |
+| hook surface + context setup (`contextFunction` self, `lifeCycles`)                                           | 1.1 |             6 % |
+| placement (`insertBefore` ×1 000)                                                                             | 1.0 |             6 % |
+| GC                                                                                                            | 1.3 |             7 % |
+
+clearRows (5.0 ms): `node.remove()` ×1 000 = 2.8 ms, then the unmount scan and a teardown allocating 5 handler arrays per row.
+
+`pnpm bench` before (`results/latest.json` of 2026-10-03T16:54Z): createRows 30.9 (1.69×), replaceAll 36.2 (1.84×), partialUpdate 4.8 (1.78×), selectRow 0.3 (3.0×), swapRows 2.7 (1.69×), removeRow 2.7 (1.80×), clearRows 5.0 (2.63×), appendRows 32.0 (1.62×); geometric mean 1.96×; heap 4.83 MB (vanilla 0.99); startup 16.7 ms (vanilla 13.5).
+
+## 2. Plan compile (D1)
+
+- [ ] 2.1 Red: `template-instance-plan` specs — plan built once for 1 000 instances (spy on the classifier), per-document plans, slot count = dynamic path count, no `childNodes` access while an instance renders, no special attribute and no token-bearing text node left in a clone
+- [ ] 2.2 Green: fragment normalized at first parse per document (text/comment token nodes split in place, special attributes classified then stripped); `TemplatePlan` (`steps`, `entries`) compiled from it and stored on `htmlParser`'s cache entry; classification lifted from `getSpecialAttrUpdate`'s precedence; types in `src/lib/templating/types.ts`; `get-paths.ts` replaced by the plan compiler
+
+## 3. Slots and shared apply functions (D2)
+
+- [ ] 3.1 Red: `template-slot-updates` delta — one slot per path, functions reachable from a context do not grow with path count; observable-semantics pins for attr, bind, `$event`, `$attrs`, `$on`, `$props`, style, custom-element props (existing specs re-run, new ones only where a captured variable moves into `Slot.state`); text slot writes a primitive in place and still replaces for nodes
+- [ ] 3.2 Green: `ctx.slots: Slot[]` replaces `updaters`/`values`; `applyText`/`applyAttr`/`applyEvent`/`applyAttrs`/`applyOn`/`applyProps`/`applyCustom` as module functions `(slot, value, ctx, index)`, every captured variable of today's updater closures enumerated into `Slot.state` or read from the entry; instance wiring walks `steps` with `firstChild`/`nextSibling` and builds slots over `entries`; `set-updates-for-paths.ts`, `slot-updater.ts`, `get-live-text-nodes.ts`, `get-dynamic-element.ts` removed; render loop in `htmlParser` over slots with the debug narration in its group
+- [ ] 3.3 Whole `packages/core` suite green (`test-ci` + `type-check-tests`), hydration and server lanes included
+
+## 4. Hook surface (D3)
+
+- [ ] 4.1 Red: `life-cycle-handler-stacking` delta — unregistered events hold no list, a render that captures no hook retains no hook function; existing stacking/locking/ref-order specs re-run
+- [ ] 4.2 Green: `lifeCycleHooks(ctx)` creates the five hooks per render for the props object, `ctx.lifeCycles` removed; handler arrays created on first registration, dispatch reads with `?.`, `teardownContext` resets to `undefined`
+- [ ] 4.3 Life-cycle, teardown, refs, hydration and diagnostics specs green
+
+## 5. Whole-list replacement (D6)
+
+- [ ] 5.1 Red: `keyed-list-diffing` delta — replacing every item (clear, fresh list, full replacement) is one `replaceChildren`; reorders, removals and appends still take the per-item path; contexts of the replaced keys are released
+- [ ] 5.2 Green: fast path in `handleArrayValue` when no item is reused and the previous nodes (or the placeholder) are all of their parent's children
+
+## 6. Evidence and release
+
+- [ ] 6.1 `pnpm bench` after (dist rebuilt): createRows/replaceAll/appendRows < 1.3×, clearRows < 1.4×, geometric mean < 1.5×, nothing above its "before" ratio; heap snapshot per row before/after — record next to the analysis record; profile any miss before closing
+- [ ] 6.2 `turbo build --filter=@loom-js/sandbox --filter=@loom-js/loom` passes; `/benchmarks` carries the new run
+- [ ] 6.3 Changeset: patch `@loom-js/core`; `pnpm format:check`; `turbo run type-check`; `.claude/skills/skill-config.md` and `docs/content-map.md` for the templating module changes
