@@ -11,12 +11,12 @@ _Maintained by `.claude/skills/solid-audit/SKILL.md`. Update this file using the
 
 | Principle | 🔴 Critical | 🟡 Moderate | 🟢 Minor | ✅ Resolved |
 | --------- | ----------- | ----------- | -------- | ----------- |
-| SRP       | 0           | 1           | 2        | 5           |
+| SRP       | 0           | 1           | 1        | 6           |
 | OCP       | 0           | 0           | 1        | 1           |
 | LSP       | 0           | 0           | 0        | 1           |
 | ISP       | 0           | 0           | 0        | 1           |
 | DIP       | 1           | 0           | 0        | 0           |
-| **Total** | **1**       | **1**       | **3**    | **8**       |
+| **Total** | **1**       | **1**       | **2**    | **9**       |
 
 ---
 
@@ -60,21 +60,9 @@ _Low-risk drift to fix opportunistically._
 
 - **Principle violated:** SRP
 - **Severity:** 🟢 Minor
-- **Violation:** The file co-locates DOM mutation observation and unmount teardown (`_lifeCycles.observe`, `forEachRegistrable`, `domChanged`, `teardownContext` at lines 63–268) with lifecycle hook creation, handler registration and dispatch (`resetLifeCycles`, `lifeCycleHooks`, `registerLifeCycleHandler`, `dispatchLifeCycle` at lines 271–339).
+- **Violation:** The file co-locates DOM mutation observation and unmount teardown (`_lifeCycles.observe`, `forEachRegistrable`, `domChanged`, `teardownContext` at lines 63–280) with lifecycle hook creation, handler registration and dispatch (`resetLifeCycles`, `lifeCycleHooks`, `registerLifeCycleHandler`, `dispatchLifeCycle` at lines 282–350).
 - **Impact:** The DOM observation concern and the lifecycle hook factory concern each have distinct reasons to change (e.g., a new browser API for mutation detection, or a new lifecycle event), making the file slightly harder to navigate and modify independently.
 - **Recommended fix:** Extract `_lifeCycles.observe`, `forEachRegistrable`, `domChanged` and `teardownContext` into a sibling file (e.g., `mutation-observer.ts`) and import from it. See the SRP section in `.claude/skills/solid-principles/SKILL.md`.
-- **Status:** 🔲 Open
-- **Audited:** 2026-10-03
-
----
-
-### `packages/core/src/lib/templating/text-updater.ts`
-
-- **Principle violated:** SRP
-- **Severity:** 🟢 Minor
-- **Violation:** The file co-locates text-slot application (`applyText`, `textUpdater`, `placeValue` at lines 16–77) with the keyed list reconciler (`handleArrayValue`, `stablePositions`, `isPlacedBefore`, `toFragment`, `isWholeListReplacement` and the live-item store at lines 84–378) — carried over from `get-text-update.ts`, which this file replaces.
-- **Impact:** A change to how a text slot writes its value and a change to the list-diffing algorithm are separate reasons to edit the same file, and the reconciler (four fifths of the file) is reachable only through the text updater's module.
-- **Recommended fix:** Move the reconciler and its helpers into a sibling file (e.g., `reconcile-list.ts`) that `text-updater.ts` imports. See the SRP section in `.claude/skills/solid-principles/SKILL.md`.
 - **Status:** 🔲 Open
 - **Audited:** 2026-10-03
 
@@ -95,6 +83,20 @@ _Low-risk drift to fix opportunistically._
 ## ✅ Resolved
 
 _Closed violations. Do not delete these — they are a record of improvements made._
+
+### `packages/core/src/lib/templating/text-updater.ts` → `reconcile-list.ts`, `text-node.ts`
+
+- **Principle violated:** SRP
+- **Severity:** 🟢 Minor
+- **Violation:** The file co-locates text-slot application (`applyText`, `textUpdater`, `placeValue` at lines 16–77) with the keyed list reconciler (`handleArrayValue`, `stablePositions`, `isPlacedBefore`, `toFragment`, `isWholeListReplacement` and the live-list store at lines 84–422) — carried over from `get-text-update.ts`, which this file replaces.
+- **Impact:** A change to how a text slot writes its value and a change to the list-diffing algorithm are separate reasons to edit the same file, and the reconciler (four fifths of the file) is reachable only through the text updater's module.
+- **Recommended fix:** Move the reconciler and its helpers into a sibling file (e.g., `reconcile-list.ts`) that `text-updater.ts` imports. See the SRP section in `.claude/skills/solid-principles/SKILL.md`.
+- **Resolution:** The reconciler moved unchanged into `reconcile-list.ts` (`handleArrayValue` exported, its helpers and the live-list store private); `text-updater.ts` keeps `placeValue`, `textUpdater` and `applyText` and imports it. The text-node coercion both files use (`getNewTextValue`) lives in `text-node.ts`.
+- **Status:** ✅ Resolved
+- **Audited:** 2026-10-03
+- **Resolved:** 2026-10-03
+
+---
 
 ### `packages/core/src/lib/templating/set-updates-for-paths.ts` → `compile-plan.ts`, `slots.ts`
 

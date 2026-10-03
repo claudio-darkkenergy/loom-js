@@ -126,6 +126,7 @@ repo-relative.
 - **Outline:** Root forms and inference · Fragments as values · Keyed reconciliation · Named
   regions are fragments
 - **Source:** `src/lib/templating/root-form.ts`, `src/lib/templating/update-live-node.ts`,
+  `src/lib/templating/reconcile-list.ts`,
   `src/lib/templating/compile-component-tags/regions.ts`.
 - **Tests:** `tests/unit/template-root-forms.spec.ts`,
   `tests/unit/fragment-array-reconciliation.spec.ts`,
