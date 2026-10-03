@@ -23,6 +23,7 @@ The benchmarks page puts loom at 8.16× vanilla (geometric mean) against svelte 
 ### Modified Capabilities
 
 - `activity-array-reactivity`: "Context snapshotting must not execute non-snapshotable values" becomes a key-read requirement (no invocation of either kind); "Reordered keyed items reuse their own DOM node" gains the minimal-move guarantee.
+- `reactive-attr-bindings`: a binding update whose projection is unchanged writes nothing (added during apply — see design D7).
 
 ## Impact
 

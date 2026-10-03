@@ -75,6 +75,14 @@ _Alternative rejected:_ an opt-in `memo` wrapper — an escape hatch where the d
 
 When a key is absent from the new list, its entry's nodes are removed and `parentCtx.children.delete(key)` runs. Teardown of subscriptions and `unmounted` still come from the existing detach observation (`unmount-teardown`), unchanged.
 
+### D7 — Bindings write only on a changed projection (added during apply)
+
+Profiling `selectRow` after D1–D5 showed 1 000 same-value `setAttribute` calls per select: every row's `bind` re-applied its projection. `bindAttr` now keeps the last applied value and skips the write when `select` yields the same one (`Object.is`). Spec delta under `reactive-attr-bindings`.
+
+### D8 — Path memo keyed by identity (added during apply)
+
+`setUpdatesForPaths` memoized `getDynamicElement` under a `JSON.stringify` of its arguments, per path per render — ≈10 % of `createRows` script time. The cached parse hands out one path array per path, so the memo keys by that array. No behavior change.
+
 ### D6 — Evidence is the bench
 
 Tasks run `pnpm bench` before and after (same machine, same session) and record both results in the archive note; the targets in Goals gate the change. The results file is not committed (turbo output), the numbers are.
