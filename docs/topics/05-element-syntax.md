@@ -251,7 +251,7 @@ const TodoList = component(
 );
 ```
 
-Keys are what make reordering cheap and safe: on an update, a keyed item's rendered nodes are *moved*, not rebuilt — node identity survives, so an item's input value, focus, or scroll position rides along with it. Without keys, a reorder re-renders items in place instead.
+Keys are what make reordering cheap and safe: on an update, a keyed item's rendered nodes are *moved*, not rebuilt — node identity survives, so an item's input value, focus, or scroll position rides along with it. Only the items whose relative order changed move; a removed item leaves without disturbing its neighbors, and appended items are inserted after the existing ones. A keyed item whose props did not change is not re-rendered either (see [When a component re-renders](/docs/components#when-a-component-re-renders)). Without keys, a reorder re-renders items in place instead.
 
 Children of keyed items move with their parents automatically; no `key` is needed on inner component elements — and a keyed *fragment-rooted* item moves as one group, every top-level node relocating together (the group rules live under [Fragments › Keyed reconciliation](/docs/fragments#keyed-reconciliation)).
 

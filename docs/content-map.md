@@ -77,6 +77,7 @@ repo-relative.
     - Defining a component
     - The template function
     - Life-cycle hooks
+    - When a component re-renders
     - Built-in props
         - Refs
     - Attribute and text values

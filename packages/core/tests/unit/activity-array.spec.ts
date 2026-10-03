@@ -279,20 +279,29 @@ describe('activity (array values)', () => {
     });
 
     describe('single reconciliation per update', () => {
-        it('resolves each array item exactly once per update', async () => {
+        it('resolves each changed array item exactly once per update', async () => {
             const itemSpy = sinon.spy();
-            const SpyBox = component<{ color?: string }>((html, { color }) => {
-                itemSpy(color);
-                return html`
-                    <div data-color=${color}></div>
-                `;
-            });
+            // The position travels as a prop so every item changes on a
+            // reorder — equal props would skip the render.
+            const SpyBox = component<{ color?: string; position?: number }>(
+                (html, { color, position }) => {
+                    itemSpy(color);
+                    return html`
+                        <div
+                            data-color=${color}
+                            data-position=${position}
+                        ></div>
+                    `;
+                }
+            );
             const colors = activity(['red', 'green', 'blue'], { deep: true });
             const TestComponent = component(
                 (html) => html`
                     <main>
                         ${colors.effect(({ value: cs }) =>
-                            cs.map((color) => SpyBox({ key: color, color }))
+                            cs.map((color, position) =>
+                                SpyBox({ key: color, color, position })
+                            )
                         )}
                     </main>
                 `

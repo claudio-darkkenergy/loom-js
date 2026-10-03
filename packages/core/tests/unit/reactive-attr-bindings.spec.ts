@@ -50,6 +50,44 @@ describe('reactive attr bindings', () => {
                     ?.isSameNode($unit ?? null)
             ).to.equal(true);
         });
+
+        it('leaves the attribute alone when the projected value is unchanged', async () => {
+            const selected = activity(0);
+            const TestComponent = component(
+                (html) => html`
+                    <p
+                        data-binding-test
+                        class=${selected.bind((id) =>
+                            id === 1 ? 'row on' : 'row'
+                        )}
+                    >
+                        static content
+                    </p>
+                `
+            );
+            const $test = await runSetup({
+                containerProps: { TestComponent }
+            });
+            const $unit = $test.querySelector('[data-binding-test]')!;
+            const observer = new MutationObserver(() => {});
+
+            observer.observe($unit, { attributes: true });
+
+            // Projects to the same `row` — no attribute write.
+            selected.update(2);
+            expect(
+                observer.takeRecords().length,
+                'unchanged projection'
+            ).to.equal(0);
+
+            selected.update(1);
+            expect(
+                observer.takeRecords().length,
+                'changed projection'
+            ).to.equal(1);
+            expect($unit.getAttribute('class')).to.equal('row on');
+            observer.disconnect();
+        });
     });
 
     describe('$attrs entry bindings', () => {

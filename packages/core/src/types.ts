@@ -297,6 +297,10 @@ export type ContextFunction = {
     // activity's `effect`) so detection survives minifiers that rename
     // functions; the name checks alone are not minification-safe.
     contextFunctionKind?: 'activity' | 'component';
+    // The `key` prop the component was called with, so an array reconciler
+    // can key the item without invoking it. Activity context functions have
+    // no key.
+    key?: number | string;
 };
 // Returns the parent of `TemplateRoot` or `TemplateRootArray`.
 export type ContextNodeGetter = () => TemplateRoot | TemplateRootArray;

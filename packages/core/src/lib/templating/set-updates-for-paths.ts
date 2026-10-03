@@ -24,12 +24,17 @@ export const setUpdatesForPaths = (
     ctx: ComponentContext,
     liveFragment: DocumentFragment
 ) => {
+    // Keyed by the path array itself: the cached parse hands out one array
+    // per path, and this memo lives for one fragment.
     const getDynamicElementMemo = memo<
         [number[], DocumentFragment],
         DynamicNode
-    >((_cleanCache, ...args) => {
-        return getDynamicElement(...args);
-    });
+    >(
+        (_cleanCache, ...args) => {
+            return getDynamicElement(...args);
+        },
+        (...[nodePath]) => nodePath
+    );
 
     const getLiveTextNodesMemo = memo<
         [DynamicNode, DocumentFragment],

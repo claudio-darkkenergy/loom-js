@@ -4,7 +4,11 @@ import type {
     TemplateRootArray,
     TemplateTagValue
 } from '../../types';
-import { appendChildContext, getContextForValue } from '../context';
+import {
+    appendChildContext,
+    isContextFunction,
+    releaseChildContext
+} from '../context';
 import { getDocument, getWindow } from '../dom';
 import { resolveValue } from './resolve-value';
 import { updateLiveNode } from './update-live-node';
@@ -48,29 +52,126 @@ const getNewTextValue = (value: Text | unknown) =>
 // fragment-rooted item (a region or fragment-template component's root).
 type LiveEntry = TemplateRoot | TemplateRootArray;
 
-// Group boundaries per reconciled array, keyed by the flat node array handed
-// back to callers. `ctx.root` and its consumers only ever see flat arrays;
-// the nested entry shape stays private to this module. A flat array with no
-// stored entries (e.g. an effect root resolved elsewhere) reconciles per node.
-const liveEntriesStore = new WeakMap<TemplateRootArray, LiveEntry[]>();
+// One reconciled item: its rendering, the key it reconciles under and
+// whether that key owns a child context in the parent (component and array
+// items do; primitives and already-resolved nodes do not).
+interface LiveItem {
+    entry: LiveEntry;
+    key: number | string;
+    ownsContext: boolean;
+}
 
-const firstNodeOf = (entry?: LiveEntry) =>
-    Array.isArray(entry) ? entry[0] : entry;
+// Items per reconciled array, keyed by the flat node array callers receive.
+// A flat array with no stored items reconciles per node, by index.
+const liveItemsStore = new WeakMap<TemplateRootArray, LiveItem[]>();
+
+const firstNodeOf = (entry: LiveEntry) =>
+    Array.isArray(entry) ? (entry[0] as TemplateRoot) : entry;
 
 const nodesOf = (entry: LiveEntry) => (Array.isArray(entry) ? entry : [entry]);
 
+// A component context function carries its `key`; everything else (activity
+// context functions included) reconciles by index.
+const keyOf = (value: TemplateTagValue, index: number) =>
+    (isContextFunction(value) ? value.key : undefined) ?? index;
+
+const ownsChildContext = (value: TemplateTagValue) =>
+    isContextFunction(value) || Array.isArray(value);
+
+// Coerces a resolved item value into its live entry.
+const toLiveEntry = (resolvedValue: unknown): LiveEntry => {
+    const { Comment, Element, HTMLElement, SVGElement } = getWindow();
+
+    if (Array.isArray(resolvedValue)) {
+        return resolvedValue.length
+            ? (resolvedValue as TemplateTagValue[]).map((groupValue) =>
+                  groupValue instanceof Element || groupValue instanceof Comment
+                      ? (groupValue as TemplateRoot)
+                      : getNewTextValue(groupValue)
+              )
+            : // An empty group keeps an empty text anchor, so the item holds
+              // its position for a later non-empty update.
+              [getDocument().createTextNode('')];
+    }
+
+    return resolvedValue instanceof HTMLElement ||
+        resolvedValue instanceof SVGElement ||
+        resolvedValue instanceof Comment
+        ? (resolvedValue as TemplateRoot)
+        : getNewTextValue(resolvedValue);
+};
+
+// The positions whose previous index forms a longest increasing subsequence
+// — the items that keep their relative order and so never move. Positions
+// with a negative previous index (new items) are skipped.
+const stablePositions = (previousIndices: number[]) => {
+    // `tails[length - 1]` is the position ending the shortest-tailed
+    // increasing run of that length seen so far.
+    const tails: number[] = [];
+    const predecessors: number[] = [];
+    const stable = new Set<number>();
+
+    previousIndices.forEach((previousIndex, position) => {
+        if (previousIndex < 0) {
+            return;
+        }
+
+        let low = 0;
+        let high = tails.length;
+
+        while (low < high) {
+            const mid = (low + high) >> 1;
+
+            if ((previousIndices[tails[mid] ?? 0] ?? 0) < previousIndex) {
+                low = mid + 1;
+            } else {
+                high = mid;
+            }
+        }
+
+        predecessors[position] = low > 0 ? (tails[low - 1] ?? -1) : -1;
+        tails[low] = position;
+    });
+
+    let cursor = tails[tails.length - 1] ?? -1;
+
+    while (cursor >= 0) {
+        stable.add(cursor);
+        cursor = predecessors[cursor] ?? -1;
+    }
+
+    return stable;
+};
+
+// Whether an entry's nodes already sit, in order, right before `anchor`.
+const isPlacedBefore = (
+    nodes: TemplateRootArray,
+    anchor: Node | null,
+    parent: Node
+) =>
+    nodes.every(
+        (node, index) =>
+            node.parentNode === parent &&
+            node.nextSibling === (nodes[index + 1] ?? anchor)
+    );
+
 const handleArrayValue = (
     [liveNode, valueArray]: [
-        TemplateRoot | TemplateRootArray,
+        TemplateRoot | TemplateRootArray | undefined,
         TemplateTagValue[]
     ],
     parentCtx?: ComponentContextPartial
 ) => {
     const liveNodeIsArray = Array.isArray(liveNode);
-    // The previous pass's per-item entries — the cursor & move bookkeeping
-    // below is per item, not per node, so groups reconcile as a unit.
-    const entries: LiveEntry[] = liveNodeIsArray
-        ? (liveEntriesStore.get(liveNode) ?? [...liveNode])
+    // The previous pass's items — reconciliation is per item, not per node,
+    // so groups move and leave as a unit.
+    const previousItems: LiveItem[] = liveNodeIsArray
+        ? (liveItemsStore.get(liveNode) ??
+          liveNode.map((node, index) => ({
+              entry: node,
+              key: index,
+              ownsContext: false
+          })))
         : [];
     // `parentNode`, not `parentElement` — a top-level slot of a fragment
     // template has a `DocumentFragment` parent, which can host insertions
@@ -78,102 +179,105 @@ const handleArrayValue = (
     const liveNodeParent = liveNodeIsArray
         ? liveNode[0]?.parentNode
         : liveNode?.parentNode;
-    const { Comment, Element, HTMLElement, SVGElement } = getWindow();
+    const lastPreviousNode = previousItems.length
+        ? nodesOf(previousItems[previousItems.length - 1]!.entry).at(-1)
+        : undefined;
+    // Where the list ends: new and moved items are placed back to front,
+    // each before the item that follows it, the last one before this.
+    const tailAnchor: Node | null = liveNodeIsArray
+        ? (lastPreviousNode?.nextSibling ?? null)
+        : (liveNode ?? null);
 
     if (!valueArray.length) {
         // Ensure a value array has at least one defined value.
         valueArray.push(getDocument().createTextNode(''));
     }
 
-    // Update the DOM  w/ the pending (new) nodes.
-    const nextEntries = valueArray.map((newVal, i): LiveEntry => {
-        const ctxSnapshot = getContextForValue(newVal);
-        const childCtx = appendChildContext(
-            parentCtx,
-            newVal,
-            ctxSnapshot.key ?? i
-        );
-        // The resolved `TemplateTagValue`
-        const resolvedValue = resolveValue(newVal, childCtx);
-        const resolvedIsGroup = Array.isArray(resolvedValue);
-        const isHtmlOrSvgElement =
-            resolvedValue instanceof HTMLElement ||
-            resolvedValue instanceof SVGElement;
-        const currentEntry: LiveEntry = resolvedIsGroup
-            ? resolvedValue.length
-                ? (resolvedValue as TemplateTagValue[]).map((groupValue) =>
-                      groupValue instanceof Element ||
-                      groupValue instanceof Comment
-                          ? (groupValue as TemplateRoot)
-                          : // Coerce to a valid `LiveNode` as if not already.
-                            getNewTextValue(groupValue)
-                  )
-                : // An empty group keeps an empty text anchor, so the item
-                  // holds its position for a later non-empty update.
-                  [getDocument().createTextNode('')]
-            : isHtmlOrSvgElement || resolvedValue instanceof Comment
-              ? resolvedValue
-              : // Coerce to a valid `LiveNode` as if not already.
-                getNewTextValue(resolvedValue);
-        // A group's identity is its first node: a fragment-rooted item with a
-        // persistent child context resolves to the same node instances every
-        // pass, so a changed first node means a genuinely different item.
-        const currentFirstNode = firstNodeOf(currentEntry) as TemplateRoot;
-        const currentNodes = nodesOf(currentEntry);
-        // Groups reuse in place like elements do; text always re-inserts.
-        const reusableInPlace = resolvedIsGroup || isHtmlOrSvgElement;
+    // Index the previous pass once: by key, and by first node for values
+    // that arrive already resolved (an effect root re-visited by its slot
+    // carries nodes, not keys).
+    const previousIndexByKey = new Map<number | string, number>();
+    const previousIndexByNode = new Map<Node, number>();
 
-        if (!liveNodeIsArray) {
-            // Handle single `LiveNode` updates.
-            if (!liveNode?.isSameNode(currentFirstNode)) {
-                // Insert before the live node.
-                // The live node will be removed from the DOM after all insertions.
-                currentNodes.forEach((node) =>
-                    liveNodeParent?.insertBefore(node, liveNode)
-                );
-            }
-        } else if (
-            (reusableInPlace &&
-                !firstNodeOf(entries[i])?.isSameNode(currentFirstNode)) ||
-            !reusableInPlace
-        ) {
-            // Handle array `LiveNode` updates.
-            const cursorNode = firstNodeOf(entries[i]);
-            const existingIndex = entries.findIndex(
-                (entry) => firstNodeOf(entry) === currentFirstNode
-            );
-
-            // `entries` must reflect the new order to keep the next cursor position in sync w/
-            // the right cursor target on the next update.
-            existingIndex > -1 && entries.splice(existingIndex, 1);
-            entries.splice(i, 0, currentEntry);
-
-            currentNodes.forEach((node) =>
-                cursorNode && !node.contains(cursorNode)
-                    ? liveNodeParent?.insertBefore(node, cursorNode)
-                    : liveNodeParent?.appendChild(node)
-            );
-        }
-
-        return currentEntry;
+    previousItems.forEach(({ entry, key }, index) => {
+        previousIndexByKey.set(key, index);
+        previousIndexByNode.set(firstNodeOf(entry), index);
     });
 
-    // Do cleanup.
-    if (liveNodeIsArray) {
-        // Cleanup the excess old live entries — every node of each group.
-        entries
-            .slice(valueArray.length)
-            .forEach((entry) =>
-                nodesOf(entry).forEach((node) => node.remove())
-            );
-    } else {
-        // Cleanup the old live node anchor.
-        liveNode?.remove();
+    // Render every item against its persistent child context, and find the
+    // previous item it continues: same key and same first node, or the same
+    // first node under another key. Anything else is a new rendering.
+    const previousIndices: number[] = [];
+    const reused = new Set<number>();
+    const nextItems = valueArray.map((newVal, index): LiveItem => {
+        const key = keyOf(newVal, index);
+        const childCtx = appendChildContext(parentCtx, newVal, key);
+        const entry = toLiveEntry(resolveValue(newVal, childCtx));
+        const firstNode = firstNodeOf(entry);
+        const byKey = previousIndexByKey.get(key);
+        const previousIndex =
+            byKey !== undefined &&
+            firstNodeOf(previousItems[byKey]!.entry) === firstNode
+                ? byKey
+                : (previousIndexByNode.get(firstNode) ?? -1);
+
+        if (previousIndex > -1 && !reused.has(previousIndex)) {
+            reused.add(previousIndex);
+            previousIndices.push(previousIndex);
+        } else {
+            previousIndices.push(-1);
+        }
+
+        return { entry, key, ownsContext: ownsChildContext(newVal) };
+    });
+
+    // Items that left: remove their nodes, and release the child context of
+    // a key that is gone altogether (a key re-rendered to new nodes keeps
+    // its context — the pass above already renewed it).
+    const nextKeys = new Set(nextItems.map(({ key }) => key));
+
+    previousItems.forEach(({ entry, key, ownsContext }, index) => {
+        if (reused.has(index)) {
+            return;
+        }
+
+        nodesOf(entry).forEach((node) => node.remove());
+        ownsContext &&
+            !nextKeys.has(key) &&
+            parentCtx &&
+            releaseChildContext(parentCtx, key);
+    });
+
+    // Place the rest. Items in the longest run of preserved relative order
+    // stay where they are; every other item is inserted before the item
+    // that follows it in the new order, walking from the end.
+    const stable = stablePositions(previousIndices);
+    let anchor = tailAnchor;
+
+    for (let index = nextItems.length - 1; index >= 0; index--) {
+        const nodes = nodesOf(nextItems[index]!.entry);
+
+        if (
+            !stable.has(index) &&
+            liveNodeParent &&
+            !isPlacedBefore(nodes, anchor, liveNodeParent)
+        ) {
+            nodes.forEach((node) => liveNodeParent.insertBefore(node, anchor));
+        }
+
+        anchor = nodes[0] ?? anchor;
     }
 
-    // Callers receive the flat node list; group boundaries live in the store.
-    const nextLiveNode = nextEntries.flat();
+    if (!liveNodeIsArray && liveNode && anchor !== liveNode) {
+        // The single live node was the placeholder the list replaced — unless
+        // it is itself the first item now.
+        !nextItems.some(({ entry }) => nodesOf(entry).includes(liveNode)) &&
+            liveNode.remove();
+    }
 
-    liveEntriesStore.set(nextLiveNode, nextEntries);
+    // Callers receive the flat node list; item boundaries live in the store.
+    const nextLiveNode = nextItems.flatMap(({ entry }) => nodesOf(entry));
+
+    liveItemsStore.set(nextLiveNode, nextItems);
     return nextLiveNode;
 };

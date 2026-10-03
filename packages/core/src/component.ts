@@ -1,5 +1,6 @@
 import { htmlParser } from './html-parser';
 import {
+    isLiveContext,
     lifeCycles,
     memoizedOwnedValues,
     memoizedRefContext
@@ -11,6 +12,29 @@ import type {
     RefContext,
     TemplateFunction
 } from './types';
+
+// The props each live context last rendered with, as the caller passed them
+// (`children` unflattened), so a re-invocation can compare by reference.
+const lastRenderedProps = new WeakMap<ComponentContextPartial, object>();
+
+// Shallow-equal over own keys, `ref` excluded: a `ref` is consumed by the
+// render that receives it, so it is not part of what the output depends on.
+const haveEqualProps = (previous: object, next: object) => {
+    const previousKeys = Object.keys(previous).filter((key) => key !== 'ref');
+    const nextKeys = Object.keys(next).filter((key) => key !== 'ref');
+
+    return (
+        previousKeys.length === nextKeys.length &&
+        nextKeys.every(
+            (key) =>
+                key in previous &&
+                Object.is(
+                    (previous as Record<string, unknown>)[key],
+                    (next as Record<string, unknown>)[key]
+                )
+        )
+    );
+};
 
 export const component: ComponentFactory = <Props extends object = {}>(
     templateFunction: TemplateFunction<Props>
@@ -42,10 +66,26 @@ export const component: ComponentFactory = <Props extends object = {}>(
             const ctx = scopedCtx || (!liveCtx.ctxScopes ? liveCtx : {});
             // Holds any possible child `RefContext`s.
             let refIterator: IterableIterator<RefContext>;
+            const isFresh = !liveCtx.root || scopedCtx === undefined;
+            const previousProps = lastRenderedProps.get(ctx);
+
+            // Same props on a live instance: nothing to re-render. A remount
+            // or an incoming `ref` still renders.
+            if (
+                !dryRun &&
+                !isFresh &&
+                !props.ref &&
+                previousProps &&
+                ctx.fingerPrint === templateFunction &&
+                isLiveContext(ctx) &&
+                haveEqualProps(previousProps, props)
+            ) {
+                return ctx;
+            }
 
             // Ensures the template context is fresh during 1st render &
             // whenever the fingerprint doesn't match the render function.
-            if (!liveCtx.root || scopedCtx === undefined) {
+            if (isFresh) {
                 const ref = props.ref;
 
                 ctx.children = new Map();
@@ -119,6 +159,7 @@ export const component: ComponentFactory = <Props extends object = {}>(
 
             ownedValues.settle();
             delete ctx.registering;
+            lastRenderedProps.set(ctx, props);
 
             return template;
         }
@@ -126,6 +167,7 @@ export const component: ComponentFactory = <Props extends object = {}>(
         // Detection goes by this marker (see `contextFunctionKind`) — a
         // minifier may rename the function.
         contextFunction.contextFunctionKind = 'component' as const;
+        contextFunction.key = props.key;
 
         return contextFunction;
     };

@@ -163,18 +163,21 @@ export const lifeCyclesSpec = () => {
             const tick = activity(0);
             const calls: string[] = [];
             let renderCount = 0;
-            const Child = component((html, { onRendered }) => {
-                renderCount += 1;
-                onRendered(() => calls.push(`render-${renderCount}`));
+            // `tick` travels as a prop: equal props would skip the render.
+            const Child = component<{ tick?: number }>(
+                (html, { onRendered }) => {
+                    renderCount += 1;
+                    onRendered(() => calls.push(`render-${renderCount}`));
 
-                return html`
-                    <p>child</p>
-                `;
-            });
+                    return html`
+                        <p>child</p>
+                    `;
+                }
+            );
             const TestComponent = component(
                 (html) => html`
                     <div class=${className}>
-                        ${tick.effect(() => Child({}))}
+                        ${tick.effect(({ value }) => Child({ tick: value }))}
                     </div>
                 `
             );
@@ -195,18 +198,21 @@ export const lifeCyclesSpec = () => {
             const tick = activity(0);
             const calls: number[] = [];
             let renderCount = 0;
-            const Child = component((html, { onRendered }) => {
-                renderCount += 1;
-                renderCount > 1 && onRendered(() => calls.push(renderCount));
+            const Child = component<{ tick?: number }>(
+                (html, { onRendered }) => {
+                    renderCount += 1;
+                    renderCount > 1 &&
+                        onRendered(() => calls.push(renderCount));
 
-                return html`
-                    <p>child</p>
-                `;
-            });
+                    return html`
+                        <p>child</p>
+                    `;
+                }
+            );
             const TestComponent = component(
                 (html) => html`
                     <div class=${className}>
-                        ${tick.effect(() => Child({}))}
+                        ${tick.effect(({ value }) => Child({ tick: value }))}
                     </div>
                 `
             );

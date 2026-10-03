@@ -4,7 +4,8 @@ import type {
     TemplateRoot,
     TemplateTagValue
 } from '../../types';
-import { getWindow } from '../dom';
+import { getDocument, getWindow } from '../dom';
+import { isWithinHydratingRoot } from '../hydrating-roots';
 
 // Array-slot contexts live under a derived key so a slot changing kind
 // (component ⇄ array) can never hand one kind's context state to the other.
@@ -63,6 +64,15 @@ export const appendChildContext = (
     }
 };
 
+/** Drops the child context(s) a reconciled array item held under `key`. */
+export const releaseChildContext = (
+    parentCtx: ComponentContextPartial,
+    key: number | string
+) => {
+    parentCtx.children?.delete(key);
+    parentCtx.children?.delete(arraySlotKey(key));
+};
+
 // Resolves which kind of context function a template value is, if any. The
 // explicit marker set at creation survives minification; the name checks
 // keep values from older core copies recognizable.
@@ -95,6 +105,20 @@ export const getContextForValue = (value: TemplateTagValue) =>
 
 export const getContextRootAnchor = (ctx: ComponentContextPartial) =>
     Array.isArray(ctx.root) ? ctx.root[0] : (ctx.root as TemplateRoot);
+
+/**
+ * `true` when `ctx` has rendered and its root is still live — in the
+ * document, or inside a pending hydrate render's detached tree (the same
+ * liveness `htmlParser` requires to update an instance in place).
+ */
+export const isLiveContext = (ctx: ComponentContextPartial) => {
+    const anchor = ctx.root ? getContextRootAnchor(ctx) : undefined;
+
+    return (
+        !!anchor &&
+        (getDocument().contains(anchor) || isWithinHydratingRoot(anchor))
+    );
+};
 
 export const getShareableContext = (ctx: ComponentContextPartial) =>
     ({

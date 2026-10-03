@@ -61,6 +61,41 @@ Handlers stack. Every call to a hook during a render appends to that event's lis
 
 A component that is unmounted and then mounted again is created again. Its render function runs, the handlers it registers replace the ones from before the unmount, and `onCreated` fires once more. Handlers registered through a `ref` carry over.
 
+## When a component re-renders
+
+A mounted component instance re-renders in two cases: one of its props changed, or an activity it uses in its template updated. A prop has changed when its value is not the same as the previous render's, compared one level deep — a `children` array counts as changed when it is a different array, even with the same items.
+
+A parent's re-render alone does not re-run a child whose props are unchanged. The child keeps its rendered node, its `onBeforeRender` and `onRendered` handlers stay quiet, and any `effect` or `bind` inside it keeps tracking its own activity as before. Two things always render: the first render, and a component that is mounted again after an unmount.
+
+A value a render function reads from outside its props — a module variable, a closure — is only read when the render runs. Nothing re-renders the component when such a value changes, so a value that should drive the output belongs in a prop or an [activity](/docs/activities).
+
+```ts
+import { activity, component } from '@loom-js/core';
+
+const rows = activity([{ id: 1, label: 'one' }, { id: 2, label: 'two' }]);
+
+const Row = component<{ label: string }>(
+    (html, { label, onRendered }) => {
+        onRendered(() => console.log('rendered', label));
+        return html`<li>${label}</li>`;
+    }
+);
+
+const List = component(
+    (html) => html`
+        <ul>
+            ${rows.effect(({ value }) =>
+                value.map(({ id, label }) => Row({ key: id, label }))
+            )}
+        </ul>
+    `
+);
+
+// Changing one row's label re-renders that row; the other row's
+// `onRendered` does not fire.
+rows.update([{ id: 1, label: 'one' }, { id: 2, label: 'TWO' }]);
+```
+
 ## Built-in props
 
 Beside the caller's own props, every render function receives a built-in surface: the **reserved props** any component may be handed (typed on every component — the framework consumes `key` & `ref` itself; everything else arrives like any other prop) and the **utilities** the framework adds alongside them.
