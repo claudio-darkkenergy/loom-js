@@ -54,6 +54,6 @@
 ## 7. Verification and housekeeping
 
 - [x] 7.1 `pnpm type-check`, `pnpm format:check`, `pnpm -F @loom-js/bench test-ci`, `pnpm -F @loom-js/loom test-ci`, full `pnpm build` from a clean turbo cache
-- [ ] 7.2 Preview deploy with a forced bench miss (`.puppeteerrc.cjs` already skips the Chrome download on Vercel); confirm `/benchmarks` shows `runner: vercel` numbers — if Chromium fails to launch, implement the D6 fallback (GitHub Actions `turbo run bench` into the remote cache)
+- [x] 7.2 Preview deploy with a forced bench miss (`.puppeteerrc.cjs` already skips the Chrome download on Vercel); confirm `/benchmarks` shows `runner: vercel` numbers — if Chromium fails to launch, implement the D6 fallback (GitHub Actions `turbo run bench` into the remote cache)
 - [x] 7.3 Update `.claude/skills/skill-config.md` (new workspace, bench task, results path) and CLAUDE.md (`apps/bench`, `pnpm bench`, `bench:update`, first-build cost)
 - [x] 7.4 Check `SOLID-AUDIT-REPORT.md` for open violations in touched loom files before editing them
