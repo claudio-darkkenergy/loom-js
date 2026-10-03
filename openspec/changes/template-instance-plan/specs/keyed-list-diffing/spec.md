@@ -17,4 +17,13 @@ When a reconciliation pass reuses no previous item and the previous items' nodes
 #### Scenario: A parent holding other nodes keeps the per-item path
 
 - **WHEN** a list whose parent also holds a static sibling is replaced by new keys
-- **THEN** the static sibling stays in place and the items are removed and inserted individually
+- **THEN** the static sibling stays in place, the leaving nodes are removed one by one and the new items are inserted before the sibling
+
+### Requirement: Consecutive placements are one insertion
+
+When several consecutive items of the new order need placing before the same following item (new items, or items that moved), the pass SHALL insert their nodes in one operation; items that keep their relative order are still never moved.
+
+#### Scenario: An append is one insertion
+
+- **WHEN** 1 000 keyed items are appended to 1 000 existing ones
+- **THEN** the new items' nodes are inserted with one insertion, after the last existing node, and no existing node is moved
