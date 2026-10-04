@@ -4,7 +4,7 @@
 
 Defines the docs section's shape in `@loom-js/loom`: one topic per consumer-facing concept in `packages/core/README.md` (per the change's content map), each reachable at `/docs/<slug>`, a side nav listing topics in learning-path order with the current topic marked, previous/next navigation derived from the listing order, and client-side (SPA router) navigation for cross-topic links.
 
-Established by the `align-loom-docs-with-core-readme` change (2026-08-28).
+Established by the `align-loom-docs-with-core-readme` change (2026-08-28); the pink group after the core groups was added by `docs-pink-section` (2026-10-04).
 
 ## Requirements
 
@@ -34,12 +34,12 @@ The docs section SHALL expose one topic per consumer-facing concept in `packages
 
 ### Requirement: Side nav lists topics in learning-path order
 
-The docs side nav SHALL present the content map's topics in the map's order, partitioned contiguously into named concept groups rendered as collapsible sections; the group containing the active topic SHALL render open (including in server-rendered markup), the selected topic SHALL be marked, and trailing utility topics (non-README topics such as `feedback`) SHALL appear within the final group after the mapped set. Flattening the groups' children SHALL reproduce the content map's exact order.
+The docs side nav SHALL present the core content map's topics in the map's order, partitioned contiguously into named concept groups rendered as collapsible sections, followed by the pink content map's topics as one further group; the group containing the active topic SHALL render open (including in server-rendered markup), the selected topic SHALL be marked, and trailing utility topics (non-README topics such as `feedback`) SHALL appear within the final core group after the mapped set. Flattening the groups' children SHALL reproduce the core map's exact order followed by the pink map's exact order.
 
 #### Scenario: Grouped, ordered listing
 
 - **WHEN** the docs page listing renders
-- **THEN** group sections appear in map order, each listing its topics in map order, and flattening the groups yields the map's exact topic sequence
+- **THEN** group sections appear in map order, each listing its topics in map order, and flattening the groups yields the core map's topic sequence followed by the pink map's
 
 #### Scenario: Active group open
 
@@ -54,7 +54,7 @@ The docs side nav SHALL present the content map's topics in the map's order, par
 #### Scenario: Derived navigation follows the flat order
 
 - **WHEN** prev/next pagination renders for any topic
-- **THEN** it follows the flattened listing order, crossing group boundaries as if the listing were flat
+- **THEN** it follows the flattened listing order, crossing group boundaries — including the boundary between the last core group and the pink group — as if the listing were flat
 
 ### Requirement: Topics link to adjacent topics
 
