@@ -81,10 +81,7 @@ let topicTitles = new Map<string, string>();
 let benchFrameworkNames: string[] = [];
 
 export default defineConfig<LoomPrerenderBundle>({
-    copy: [
-        { from: './mocks/**/*', to: './mocks' },
-        { from: '../bench/results/latest.json', to: './static/bench' }
-    ],
+    copy: [{ from: '../bench/results/latest.json', to: './static/bench' }],
     define: {
         __API_URL__: apiUrl,
         __CTF_IS_PREVIEW__: ctfIsPreview

@@ -8,8 +8,8 @@ import classNames from 'classnames';
 
 import styles from './styles.module.css';
 import { HeroBanner } from '@/app/components/containers/hero-banner';
-import { Features } from '@/app/topics/home/components/features';
-import { SyntaxCards } from '@/app/topics/home/components/syntax-container.ts/SyntaxContainer';
+import { Features } from '@/app/pages/home/components/features';
+import { SyntaxCards } from '@/app/pages/home/components/syntax-container';
 
 const Home: SimpleComponent = (props) => {
     const features = [
