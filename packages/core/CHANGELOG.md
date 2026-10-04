@@ -1,5 +1,16 @@
 # @loom-js/core
 
+## 0.20.0
+
+### Minor Changes
+
+- 6bd03e4: Keyed lists reconcile with a key index and minimal moves: a swap moves two nodes, a removal moves none, an append inserts only the new items, and a key that leaves releases its child context. A component context function carries its `key` as a property, so the reconciler reads keys without rendering. A mounted component re-invoked with unchanged props (shallow-equal, `children` by reference) keeps its rendering — a parent's re-render alone no longer re-runs a child's template; its own activities still drive their effects. Attribute bindings skip the DOM write when the projected value is unchanged. Fix: context functions are detected by their kind marker everywhere, so a minified build without `keepNames` reuses keyed items like any other build.
+
+### Patch Changes
+
+- ee31880: Rendering a component instance is cheaper: dynamic paths update through a plain per-instance updater list diffed on re-render instead of one reactive effect per slot, life-cycle events dispatch directly instead of through a reactive proxy per instance, the mount/unmount scan uses one native element collection per mutated node, and per-instance collections are created on first use. Same behavior; 1 000 bench rows render in about 35 % less time and hold about half the heap.
+- 9aa8cc8: A template's dynamic wiring is compiled once per template and document and shared by every instance: the parsed fragment is normalized up front (slot tokens split into their own text nodes, special attributes stripped), and each instance keeps one slot per dynamic path — its node, last value and the little state its kind needs — applied through shared per-kind update functions instead of a closure per path. Life-cycle setters are created per render and no longer stored on the context, handler lists exist from the first registration, a text slot writes a primitive into the text node it owns, and a reconciled list that replaces every item does so with one `replaceChildren` while consecutive new items insert in one operation. A keyed pass allocates nothing per unchanged item (props compared in place, the key index kept between passes, no LIS when order is preserved), the mount/unmount scan walks elements instead of creating a collection per node, and resetting a context never deletes a property. Same behavior; 1 000 bench rows hold about half the heap and create, replace and clear in 25–35 % less time.
+
 ## 0.19.0
 
 ### Minor Changes
