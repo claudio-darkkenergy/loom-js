@@ -1,5 +1,12 @@
 # @loom-js/pink
 
+## 0.7.1
+
+### Patch Changes
+
+- d272a75: Export the code panel's highlighting contract: `Tokenize`, `CodeToken`, `TokenizeActivity` and `PinkCodePanelContentProps`, so a consumer wiring its own tokenizer can name the types `PinkCodePanel.Content` accepts.
+- d272a75: `usePinkTheming` now applies every knob it declares: `avatarBgColor` reaches the avatar in both themes (the stylesheet reads a new `--avatar-bg-color` fallback), `cardBgColor` also applies under `.theme-dark`, and `textColor` sets the page text color for the app root's subtree. New `cardPaddingMobile` knob: the padding the card uses at pink's first breakpoint and below (`--card-padding-mobile`).
+
 ## 0.7.0
 
 ### Minor Changes
