@@ -1,5 +1,11 @@
 # @loom-js/core
 
+## 0.20.1
+
+### Patch Changes
+
+- 8d15657: An array rendered into a text slot that has sibling nodes no longer leaves the placeholder token (`⚡`) behind.
+
 ## 0.20.0
 
 ### Minor Changes
