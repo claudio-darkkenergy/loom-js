@@ -28,9 +28,9 @@ The shared contract (`ComponentInputProps`, `is`, `attrs`, the modifiers) is doc
 
 ## Status
 
-**Proposal — awaiting maintainer review (task 2.2).** Everything below the line is a partition
-proposal; outlines are what the topics will contain, not what is published. Items marked
-_decide_ need a verdict at review.
+**Signed off 2026-10-04 (task 2.2, "ship it"):** the recommended options stand — the Pink group
+last, six topics, the depth rule below. Items marked _decide_ record the alternatives that were
+considered.
 
 ## Nav placement
 
@@ -155,7 +155,7 @@ tables only where the surface is large: `PinkButton`, `PinkCollapsible`, `PinkTa
   renders `<div>`s; `isOpen`), `PinkTable` (root flags; `Head`/`Body`/`Foot`/`Row`/`HeadCol`/
   `Col`/`Wrapper`; `is` for list tables and interactive rows).
 - **Notes worth carrying:** `PinkAvatar` branches `<img>`/`<div>` on `alt`; `PinkDropList`'s
-  `itemProps` vs. `children`, `DropListArrow`, and the `List`/`Item`/`Section` parts (the side
+  `itemProps` vs. `children` and the `List`/`Item`/`Section` parts (the side
   nav composes them); `PinkTabs` is link tabs with scroll controls — not the code panel's tab
   strip; `PinkToggleButton`'s `buttonProps` carry `isSelected`.
 - **Source:** `src/components/*/` except `pink-code-panel/` (owned by `pink-code-panels`).
@@ -215,7 +215,9 @@ tables only where the surface is large: `PinkButton`, `PinkCollapsible`, `PinkTa
 
 From the core map and `align-loom-docs-with-core-readme`, unchanged unless listed:
 
-- Topic files: front matter `slug`/`title`; an unheaded lead paragraph; body headings from h2;
+- Topic files: front matter `slug`/`title`, plus `entryTitle: Pink: <Title>` where the title
+  repeats a core entry's (Contentful's `entryTitle` is unique); an unheaded lead paragraph; body
+  headings from h2;
   h2/h3 anchors are the kebab-cased heading text (semi-permanent — renames are redirect notes).
 - Code samples: 4-space in source, re-indented to 2 at push; fence info `ts`/`bash`/`html`
   becomes the `// @lang` directive; install blocks use `tab=npm|yarn|pnpm group=pm`; template
@@ -233,14 +235,14 @@ From the core map and `align-loom-docs-with-core-readme`, unchanged unless liste
 Every export of `src/index.ts` has a topic above or is excluded here. Types ride with their
 value.
 
-| Export                                                                                                                                                                                                                                                                                                                                | Topic              |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| `usePinkTheming`, `PinkThemeConfig`                                                                                                                                                                                                                                                                                                   | `pink`             |
-| `PinkColor`, `PinkSize`, `PinkDynamicProps`, `withIcon`, `withTooltip`, `withAnchorLink`, `PinkCopyToClipboard`, `CopyState`, `CopyStateRender`, `PinkTooltipPopup`                                                                                                                                                                   | `pink-composition` |
-| `PinkBox`, `PinkBoxes`, `PinkButton`, `PinkButtonsList`, `PinkCard`, `PinkCopyButton`, `PinkInlineCode`, `PinkInlineTag`, `PinkInteractiveTag`, `PinkLoader`, `PinkStatus`, `PinkStatusState`, `PinkTag`, `PinkTooltip`                                                                                                               | `pink-elements`    |
-| `PinkActionBar`, `PinkAvatar`, `PinkAvatarGroup`, `PinkCollapsible`, `PinkDropList`, `DropListArrow`, `DropListItemProps`, `PinkGridItem`, `PinkTable` (+ `PinkTableCol`, `PinkTableHeadCol`, `PinkTableRow`, `PinkTableHead`, `PinkTableBody`, `PinkTableFoot`, `PinkTableWrapper`), `PinkTabs`, `LinkItemProps`, `PinkToggleButton` | `pink-components`  |
-| `PinkContainer`, `PinkGridBox`, `PinkGridHeader`, `PinkSideNav`, `PinkTopNav`, `PinkTopNavItemProps`                                                                                                                                                                                                                                  | `pink-layout`      |
-| `PinkCodePanel` (+ `Header`, `Content`, `CopyButton`, `Tabs`), `PinkCodePanelContentProps`, `Tokenize`, `CodeToken`, `TokenizeActivity`, `CodePanelTabSelection`, `PinkCodePanelTabsProps`, `resolveCodePanelTab`                                                                                                                     | `pink-code-panels` |
+| Export                                                                                                                                                                                                                                                                                                               | Topic              |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| `usePinkTheming`, `PinkThemeConfig`                                                                                                                                                                                                                                                                                  | `pink`             |
+| `PinkColor`, `PinkSize`, `PinkDynamicProps`, `withIcon`, `withTooltip`, `withAnchorLink`, `PinkCopyToClipboard`, `CopyState`, `CopyStateRender`, `PinkTooltipPopup`                                                                                                                                                  | `pink-composition` |
+| `PinkBox`, `PinkBoxes`, `PinkButton`, `PinkButtonsList`, `PinkCard`, `PinkCopyButton`, `PinkInlineCode`, `PinkInlineTag`, `PinkInteractiveTag`, `PinkLoader`, `PinkStatus`, `PinkStatusState`, `PinkTag`, `PinkTooltip`                                                                                              | `pink-elements`    |
+| `PinkActionBar`, `PinkAvatar`, `PinkAvatarGroup`, `PinkCollapsible`, `PinkDropList`, `DropListItemProps`, `PinkGridItem`, `PinkTable` (+ `PinkTableCol`, `PinkTableHeadCol`, `PinkTableRow`, `PinkTableHead`, `PinkTableBody`, `PinkTableFoot`, `PinkTableWrapper`), `PinkTabs`, `LinkItemProps`, `PinkToggleButton` | `pink-components`  |
+| `PinkContainer`, `PinkGridBox`, `PinkGridHeader`, `PinkSideNav`, `PinkTopNav`, `PinkTopNavItemProps`                                                                                                                                                                                                                 | `pink-layout`      |
+| `PinkCodePanel` (+ `Header`, `Content`, `CopyButton`, `Tabs`), `PinkCodePanelContentProps`, `Tokenize`, `CodeToken`, `TokenizeActivity`, `CodePanelTabSelection`, `PinkCodePanelTabsProps`, `resolveCodePanelTab`                                                                                                    | `pink-code-panels` |
 
 The `PinkTable*` sub-components are also exported flat; the topic documents them as
 `PinkTable.<Part>` and mentions the flat names once.

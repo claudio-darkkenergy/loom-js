@@ -3,13 +3,6 @@ import classNames from 'classnames';
 
 import { WithIconProps, withIcon } from '../../modifiers/with-icon';
 
-export enum DropListArrow {
-    Start = '',
-    Center = 'center',
-    End = 'end',
-    NoArrow = 'no-arrow'
-}
-
 export type DropListItemProps = WithIconProps & {
     href?: string;
     isSelected?: boolean;
@@ -17,9 +10,6 @@ export type DropListItemProps = WithIconProps & {
 };
 
 interface DropListProps {
-    arrow?: DropListArrow;
-    isBlockEnd?: boolean;
-    isInlineEnd?: boolean;
     itemProps?: ComponentInputProps<DropListItemProps>[];
     listItemProps?: ComponentInputProps;
 }

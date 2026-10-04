@@ -73,7 +73,9 @@ def main():
         if ONLY_SLUGS and slug not in ONLY_SLUGS:
             continue
         fields = {
-            'entryTitle': {'en-US': title},
+            # `entryTitle` is unique across the space; a topic whose title
+            # repeats another entry's (pink's "Components") overrides it.
+            'entryTitle': {'en-US': meta.get('entryTitle', title)},
             'slug': {'en-US': slug},
             'title': {'en-US': title},
             'description': {'en-US': document}

@@ -7,16 +7,16 @@
 ## 2. Map (review gate)
 
 - [x] 2.1 Write the pink content map: topic partition proposal, per-topic outlines, source pointers (`packages/pink/src/**`, stories), carried conventions (pink-named examples, code-sample rules) _(2026-10-04: `docs/pink-content-map.md` — six topics proposed; the two `decide` items and the depth rule await 2.2)_
-- [ ] 2.2 Maintainer reviews the map — no entry work before sign-off
+- [x] 2.2 Maintainer reviews the map — no entry work before sign-off _(2026-10-04: "ship it" — recommendations stand: Pink group last, six topics, the depth rule)_
 
 ## 3. Content
 
-- [ ] 3.1 Author topics in `contentful-sync/`-style sources; push as drafts; maintainer reviews
-- [ ] 3.2 Create the group/listing entries per the nav shape from 1.1 (drafts)
+- [x] 3.1 Author topics in `contentful-sync/`-style sources; push as drafts; maintainer reviews _(2026-10-04: `docs/topics/17-pink.md` … `22-pink-code-panels.md`; all 29 `ts` samples type-check against the workspace packages; pushed as drafts, ids in `ids.json`)_
+- [x] 3.2 Create the group/listing entries per the nav shape from 1.1 (drafts) _(2026-10-04: group entry `iMRdec1x9OpnTC04r2QTg` "Docs nav group: Pink" linking the six topics; appended to the `/docs` page listing after Reference)_
 
 ## 3b. Package card
 
-- [ ] 3b.1 Write `packages/pink/README.md` as the npm card (purpose/layering paragraph, install, one example, docs-home + Storybook links); no API reference
+- [x] 3b.1 Write `packages/pink/README.md` as the npm card (purpose/layering paragraph, install, one example, docs-home + Storybook links); no API reference _(2026-10-04; patch changeset so it reaches npm)_
 
 ## 3c. Pink fixes from the map
 
@@ -25,5 +25,5 @@
 
 ## 4. Publish & verify
 
-- [ ] 4.1 Publish with the listing; verify nav placement, topic rendering, Storybook links
-- [ ] 4.2 Verify against `docs-pink-coverage`: topics match the map; drift obligation recorded in the map header
+- [x] 4.1 Publish with the listing; verify nav placement, topic rendering, Storybook links _(2026-10-04: six topics + group + page published together; a production `loom build` in preview mode prerendered all 25 routes with `validate` passing — Pink is the sixth group, open on its topics, `feedback` paginates forward to `pink`, every cross-linked anchor resolves, `llms.txt` lists the group; Storybook at `loom-js-pink.vercel.app` answers 200)_
+- [x] 4.2 Verify against `docs-pink-coverage`: topics match the map; drift obligation recorded in the map header _(2026-10-04: six slugs and outlines as mapped; export coverage covers every `src/index.ts` export; the map header carries the drift obligation and the per-topic source/story pointers)_
