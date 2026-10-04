@@ -1,6 +1,7 @@
 ---
 slug: pink-components
 title: Components
+package: @loom-js/pink
 entryTitle: Pink: Components
 ---
 Components are pink's composite pieces: a table, a collapsible, a drop list, tabs, avatars. Each takes the [shared props](/docs/pink-composition) plus those listed here, and the structured ones expose their parts as properties. [Code Panels](/docs/pink-code-panels) has a topic of its own.

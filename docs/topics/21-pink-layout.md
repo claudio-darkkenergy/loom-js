@@ -1,6 +1,7 @@
 ---
 slug: pink-layout
 title: Layout
+package: @loom-js/pink
 entryTitle: Pink: Layout
 ---
 The layout components frame a page: a container, a grid, a page header, a side nav and a top nav. They are the pieces the docs site itself is built from, so the closing section shows them assembled. Each takes the [shared props](/docs/pink-composition) plus those listed here.

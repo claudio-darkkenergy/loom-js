@@ -1,6 +1,7 @@
 ---
 slug: pink
 title: Pink
+package: @loom-js/pink
 ---
 `@loom-js/pink` is the design system for loom apps: a stylesheet, an icon font, and a set of loom components that emit its class names. The stylesheet is Pink Design 1.0, continued from Appwrite's archived project; the components, theming hook and code panels are loom's. This topic covers what the package is, how to install it, and where its theming surface sits.
 

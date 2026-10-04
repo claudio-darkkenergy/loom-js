@@ -1,6 +1,7 @@
 ---
 slug: pink-elements
 title: Elements
+package: @loom-js/pink
 entryTitle: Pink: Elements
 ---
 Elements are pink's single-purpose building blocks: a button, a card, a tag, a loader. Each takes the [shared props](/docs/pink-composition) plus the handful listed here, and each has a story in Storybook's Elements group. Props are shown as element-syntax attributes; the functional form takes the same names.

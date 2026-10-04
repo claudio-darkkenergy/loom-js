@@ -215,9 +215,10 @@ tables only where the surface is large: `PinkButton`, `PinkCollapsible`, `PinkTa
 
 From the core map and `align-loom-docs-with-core-readme`, unchanged unless listed:
 
-- Topic files: front matter `slug`/`title`, plus `entryTitle: Pink: <Title>` where the title
-  repeats a core entry's (Contentful's `entryTitle` is unique); an unheaded lead paragraph; body
-  headings from h2;
+- Topic files: front matter `slug`/`title`, `package: @loom-js/pink` (keeps the topic out of
+  core's `llms-full.txt`), plus `entryTitle: Pink: <Title>` where the title repeats a core
+  entry's (Contentful's `entryTitle` is unique); an unheaded lead paragraph; body headings from
+  h2;
   h2/h3 anchors are the kebab-cased heading text (semi-permanent — renames are redirect notes).
 - Code samples: 4-space in source, re-indented to 2 at push; fence info `ts`/`bash`/`html`
   becomes the `// @lang` directive; install blocks use `tab=npm|yarn|pnpm group=pm`; template

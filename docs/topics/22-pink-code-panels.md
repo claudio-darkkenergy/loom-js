@@ -1,6 +1,7 @@
 ---
 slug: pink-code-panels
 title: Code Panels
+package: @loom-js/pink
 entryTitle: Pink: Code Panels
 ---
 `PinkCodePanel` renders a block of code: a header with a label, tabs and a copy button, and a content area with line numbers and syntax highlighting. Pink carries no highlighter of its own — the panel takes a tokenizer from the app, and `@loom-js/highlight` is the one loom ships. This topic covers the parts, the highlighting contract, tabbed variants and the token theme. Every code sample on this site is one of these panels.

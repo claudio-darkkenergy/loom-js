@@ -1,6 +1,7 @@
 ---
 slug: pink-composition
 title: Composing
+package: @loom-js/pink
 entryTitle: Pink: Composing
 ---
 Every pink component follows the same contract, so once you know how one takes props you know them all. This topic is that contract: the props core gives every component, how pink threads them to its root element, the `is` prop that swaps the root, the compound parts, and the modifiers and behaviors that add an icon, a tooltip or a copy action to anything.
