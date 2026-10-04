@@ -43,10 +43,12 @@ per topic.
 | 12  | `dehydrated-state` | Dehydrated State |
 | 13  | `diagnostics`      | Diagnostics      |
 | 14  | `build-tool`       | Build Tool       |
+| 15  | `app-structure`    | App Structure    |
 
 `feedback` is a trailing utility topic with no core source; it is outside this map. `build-tool` is
 anchored on `packages/build` and the html-split plugin rather than core — its pointers below are
-repo-relative.
+repo-relative. `app-structure` is anchored on the reference app, `apps/loom`, the same way; in the nav
+it sits before `build-tool`.
 
 ### 1. `getting-started`
 
@@ -273,6 +275,27 @@ are directives, stripped by the renderer (`apps/loom/src/app/components/content/
   `packages/esbuild-plugin-html-split/src/types.ts`, `src/route-css.ts` (`routeScopeOf`);
   `packages/core/src/boot-contract.ts`. `apps/loom/loom.config.ts` is the reference consumer.
 - **Tests:** `packages/build/tests/build.test.mjs`.
+
+### 15. `app-structure`
+
+- **Outline:**
+    - The three module roles
+    - Import direction
+    - Scope rules
+    - Pages and routes
+    - Components and logic
+    - The shell and static files
+    - Aliases and config homes
+    - Build-time code
+    - The full tree
+- **Source (repo-relative):** `apps/loom/src/app/app.ts`, `bootstrap.ts`, `prerender.entry.ts`
+  (the three roles, import direction, scope rules), `apps/loom/src/app/pages/`, `components/`,
+  `logic/` (the directory conventions), `apps/loom/loom.config.ts` (`html`, `publicDir`, `styles`,
+  `prerender`), `apps/loom/tsconfig.json` (the alias), `apps/loom/src/app/types/declarations.d.ts`,
+  `apps/loom/vercel.json`, `apps/loom/project/`; `packages/build/tests/fixtures/app/src/*` (the
+  minimal three-file form the examples follow).
+- **Drift check:** the topic's tree against `git ls-files apps/loom`. A change to the reference
+  app's entry, module roles, alias or shell conventions updates this topic.
 
 ## Shared pointers
 

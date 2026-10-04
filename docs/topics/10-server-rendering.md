@@ -62,7 +62,7 @@ The shell is an ordinary HTML file you own — the placeholder marks where the a
 `handleRequest` is fetch-shaped, so it wires into any modern server runtime — a serverless function, a framework that speaks `Request`/`Response` (Hono, SvelteKit-style adapters), or Node's `http` via a small adapter. And the client entry — a separate, browser-only module — boots on top of the served markup:
 
 ```ts
-// client.ts — the browser entry `/client.js` is bundled from. Note the
+// bootstrap.ts — the browser entry `/client.js` is bundled from. Note the
 // import arrows: this module and the server handler both import the shared
 // `@app/app` component module (import-safe off-browser, no DOM at module
 // scope); neither imports the other. Only the shell's script tag loads this
@@ -74,6 +74,8 @@ import { App } from '@app/app';
 
 hydrate({ app: App(), root: document.querySelector('#page-content') });
 ```
+
+[App Structure](/docs/app-structure) covers where these modules live and which may import which.
 
 The full loop, then: serve `handleRequest`'s HTML, and `/client.js` takes it over — keeping top-level `document` access in the browser-only entry, never in modules the server imports — `hydrate`'s own semantics (the settle-and-swap, its gates) are [Client Hydration](/docs/hydration)'s subject.
 
