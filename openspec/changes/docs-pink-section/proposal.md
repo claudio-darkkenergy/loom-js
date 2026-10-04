@@ -6,7 +6,7 @@
 
 ## What Changes
 
-- The docs site gains a pink section — its own nav group under the grouped side nav (`docs-grouped-side-nav`'s Reference tail, or a sibling group; grouping review decides): an overview topic (what pink is, its relationship to `@appwrite.io/pink`, install/inclusion, theming basics) plus reference topics scoped at review (candidates: elements, components, behaviors + modifiers, code panels & highlighting wiring with `@loom-js/highlight`).
+- The docs site gains a pink section — its own nav group under the grouped side nav (`docs-grouped-side-nav`'s Reference tail, or a sibling group; grouping review decides): an overview topic (what pink is, its origin in the archived appwrite/pink, install/inclusion, theming basics) plus reference topics scoped at review (candidates: elements, components, behaviors + modifiers, code panels & highlighting wiring with `@loom-js/highlight`).
 - Content is authored from pink's source and stories the way core topics are authored from the README — with a recorded source-of-truth convention so drift is checkable (pink has no README equivalent today; the map-style outline this change produces becomes that anchor).
 - Pink gains a minimal package README (purpose, install, one example, links to the docs home + Storybook) — an npm card, not a second documentation source; the content map remains the drift anchor.
 - Storybook remains the component playground; the docs section owns concepts, install, and API reference, linking into Storybook rather than duplicating every story.
@@ -20,11 +20,11 @@
 
 ### Modified Capabilities
 
-_None — nav placement rides the grouped-side-nav / trailing-topics deltas._
+- `docs-information-architecture`: the side nav gains the pink group after the core groups; trailing utility topics stay in the final _core_ group, and the flattened order is the core map followed by the pink map.
 
 ## Impact
 
 - Contentful — new topic entries under a pink group (model unchanged; same `content` nesting as `docs-grouped-side-nav`).
 - `apps/loom` — none expected beyond the grouped nav (listing-driven).
 - `openspec` — this change produces a pink content map artifact (its review gate) mirroring `align-loom-docs-with-core-readme`'s.
-- Pink itself — no code; if outlining exposes API gaps or naming warts, they spawn their own pink changes.
+- Pink itself — the fixes outlining exposed ride along (patch changesets): the code panel's highlighting contract types are exported, the `PinkActionBar` story moves under `Components/`, a stale story comment is corrected, and `usePinkTheming`'s dead knobs (`avatarBgColor`, `textColor`, `cardBgColor` in dark) are wired so the docs describe a theming surface that works. Larger API gaps still spawn their own pink changes.

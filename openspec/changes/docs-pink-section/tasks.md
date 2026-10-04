@@ -2,11 +2,11 @@
 
 ## 1. Sequencing gates
 
-- [ ] 1.1 Confirm `docs-feedback-topic` (trailing-topics allowance) has landed; note whether `docs-grouped-side-nav` has (group placement) — proceed with the matching nav shape
+- [x] 1.1 Confirm `docs-feedback-topic` (trailing-topics allowance) has landed; note whether `docs-grouped-side-nav` has (group placement) — proceed with the matching nav shape _(2026-10-04: both archived — 2026-09-21 and 2026-09-26; nav shape is a sixth "Pink" group after Reference, with the `docs-information-architecture` MODIFIED delta added to this change)_
 
 ## 2. Map (review gate)
 
-- [ ] 2.1 Write the pink content map: topic partition proposal, per-topic outlines, source pointers (`packages/pink/src/**`, stories), carried conventions (pink-named examples, code-sample rules)
+- [x] 2.1 Write the pink content map: topic partition proposal, per-topic outlines, source pointers (`packages/pink/src/**`, stories), carried conventions (pink-named examples, code-sample rules) _(2026-10-04: `docs/pink-content-map.md` — six topics proposed; the two `decide` items and the depth rule await 2.2)_
 - [ ] 2.2 Maintainer reviews the map — no entry work before sign-off
 
 ## 3. Content
@@ -17,6 +17,11 @@
 ## 3b. Package card
 
 - [ ] 3b.1 Write `packages/pink/README.md` as the npm card (purpose/layering paragraph, install, one example, docs-home + Storybook links); no API reference
+
+## 3c. Pink fixes from the map
+
+- [x] 3c.1 Export `Tokenize`, `CodeToken`, `TokenizeActivity`, `PinkCodePanelContentProps` from the package; retitle the `PinkActionBar` story under `Components/`; fix the code-panel story's tokenizer comment — patch changeset _(2026-10-04)_
+- [x] 3c.2 Make every `usePinkTheming` knob apply: `--avatar-bg-color` fallback in `_avatar.scss` (both themes), `--card-bg-color` fallback in the card's dark block, `textColor` → `--p-body-text-color` + root `color`; new `cardPaddingMobile` knob — patch changeset _(2026-10-04)_
 
 ## 4. Publish & verify
 

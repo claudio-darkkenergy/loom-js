@@ -2,7 +2,7 @@
 
 ## Context
 
-Pink's surface today: elements (buttons, cards, inline code, copy button, tooltip popup…), components (code panel with tabs/copy/highlighting hooks, tables, tabs, side/top nav…), behaviors (`PinkCopyToClipboard`), modifiers (`withIcon`, `withTooltip`, `withAnchorLink`), the `--p-code-token-*` theme contract, and a peer relationship with `@appwrite.io/pink` (upstream CSS) + `@loom-js/core`. Storybook (port 6006) is the live catalog. The core docs' authoring pipeline (content map → drafts → review → publish, `contentful-sync/`) is proven and reusable.
+Pink's surface today: elements (buttons, cards, inline code, copy button, tooltip popup…), components (code panel with tabs/copy/highlighting hooks, tables, tabs, side/top nav…), behaviors (`PinkCopyToClipboard`), modifiers (`withIcon`, `withTooltip`, `withAnchorLink`), the `--p-code-token-*` theme contract, its own stylesheet and icon font (the appwrite/pink 1.0.0 source adopted by `adopt-pink-source`, 2026-10-04), and a peer dependency on `@loom-js/core`. Storybook (port 6006; `loom-js-pink.vercel.app`) is the live catalog. The core docs' authoring pipeline (content map → drafts → review → publish, `contentful-sync/`) is proven and reusable.
 
 ## Goals / Non-Goals
 
@@ -14,11 +14,11 @@ Pink's surface today: elements (buttons, cards, inline code, copy button, toolti
 
 ### D1 — Own group, overview-first
 
-A "Pink" nav group with an overview topic leading it: positioning (design system for loom, layered on Appwrite's Pink), install/peer setup, theming entry points (`code-tokens.css`, CSS variables), and a Storybook pointer. Reference topics follow in the group, scoped by the outline review.
+A "Pink" nav group with an overview topic leading it: positioning (design system for loom, Pink Design 1.0 continued from the archived appwrite/pink), install and the two stylesheet imports, theming entry points (theme classes, `usePinkTheming`, CSS variables), and a Storybook pointer. Reference topics follow in the group, scoped by the outline review. The group sits last, after Reference; `docs-information-architecture` is amended so trailing utility topics stay in the final _core_ group (the change's MODIFIED delta).
 
 ### D2 — The pink content map is the drift anchor
 
-Core topics diff against the core README; pink has no such document, so the map this change produces (headings → topic outlines → source pointers into `packages/pink/src/**` and stories) _is_ the standing anchor, checked into the change and referenced by the coverage spec. If pink later grows a real README, the map re-anchors to it in a follow-up.
+Core topics diff against the core README; pink has no such document, so the map this change produces (headings → topic outlines → source pointers into `packages/pink/src/**` and stories) _is_ the standing anchor, referenced by the coverage spec. It lives at `docs/pink-content-map.md` beside the core map (`readme-slim-down` moved the core map out of its change for the same reason: an archived change directory is not a living anchor) — amended 2026-10-04. If pink later grows a real README, the map re-anchors to it in a follow-up.
 
 ### D3 — Reuse the authoring pipeline wholesale
 
