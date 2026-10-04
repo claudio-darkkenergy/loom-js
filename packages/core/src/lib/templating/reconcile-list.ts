@@ -323,9 +323,9 @@ export const handleArrayValue = (
 
     placePending();
 
-    if (!liveNodeIsArray && liveNode && anchor !== liveNode) {
+    if (!liveNodeIsArray && liveNode) {
         // The single live node was the placeholder the list replaced — unless
-        // it is itself the first item now.
+        // it is itself an item now.
         !nextLiveNode.includes(liveNode) && liveNode.remove();
     }
 

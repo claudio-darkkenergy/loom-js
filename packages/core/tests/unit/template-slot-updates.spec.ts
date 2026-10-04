@@ -151,6 +151,33 @@ describe('template slot updates', () => {
             expect($box.firstChild?.nodeType).to.equal(Node.TEXT_NODE);
             expect($box.textContent).to.equal('two');
         });
+
+        it('should replace the placeholder when an array lands beside sibling nodes', async () => {
+            const Item = component<{ label?: string }>(
+                (html, { label }) => html`
+                    <li>${label}</li>
+                `
+            );
+            const TestComponent = component(
+                (html) => html`
+                    <ul data-list>
+                        <li>first</li>
+                        ${[Item({ label: 'a' }), Item({ label: 'b' })]}${[
+                            Item({ label: 'c' })
+                        ]}
+                        <li>last</li>
+                    </ul>
+                `
+            );
+            const $test = await runSetup({ containerProps: { TestComponent } });
+            const $list = $test.querySelector('[data-list]')!;
+
+            expect(
+                Array.from($list.childNodes)
+                    .map(({ textContent }) => textContent?.trim())
+                    .filter(Boolean)
+            ).to.deep.equal(['first', 'a', 'b', 'c', 'last']);
+        });
     });
 
     describe('re-renders apply only changed slots', () => {
