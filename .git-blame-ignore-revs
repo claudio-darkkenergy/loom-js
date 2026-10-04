@@ -5,3 +5,6 @@
 
 # style: reformat the tree with prettier 3.9.6 + working import sorter
 23074c73a7371fba5db504a0ec6f079134e01669
+
+# style(pink): prettier the adopted appwrite/pink scss and icon scripts
+ee9869adad3f1519679fecf8ba15dff756cf247d

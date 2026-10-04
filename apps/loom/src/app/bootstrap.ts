@@ -1,5 +1,3 @@
-import '@appwrite.io/pink';
-import '@appwrite.io/pink-icons';
 import {
     APP_ROOT_ID,
     hydrate,
@@ -7,9 +5,8 @@ import {
     STATE_SCRIPT_ID,
     type SerializedStateEnvelope
 } from '@loom-js/core';
-import '@loom-js/pink/styles/code-panel-tabs.css';
-import '@loom-js/pink/styles/code-tokens.css';
-import '@loom-js/pink/styles/side-nav.css';
+import '@loom-js/pink/icons.css';
+import '@loom-js/pink/pink.css';
 
 import { App } from './app';
 

@@ -158,3 +158,9 @@
         }
     }
 }
+
+/* Collapsible groups: the group header aligns with the drop buttons' inline
+   padding (their 12px default), on top of the `.collapsible-wrapper` reset. */
+.side-nav .collapsible-button {
+    padding-inline: pxToRem(12);
+}

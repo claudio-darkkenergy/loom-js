@@ -1,6 +1,6 @@
-// import '@appwrite.io/pink';
+// import '@loom-js/pink/pink.css';
 // optionally, add icons
-// import '@appwrite.io/pink-icons';
+// import '@loom-js/pink/icons.css';
 import {
     APP_ROOT_ID,
     type AnyComponent,

@@ -84,7 +84,7 @@ Concepts you will see across consumers:
 
 ### Other packages
 
-- **`@loom-js/pink`** — Design system layered on `@appwrite.io/pink`. Has Storybook at port 6006 and is the only package with a `build` script (alias for `build-storybook`). peerDep: `@loom-js/core`.
+- **`@loom-js/pink`** — The design system: Pink Design 1.0 adopted from the archived appwrite/pink (`scss/` is the stylesheet source, `icons/` the SVG set + built icon font; `NOTICE` carries provenance and licenses) with loom components in `src/`. `build-package` compiles `scss/_index.scss` → `dist/pink.css`; consumers import `@loom-js/pink/pink.css` and `@loom-js/pink/icons.css`. Has Storybook at port 6006 and is the only package with a `build` script (alias for `build-storybook`). peerDep: `@loom-js/core`.
 - **`@loom-js/build`** (`packages/build`) — the build tool: CLI + `defineConfig`, the default shell template, the esbuild assembly and the prerender pipeline (`src/prerender.ts`). `node --test` suite drives the fixture app under `tests/fixtures/app`: `pnpm -F @loom-js/build test-ci`. Consumer-visible changes here update the `build-tool` docs topic.
 - **`@loom-js/esbuild-plugin-html-split`** (`packages/esbuild-plugin-html-split`) — the shell-per-route esbuild plugin `@loom-js/build` wraps; published for raw-esbuild users. Its README documents options, template args and chunk classification.
 

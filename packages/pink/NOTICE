@@ -5,7 +5,7 @@ Source: https://github.com/appwrite/pink
 Commit: bfc9ba160fcd444e6dbbf45ee31d59213cece1c6 (packages/ui 1.0.0, packages/icons 1.0.0)
 Adopted: 2026-10-04 — `scss/` (packages/ui/src), `icons/svg`, `icons/templates`
 and the icon build scripts (packages/icons), `icons/font` (the published
-@appwrite.io/pink-icons@1.0.0 dist).
+@appwrite.io/pink-icons@1.0.0 dist, without the SVG-font fallback files).
 
 --------------------------------------------------------------------------------
 Pink Design — MIT License

@@ -8,6 +8,8 @@ packages:
     - 'services'
     - '!packages/ui-kit'
 allowBuilds:
+    # sass's optional watcher — only `sass --watch` needs it; the build never does.
+    '@parcel/watcher': false
     core-js-pure: true
     esbuild: true
     puppeteer: true

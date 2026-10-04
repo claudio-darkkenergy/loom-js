@@ -33,3 +33,29 @@
         --p-code-panel-text-color: var(--color-neutral-5);
     }
 }
+
+/* Tab strip — sizes `.tabs` into the panel header's label line, like the
+   copy button. */
+.code-panel-header:has(.code-panel-tabs) {
+    align-items: center;
+    gap: pxToRem(12);
+}
+.code-panel-tabs {
+    .tabs-list {
+        gap: pxToRem(4);
+        margin-block-end: 0;
+    }
+    .tabs-button {
+        block-size: pxToRem(24);
+        border-width: pxToRem(2);
+        padding-block: 0;
+        padding-inline: 0;
+
+        .text {
+            padding-inline: pxToRem(8);
+        }
+        &::before {
+            inset-block-end: pxToRem(-2);
+        }
+    }
+}

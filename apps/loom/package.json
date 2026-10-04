@@ -14,8 +14,6 @@
         "type-check": "tsc --noEmit"
     },
     "dependencies": {
-        "@appwrite.io/pink": "^1.0.0",
-        "@appwrite.io/pink-icons": "^1.0.0",
         "@contentful/rich-text-types": "^17.2.7",
         "@loom-js/contentful": "workspace:*",
         "@loom-js/core": "workspace:*",
