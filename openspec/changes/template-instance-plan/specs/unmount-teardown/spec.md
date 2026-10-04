@@ -28,3 +28,13 @@ When a component's root is removed from the document (and not re-inserted within
 
 - **WHEN** no component context is registered and nodes are added to or removed from the observed root
 - **THEN** the mutation batch reads no descendant of the mutated nodes
+
+#### Scenario: Nested roots keep document order in a bulk removal
+
+- **WHEN** a list is cleared and one of its items holds a nested component
+- **THEN** the handlers run in document order — each item, then the components under it, before the next item
+
+#### Scenario: A root placed under a removed node from outside is still found
+
+- **WHEN** a component's root is moved by DOM calls into a list item that belongs to another context, and the list is then cleared
+- **THEN** the moved component's `onUnmounted` handler runs

@@ -493,4 +493,98 @@ describe('unmount scan', () => {
             sinon.restore();
         }
     });
+
+    describe('bulk removals', () => {
+        const rowIds = Array.from(
+            { length: 40 },
+            (_item, index) => `r${index}`
+        );
+
+        it('should unmount rows and the components nested in them in document order', async () => {
+            const unmounted: string[] = [];
+            const ids = activity(rowIds);
+            const Deep = component<{ id?: string }>(
+                (html, { id, onUnmounted }) => {
+                    onUnmounted(() => unmounted.push(`deep ${id}`));
+
+                    return html`
+                        <b>deep</b>
+                    `;
+                }
+            );
+            const Row = component<{ id?: string }>(
+                (html, { id, onUnmounted }) => {
+                    onUnmounted(() => unmounted.push(`row ${id}`));
+
+                    return html`
+                        <li><span>${id === 'r1' ? Deep({ id }) : id}</span></li>
+                    `;
+                }
+            );
+            const TestComponent = component(
+                (html) => html`
+                    <ul>
+                        ${ids.effect(({ value }) =>
+                            value.map((id) => Row({ id, key: id }))
+                        )}
+                    </ul>
+                `
+            );
+
+            await runSetup({ containerProps: { TestComponent } });
+
+            ids.update([]);
+            await waitForObserver();
+
+            expect(unmounted.slice(0, 4)).to.deep.equal([
+                'row r0',
+                'row r1',
+                'deep r1',
+                'row r2'
+            ]);
+            expect(unmounted.length).to.equal(rowIds.length + 1);
+        });
+
+        it('should unmount a component moved into a row from outside its context', async () => {
+            const unmountSpy = sinon.fake();
+            const ids = activity(rowIds);
+            const Foreign = component((html, { onUnmounted }) => {
+                onUnmounted(unmountSpy);
+
+                return html`
+                    <aside data-foreign>foreign</aside>
+                `;
+            });
+            const Row = component<{ id?: string }>(
+                (html, { id }) => html`
+                    <li data-row=${id}>${id}</li>
+                `
+            );
+            const TestComponent = component(
+                (html) => html`
+                    <div>
+                        ${Foreign({})}
+                        <ul>
+                            ${ids.effect(({ value }) =>
+                                value.map((id) => Row({ id, key: id }))
+                            )}
+                        </ul>
+                    </div>
+                `
+            );
+            const $test = await runSetup({ containerProps: { TestComponent } });
+
+            $test
+                .querySelector('[data-row="r3"]')!
+                .appendChild($test.querySelector('[data-foreign]')!);
+            await waitForObserver();
+
+            expect(unmountSpy.callCount).to.equal(0);
+
+            ids.update([]);
+            await waitForObserver();
+
+            expect(unmountSpy.callCount).to.equal(1);
+        });
+    });
 });

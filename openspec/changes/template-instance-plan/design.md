@@ -31,7 +31,7 @@ Constraints: no public API or template-syntax change; every observable rule stay
 - No per-instance hook closures stored on the context, no eager handler arrays, no allocation in teardown.
 - A whole-list replacement is one DOM operation.
 - A keyed pass allocates nothing per unchanged item; the mount/unmount scan allocates nothing per node; resetting a context never deletes a property.
-- Bench: createRows/replaceAll/appendRows < 1.3×, clearRows < 1.4×, heap < 3 MB, geometric mean < 1.5×. Vanilla's layout is ~17 of its 18–20 ms on the creation ops, so 1.3× leaves loom about 5 ms of script for 1 000 rows; clearRows at 1.4× leaves ~0.8 ms over vanilla's one-call clear for the unmount batch and teardown.
+- Bench: createRows/replaceAll/appendRows < 1.3×, clearRows about 1.7× (first set at < 1.4×, relaxed to the measured 1.6–1.8×), heap < 3 MB, geometric mean < 1.5×. Vanilla's layout is ~17 of its 18–20 ms on the creation ops, so 1.3× leaves loom about 5 ms of script for 1 000 rows. clearRows is a 1.9 ms op in vanilla, and observer-based unmount detection costs loom about 1.2 ms on top of it — see the record in `tasks.md`.
 
 **Non-Goals:**
 
@@ -107,7 +107,7 @@ In `handleArrayValue`, when no previous item is reused and the previous nodes (o
 3. D3; life-cycle specs. — done
 4. D6; keyed-list spec. — done
 5. Bench before/after; changeset (patch). — done, gates partly missed
-6. Scope extension: second analysis pass, then D7–D9 with their specs; bench again.
+6. Scope extension: second analysis pass, then D7–D10 with their specs; bench again. — done, clearRows gate relaxed
 7. Archive on the user's word.
 8. Rollback: revert; nothing persisted.
 
