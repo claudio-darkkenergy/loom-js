@@ -1,5 +1,15 @@
 # @loom-js/pink
 
+## 0.8.0
+
+### Minor Changes
+
+- 8c6d755: **BREAKING**: `PinkDropList` drops the `arrow`, `isBlockEnd` and `isInlineEnd` props and the `DropListArrow` enum. They were declared but never rendered — the classes they named belong to pink's `.drop` popover, which the component does not render — so nothing that used them changes appearance; remove the props.
+
+### Patch Changes
+
+- 8c6d755: Add the package README: purpose, install, one example, and links to the pink docs section and Storybook.
+
 ## 0.7.1
 
 ### Patch Changes
