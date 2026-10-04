@@ -1,5 +1,11 @@
 # @loom-js/core
 
+## 0.20.2
+
+### Patch Changes
+
+- 8655203: The package's `llms-full.txt` carries only core's topics: a docs topic that names another workspace in its front matter (`package: @loom-js/pink`) is left out, and extra front-matter keys no longer fail the build.
+
 ## 0.20.1
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
     "name": "@loom-js/pink",
-    "version": "0.8.0",
+    "version": "0.8.1",
     "author": "Claudio Nunez Jr",
     "license": "ISC",
     "description": "The loomjs design system — Pink Design 1.0, continued from the archived appwrite/pink, with loom components on top.",
