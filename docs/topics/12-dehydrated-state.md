@@ -93,7 +93,7 @@ export const handleRequest = async (request: Request) => {
 On the client, read it back & prime before booting:
 
 ```ts
-// client.ts — the same browser entry the shell loads as /client.js.
+// bootstrap.ts — the same browser entry the shell loads as /client.js.
 import { hydrate, primeResources } from '@loom-js/core';
 
 import { App } from '@app/app';

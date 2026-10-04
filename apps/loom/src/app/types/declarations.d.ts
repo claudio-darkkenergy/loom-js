@@ -12,7 +12,6 @@ declare module '@appwrite.io/pink-icons';
 declare let __API_URL__: string;
 declare let __CTF_IS_PREVIEW__: boolean;
 declare let __DEV__: boolean;
-declare let __USE_MOCKS__: boolean;
 
 interface Window {
     // The build-generated route-assets manifest (route pattern -> CSS URLs),

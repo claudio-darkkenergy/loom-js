@@ -9,7 +9,7 @@ import {
     Bones,
     SkeletonLoader
 } from '@/app/components/content/skeleton-loader';
-import { TopicContent } from '@/app/components/content/topic-content.ts';
+import { TopicContent } from '@/app/components/content/topic-content';
 import { TopicPagination } from '@/app/components/content/topic-pagination';
 import { TopicToc } from '@/app/components/content/topic-toc';
 import { page, topic } from '@/app/logic/activity/selected-content';
