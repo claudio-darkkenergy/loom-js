@@ -11,7 +11,7 @@
 
     /* default */
     --p-avatar-text-color-default: var(--color-neutral-60);
-    --p-avatar-bg-color-default: var(--color-neutral-5);
+    --p-avatar-bg-color-default: var(--avatar-bg-color, var(--color-neutral-5));
     --p-avatar-border-color-default: var(--color-neutral-10);
 
     /* empty */
@@ -229,7 +229,10 @@
     #{$theme-dark} & {
         /* default */
         --p-avatar-text-color-default: var(--color-neutral-20);
-        --p-avatar-bg-color-default: var(--color-neutral-85);
+        --p-avatar-bg-color-default: var(
+            --avatar-bg-color,
+            var(--color-neutral-85)
+        );
         --p-avatar-border-color-default: var(--color-neutral-80);
 
         /* colors avatars*/

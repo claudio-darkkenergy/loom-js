@@ -7,6 +7,12 @@ import { PinkCodePanelCopyButton } from './pink-code-panel-copy-button';
 import { PinkCodePanelHeader } from './pink-code-panel-header';
 import { PinkCodePanelTabs } from './pink-code-panel-tabs';
 
+export type {
+    CodeToken,
+    PinkCodePanelContentProps,
+    Tokenize,
+    TokenizeActivity
+} from './pink-code-panel-content';
 export {
     type CodePanelTabSelection,
     type PinkCodePanelTabsProps,

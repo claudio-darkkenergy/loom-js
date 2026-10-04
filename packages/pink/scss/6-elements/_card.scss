@@ -112,7 +112,10 @@
     }
 
     #{$theme-dark} & {
-        --p-card-bg-color-default: var(--color-neutral-90);
+        --p-card-bg-color-default: var(
+            --card-bg-color,
+            var(--color-neutral-90)
+        );
         --p-card-bg-color-hover: var(--color-neutral-85);
         --p-card-border-color-hover: var(--color-neutral-80);
     }

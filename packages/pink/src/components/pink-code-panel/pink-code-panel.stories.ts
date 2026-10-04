@@ -7,7 +7,7 @@ const { parameters } = (globalThis as any).storybook;
 
 // A story-local tokenizer proving the panel's inversion contract: pink takes
 // any `Tokenize` behind a lazy-import activity — it never depends on a
-// highlighter (in production, `@loom-js/highlight`'s `storyTokenizer()` is
+// highlighter (in production, `@loom-js/highlight`'s `codeTokenizer()` is
 // one). This stub colors a few token kinds by naive word matching.
 const KIND_BY_WORD: Record<string, string> = {
     "'@loom-js/core';": 'string',
