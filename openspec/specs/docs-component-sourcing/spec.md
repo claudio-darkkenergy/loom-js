@@ -2,9 +2,9 @@
 
 ## Purpose
 
-Defines the sourcing rules for docs-app UI in `@loom-js/loom`: compose from existing `@loom-js/pink` exports first (single components or compositions), reserve app-local markup/styling for genuinely app-specific concerns, and fill real component gaps only by porting from upstream appwrite/pink into `@loom-js/pink` — with the maintainer's explicit, per-component approval before any port code is written.
+Defines the sourcing rules for docs-app UI in `@loom-js/loom`: compose from existing `@loom-js/pink` exports first (single components or compositions), reserve app-local markup/styling for genuinely app-specific concerns, and fill real component gaps only by adding a loom component over the Pink Design styles `@loom-js/pink` already carries — with the maintainer's explicit, per-component approval before any component code is written.
 
-Established by the `align-loom-docs-with-core-readme` change (2026-08-28).
+Established by the `align-loom-docs-with-core-readme` change (2026-08-28); the upstream appwrite/pink source was adopted into `packages/pink` by `adopt-pink-source` (2026-10-04).
 
 ## Requirements
 
@@ -24,19 +24,19 @@ New docs-app UI components SHALL be composed from existing `@loom-js/pink` expor
 
 ### Requirement: Upstream pink ports require explicit maintainer approval per component
 
-A component gap that cannot be met by composing existing `@loom-js/pink` exports MAY be filled by porting the component from upstream appwrite/pink (https://github.com/appwrite/pink) into `@loom-js/pink` — but only after the maintainer explicitly approves that specific component. Approval SHALL be sought per component, before implementation begins; a change-level or batch approval does not substitute.
+A component gap that cannot be met by composing existing `@loom-js/pink` exports MAY be filled by adding a loom component to `@loom-js/pink` over the Pink Design styles the package already carries (the source adopted from appwrite/pink 1.0.0, under `packages/pink/scss`) — but only after the maintainer explicitly approves that specific component. Approval SHALL be sought per component, before implementation begins; a change-level or batch approval does not substitute.
 
 #### Scenario: Gap identified
 
 - **WHEN** the component inventory identifies a need with no pink export or composition that covers it
-- **THEN** the candidate upstream component is presented to the maintainer for approval before any port code is written
+- **THEN** the candidate component (and the styles in `packages/pink/scss` it would wrap) is presented to the maintainer for approval before any component code is written
 
 #### Scenario: Approval withheld
 
-- **WHEN** the maintainer declines a proposed port
-- **THEN** the need is met by a composition fallback or the content is restructured to not require it — the upstream component is not ported
+- **WHEN** the maintainer declines a proposed component
+- **THEN** the need is met by a composition fallback or the content is restructured to not require it — the component is not added
 
 #### Scenario: Approved port lands in pink
 
-- **WHEN** a port is approved and implemented
+- **WHEN** a component is approved and implemented
 - **THEN** it lands in `packages/pink` as a loom pink component (following pink's existing component conventions) with a minor changeset
