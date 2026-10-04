@@ -38,15 +38,29 @@
     /* End Light theme variables */
 
     @include trim();
-    display:flex; gap:pxToRem(8); align-items:center; inline-size:fit-content; block-size:var(--p-button-size);
-    padding-inline:var(--padding-horizontal); cursor:pointer; font-size:var(--p-font-size); font-weight:600;
-    color:hsl(var(--p-text-color)); background-color:hsl(var(--p-button-color)); text-align:center;
-    border:solid pxToRem(1) hsl(var(--p-border-color)); border-radius:var(--border-radius-xsmall); flex-shrink:0;
-    -webkit-user-select:none; user-select:none;
+    display: flex;
+    gap: pxToRem(8);
+    align-items: center;
+    inline-size: fit-content;
+    block-size: var(--p-button-size);
+    padding-inline: var(--padding-horizontal);
+    cursor: pointer;
+    font-size: var(--p-font-size);
+    font-weight: 600;
+    color: hsl(var(--p-text-color));
+    background-color: hsl(var(--p-button-color));
+    text-align: center;
+    border: solid pxToRem(1) hsl(var(--p-border-color));
+    border-radius: var(--border-radius-xsmall);
+    flex-shrink: 0;
+    -webkit-user-select: none;
+    user-select: none;
 
-    [class*="icon"] {
+    [class*='icon'] {
         line-height: 1;
-        &::before { vertical-align:middle; }
+        &::before {
+            vertical-align: middle;
+        }
     }
 
     &.is-small {
@@ -57,13 +71,34 @@
         $font-size: pxToRem(16);
         --p-font-size: #{$font-size};
 
-        $button-size:pxToRem(48); --p-button-size:#{$button-size};
-        $padding-horizontal:pxToRem(20); --padding-horizontal: #{$padding-horizontal};
+        $button-size: pxToRem(48);
+        --p-button-size: #{$button-size};
+        $padding-horizontal: pxToRem(20);
+        --padding-horizontal: #{$padding-horizontal};
     }
-    &.is-only-icon { aspect-ratio:1 / 1; padding:0; justify-content:center; align-items:center; border-radius:var(--border-radius-circular); }
-    &.is-full-width { inline-size:100%; justify-content:center; }
-    &.is-full-width-mobile { @media #{$break1} {inline-size:100%; justify-content:center; } }
-    &.is-full-width-in-stack-mobile { @media #{$break1} { flex-grow:1; justify-content:center; } }
+    &.is-only-icon {
+        aspect-ratio: 1 / 1;
+        padding: 0;
+        justify-content: center;
+        align-items: center;
+        border-radius: var(--border-radius-circular);
+    }
+    &.is-full-width {
+        inline-size: 100%;
+        justify-content: center;
+    }
+    &.is-full-width-mobile {
+        @media #{$break1} {
+            inline-size: 100%;
+            justify-content: center;
+        }
+    }
+    &.is-full-width-in-stack-mobile {
+        @media #{$break1} {
+            flex-grow: 1;
+            justify-content: center;
+        }
+    }
     /* default - PRIMARY */
     &:is(:hover) {
         &:where(:not(#{$disabled})) {
@@ -151,7 +186,6 @@
         --p-button-color-disabled: var(--p-button-color-default);
         --p-border-color-disabled: var(--color-neutral-15);
 
-
         /** DARK MODE **/
         #{$theme-dark} & {
             --p-text-color-default: var(--color-neutral-5);
@@ -193,14 +227,12 @@
         --p-button-color-active: var(--p-button-color-default);
         --p-border-color-active: var(--p-border-color-default);
 
-
         --p-text-color-disabled: var(--color-neutral-20);
         --p-button-color-disabled: var(--p-button-color-default);
         --p-border-color-disabled: var(--p-border-color-default);
 
         /** DARK MODE **/
         #{$theme-dark} & {
-
             --p-text-color-default: var(--color-neutral-5);
             --p-button-color-default: var(--transparent);
             --p-border-color-default: var(--transparent);

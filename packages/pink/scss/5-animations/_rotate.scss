@@ -1,13 +1,15 @@
 @use '../abstract' as *;
 /* usage class */
-.animation-rotate   {
-  animation: rotate 1s infinite linear;
-  @media (prefers-reduced-motion) { animation-duration:0s; }
+.animation-rotate {
+    animation: rotate 1s infinite linear;
+    @media (prefers-reduced-motion) {
+        animation-duration: 0s;
+    }
 }
 
 /** Bounce Animation **/
 @keyframes rotate {
-  100% {
-    transform: rotate(360deg);
-  }
+    100% {
+        transform: rotate(360deg);
+    }
 }

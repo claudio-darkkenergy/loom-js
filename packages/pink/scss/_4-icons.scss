@@ -1,5 +1,7 @@
-html [class^="icon-"],
-html [class*=" icon-"] {
-  font-size: var(--icon-size-medium);
-  &::before { vertical-align:middle; } /* add for centering */
+html [class^='icon-'],
+html [class*=' icon-'] {
+    font-size: var(--icon-size-medium);
+    &::before {
+        vertical-align: middle;
+    } /* add for centering */
 }

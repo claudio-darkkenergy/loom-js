@@ -1,17 +1,18 @@
-import svgtofont from "svgtofont";
-import SVGFixer from "oslllo-svg-fixer";
-import { resolve } from "path";
+import SVGFixer from 'oslllo-svg-fixer';
+import { resolve } from 'path';
 
-const src = resolve(process.cwd(), "svg");
+import svgtofont from 'svgtofont';
+
+const src = resolve(process.cwd(), 'svg');
 
 export const generateIcons = async () => {
     await svgtofont({
         src: src,
-        dist: resolve(process.cwd(), "dist"),
-        fontName: "icon",
-        styleTemplates: resolve(process.cwd(), "templates"),
+        dist: resolve(process.cwd(), 'dist'),
+        fontName: 'icon',
+        styleTemplates: resolve(process.cwd(), 'templates'),
         css: {
-            fontSize: "16px",
+            fontSize: '16px'
         },
         outSVGReact: false,
         svgicons2svgfont: {
@@ -29,7 +30,7 @@ export const generateIcons = async () => {
         },
         useCSSVars: true
     });
-}
+};
 
 export const optimizeSVG = async () => {
     const fixer = new SVGFixer(src, src, {
@@ -37,4 +38,4 @@ export const optimizeSVG = async () => {
     });
 
     await fixer.fix();
-}
+};
