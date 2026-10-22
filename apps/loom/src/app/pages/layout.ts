@@ -11,6 +11,8 @@ import { layoutState } from '../logic/activity/layout-state';
 import { sideNavToggle } from '../logic/activity/toggles';
 import styles from './styles.module.css';
 import { BrandLogoLink } from '@/app/components/branding/brand-logo-link';
+import { DocsSearchHost, SearchTrigger } from '@/app/components/search';
+import { useSearchShortcut } from '@/app/logic/hooks';
 
 const { effect: layoutStateEffect } = layoutState;
 const { update: toggleSideNav } = sideNavToggle;
@@ -32,8 +34,11 @@ const HeaderBrand = component<{ sideNav?: boolean }>(
     `
 );
 
-const PageLayout = component((html, { children, className, style: theme }) => {
-    return html`
+const PageLayout = component(
+    (html, { children, className, style: theme, ...hooks }) => {
+        useSearchShortcut(hooks);
+
+        return html`
         <div
             id="layout"
             class=${classNames('body-text-1', className)}
@@ -77,11 +82,14 @@ const PageLayout = component((html, { children, className, style: theme }) => {
                     ]}
                     onClick=${route}
                 />
+                <${SearchTrigger} slot="col3" className="grid-header-col-3" />
             </>
+            ${DocsSearchHost()}
             <main>${children}</main>
             <${PinkContainer} is=${el('footer')}>© 2024</>
         </div>
     `;
-});
+    }
+);
 
 export default PageLayout;

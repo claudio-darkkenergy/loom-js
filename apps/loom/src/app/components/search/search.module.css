@@ -1,0 +1,41 @@
+/*
+ * Imported by the host (entry bundle) as well as the lazily loaded palette:
+ * a stylesheet emitted beside a lazy chunk is never linked, so the rules
+ * ride the entry CSS.
+ */
+
+.trigger {
+    /* The hint reads as a key cap, not button text. */
+    :global(.kbd) {
+        font-size: var(--font-size-00);
+        padding-inline: 0.375rem;
+    }
+}
+
+.palette {
+    /* Results scroll inside the dialog; the input row stays put. */
+    block-size: min(32rem, 90vh);
+}
+
+.resultsRegion {
+    min-block-size: 0;
+}
+
+.results {
+    list-style: none;
+    margin-block-start: 1rem;
+    padding: 0;
+}
+
+.active > :global(.clickable-list-button) {
+    background-color: hsl(var(--p-clickable-button-bg-color-hover));
+}
+
+.snippet {
+    display: block;
+    margin-block-start: 0.25rem;
+}
+
+.status {
+    margin-block-start: 1rem;
+}

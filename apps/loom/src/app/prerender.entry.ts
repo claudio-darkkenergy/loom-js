@@ -1,15 +1,21 @@
 // The prerender bundle: an extra entry point of the client build, so the
 // prerendered markup gets the same minified css-module class names and the
 // same core module instance as the shipped app. Only the build runner loads it.
-import { documentToMarkdown, inlineToMarkdown } from '@loom-js/contentful';
+import {
+    documentToMarkdown,
+    inlineToMarkdown,
+    nodeToText
+} from '@loom-js/contentful';
 import {
     dehydrate,
     renderToString,
     serializeState
 } from '@loom-js/core/server';
 
+import type { SearchEntry } from '../../project/client/search-index.mjs';
 import { App } from './app';
 import { asCodeBlock } from './components/content/styled-rich-text/lib/code';
+import { collectHeadingAnchors } from './components/content/styled-rich-text/lib/heading-anchors';
 import { BENCH_RESULTS_RESOURCE_KEY } from './logic/activity/bench-results';
 import { pageContentResourceKey } from './logic/activity/page-content';
 import { flattenListing, listingSections } from './logic/listing';
@@ -150,6 +156,62 @@ export const docsTopicText = async (
                 : '',
         markdown: documentToMarkdown(richTextDocument, options)
     };
+};
+
+/**
+ * Splits one topic into search entries: the lead (everything before the
+ * first h2/h3) and one entry per h2/h3 section, each with its prose and
+ * the anchor id the rendered page gives that heading — the same pass the
+ * page and TOC use, so a result always lands on an existing heading.
+ */
+export const docsTopicSearchEntries = async (
+    topicSlug: string,
+    group: string
+): Promise<SearchEntry[]> => {
+    const { data, error } = await getPageContent(DOCS_PAGE_SLUG, topicSlug);
+    const richTextDocument = data?.topic?.description?.json;
+    const topicTitle = data?.topic?.title;
+    const title = typeof topicTitle === 'string' ? topicTitle : '';
+
+    if (error || !richTextDocument) {
+        throw new Error(
+            `[prerender] docs topic "${topicSlug}" failed to load: ${error || 'no body returned'}`
+        );
+    }
+
+    const anchors = collectHeadingAnchors(richTextDocument);
+    const sectionEntry = (
+        anchor: string,
+        heading: string,
+        level: SearchEntry['level']
+    ): SearchEntry => ({
+        anchor,
+        group,
+        heading,
+        level,
+        slug: topicSlug,
+        text: '',
+        title
+    });
+    let current = sectionEntry('', '', 0);
+    const entries = [current];
+
+    for (const node of richTextDocument.content) {
+        const anchorId = anchors.idOf(node);
+        const anchor = anchors.entries.find(({ id }) => id === anchorId);
+
+        if (anchor) {
+            current = sectionEntry(anchor.id, anchor.text, anchor.level);
+            entries.push(current);
+            continue;
+        }
+
+        const text = nodeToText(node, { codeBlock: asCodeBlock });
+
+        current.text = [current.text, text].filter(Boolean).join(' ');
+    }
+
+    return entries;
 };
 
 // The server entry's d.ts duplicates core's shared types, so the same
