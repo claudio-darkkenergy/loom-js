@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change adopt-pink-source. Update Purpose after archive.
+Defines how `@loom-js/pink` owns its styles: the stylesheet and icon font are built from source kept in the package, exported under pink's own name, nested in a single `pink` cascade layer, and free of any Appwrite dependency.
 
 ## Requirements
 
@@ -25,7 +25,7 @@ TBD - created by archiving change adopt-pink-source. Update Purpose after archiv
 #### Scenario: loom's component patches are part of the stylesheet
 
 - **WHEN** `dist/pink.css` is compiled
-- **THEN** it contains the side-nav collapsible, code-panel tab-strip and `--p-code-token-*` theme rules in the `components` layer
+- **THEN** it contains the side-nav collapsible, code-panel tab-strip and `--p-code-token-*` theme rules in the `pink.components` layer
 - **AND** the package exposes no `./styles/*` subpath
 
 #### Scenario: no Appwrite packages in the dependency graph
@@ -82,3 +82,18 @@ The package SHALL ship a `NOTICE` file carrying the upstream MIT license text an
 
 - **WHEN** the package is packed for publishing
 - **THEN** the tarball contains `NOTICE` with the Appwrite MIT notice, the `appwrite/pink` commit reference, and the `normalize.css` and `the-new-css-reset` notices
+
+### Requirement: Pink's cascade lives under one top-level layer
+
+Every rule in `dist/pink.css` SHALL sit inside a single top-level cascade layer named `pink`, with pink's own layers (`css-variables`, `resets`, `icons`, `animations`, `elements`, `components`, `grids`, `utilities`) nested inside it in that order. The stylesheet SHALL NOT place rules in any other top-level layer, and SHALL leave no rule unlayered.
+
+#### Scenario: inner layers keep their order under pink
+
+- **WHEN** `dist/pink.css` is compiled
+- **THEN** every style rule is inside `@layer pink`
+- **AND** the nested layers resolve as `pink.css-variables` through `pink.utilities`, in the order above
+
+#### Scenario: unlayered consumer CSS still wins
+
+- **WHEN** a consumer's unlayered stylesheet sets a property on an element pink also styles
+- **THEN** the consumer's declaration applies regardless of specificity, as it did before the change
