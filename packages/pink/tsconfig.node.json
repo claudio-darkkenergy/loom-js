@@ -1,0 +1,11 @@
+{
+    "extends": "@loom-js/typescript-config/base.json",
+    "display": "Package tooling",
+    "compilerOptions": {
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "noEmit": true,
+        "types": ["node", "vite/client"]
+    },
+    "include": ["rollup.config.ts", ".storybook/*.ts"]
+}

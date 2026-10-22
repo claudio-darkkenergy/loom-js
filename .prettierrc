@@ -15,6 +15,7 @@
         "apps/bench/package.json",
         "apps/docs/package.json",
         "apps/examples/activity-effect-nested-array/package.json",
+        "apps/examples/pink-tailwind/package.json",
         "apps/loom/package.json",
         "apps/sandbox/package.json",
         "lib/codegen/package.json",

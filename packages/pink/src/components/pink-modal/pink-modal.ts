@@ -1,7 +1,7 @@
 import { component, el, type TemplateTagValue } from '@loom-js/core';
-import classNames from 'classnames';
 
 import { PinkButton } from '../../elements/pink-button';
+import { cn } from '../../utils/cn';
 
 export type PinkModalSize = 'small' | 'big' | 'huge';
 
@@ -144,7 +144,7 @@ export const PinkModal = component<PinkModalProps>(
                 }}
                 $close=${() => onClose?.()}
                 aria-labelledby=${titleId}
-                class=${classNames(className, 'modal', size && `is-${size}`, {
+                class=${cn(className, 'modal', size && `is-${size}`, {
                     'is-separate-header': isSeparateHeader,
                     // Pink's `.modal` is `display: flex` even when closed;
                     // the utility hides a closed dialog in flow.

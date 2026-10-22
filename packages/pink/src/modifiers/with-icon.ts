@@ -5,7 +5,8 @@ import {
     isAttrBinding,
     simple
 } from '@loom-js/core';
-import classNames from 'classnames';
+
+import { cn } from '../utils/cn';
 
 const Icon = simple(({ attrs, ...iconProps }) =>
     el('span')({
@@ -43,7 +44,7 @@ export const withIcon = <T>({
         // runtime).
         className: isAttrBinding(icon)
             ? (icon as unknown as string)
-            : classNames(className, icon)
+            : cn(className, icon)
     };
     const childrenWithIcon = icon
         ? appendIcon && children

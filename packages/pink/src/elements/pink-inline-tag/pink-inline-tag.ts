@@ -1,5 +1,6 @@
 import { component, type ComponentInputProps } from '@loom-js/core';
-import classNames from 'classnames';
+
+import { cn } from '../../utils/cn';
 
 export interface PinkInlineTagProps {
     isDisabled?: boolean;
@@ -29,7 +30,7 @@ export const PinkInlineTag = component<ComponentInputProps<PinkInlineTagProps>>(
             $attrs=${attrs}
             $click=${onClick}
             $on=${on}
-            class=${classNames(className, 'inline-tag', {
+            class=${cn(className, 'inline-tag', {
                 'is-disabled': isDisabled,
                 'is-info': isInfo
             })}

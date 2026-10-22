@@ -1,7 +1,7 @@
 import { el, type ComponentInputProps, simple } from '@loom-js/core';
-import classNames from 'classnames';
 
 import { PinkColor, PinkSize } from '../../types';
+import { cn } from '../../utils/cn';
 
 export type PinkAvatarProps = ComponentInputProps<{
     alt?: string;
@@ -29,7 +29,7 @@ export const PinkAvatar = simple<PinkAvatarProps>(
         width = 'auto',
         ...avatarProps
     }) => {
-        const avatarClassName = classNames(className, 'avatar', {
+        const avatarClassName = cn(className, 'avatar', {
             [`is-color-${color}`]: Boolean(color),
             [`is-size-${size}`]: size !== PinkSize.Medium,
             'is-with-3-char': isWith3Char

@@ -4,10 +4,11 @@ import {
     type ComponentInputProps,
     type TemplateTagValue
 } from '@loom-js/core';
-import classNames from 'classnames';
+
+import { cn } from '../../utils/cn';
 
 const CollapsibleList = simple<ComponentInputProps>(({ className, ...props }) =>
-    el('ul')({ ...props, className: classNames(className, 'collapsible') })
+    el('ul')({ ...props, className: cn(className, 'collapsible') })
 );
 
 export type PinkCollapsibleButtonProps = {
@@ -44,15 +45,12 @@ const CollapsibleButton = simple<
                 el('div')({
                     children: el('span')({
                         attrs: { 'aria-hidden': true },
-                        className: classNames(
-                            'icon-cheveron-down',
-                            iconClassName
-                        )
+                        className: cn('icon-cheveron-down', iconClassName)
                     }),
                     className: 'icon'
                 })
             ].flat(),
-            className: classNames(className, 'collapsible-button')
+            className: cn(className, 'collapsible-button')
         })
 );
 
@@ -90,17 +88,17 @@ const CollapsibleItem = simple<ComponentInputProps<PinkCollapsibleItemProps>>(
                     el('div')({
                         ...contentProps,
                         children,
-                        className: classNames(
+                        className: cn(
                             contentProps?.className,
                             'collapsible-content'
                         )
                     })
                 ],
-                className: classNames('collapsible-wrapper', {
+                className: cn('collapsible-wrapper', {
                     'is-disabled': isDisabled
                 })
             }),
-            className: classNames(className, 'collapsible-item')
+            className: cn(className, 'collapsible-item')
         })
 );
 

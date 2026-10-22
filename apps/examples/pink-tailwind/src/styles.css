@@ -1,0 +1,7 @@
+/* Pink first: its layer order puts Tailwind's preflight before pink and
+   Tailwind's utilities after it. */
+@import '@loom-js/pink/pink.css';
+@import 'tailwindcss';
+
+/* Pink block classes Tailwind would also generate as utilities. */
+@source not inline('container list-item table table-row');

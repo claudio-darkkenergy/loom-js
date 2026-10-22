@@ -1,5 +1,6 @@
 import { type ComponentInputProps, el, simple } from '@loom-js/core';
-import classNames from 'classnames';
+
+import { cn } from '../../utils/cn';
 
 /**
  * Inline code highlights a short snippet of code within a sentence, such as a
@@ -13,6 +14,6 @@ export const PinkInlineCode = simple<ComponentInputProps>(
     ({ className, ...props }) =>
         el('code')({
             ...props,
-            className: classNames(className, 'inline-code')
+            className: cn(className, 'inline-code')
         })
 );

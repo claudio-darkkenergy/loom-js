@@ -1,0 +1,5 @@
+{
+    "extends": "@loom-js/typescript-config/app.json",
+    "include": ["src", "loom.config.ts"],
+    "exclude": ["build", "node_modules"]
+}

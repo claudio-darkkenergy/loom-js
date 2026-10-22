@@ -1,5 +1,6 @@
 import { component, type ComponentInputProps } from '@loom-js/core';
-import classNames from 'classnames';
+
+import { cn } from '../../utils/cn';
 
 export type PinkLoaderProps = ComponentInputProps<{
     // Works with `percent` to show a progress vs. rotating loader.
@@ -35,7 +36,7 @@ export const PinkLoader = component<PinkLoaderProps>(
             $attrs=${attrs}
             $click=${onClick}
             $on=${on}
-            class=${classNames('loader', {
+            class=${cn('loader', {
                 'is-loading': isLoading,
                 'is-small': isSmall,
                 'is-transparent': isTransparent && !isLoading

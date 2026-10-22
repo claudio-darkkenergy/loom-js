@@ -1,7 +1,7 @@
 import { component, type ComponentInputProps } from '@loom-js/core';
-import classNames from 'classnames';
 
 import { type WithIconProps, withIcon } from '../../modifiers/with-icon';
+import { cn } from '../../utils/cn';
 
 type ToggleButtonItemProps = ComponentInputProps<{
     disabled?: boolean;
@@ -60,7 +60,7 @@ export const PinkToggleButton = component<
             $attrs=${attrs}
             $click=${onClick}
             $on=${on}
-            class=${classNames(className, 'toggle-button')}
+            class=${cn(className, 'toggle-button')}
             id=${id}
             style=${style}
         >
@@ -70,7 +70,7 @@ export const PinkToggleButton = component<
                         ToggleButtonItem(
                             withIcon({
                                 ...props,
-                                className: classNames(
+                                className: cn(
                                     buttonClassName,
                                     'toggle-button-element',
                                     {

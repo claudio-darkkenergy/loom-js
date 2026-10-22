@@ -1,7 +1,7 @@
 import { el, type ComponentInputProps, simple } from '@loom-js/core';
-import classNames from 'classnames';
 
 import type { PinkDynamicProps } from '../../types';
+import { cn } from '../../utils/cn';
 
 export type PinkGridBoxProps = ComponentInputProps<
     PinkDynamicProps & {
@@ -61,7 +61,7 @@ export const PinkGridBox = simple<PinkGridBoxProps>(
                               'grid-template-columns': gridTemplateColumns
                           }
                       ],
-            className: classNames(className, 'grid-box')
+            className: cn(className, 'grid-box')
         });
     }
 );

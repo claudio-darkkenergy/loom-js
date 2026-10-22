@@ -1,5 +1,6 @@
 import { component, type ComponentInputProps } from '@loom-js/core';
-import classNames from 'classnames';
+
+import { cn } from '../../utils/cn';
 
 export type PinkActionBarProps = ComponentInputProps<{
     startContent?: ComponentInputProps;
@@ -15,7 +16,7 @@ export const PinkActionBar = component<PinkActionBarProps>(
             $attrs=${attrs}
             $click=${onClick}
             $on=${on}
-            class=${classNames(className, 'action-bar')}
+            class=${cn(className, 'action-bar')}
             id=${id}
             style=${style}
         >
@@ -23,7 +24,7 @@ export const PinkActionBar = component<PinkActionBarProps>(
                 $attrs=${startContent?.attrs}
                 $click=${startContent?.onClick}
                 $on=${startContent?.on}
-                class=${classNames(
+                class=${cn(
                     'action-bar-start u-flex u-gap-8',
                     startContent?.className
                 )}
@@ -36,7 +37,7 @@ export const PinkActionBar = component<PinkActionBarProps>(
                 $attrs=${endContent?.attrs}
                 $click=${endContent?.onClick}
                 $on=${endContent?.on}
-                class=${classNames(
+                class=${cn(
                     'action-bar-end u-flex u-gap-8',
                     endContent?.className
                 )}

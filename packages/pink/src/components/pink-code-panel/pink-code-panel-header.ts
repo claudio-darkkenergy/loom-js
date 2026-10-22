@@ -1,5 +1,6 @@
 import { component, type ComponentInputProps } from '@loom-js/core';
-import classNames from 'classnames';
+
+import { cn } from '../../utils/cn';
 
 export const PinkCodePanelHeader = component<ComponentInputProps>(
     (html, { attrs, children, className, id, on, onClick, style }) => html`
@@ -7,7 +8,7 @@ export const PinkCodePanelHeader = component<ComponentInputProps>(
             $attrs=${attrs}
             $click=${onClick}
             $on=${on}
-            class=${classNames(className, 'code-panel-header')}
+            class=${cn(className, 'code-panel-header')}
             id=${id}
             style=${style}
         >

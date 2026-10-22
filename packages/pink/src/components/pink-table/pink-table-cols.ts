@@ -4,9 +4,9 @@ import {
     simple,
     type SimpleComponent
 } from '@loom-js/core';
-import classNames from 'classnames';
 
 import type { PinkDynamicProps } from '../../types';
+import { cn } from '../../utils/cn';
 
 export type PinkTableCellProps = ComponentInputProps<PinkDynamicProps>;
 
@@ -18,7 +18,7 @@ const tableCell = (
     simple<PinkTableCellProps>(({ className, is = el(cellTag), ...props }) =>
         is({
             ...props,
-            className: classNames(className, cellClassName)
+            className: cn(className, cellClassName)
         })
     );
 

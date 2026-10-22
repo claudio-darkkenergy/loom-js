@@ -1,8 +1,8 @@
 import { el, simple } from '@loom-js/core';
-import classNames from 'classnames';
 
 import { withIcon } from '../../modifiers/with-icon';
 import type { PinkDynamicProps } from '../../types';
+import { cn } from '../../utils/cn';
 
 type Enumerate<
     N extends number,
@@ -44,7 +44,7 @@ const Tag = simple<TagProps>(
         return is(
             withIcon({
                 ...props,
-                className: classNames(className, 'tag', {
+                className: cn(className, 'tag', {
                     [eyebrowHeadingClassName]: Boolean(isEyebrowHeading),
                     'is-danger': isDanger,
                     'is-info': isInfo,

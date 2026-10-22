@@ -1,0 +1,28 @@
+{
+    "name": "@loom-js/example-pink-tailwind",
+    "private": true,
+    "version": "0.0.0",
+    "license": "ISC",
+    "description": "Pink components restyled with Tailwind CSS v4 utilities, built with @loom-js/build.",
+    "type": "module",
+    "scripts": {
+        "build": "pnpm build-styles && loom build",
+        "build-styles": "tailwindcss -i ./src/styles.css -o ./.generated/styles.css",
+        "dev": "pnpm build-styles && (pnpm build-styles --watch=always & loom dev)",
+        "test-ci": "pnpm build && node --test \"tests/*.test.mjs\"",
+        "type-check": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@loom-js/core": "workspace:*",
+        "@loom-js/pink": "workspace:*"
+    },
+    "devDependencies": {
+        "@loom-js/build": "workspace:*",
+        "@loom-js/typescript-config": "workspace:*",
+        "@tailwindcss/cli": "^4.3.3",
+        "@types/node": "^26.5.1",
+        "puppeteer": "^25.11.0",
+        "tailwindcss": "^4.3.3",
+        "typescript": "^7.0.2"
+    }
+}

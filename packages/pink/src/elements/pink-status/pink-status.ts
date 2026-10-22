@@ -1,5 +1,6 @@
 import { component, type ComponentInputProps } from '@loom-js/core';
-import classNames from 'classnames';
+
+import { cn } from '../../utils/cn';
 
 export enum PinkStatusState {
     Complete = 'complete',
@@ -20,7 +21,7 @@ export const PinkStatus = component<PinkStatusProps>(
             $attrs=${attrs}
             $click=${onClick}
             $on=${on}
-            class=${classNames('u-capitalize', className, 'status', {
+            class=${cn('u-capitalize', className, 'status', {
                 [`is-${status}`]: status
             })}
             id=${id}

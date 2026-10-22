@@ -3,8 +3,8 @@ import {
     type ComponentInputProps,
     type lazyImport
 } from '@loom-js/core';
-import classNames from 'classnames';
 
+import { cn } from '../../utils/cn';
 import {
     type CodeToken,
     splitTokenLines,
@@ -99,7 +99,7 @@ export const PinkCodePanelContent = component<PinkCodePanelContentProps>(
                 $attrs=${attrs}
                 $click=${onClick}
                 $on=${on}
-                class=${classNames(className, 'code-panel-content grid-code')}
+                class=${cn(className, 'code-panel-content grid-code')}
                 id=${id}
                 style=${style}
             >

@@ -1,7 +1,7 @@
 import { component, el, type ComponentInputProps, simple } from '@loom-js/core';
-import classNames from 'classnames';
 
 import { WithIconProps, withIcon } from '../../modifiers/with-icon';
+import { cn } from '../../utils/cn';
 
 export type DropListItemProps = WithIconProps & {
     href?: string;
@@ -48,7 +48,7 @@ const DropList = component<ComponentInputProps<DropListProps>>(
             $attrs=${attrs}
             $click=${onClick}
             $on=${on}
-            class=${classNames(className, 'drop-list')}
+            class=${cn(className, 'drop-list')}
             id=${id}
             style=${style}
         >
@@ -73,7 +73,7 @@ const DropList = component<ComponentInputProps<DropListProps>>(
                                         ...(href === undefined ? {} : { href }),
                                         target: target ?? '_self'
                                     },
-                                    className: classNames(
+                                    className: cn(
                                         itemClassName,
                                         'drop-button',
                                         {
@@ -82,7 +82,7 @@ const DropList = component<ComponentInputProps<DropListProps>>(
                                     )
                                 })
                             ),
-                            className: classNames(
+                            className: cn(
                                 listItemProps?.className,
                                 'drop-list-item'
                             )
@@ -101,7 +101,7 @@ const DropSection = simple<ComponentInputProps<{ role?: string }>>(
                 ...attrs,
                 ...(role ? { role } : {})
             },
-            className: classNames(className, 'drop-section')
+            className: cn(className, 'drop-section')
         })
 );
 

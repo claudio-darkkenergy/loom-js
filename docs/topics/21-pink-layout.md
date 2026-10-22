@@ -140,4 +140,4 @@ export const PageLayout = component(
 );
 ```
 
-Utility classes (`u-flex`, `u-gap-16`, `u-padding-16`, `body-text-1`) are part of the stylesheet and fill the gaps between components; the `utilities` layer sits last in the cascade so they win over component defaults.
+Utility classes (`u-flex`, `u-gap-16`, `u-padding-16`, `body-text-1`) are part of the stylesheet and fill the gaps between components; the `utilities` layer sits last in pink's cascade, so they win over component defaults.

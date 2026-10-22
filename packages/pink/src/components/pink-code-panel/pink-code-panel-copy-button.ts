@@ -1,10 +1,10 @@
 import { type ComponentInputProps, simple } from '@loom-js/core';
-import classNames from 'classnames';
 
 import {
     PinkCopyButton,
     type PinkCopyButtonProps
 } from '../../elements/pink-copy-button';
+import { cn } from '../../utils/cn';
 
 export type PinkCodePanelCopyButtonProps = Omit<PinkCopyButtonProps, 'text'> & {
     // The code to copy — or a getter, for code only known at click time
@@ -23,6 +23,6 @@ export const PinkCodePanelCopyButton = simple<
         buttonSize: '1.5rem',
         label: 'Copy code',
         ...props,
-        className: classNames(className, 'u-margin-inline-start-auto')
+        className: cn(className, 'u-margin-inline-start-auto')
     })
 );

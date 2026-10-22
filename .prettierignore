@@ -6,6 +6,8 @@ build/
 .vercel/
 coverage/
 storybook-static/
+# Tailwind CLI output (apps/examples/pink-tailwind) — regenerated each build
+.generated/
 # Bench pages and measured results — written by `pnpm bench`, restored by turbo
 apps/bench/.bench-dist/
 apps/bench/results/

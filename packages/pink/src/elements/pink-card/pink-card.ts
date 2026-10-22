@@ -1,7 +1,7 @@
 import { el, type ComponentInputProps, simple } from '@loom-js/core';
-import classNames from 'classnames';
 
 import type { PinkDynamicProps } from '../../types';
+import { cn } from '../../utils/cn';
 
 export type PinkCardProps = ComponentInputProps<
     PinkDynamicProps & {
@@ -16,7 +16,7 @@ export const PinkCard = simple<PinkCardProps>(
     ({ className, is = el('div'), isAllowFocus, isBorderDashed, ...props }) =>
         is({
             ...props,
-            className: classNames(className, 'card', {
+            className: cn(className, 'card', {
                 'is-border-dashed': isBorderDashed,
                 'is-allow-focus': isAllowFocus
             })

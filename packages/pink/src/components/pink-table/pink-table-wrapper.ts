@@ -1,7 +1,7 @@
 import { type ComponentInputProps, el, simple } from '@loom-js/core';
-import classNames from 'classnames';
 
 import type { PinkDynamicProps } from '../../types';
+import { cn } from '../../utils/cn';
 
 export type PinkTableWrapperProps = ComponentInputProps<
     PinkDynamicProps & {
@@ -18,7 +18,7 @@ export const PinkTableWrapper = simple<PinkTableWrapperProps>(
     ({ className, is = el('div'), withScroll, ...props }) =>
         is({
             ...props,
-            className: classNames(
+            className: cn(
                 className,
                 withScroll ? 'table-with-scroll' : 'table-wrapper'
             )

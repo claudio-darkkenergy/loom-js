@@ -1,7 +1,7 @@
 import { type ComponentInputProps, el, simple } from '@loom-js/core';
-import classNames from 'classnames';
 
 import type { PinkDynamicProps } from '../../types';
+import { cn } from '../../utils/cn';
 
 export type PinkTableRowProps = ComponentInputProps<PinkDynamicProps>;
 
@@ -14,6 +14,6 @@ export const PinkTableRow = simple<PinkTableRowProps>(
     ({ className, is = el('tr'), ...props }) =>
         is({
             ...props,
-            className: classNames(className, 'table-row')
+            className: cn(className, 'table-row')
         })
 );

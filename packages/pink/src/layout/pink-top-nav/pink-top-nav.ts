@@ -5,7 +5,8 @@ import {
     type ReservedProps,
     type TemplateTagValue
 } from '@loom-js/core';
-import classNames from 'classnames';
+
+import { cn } from '../../utils/cn';
 
 export interface PinkTopNavItemProps {
     attrs?: ComponentInputProps['attrs'];
@@ -58,7 +59,7 @@ const TopNavItem = component<TopNavItemProps>(
 export const PinkTopNav = component<ComponentInputProps<PinkTopNavProps>>(
     (html, { className, id, items, on, onClick, style }) => html`
         <nav
-            class=${classNames('u-cross-center u-flex u-gap-32', className)}
+            class=${cn('u-cross-center u-flex u-gap-32', className)}
             id=${id}
             style=${['list-style: none', style]}
         >

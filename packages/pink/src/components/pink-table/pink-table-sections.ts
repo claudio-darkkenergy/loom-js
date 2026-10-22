@@ -4,9 +4,9 @@ import {
     simple,
     type SimpleComponent
 } from '@loom-js/core';
-import classNames from 'classnames';
 
 import type { PinkDynamicProps } from '../../types';
+import { cn } from '../../utils/cn';
 
 export type PinkTableSectionProps = ComponentInputProps<PinkDynamicProps>;
 
@@ -20,7 +20,7 @@ const tableSection = (
         ({ className, is = el(sectionTag), ...props }) =>
             is({
                 ...props,
-                className: classNames(className, sectionClassName)
+                className: cn(className, sectionClassName)
             })
     );
 

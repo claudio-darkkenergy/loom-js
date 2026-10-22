@@ -13,7 +13,7 @@ Three things ship in one package:
 - **An icon font** — `icons.css`, 358 glyphs addressed as `icon-*` classes (`icon-plus`, `icon-cheveron-down`). Components take an icon by class name.
 - **Loom components** — `PinkButton`, `PinkCard`, `PinkTable`, `PinkCodePanel` and the rest, each a thin layer that puts the right classes on the right element and threads core's props through. Storybook is their live catalog.
 
-The stylesheet is organized in cascade layers, in this order: `css-variables`, `resets`, `icons`, `animations`, `elements`, `components`, `grids`, `utilities`. Your own CSS is unlayered, so it wins over every pink rule without a specificity fight.
+The stylesheet is organized in cascade layers, all nested in one top-level `pink` layer, in this order: `css-variables`, `resets`, `icons`, `animations`, `elements`, `components`, `grids`, `utilities`. Your own CSS is unlayered, so it wins over every pink rule without a specificity fight. Before the `pink` layer, the stylesheet declares the order `theme, base, pink, components, utilities`. Those are Tailwind's layer names, and the declaration lets pink work alongside Tailwind (see the Tailwind section below). Without Tailwind, the other four layers stay empty.
 
 ## Origin
 
@@ -116,6 +116,35 @@ The knobs are conveniences; the real surface is the custom properties. `--color-
 ```
 
 [Code Panels](/docs/pink-code-panels) lists the `--p-code-token-*` set; the other components' variables are named in the stylesheet source under `scss/`.
+
+## Tailwind
+
+Pink works in a Tailwind CSS v4 app. Import pink's stylesheet before Tailwind's:
+
+```css
+@import '@loom-js/pink/pink.css';
+@import 'tailwindcss';
+
+@source not inline('container list-item table table-row');
+```
+
+`pink.css` opens with `@layer theme, base, pink, components, utilities;`. These are Tailwind's layer names, with `pink` placed between `base` and `components`. In this import order, Tailwind's preflight applies first, pink styles its components on top of it, and Tailwind's utilities override pink. A utility on a pink component works without `!important`:
+
+```ts
+<${PinkButton} className="bg-red-500 text-white" isSecondary>Delete</>
+```
+
+If Tailwind is imported first, its layer order is already set, so pink ends up after the utilities and overrides them.
+
+### Class-name collisions
+
+Four pink classes are also Tailwind utilities: `container`, `list-item`, `table` and `table-row`. Tailwind generates a utility for any of them that appears in a file it scans, and that utility overrides pink's rule. For example, `.container` would pick up Tailwind's breakpoint max-widths. The `@source not inline(...)` line stops Tailwind from generating those four.
+
+### Pink tokens in utilities
+
+Pink's color tokens are HSL triplets, so wrap them in `hsl()` in an arbitrary value: `text-[hsl(var(--color-primary-100))]`. Size and radius tokens work as `var(...)` directly.
+
+[`apps/examples/pink-tailwind`](https://github.com/claudio-darkkenergy/loom-js/tree/main/apps/examples/pink-tailwind) in the loom repository is a working setup, built with `@loom-js/build` and the Tailwind CLI.
 
 ## Storybook
 

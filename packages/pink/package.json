@@ -43,11 +43,11 @@
         "build-storybook-docs": "storybook build --docs",
         "format": "prettier",
         "storybook": "storybook dev --no-open -p 6006",
-        "type-check": "tsc --noEmit"
+        "type-check": "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.node.json"
     },
     "dependencies": {
         "@loom-js/core": "workspace:*",
-        "classnames": "^2.5.1"
+        "clsx": "^2.1.1"
     },
     "devDependencies": {
         "@chromatic-com/storybook": "^5.3.1",

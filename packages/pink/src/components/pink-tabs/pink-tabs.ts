@@ -4,9 +4,9 @@ import {
     type ComponentInputProps,
     type SimpleComponent
 } from '@loom-js/core';
-import classNames from 'classnames';
 
 import { withIcon } from '../../modifiers/with-icon';
+import { cn } from '../../utils/cn';
 
 enum TabsButtonScrollPlacement {
     Start = 'start',
@@ -25,7 +25,7 @@ const TabsButtonScroll: SimpleComponent<
                 'aria-label': `Show items at ${placement} side`,
                 type: 'button'
             },
-            className: classNames('tabs-button-scroll', `is-${placement}`),
+            className: cn('tabs-button-scroll', `is-${placement}`),
             icon: `icon-cheveron-${placement === TabsButtonScrollPlacement.Start ? 'left' : 'right'}`,
             iconProps: {
                 style: { 'pointer-events': 'all' }
@@ -74,7 +74,7 @@ const TabsItem = component<TabsItemProps>(
                 $attrs=${attrs}
                 $click=${onClick}
                 $on=${on}
-                class=${classNames(className, 'tabs-button', {
+                class=${cn(className, 'tabs-button', {
                     'is-selected': isSelected
                 })}
                 href=${href}
@@ -114,7 +114,7 @@ export const PinkTabs = component<PinkTabsProps>(
             $attrs=${attrs}
             $click=${onClick}
             $on=${on}
-            class=${classNames(className, 'tabs')}
+            class=${cn(className, 'tabs')}
             id=${id}
             style=${style}
         >
@@ -136,7 +136,7 @@ export const PinkTabs = component<PinkTabsProps>(
                         ...itemProps,
                         liProps: {
                             ...tabsListProps?.listItemProps,
-                            className: classNames(
+                            className: cn(
                                 tabsListProps?.listItemProps?.className,
                                 'tabs-item'
                             )

@@ -3,7 +3,8 @@ import {
     component,
     type ComponentInputProps
 } from '@loom-js/core';
-import classNames from 'classnames';
+
+import { cn } from '../../utils/cn';
 
 // The selection as the tab strip uses it: `bind` reflects the selected label
 // on the tabs already in the DOM, `update` selects one.
@@ -50,7 +51,7 @@ const CodePanelTab = component<CodePanelTabProps>(
                     String(isSelected(selectedLabel))
                 )}
                 class=${selection.bind((selectedLabel) =>
-                    classNames('tabs-button', {
+                    cn('tabs-button', {
                         'is-selected': isSelected(selectedLabel)
                     })
                 )}
@@ -85,7 +86,7 @@ export const PinkCodePanelTabs = component<PinkCodePanelTabsProps>(
         <div
             $attrs=${attrs}
             $on=${on}
-            class=${classNames(className, 'tabs code-panel-tabs')}
+            class=${cn(className, 'tabs code-panel-tabs')}
             id=${id}
             style=${style}
         >

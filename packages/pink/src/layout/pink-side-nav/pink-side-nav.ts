@@ -5,13 +5,13 @@ import {
     simple,
     type TemplateTagValue
 } from '@loom-js/core';
-import classNames from 'classnames';
 
 import {
     type DropListItemProps,
     PinkDropList
 } from '../../components/pink-drop-list';
 import { PinkDynamicProps } from '../../types';
+import { cn } from '../../utils/cn';
 
 const SideNavBottom = component<ComponentInputProps>(
     (html, { children }) => html`
@@ -63,7 +63,7 @@ export const PinkSideNav = simple<ComponentInputProps<PinkSideNavProps>>(
                 children,
                 className: 'side-nav-level-1'
             }),
-            className: classNames(className, 'side-nav')
+            className: cn(className, 'side-nav')
         });
     }
 );

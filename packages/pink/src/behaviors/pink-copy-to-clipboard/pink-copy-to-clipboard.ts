@@ -5,10 +5,10 @@ import {
     el,
     type TemplateTagValue
 } from '@loom-js/core';
-import classNames from 'classnames';
 
 import { PinkTooltipPopup } from '../../elements/pink-tooltip/pink-tooltip-popup';
 import type { PinkDynamicProps } from '../../types';
+import { cn } from '../../utils/cn';
 
 // The copied state as children see it: the activity's read surface. `bind`
 // updates an attribute on the node already in the DOM; `effect` re-renders
@@ -111,7 +111,7 @@ export const PinkCopyToClipboard = component<
         return html`
             <${is}
                 attrs=${attrs}
-                className=${classNames(className, 'tooltip')}
+                className=${cn(className, 'tooltip')}
                 id=${id}
                 on=${on}
                 onClick=${onClick}

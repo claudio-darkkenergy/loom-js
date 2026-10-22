@@ -1,7 +1,7 @@
 import { type ComponentInputProps, el, simple } from '@loom-js/core';
-import classNames from 'classnames';
 
 import type { PinkDynamicProps } from '../../types';
+import { cn } from '../../utils/cn';
 import { PinkTableCol, PinkTableHeadCol } from './pink-table-cols';
 import { PinkTableRow } from './pink-table-row';
 import {
@@ -41,7 +41,7 @@ const PinkTableRoot = simple<PinkTableProps>(
     }) =>
         is({
             ...props,
-            className: classNames(className, 'table', {
+            className: cn(className, 'table', {
                 'is-remove-outer-styles': isRemoveOuterStyles,
                 'is-sticky-scroll': isStickyScroll,
                 'is-table-layout-auto': isTableLayoutAuto,

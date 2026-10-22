@@ -1,7 +1,7 @@
 import { el, simple } from '@loom-js/core';
-import classNames from 'classnames';
 
 import { type WithIconProps, withIcon } from '../../modifiers/with-icon';
+import { cn } from '../../utils/cn';
 
 export interface PinkButtonProps extends WithIconProps {
     // A custom button size - modifies height.
@@ -66,7 +66,7 @@ export const PinkButton = simple<PinkButtonProps>(
                           }
                         : { href, target: target ?? '_self' })
                 },
-                className: classNames(className, 'button', {
+                className: cn(className, 'button', {
                     'is-big': isBig,
                     'is-only-icon': isOnlyIcon,
                     'is-secondary': isSecondary,

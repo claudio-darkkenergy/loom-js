@@ -1,6 +1,6 @@
 import { component, type ComponentInputProps } from '@loom-js/core';
-import classNames from 'classnames';
 
+import { cn } from '../../utils/cn';
 import { PinkBox, type PinkBoxProps } from '../pink-box';
 
 export type PinkBoxesProps = ComponentInputProps<{
@@ -13,7 +13,7 @@ export const PinkBoxes = component<PinkBoxesProps>(
             $attrs=${attrs}
             $click=${onClick}
             $on=${on}
-            class=${classNames(className, 'boxes-wrapper')}
+            class=${cn(className, 'boxes-wrapper')}
             id=${id}
             style=${style}
         >

@@ -1,6 +1,6 @@
 import { component, type ComponentInputProps } from '@loom-js/core';
-import classNames from 'classnames';
 
+import { cn } from '../../utils/cn';
 import { PinkAvatar, type PinkAvatarProps } from '../pink-avatar';
 
 export type PinkAvatarGroupProps = ComponentInputProps<{
@@ -42,7 +42,7 @@ export const PinkAvatarGroup = component<PinkAvatarGroupProps>(
             $attrs=${attrs}
             $click=${onClick}
             $on=${on}
-            class=${classNames(className, 'avatars-group')}
+            class=${cn(className, 'avatars-group')}
             id=${id}
             style=${style}
         >
@@ -52,7 +52,7 @@ export const PinkAvatarGroup = component<PinkAvatarGroupProps>(
                     AvatarGroupItem({
                         ...listItemProps,
                         children: PinkAvatar(avatarProps),
-                        className: classNames(
+                        className: cn(
                             listItemProps?.className,
                             'avatars-group-item'
                         )

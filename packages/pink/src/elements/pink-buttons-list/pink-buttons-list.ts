@@ -1,6 +1,6 @@
 import { component, type ComponentInputProps } from '@loom-js/core';
-import classNames from 'classnames';
 
+import { cn } from '../../utils/cn';
 import { PinkButton, type PinkButtonProps } from '../pink-button';
 
 export interface PinkButtonsListProps {
@@ -44,7 +44,7 @@ export const PinkButtonsList = component<
             $attrs=${attrs}
             $click=${onClick}
             $on=${on}
-            class=${classNames(className, 'buttons-list')}
+            class=${cn(className, 'buttons-list')}
             id=${id}
             style=${style}
         >
@@ -54,7 +54,7 @@ export const PinkButtonsList = component<
                     ButtonsListItem({
                         ...listItemProps,
                         children: PinkButton(buttonProps),
-                        className: classNames(
+                        className: cn(
                             listItemProps?.className,
                             'buttons-list-item'
                         )

@@ -18,7 +18,7 @@ export default [
     // an array for the `output` option, where we can specify
     // `file` and `format` for each target)
     {
-        external: ['@loom-js/core', 'classnames'],
+        external: ['@loom-js/core', 'clsx'],
         input: './src/index.ts',
         plugins: [
             // so Rollup can convert TypeScript to JavaScript.
@@ -27,7 +27,7 @@ export default [
 
             // the workspace's typescript@7 here; it lacks the legacy compiler API.
             typescriptRollupPlugin({
-                tsconfig: './tsconfig.json'
+                tsconfig: './tsconfig.lib.json'
             }),
             terser({
                 keep_fnames: true

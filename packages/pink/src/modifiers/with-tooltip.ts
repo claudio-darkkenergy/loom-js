@@ -1,7 +1,7 @@
 import { TemplateTagValue, type ComponentInputProps } from '@loom-js/core';
-import classNames from 'classnames';
 
 import { PinkTooltipPopup } from '../elements/pink-tooltip/pink-tooltip-popup';
+import { cn } from '../utils/cn';
 
 export interface WithTooltipProps {
     isBottom?: boolean;
@@ -35,6 +35,6 @@ export const withTooltip = ({
     return {
         ...props,
         children: popupMessage ? childrenWithTooltip : children,
-        className: classNames(className, 'tooltip')
+        className: cn(className, 'tooltip')
     };
 };

@@ -77,16 +77,20 @@ tables only where the surface is large: `PinkButton`, `PinkCollapsible`, `PinkTa
 ### 1. `pink`
 
 - **Outline:** What pink is · Origin · Install · Inclusion · Theming (h3 Theme classes · h3
-  `usePinkTheming` · h3 CSS variables) · Storybook · Where next
+  `usePinkTheming` · h3 CSS variables) · Tailwind (h3 Class-name collisions · h3 Pink tokens in
+  utilities) · Storybook · Where next
 - **Content:** the design system for loom apps — Pink Design 1.0, continued from the archived
   appwrite/pink (`NOTICE`: MIT, commit `bfc9ba1`), with loom components on top; install
   `@loom-js/pink` (peer `@loom-js/core`); the two stylesheet imports (`pink.css`, `icons.css`)
   plus the component import; the `theme-dark` / `theme-light` body class, `usePinkTheming`'s
   variable set, `--p-*` and `--color-*` variables as the theming surface; the cascade layers
-  (so app CSS wins without specificity fights); pink is pre-1.0. Points into Storybook as the
+  (so app CSS wins without specificity fights); Tailwind v4 coexistence — pink before
+  `tailwindcss`, the `theme, base, pink, components, utilities` order statement, the four colliding
+  class names and their `@source not inline` exclusion, `hsl()`-wrapped tokens in arbitrary values;
+  pink is pre-1.0. Points into Storybook as the
   catalog and hands off to `pink-composition`.
 - **Source:** `package.json` (`name`, `exports`, `peerDependencies`), `NOTICE`,
-  `scss/_index.scss` (the layer order), `scss/1-css-variables/*` (the variable surface),
+  `scss/_index.scss` (the layer order and the Tailwind order statement), `scss/1-css-variables/*` (the variable surface),
   `scss/abstract/variables/_common.scss` (`$theme-dark`), `src/hooks/use-pink-theming.ts`
   (`usePinkTheming`, `PinkThemeConfig`) with the fallbacks its knobs land on —
   `scss/6-elements/_avatar.scss` (`--avatar-bg-color`), `_card.scss` (`--card-bg-color`,
@@ -97,7 +101,8 @@ tables only where the surface is large: `PinkButton`, `PinkCollapsible`, `PinkTa
   consistent with this topic (D4: links alive, nothing more).
 - **Reference consumer:** `apps/loom/src/app/bootstrap.ts` (the imports),
   `apps/loom/loom.config.ts` (`bodyClass: 'theme-dark'`), `apps/loom/src/app/app.ts`
-  (`usePinkTheming` with fonts).
+  (`usePinkTheming` with fonts); `apps/examples/pink-tailwind` (`src/styles.css` is the Tailwind
+  snippet verbatim; `tests/cascade.test.mjs` proves the cascade).
 
 ### 2. `pink-composition`
 

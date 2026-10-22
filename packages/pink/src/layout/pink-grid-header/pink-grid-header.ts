@@ -1,5 +1,6 @@
 import { component, type ComponentInputProps } from '@loom-js/core';
-import classNames from 'classnames';
+
+import { cn } from '../../utils/cn';
 
 /**
  * A header laid out on the pink grid. Content arrives through named slots
@@ -27,7 +28,7 @@ export const PinkGridHeader = component<PinkGridHeaderProps>(
             $attrs=${attrs}
             $click=${onClick}
             $on=${on}
-            class=${classNames(className, 'grid-header')}
+            class=${cn(className, 'grid-header')}
             id=${id}
             style=${style}
         >

@@ -1,7 +1,7 @@
 import { el, type ComponentInputProps } from '@loom-js/core';
-import classNames from 'classnames';
 
 import type { PinkDynamicProps } from '../../types';
+import { cn } from '../../utils/cn';
 import { PinkCodePanelContent } from './pink-code-panel-content';
 import { PinkCodePanelCopyButton } from './pink-code-panel-copy-button';
 import { PinkCodePanelHeader } from './pink-code-panel-header';
@@ -37,7 +37,7 @@ export const PinkCodePanel = ({
 }: ComponentInputProps<PinkCodePanelProps>) =>
     is({
         ...props,
-        className: classNames(className, 'code-panel'),
+        className: cn(className, 'code-panel'),
         // Omitted entirely when empty — a style value that resolves to
         // nothing must not reach the root's style binding.
         style:

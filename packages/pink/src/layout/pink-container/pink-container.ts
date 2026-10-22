@@ -1,7 +1,7 @@
 import { el, type ComponentInputProps, simple } from '@loom-js/core';
-import classNames from 'classnames';
 
 import { PinkDynamicProps } from '../../types';
+import { cn } from '../../utils/cn';
 
 export type PinkContainerProps = ComponentInputProps<PinkDynamicProps>;
 
@@ -12,7 +12,7 @@ export const PinkContainer = simple<PinkContainerProps>(
         is({
             attrs,
             children,
-            className: classNames(className, 'container'),
+            className: cn(className, 'container'),
             id,
             on,
             style

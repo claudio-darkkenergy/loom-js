@@ -1,5 +1,6 @@
 import { component, type ComponentInputProps } from '@loom-js/core';
-import classNames from 'classnames';
+
+import { cn } from '../../utils/cn';
 
 export interface PinkTooltipPopupProps {
     isBottom?: boolean;
@@ -22,7 +23,7 @@ export const PinkTooltipPopup = component<
         <span
             $attrs=${attrs}
             $on=${on}
-            class=${classNames(className, 'tooltip-popup', {
+            class=${cn(className, 'tooltip-popup', {
                 'is-bottom': isBottom,
                 'is-center': isCenter,
                 'is-end': isEnd
