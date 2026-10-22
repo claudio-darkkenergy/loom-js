@@ -141,6 +141,7 @@ Code that is not a component goes under `logic/`:
 - `logic/activity/` — module-level [activities](/docs/activities): the app's shared state.
 - `logic/hooks/` — functions that wire activities to routes, events and data.
 - `logic/providers/` — data fetching. Keep the transport swappable (a URL and headers the provider reads from one place), so the server module can point it at a different endpoint at build time.
+- `logic/search/` — pure functions with no DOM access (the docs search ranker). Code shaped like this runs under `node --test` as it is, without a browser.
 
 Pages call hooks and compose components; they do not fetch directly.
 
@@ -219,6 +220,7 @@ src/
       activity/           shared state
       hooks/              wiring
       providers/          data fetching
+      search/             pure functions (no DOM)
     pages/
       index.ts            the / page
       layout.ts           the layout around every page

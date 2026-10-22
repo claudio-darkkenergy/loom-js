@@ -6,6 +6,7 @@ export * from './components/pink-code-panel';
 export * from './components/pink-collapsible';
 export * from './components/pink-drop-list';
 export * from './components/pink-grid-item';
+export * from './components/pink-modal';
 export * from './components/pink-table';
 export * from './components/pink-tabs';
 export * from './components/pink-toggle-button';

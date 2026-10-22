@@ -20,7 +20,8 @@
         }
     }
 
-    &:not(:has([class^='-col-3'], [class^='-col-4'])) {
+    /* Mobile: the search trigger takes the second row's start. */
+    &:not(:has(.grid-header-col-3, .grid-header-col-4)) {
         grid-template-areas: 'col-1 col-2';
     }
 }

@@ -6,6 +6,12 @@ const toggleTransform: ActivityTransform<boolean, boolean | null> = ({
     value
 }) => update(input ?? !value);
 
+// The docs search palette: `update(null)` toggles, a boolean sets.
+export const docsSearchToggle = activity<boolean, boolean | null>(
+    false,
+    toggleTransform
+);
+
 export const sideNavToggle = activity<boolean, boolean | null>(
     false,
     toggleTransform

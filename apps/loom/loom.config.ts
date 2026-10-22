@@ -7,13 +7,18 @@ import {
     llmsFull,
     llmsIndex
 } from './project/client/llms-text.mjs';
+import {
+    assertSearchIndex,
+    type SearchEntry,
+    searchIndexJson
+} from './project/client/search-index.mjs';
 import type {
     DocsSectionSummary,
     DocsTopicSummary,
     DocsTopicText,
     PrerenderTransportConfig
 } from './src/app/prerender.entry';
-import { readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 // What `src/app/prerender.entry.ts` exports, for the hooks below.
@@ -21,6 +26,10 @@ interface LoomPrerenderBundle extends PrerenderBundle {
     benchResultsResourceKey: string;
     configurePrerenderTransport: (config: PrerenderTransportConfig) => void;
     docsContentResourceKey: (topicSlug: string) => string;
+    docsTopicSearchEntries: (
+        topicSlug: string,
+        group: string
+    ) => Promise<SearchEntry[]>;
     docsTopicText: (
         topicSlug: string,
         origin: string
@@ -69,6 +78,9 @@ const SITE_ORIGIN =
 
 // Utility topics that document nothing about the framework.
 const LLMS_EXCLUDED_SLUGS = ['feedback'];
+// Where the search palette fetches its index — every listed topic, the
+// utility ones included (findability, not API content).
+const SEARCH_INDEX_FILE = 'static/search/index.json';
 
 const apiUrl = process.env.API_URL ?? '';
 // Preview is an explicit opt-in (`.env.local` sets it for dev) — production
@@ -101,26 +113,51 @@ export default defineConfig<LoomPrerenderBundle>({
     },
     prerender: {
         after: async ({ bundle, outDir }) => {
-            const sections = await Promise.all(
-                (await bundle.listDocsSections()).map(
-                    async ({ title, topics: listed }) => ({
-                        title,
-                        topics: await Promise.all(
-                            listed
-                                .filter(
-                                    ({ slug }) =>
-                                        !LLMS_EXCLUDED_SLUGS.includes(slug)
-                                )
-                                .map(async (topic) => ({
-                                    ...topic,
-                                    ...(await bundle.docsTopicText(
-                                        topic.slug,
-                                        SITE_ORIGIN
-                                    ))
-                                }))
+            const listedSections = await bundle.listDocsSections();
+            const searchEntries = (
+                await Promise.all(
+                    listedSections.map(({ title, topics }) =>
+                        Promise.all(
+                            topics.map(({ slug }) =>
+                                bundle.docsTopicSearchEntries(slug, title)
+                            )
                         )
-                    })
+                    )
                 )
+            ).flat(2);
+
+            assertSearchIndex(
+                searchEntries,
+                listedSections.flatMap(({ topics }) => topics)
+            );
+
+            const searchIndexPath = path.join(outDir, SEARCH_INDEX_FILE);
+            const searchIndex = searchIndexJson(searchEntries);
+
+            await mkdir(path.dirname(searchIndexPath), { recursive: true });
+            await writeFile(searchIndexPath, searchIndex);
+            console.info(
+                `> wrote ${SEARCH_INDEX_FILE} (${searchEntries.length} entries, ${Buffer.byteLength(searchIndex)} bytes)`
+            );
+
+            const sections = await Promise.all(
+                listedSections.map(async ({ title, topics: listed }) => ({
+                    title,
+                    topics: await Promise.all(
+                        listed
+                            .filter(
+                                ({ slug }) =>
+                                    !LLMS_EXCLUDED_SLUGS.includes(slug)
+                            )
+                            .map(async (topic) => ({
+                                ...topic,
+                                ...(await bundle.docsTopicText(
+                                    topic.slug,
+                                    SITE_ORIGIN
+                                ))
+                            }))
+                    )
+                }))
             );
             const llmsSite = {
                 name: 'loom',

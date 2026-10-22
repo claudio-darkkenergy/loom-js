@@ -21,16 +21,20 @@ export const LoomJsStorybookDecorator: Decorator = (
     // Set theme
     setTheme(theme);
 
-    init({
-        app: StoryApp({
-            attrs: {
-                className: decorator?.className,
-                style: decorator?.style
-            },
-            story
-        }),
-        root: $storyContainer
-    });
+    // Storybook attaches the returned container right after this returns.
+    // Booting after that keeps `onMounted` live: a detached root never mounts.
+    queueMicrotask(() =>
+        init({
+            app: StoryApp({
+                attrs: {
+                    className: decorator?.className,
+                    style: decorator?.style
+                },
+                story
+            }),
+            root: $storyContainer
+        })
+    );
 
     return $storyContainer;
 };
