@@ -94,9 +94,7 @@ export interface PrerenderOptions<
     preloadFonts?: boolean;
 }
 
-export interface LoomConfig<
-    Bundle extends PrerenderBundle = PrerenderBundle
-> {
+export interface LoomConfig<Bundle extends PrerenderBundle = PrerenderBundle> {
     /** The project root. Default: the config file's directory. */
     root?: string;
     /** The build directory, relative to `root`. Default `build`. */
@@ -120,9 +118,7 @@ export interface LoomConfig<
     esbuild?: (options: BuildOptions, env: ConfigEnv) => BuildOptions;
 }
 
-export type LoomConfigExport<
-    Bundle extends PrerenderBundle = PrerenderBundle
-> =
+export type LoomConfigExport<Bundle extends PrerenderBundle = PrerenderBundle> =
     | LoomConfig<Bundle>
     | ((env: ConfigEnv) => LoomConfig<Bundle> | Promise<LoomConfig<Bundle>>);
 

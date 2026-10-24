@@ -2,6 +2,8 @@
 node_modules/
 dist/
 build/
+# ...but `build/` also matches the build tool's own package.
+!packages/build/
 .turbo/
 .vercel/
 coverage/

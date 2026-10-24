@@ -101,7 +101,10 @@ describe('shell resolution', () => {
         assert.equal(shellRouteOf('/docs/api/activity', routes), '/docs/api');
         assert.equal(shellRouteOf('/blog/post', routes), '/');
         assert.equal(shellRouteOf('/docsy', routes), '/');
-        assert.throws(() => shellRouteOf('/x', ['/docs']), /no configured route/);
+        assert.throws(
+            () => shellRouteOf('/x', ['/docs']),
+            /no configured route/
+        );
     });
 });
 
@@ -151,8 +154,14 @@ describe('production build', () => {
 
         // Pristine shells keep empty slots; rendered routes fill them.
         assert.match(shell, /<div id="loom-app" style="height: 100%"><\/div>/);
-        assert.match(shell, /<script id="loom-state" type="application\/json"><\/script>/);
-        assert.match(docsShell, /<div id="loom-app" style="height: 100%"><\/div>/);
+        assert.match(
+            shell,
+            /<script id="loom-state" type="application\/json"><\/script>/
+        );
+        assert.match(
+            docsShell,
+            /<div id="loom-app" style="height: 100%"><\/div>/
+        );
         assert.match(home, /<h1>\/<\/h1>/);
         assert.match(home, /hello from loom/);
         assert.match(home, /"fixture:greeting"/);
@@ -206,9 +215,13 @@ describe('development build', () => {
 describe('cli', () => {
     it('builds from the config in cwd with --outDir', async () => {
         const outDir = await tempOutDir();
-        const { stdout } = await run(process.execPath, [binPath, 'build', '--outDir', outDir], {
-            cwd: fixtureRoot
-        });
+        const { stdout } = await run(
+            process.execPath,
+            [binPath, 'build', '--outDir', outDir],
+            {
+                cwd: fixtureRoot
+            }
+        );
 
         assert.match(stdout, /prerender complete: 3 route\(s\)/);
         assert.ok((await readdir(outDir)).includes('shell.html'));

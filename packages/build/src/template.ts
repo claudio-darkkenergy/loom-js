@@ -68,7 +68,9 @@ export const createTemplate =
             '    <meta charset="utf-8" />',
             '    <meta content="width=device-width, initial-scale=1.0" name="viewport" />',
             ...(html.head ? [html.head(args)] : []),
-            ...css.map((path) => `    <link href="${path}" rel="stylesheet" />`),
+            ...css.map(
+                (path) => `    <link href="${path}" rel="stylesheet" />`
+            ),
             `    <script>window.__ROUTE_ASSETS__ = ${JSON.stringify(args.routeAssets)}</script>`,
             ...js.map(
                 (path) =>

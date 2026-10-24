@@ -66,7 +66,10 @@ export const routeOutputPath = (outDir: string, route: string) =>
 // lives at `shell.html`; a section route that is itself prerendered gets a
 // sibling `shell.html` too.
 const shellFileOf = (outDir: string, shellRoute: string) =>
-    path.join(path.dirname(routeOutputPath(outDir, shellRoute)), ROOT_SHELL_FILE);
+    path.join(
+        path.dirname(routeOutputPath(outDir, shellRoute)),
+        ROOT_SHELL_FILE
+    );
 
 const injectFontPreloads = (shellHtml: string, fontFiles: string[]) => {
     if (!fontFiles.length) {
@@ -87,9 +90,7 @@ const injectFontPreloads = (shellHtml: string, fontFiles: string[]) => {
 
     // Ahead of the first stylesheet link when there is one, else at the
     // head's end — either way before the CSS that would discover the fonts.
-    const anchor = shellHtml.includes('    <link ')
-        ? '    <link '
-        : '</head>';
+    const anchor = shellHtml.includes('    <link ') ? '    <link ' : '</head>';
 
     return shellHtml.replace(anchor, () => preloads.concat(anchor));
 };
@@ -103,9 +104,9 @@ const loadBundle = async (outDir: string): Promise<PrerenderBundle> => {
         );
     }
 
-    const bundle = (await import(pathToFileURL(bundlePath).href)) as Partial<
-        PrerenderBundle
-    >;
+    const bundle = (await import(
+        pathToFileURL(bundlePath).href
+    )) as Partial<PrerenderBundle>;
 
     if (typeof bundle.prerenderRoute !== 'function') {
         throw new Error(
@@ -143,7 +144,6 @@ export const prerender = async (config: ResolvedConfig) => {
     if (!hooks) {
         throw new Error('[prerender] the config has no `prerender` section.');
     }
-
 
     const { outDir, routes: configuredRoutes } = config;
     const bundle = await loadBundle(outDir);
@@ -216,7 +216,9 @@ export const prerender = async (config: ResolvedConfig) => {
                 stateJson: output.state
             })
         );
-        console.info(`> prerendered ${route} -> ${path.relative(outDir, outPath)}`);
+        console.info(
+            `> prerendered ${route} -> ${path.relative(outDir, outPath)}`
+        );
     }
 
     await hooks.after?.({ bundle, outDir });

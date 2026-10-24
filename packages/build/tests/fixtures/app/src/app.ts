@@ -12,7 +12,9 @@ const greeting = activity<Greeting | undefined>(
     undefined,
     async ({ update }) => {
         update(
-            await resource(GREETING_KEY, async () => ({ text: 'hello from loom' }))
+            await resource(GREETING_KEY, async () => ({
+                text: 'hello from loom'
+            }))
         );
     }
 );

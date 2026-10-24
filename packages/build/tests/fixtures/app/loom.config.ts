@@ -7,7 +7,8 @@ export default defineConfig(({ mode }) => ({
     entry: './src/bootstrap.ts',
     html: {
         bodyClass: 'theme-fixture',
-        head: () => '    <link rel="dns-prefetch" href="https://example.test" />',
+        head: () =>
+            '    <link rel="dns-prefetch" href="https://example.test" />',
         title: (scope) => (scope === '/docs' ? 'Docs | Fixture' : 'Fixture')
     },
     prerender: prerenderHooks,
