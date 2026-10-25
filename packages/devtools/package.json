@@ -1,6 +1,6 @@
 {
     "name": "@loom-js/devtools",
-    "version": "0.0.0",
+    "version": "0.1.0",
     "author": "Claudio Nunez Jr",
     "license": "ISC",
     "description": "The loom inspector: component tree, props, activities, element picking and render highlighting — docked in the page or in its own window, with no browser extension.",
