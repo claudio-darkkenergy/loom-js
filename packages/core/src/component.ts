@@ -7,10 +7,13 @@ import {
     noRefs,
     resetLifeCycles
 } from './lib/context';
+import { devtoolsHook, now } from './lib/devtools/hook';
+import { recordComponent } from './lib/devtools/names';
 import type {
     ComponentContextPartial,
     ComponentFactory,
     ComponentInputProps,
+    ComponentOptions,
     TemplateFunction
 } from './types';
 
@@ -50,7 +53,8 @@ const haveEqualProps = (
 };
 
 export const component: ComponentFactory = <Props extends object = {}>(
-    templateFunction: TemplateFunction<Props>
+    templateFunction: TemplateFunction<Props>,
+    { name }: ComponentOptions = {}
 ) => {
     const componentFunction = (
         // The empty-object default only applies to propless calls, which the
@@ -146,6 +150,8 @@ export const component: ComponentFactory = <Props extends object = {}>(
                 return ctx;
             }
 
+            const hook = devtoolsHook;
+            const startedAt = hook ? now() : 0;
             const ownedValues = memoizedOwnedValues(ctx);
 
             // Life-cycle setters append only while this render runs; the
@@ -172,6 +178,7 @@ export const component: ComponentFactory = <Props extends object = {}>(
             ownedValues.settle();
             ctx.registering &&= undefined;
             lastRenderedProps.set(ctx, props);
+            hook && hook.rendered(ctx, now() - startedAt);
 
             return template;
         }
@@ -183,6 +190,8 @@ export const component: ComponentFactory = <Props extends object = {}>(
 
         return contextFunction;
     };
+
+    recordComponent(componentFunction, templateFunction, name);
 
     return componentFunction;
 };

@@ -3,7 +3,7 @@
 _Maintained by `.claude/skills/solid-audit/SKILL.md`. Update this file using the audit skill — do not edit violation statuses manually._
 
 **Last full audit:** 2026-05-02
-**Last updated:** 2026-10-03
+**Last updated:** 2026-10-21
 
 ---
 
@@ -77,6 +77,14 @@ _Low-risk drift to fix opportunistically._
 - **Recommended fix:** Low priority. Could introduce a `setEvents(events: string[])` API that replaces the list entirely (vs. `appendEvents` which only extends), enabling tighter tree-shaking. See the OCP section in `.claude/skills/solid-principles/SKILL.md`.
 - **Status:** 🔲 Open
 - **Audited:** 2026-05-02
+
+---
+
+## 📋 File audit log
+
+_Clean file audits of added modules, with the spec covering each._
+
+- **2026-10-21 — `loom-devtools`, new `packages/core/src/lib/devtools/` + `src/devtools.ts`:** no violations. One concern per module: `names.ts` (display-name registry), `activity-ref.ts` (activity identity), `hook.ts` (hook slot + pre-backend buffer), `tree.ts` (live-tree reads), `switch.ts` (loader + enable state), `console-api.ts` (console records, exported only through `src/devtools.ts`; the devtools package's `backend/console-api.ts` installs them on the `loom` global). Specs: `component-display-names.spec.ts` (names), `devtools-introspection.spec.ts` (tree, hook, activity-ref), `loom-console-api.spec.ts` (console-api, switch, buffer). Touched files re-audited with no new findings: `activity.ts`, `component.ts`, `define-element.ts`, `app.ts`, `hydrate.ts`, `lib/bootstrap.ts`, `lib/attr-binding.ts`, `types.ts`, `elements/el.ts`, `elements/media.ts`, `elements/route-link.ts`, `lib/templating/compile-component-tags/emit.ts` (display names only). Also clean: `packages/build/src/devtools-plugin.ts` (covered by `packages/build/tests/build.test.mjs`) and the new `packages/devtools/src/` (`protocol/` by `protocol.spec.ts`, `backend/` by `backend.spec.ts`, `frontend/` by `hud.spec.ts`).
 
 ---
 

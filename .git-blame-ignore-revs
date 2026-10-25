@@ -8,3 +8,6 @@
 
 # style(pink): prettier the adopted appwrite/pink scss and icon scripts
 ee9869adad3f1519679fecf8ba15dff756cf247d
+
+# style(build): bring packages/build under prettier
+91535c35e6574126b7d83e115f51670521a23536

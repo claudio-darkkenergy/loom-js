@@ -19,6 +19,11 @@
             "module": "./dist/index.mjs",
             "default": "./dist/index.js"
         },
+        "./devtools": {
+            "types": "./dist/devtools.d.ts",
+            "module": "./dist/devtools.mjs",
+            "default": "./dist/devtools.js"
+        },
         "./server": {
             "types": "./dist/server.d.ts",
             "module": "./dist/server.mjs",

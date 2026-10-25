@@ -14,6 +14,7 @@ import { promisify } from 'node:util';
 
 const {
     build,
+    componentBindingsOf,
     createBuildOptions,
     loadConfig,
     prerender,
@@ -24,6 +25,7 @@ const {
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const fixtureRoot = path.join(here, 'fixtures/app');
+const fakeDevtools = path.join(here, 'fixtures/fake-devtools/index.mjs');
 const binPath = path.join(here, '../bin/loom.mjs');
 const run = promisify(execFile);
 
@@ -101,7 +103,10 @@ describe('shell resolution', () => {
         assert.equal(shellRouteOf('/docs/api/activity', routes), '/docs/api');
         assert.equal(shellRouteOf('/blog/post', routes), '/');
         assert.equal(shellRouteOf('/docsy', routes), '/');
-        assert.throws(() => shellRouteOf('/x', ['/docs']), /no configured route/);
+        assert.throws(
+            () => shellRouteOf('/x', ['/docs']),
+            /no configured route/
+        );
     });
 });
 
@@ -151,8 +156,14 @@ describe('production build', () => {
 
         // Pristine shells keep empty slots; rendered routes fill them.
         assert.match(shell, /<div id="loom-app" style="height: 100%"><\/div>/);
-        assert.match(shell, /<script id="loom-state" type="application\/json"><\/script>/);
-        assert.match(docsShell, /<div id="loom-app" style="height: 100%"><\/div>/);
+        assert.match(
+            shell,
+            /<script id="loom-state" type="application\/json"><\/script>/
+        );
+        assert.match(
+            docsShell,
+            /<div id="loom-app" style="height: 100%"><\/div>/
+        );
         assert.match(home, /<h1>\/<\/h1>/);
         assert.match(home, /hello from loom/);
         assert.match(home, /"fixture:greeting"/);
@@ -206,9 +217,13 @@ describe('development build', () => {
 describe('cli', () => {
     it('builds from the config in cwd with --outDir', async () => {
         const outDir = await tempOutDir();
-        const { stdout } = await run(process.execPath, [binPath, 'build', '--outDir', outDir], {
-            cwd: fixtureRoot
-        });
+        const { stdout } = await run(
+            process.execPath,
+            [binPath, 'build', '--outDir', outDir],
+            {
+                cwd: fixtureRoot
+            }
+        );
 
         assert.match(stdout, /prerender complete: 3 route\(s\)/);
         assert.ok((await readdir(outDir)).includes('shell.html'));
@@ -218,6 +233,181 @@ describe('cli', () => {
         await assert.rejects(
             run(process.execPath, [binPath, 'bogus'], { cwd: fixtureRoot }),
             /unknown command "bogus"/
+        );
+    });
+});
+
+describe('devtools', () => {
+    // Resolves `@loom-js/devtools` to the stand-in, as an installed package.
+    const withFakeDevtools = (resolved) => ({
+        ...resolved,
+        esbuild: (options) => ({
+            ...options,
+            alias: { '@loom-js/devtools': fakeDevtools }
+        })
+    });
+    // Every emitted script — shared chunks land at the out-dir root.
+    const builtJs = async (outDir) => {
+        const files = await readdir(outDir, { recursive: true });
+
+        return Promise.all(
+            files
+                .filter((file) => file.endsWith('.js'))
+                .map(async (file) => ({
+                    file: path.basename(file),
+                    source: await read(outDir, file)
+                }))
+        );
+    };
+    const anyJsMatches = async (outDir, pattern) =>
+        (await builtJs(outDir)).some(({ source }) => pattern.test(source));
+
+    it('finds top-level component bindings only', () => {
+        const source = [
+            'export const Card = component<CardProps>((html) => html``);',
+            'const TocList: Component<TocListProps> = component<TocListProps>(',
+            "export const PinkButton = defineElement('pink-button', fn);",
+            'let Plain = component(fn, { name: "Explicit" });',
+            'function wrap() {',
+            '    const Nested = component(fn);',
+            '}',
+            'const notAComponent = componentize(fn);',
+            'const Aliased = c(fn);'
+        ].join('\n');
+
+        assert.deepEqual(componentBindingsOf(source), [
+            'Card',
+            'TocList',
+            'PinkButton',
+            'Plain'
+        ]);
+    });
+
+    it('rejects an unknown setting', async () => {
+        await assert.rejects(
+            resolveConfig(
+                { devtools: 'always', entry: './x.ts' },
+                {
+                    mode: 'production'
+                }
+            ),
+            /unknown devtools setting "always"/
+        );
+    });
+
+    it('defaults to names and a loader in development', async () => {
+        const outDir = await tempOutDir();
+        const resolved = withFakeDevtools(
+            await resolveFixture('development', outDir)
+        );
+
+        assert.equal(resolved.devtools, 'dev');
+        await build(resolved);
+
+        assert.ok(
+            await anyJsMatches(outDir, /\(App, "App"\)/),
+            'names injected'
+        );
+        assert.ok(
+            await anyJsMatches(outDir, /FAKE_DEVTOOLS_MARKER/),
+            'loader registered'
+        );
+    });
+
+    it('defaults to nothing in development when the package is missing', async () => {
+        const outDir = await tempOutDir();
+        const resolved = await resolveFixture('development', outDir);
+
+        await build(resolved);
+
+        assert.ok(
+            !(await anyJsMatches(outDir, /\(App, "App"\)/)),
+            'no names injected'
+        );
+        assert.ok(
+            !(await anyJsMatches(outDir, /loom-devtools:register/)),
+            'no loader registered'
+        );
+    });
+
+    it('ships no names or devtools in a default production build', async () => {
+        const outDir = await tempOutDir();
+
+        await build(
+            withFakeDevtools(await resolveFixture('production', outDir))
+        );
+
+        for (const { file, source } of await builtJs(outDir)) {
+            assert.doesNotMatch(source, /FAKE_DEVTOOLS_MARKER/, file);
+            assert.doesNotMatch(source, /"App"\)/, file);
+        }
+    });
+
+    it('registers a lazy loader in production with devtools: lazy', async () => {
+        const outDir = await tempOutDir();
+        const resolved = withFakeDevtools({
+            ...(await resolveFixture('production', outDir)),
+            devtools: 'lazy',
+            devtoolsExplicit: true
+        });
+
+        await build(resolved);
+
+        const outputs = await builtJs(outDir);
+        const spa = outputs.find(({ file }) => file === 'spa.js');
+        const devtoolsChunks = outputs.filter(({ source }) =>
+            source.includes('FAKE_DEVTOOLS_MARKER')
+        );
+        const shell = await read(outDir, 'shell.html');
+
+        assert.doesNotMatch(spa.source, /FAKE_DEVTOOLS_MARKER/);
+        assert.equal(devtoolsChunks.length, 1, 'one lazy devtools chunk');
+        assert.ok(
+            !shell.includes(devtoolsChunks[0].file),
+            'the shell never loads the devtools chunk'
+        );
+        assert.ok(await anyJsMatches(outDir, /"App"\)/), 'names injected');
+    });
+
+    it('registers the loader on an entry named without its extension', async () => {
+        const outDir = await tempOutDir();
+
+        await build(
+            withFakeDevtools({
+                ...(await resolveFixture('development', outDir)),
+                entry: './src/bootstrap'
+            })
+        );
+
+        assert.ok(await anyJsMatches(outDir, /FAKE_DEVTOOLS_MARKER/));
+    });
+
+    it('fails an explicit setting when the package is missing', async () => {
+        const outDir = await tempOutDir();
+
+        await assert.rejects(
+            build({
+                ...(await resolveFixture('production', outDir)),
+                devtools: 'lazy',
+                devtoolsExplicit: true
+            }),
+            /needs @loom-js\/devtools/
+        );
+    });
+
+    it('skips everything with devtools: false', async () => {
+        const outDir = await tempOutDir();
+
+        await build(
+            withFakeDevtools({
+                ...(await resolveFixture('development', outDir)),
+                devtools: false,
+                devtoolsExplicit: true
+            })
+        );
+
+        assert.ok(
+            !(await anyJsMatches(outDir, /"App"\)|FAKE_DEVTOOLS_MARKER/))
         );
     });
 });

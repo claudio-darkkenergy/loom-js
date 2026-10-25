@@ -8,6 +8,7 @@ import type { BuildOptions } from 'esbuild';
 import { copy } from 'esbuild-plugin-copy';
 
 import type { ResolvedConfig } from './config';
+import { devtoolsPlugin } from './devtools-plugin';
 import { PRERENDER_ENTRY_NAME, createTemplate } from './template';
 import path from 'node:path';
 
@@ -96,7 +97,16 @@ export const createBuildOptions = (config: ResolvedConfig): BuildOptions => {
                 // costs a second build pass, so prod only.
                 twoPassCss: isProd
             }),
-            ...(assets.length ? [copy({ assets, resolveFrom: 'out' })] : [])
+            ...(assets.length ? [copy({ assets, resolveFrom: 'out' })] : []),
+            devtoolsPlugin({
+                active:
+                    config.devtools === 'lazy' ||
+                    (config.devtools === 'dev' && !isProd),
+                entry: entryPoints[SPA_ENTRY_NAME]!,
+                explicit: config.devtoolsExplicit,
+                root: config.root,
+                setting: config.devtools
+            })
         ],
         sourcemap: !isProd,
         splitting: true

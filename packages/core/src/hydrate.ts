@@ -1,5 +1,6 @@
 import { bootstrap, configApp, resolveAppRoot } from './lib/bootstrap';
 import { _lifeCycles } from './lib/context/life-cycles';
+import { registerAppRoot } from './lib/devtools/tree';
 import { getDocument } from './lib/dom';
 import { captureReplayEvents } from './lib/event-replay';
 import {
@@ -46,6 +47,8 @@ export const hydrate = async ({
     // the only DOM-touching step, deferred below.
     const appCtx = app();
     const appRoot = resolveAppRoot(root);
+
+    registerAppRoot(appCtx);
 
     // An empty root has nothing to preserve, so the settle gate would only
     // hold a blank screen — mount immediately and render progressively,

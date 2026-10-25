@@ -1,0 +1,16 @@
+{
+    "extends": "@loom-js/typescript-config/base.json",
+    "display": "Package",
+    "compilerOptions": {
+        "declarationDir": "./dist/typings",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "noEmit": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "rootDir": "./src",
+        "types": ["node"]
+    },
+    "exclude": ["dist", "node_modules"],
+    "include": ["src"]
+}

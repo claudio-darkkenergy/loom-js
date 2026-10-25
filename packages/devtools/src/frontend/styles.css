@@ -1,0 +1,294 @@
+/* The HUD's own layout on top of pink's dark theme. */
+:root {
+    --hud-accent: #a78bfa;
+    --hud-accent-strong: #6d28d9;
+    --hud-bg: #19191c;
+    --hud-bg-raised: #232328;
+    --hud-border: #34343b;
+    --hud-effect: #67e8f9;
+    --hud-muted: #9ca3af;
+    --hud-text: #e5e7eb;
+    color-scheme: dark;
+}
+
+html,
+body {
+    background: var(--hud-bg);
+    color: var(--hud-text);
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    font:
+        12px/1.5 ui-sans-serif,
+        system-ui,
+        sans-serif;
+}
+
+#loom-devtools-hud,
+.hud {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.hud-header {
+    border-bottom: 1px solid var(--hud-border);
+    flex: none;
+}
+
+.hud-bar {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 8px;
+}
+
+.hud-brand {
+    color: var(--hud-accent);
+    font-weight: 700;
+}
+
+.hud-status {
+    color: var(--hud-muted);
+}
+
+.hud-status.is-connected::before {
+    color: #4ade80;
+    content: '● ';
+}
+
+.hud-status.is-connecting::before,
+.hud-status.is-refused::before {
+    color: #f87171;
+    content: '● ';
+}
+
+.hud-tabs {
+    display: flex;
+    gap: 2px;
+    margin-left: 8px;
+}
+
+.hud-tab,
+.hud-button {
+    background: transparent;
+    border: 1px solid var(--hud-border);
+    border-radius: 4px;
+    color: var(--hud-text);
+    cursor: pointer;
+    font: inherit;
+    padding: 2px 8px;
+}
+
+.hud-tab.is-selected,
+.hud-button.is-on {
+    background: var(--hud-accent-strong);
+    border-color: var(--hud-accent-strong);
+}
+
+.hud-button.is-primary {
+    border-color: var(--hud-accent);
+    color: var(--hud-accent);
+}
+
+.hud-tab:hover,
+.hud-button:hover {
+    border-color: var(--hud-accent);
+}
+
+.hud-spacer {
+    flex: 1;
+}
+
+.hud-muted {
+    color: var(--hud-muted);
+}
+
+.hud-notice {
+    background: #3f1d1d;
+    color: #fecaca;
+    margin: 0;
+    padding: 4px 8px;
+}
+
+.hud-main {
+    flex: 1;
+    min-height: 0;
+}
+
+.hud-split {
+    display: grid;
+    grid-template-columns: minmax(200px, 2fr) 3fr;
+    height: 100%;
+}
+
+.pane {
+    height: 100%;
+    overflow: auto;
+}
+
+.tree-pane {
+    border-right: 1px solid var(--hud-border);
+}
+
+.tree-list,
+.value-list,
+.activity-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.tree-row {
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.tree-row:hover {
+    background: var(--hud-bg-raised);
+}
+
+.tree-row.is-selected {
+    background: rgb(109 40 217 / 0.35);
+}
+
+.tree-toggle,
+.value-toggle {
+    background: none;
+    border: 0;
+    color: var(--hud-muted);
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+    width: 14px;
+}
+
+.is-hidden {
+    visibility: hidden;
+}
+
+.tree-name.is-component,
+.details-name.is-component {
+    color: var(--hud-accent);
+}
+
+.tree-name.is-effect,
+.details-name.is-effect {
+    color: var(--hud-effect);
+}
+
+.hud-badge {
+    font-size: 10px;
+    padding: 0 4px;
+}
+
+.inspector-pane,
+.activities-pane {
+    padding: 6px 10px;
+}
+
+.details-head,
+.activity-head {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+}
+
+.details-name {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.details-section {
+    margin-top: 10px;
+}
+
+.details-title {
+    color: var(--hud-muted);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    margin: 0 0 4px;
+    text-transform: uppercase;
+}
+
+.value-list .value-list {
+    padding-left: 14px;
+}
+
+.value-line {
+    align-items: baseline;
+    display: flex;
+    gap: 4px;
+}
+
+.value-key {
+    color: #f0abfc;
+}
+
+.value-key::after {
+    color: var(--hud-muted);
+    content: ':';
+}
+
+.value-preview {
+    font-family: ui-monospace, monospace;
+    word-break: break-all;
+}
+
+.value-preview.is-str {
+    color: #fdba74;
+}
+
+.value-preview.is-num,
+.value-preview.is-bool,
+.value-preview.is-bigint {
+    color: #93c5fd;
+}
+
+.value-preview.is-activity {
+    color: var(--hud-effect);
+}
+
+.value-preview.is-link {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.activity-item {
+    border-bottom: 1px solid var(--hud-border);
+    padding: 6px 0;
+}
+
+.activity-name {
+    color: var(--hud-effect);
+    font-weight: 600;
+}
+
+.activity-editor {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.hud-input {
+    background: var(--hud-bg-raised);
+    border: 1px solid var(--hud-border);
+    border-radius: 4px;
+    color: var(--hud-text);
+    flex: 1;
+    font:
+        12px ui-monospace,
+        monospace;
+    padding: 2px 6px;
+}
+
+.empty-note,
+.placeholder {
+    padding: 8px;
+}

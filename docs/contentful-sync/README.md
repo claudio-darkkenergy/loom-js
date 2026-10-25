@@ -22,3 +22,6 @@ pre-scrub topic drafts and every pre-2026 relic entry (old site/page/video entri
 `17-pink.md` … `22-pink-code-panels.md` joined 2026-10-04 (`docs-pink-section`; six fresh entries
 in a sixth nav group, "Pink" (`iMRdec1x9OpnTC04r2QTg`), appended to the page listing after
 Reference — their drift anchor is `docs/pink-content-map.md`, not the core map).
+`13a-devtools.md` joined 2026-10-22 (`loom-devtools`; a fresh entry placed in the Reference group
+after `diagnostics`). It and the `components` / `diagnostics` / `build-tool` edits stay drafts
+until `@loom-js/devtools` ships.

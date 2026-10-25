@@ -55,7 +55,10 @@ import { APP_ROOT_ID, hydrate } from '@loom-js/core';
 
 import { App } from './app';
 
-hydrate({ app: App(), root: document.getElementById(APP_ROOT_ID) ?? undefined });
+hydrate({
+    app: App(),
+    root: document.getElementById(APP_ROOT_ID) ?? undefined
+});
 ```
 
 ## TypeScript
@@ -64,22 +67,22 @@ Built in. The app's sources, the prerender entry and `loom.config.ts` itself are
 
 ## Commands
 
-| Command          | What it does                                                                                               |
-| ---------------- | ---------------------------------------------------------------------------------------------------------- |
+| Command          | What it does                                                                                                    |
+| ---------------- | --------------------------------------------------------------------------------------------------------------- |
 | `loom build`     | Wipes `outDir`, bundles, emits shells and copies. In production mode, runs the prerender phase when configured. |
-| `loom dev`       | Development mode: watch + serve with SPA fallback. Never prerenders.                                       |
-| `loom prerender` | Re-runs only the prerender phase against the current `outDir` — iterate on hooks without a full rebuild.   |
+| `loom dev`       | Development mode: watch + serve with SPA fallback. Never prerenders.                                            |
+| `loom prerender` | Re-runs only the prerender phase against the current `outDir` — iterate on hooks without a full rebuild.        |
 
 Options: `--mode development|production`, `--outDir <dir>` (also `LOOM_BUILD_DIR`), `--config <file>`.
 
 **Mode.** `build` and `prerender` are production unless `--mode development` is passed or `NODE_ENV=development`; `dev` is always development. Mode drives everything an app would otherwise set by hand:
 
-| Production                                           | Development                                   |
-| ---------------------------------------------------- | --------------------------------------------- |
-| minified, no sourcemaps                              | readable, sourcemaps                          |
-| route-scoped shells (each links only its own chunks) | one superset shell (dev serves one fallback)  |
-| two-pass CSS (one mangle pool for JS + CSS)          | single pass                                   |
-| `__DEV__` is `false`                                 | `__DEV__` is `true`                           |
+| Production                                           | Development                                  |
+| ---------------------------------------------------- | -------------------------------------------- |
+| minified, no sourcemaps                              | readable, sourcemaps                         |
+| route-scoped shells (each links only its own chunks) | one superset shell (dev serves one fallback) |
+| two-pass CSS (one mangle pool for JS + CSS)          | single pass                                  |
+| `__DEV__` is `false`                                 | `__DEV__` is `true`                          |
 
 ## Config
 
@@ -102,9 +105,7 @@ export default defineConfig(({ mode }) => ({
         // template: (args) => '…' replaces the default shell entirely
     },
     server: { port: 9092 },
-    prerender: {
-        /* see Prerender */
-    },
+    prerender: {/* see Prerender */},
     esbuild: (options, { mode }) => options // escape hatch, applied last
 }));
 ```
@@ -125,7 +126,11 @@ The hooks receive the prerender bundle — the entry module's exports — so wha
 
 ```ts
 // src/prerender.entry.ts
-import { dehydrate, renderToString, serializeState } from '@loom-js/core/server';
+import {
+    dehydrate,
+    renderToString,
+    serializeState
+} from '@loom-js/core/server';
 
 import { App } from './app';
 import { setApiToken } from './data';
@@ -165,10 +170,14 @@ export default defineConfig<Bundle>({
         setup: (bundle) => bundle.configureTransport(process.env.TOKEN ?? ''),
         routes: async (bundle) => ['/', ...(await bundle.listPages())],
         validate: (route, { html }) => {
-            if (!html.includes('<main')) throw new Error(`${route} rendered no main`);
+            if (!html.includes('<main'))
+                throw new Error(`${route} rendered no main`);
         },
         after: ({ outDir }) =>
-            writeFile(path.join(outDir, 'robots.txt'), 'User-agent: *\nAllow: /'),
+            writeFile(
+                path.join(outDir, 'robots.txt'),
+                'User-agent: *\nAllow: /'
+            ),
         preloadFonts: true
     }
 });
@@ -188,7 +197,13 @@ Anything thrown by a hook fails the build. `loom prerender` repeats steps 2–6 
 ## Programmatic use
 
 ```ts
-import { build, dev, loadConfig, prerender, resolveConfig } from '@loom-js/build';
+import {
+    build,
+    dev,
+    loadConfig,
+    prerender,
+    resolveConfig
+} from '@loom-js/build';
 
 const { config } = await loadConfig(process.cwd());
 const resolved = await resolveConfig(config, { mode: 'production' });

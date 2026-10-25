@@ -80,7 +80,9 @@ export const loadConfigFile = async (file: string): Promise<LoadedConfig> => {
 
 /** Finds and loads the config under `cwd`; `file` skips the lookup. */
 export const loadConfig = async (cwd: string, file?: string) => {
-    const configFile = file ? path.resolve(cwd, file) : await findConfigFile(cwd);
+    const configFile = file
+        ? path.resolve(cwd, file)
+        : await findConfigFile(cwd);
 
     if (!configFile) {
         throw new Error(

@@ -15,7 +15,7 @@ import type { Frame, Region } from './types';
 
 // A children region has no single-root guarantee (text, multiple elements),
 // so its synthesized component always renders as a rootless fragment.
-const makeChildrenComponent = (region: Region) => {
+const makeChildrenComponent = (region: Region, name: string) => {
     markFragmentRegion(region);
 
     const childChunks = region.statics;
@@ -26,7 +26,8 @@ const makeChildrenComponent = (region: Region) => {
                     chunks: string[],
                     ...values: TemplateTagValue[]
                 ) => ComponentContext
-            )(childChunks, ...values)
+            )(childChunks, ...values),
+        { name }
     );
 
     return { getters: region.getters, synth };
@@ -37,7 +38,7 @@ export const makeComponentGetter = (frame: Frame): TemplateTransformGetter => {
     const child =
         region &&
         (region.getters.length || region.statics.some((text) => text.trim()))
-            ? makeChildrenComponent(region)
+            ? makeChildrenComponent(region, 'children')
             : null;
     // One synthesized component per named region (design Decision 1 of
     // `add-named-slots`) — a slot region is never empty by construction.
@@ -47,7 +48,7 @@ export const makeComponentGetter = (frame: Frame): TemplateTransformGetter => {
               ([name, slotRegion]): [
                   string,
                   ReturnType<typeof makeChildrenComponent>
-              ] => [name, makeChildrenComponent(slotRegion)]
+              ] => [name, makeChildrenComponent(slotRegion, `slot:${name}`)]
           )
         : null;
 

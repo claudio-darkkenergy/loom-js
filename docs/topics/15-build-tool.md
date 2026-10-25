@@ -103,6 +103,7 @@ export default defineConfig(({ mode }) => ({
     prerender: {
         /* see Prerendering */
     },
+    devtools: 'dev', // 'dev' (default) | 'lazy' | false
     esbuild: (options) => options // escape hatch, applied last
 }));
 ```
@@ -120,6 +121,10 @@ The default shell is a `<head>` with the title, charset and viewport metas, your
 ### Defines, copies, server
 
 `define` values are JSON-encoded into the bundle, so strings, numbers and booleans all read back as themselves; the tool adds `__DEV__` from the mode. `publicDir` is copied verbatim to `<outDir>/static`; `copy` takes extra `{ from, to }` pairs, `from` a glob relative to the root and `to` a directory relative to `outDir`. `server.port` (default `3000`) and `server.host` configure `loom dev`.
+
+### Devtools
+
+`devtools` decides where the [Devtools](/docs/devtools) inspector is available. `'dev'` (the default) wires it into development builds; `'lazy'` into production builds too; `false` never. Where it's available, the tool registers a lazy loader for `@loom-js/devtools` — no route's initial bundle grows, and the code loads only when `loom.devtools.enable()` runs — and names every top-level `const X = component(…)` / `defineElement(…)` after its binding. The default skips both quietly when `@loom-js/devtools` isn't installed; an explicit `'dev'` or `'lazy'` without the package fails the build.
 
 ### The `esbuild` escape hatch
 

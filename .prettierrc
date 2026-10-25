@@ -27,6 +27,7 @@
         "lib/utils/package.json",
         "packages/build/package.json",
         "packages/core/package.json",
+        "packages/devtools/package.json",
         "packages/esbuild-plugin-html-split/package.json",
         "packages/eslint/eslint-plugin/package.json",
         "packages/highlight/package.json",

@@ -1,5 +1,6 @@
 import { bootstrap, configApp, resolveAppRoot } from './lib/bootstrap';
 import { _lifeCycles } from './lib/context/life-cycles';
+import { registerAppRoot } from './lib/devtools/tree';
 import { getDocument } from './lib/dom';
 import { mount } from './lib/mount';
 import type { AppInitProps } from './types';
@@ -19,6 +20,7 @@ export const init = ({
     const appRoot = resolveAppRoot(root);
 
     mount(appRoot, appCtx, placement);
+    registerAppRoot(appCtx);
     // Observe DOM changes for some component life-cycle events.
     _lifeCycles.observe(appRoot);
 

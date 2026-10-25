@@ -1,4 +1,11 @@
 import type { AttrBinding } from './lib/attr-binding';
+import type { InspectableActivity } from './lib/devtools/activity-ref';
+import type { ActivityRecord, InspectRecord } from './lib/devtools/console-api';
+import type {
+    DevtoolsBackend,
+    DevtoolsEnableOptions,
+    DevtoolsPlacement
+} from './lib/devtools/switch';
 import type { DehydratedState } from './lib/resource-cache';
 import type { Slot } from './lib/templating/types';
 
@@ -66,6 +73,19 @@ export interface Es6Object<T = unknown> {
 }
 
 export interface LoomGlobal {
+    // The activities driving every mounted app. Devtools installs `activities`,
+    // `inspect` and `tree` while it runs.
+    activities?: () => ActivityRecord[];
+    // The devtools switch — `enable` loads the registered implementation.
+    devtools: {
+        disable: () => Promise<void>;
+        enable: (
+            options?: DevtoolsEnableOptions
+        ) => Promise<DevtoolsBackend | undefined>;
+        open: (placement?: DevtoolsPlacement) => Promise<void>;
+    };
+    // The component instance that rendered a node (pair with `$0`).
+    inspect?: (node: Node) => InspectRecord | undefined;
     // Runtime access to the debug-narration switch, mirroring the module
     // export — narration is opt-in, so the switch must be reachable from a
     // devtools console in any build.
@@ -73,6 +93,8 @@ export interface LoomGlobal {
         isOn?: boolean | (ConfigDebugAllowable & object),
         types?: ConfigDebugAllowable & object
     ) => Required<ConfigDebugAllowable>;
+    // Every mounted app's component tree.
+    tree?: () => InspectRecord[];
 }
 
 // String-keyed record for props/templating paths — see `Es6Object` for the
@@ -208,6 +230,8 @@ export type ComponentOutputProps<Props extends object = {}> =
 // which essentially provides caching capabilities w/ associated meta-data.
 export interface ComponentContext<Props extends object = {}>
     extends LifeCycleHandlerProps, Pick<ReservedProps, 'key' | 'ref'> {
+    // Internal — on an activity effect boundary, the activity it renders.
+    activity?: InspectableActivity;
     // Internal — the contexts of array-valued slots, by slot or item key.
     arrayChildren?: Map<number | string, ComponentContextPartial>;
     // Created on first use, like `refs`, `registering` and `teardowns`.
@@ -260,8 +284,15 @@ export type UtilityProps = {
 // The component definition (internal props from external values)
 // It takes a `TemplateFunction`.
 export type ComponentFactory = <Props extends object = {}>(
-    templateFunction: TemplateFunction<Props>
+    templateFunction: TemplateFunction<Props>,
+    options?: ComponentOptions
 ) => Component<Props>;
+
+// Options for `component`. The display name is diagnostic only — it never
+// affects rendering, reconciliation or identity.
+export type ComponentOptions = {
+    name?: string;
+};
 
 // Options for `defineElement`. Encapsulation is opt-in: with no `shadow`, a
 // registered element renders into the light DOM, where app CSS applies.
