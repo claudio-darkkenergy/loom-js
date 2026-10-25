@@ -32,6 +32,7 @@ export type {
     Component,
     ComponentContext,
     ComponentInputProps,
+    ComponentOptions,
     ComponentOutputProps,
     ContextFunction,
     DefineElementOptions,

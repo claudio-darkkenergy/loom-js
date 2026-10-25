@@ -2,6 +2,8 @@ import { createTransformDispatcher } from './lib/activity/transform-dispatch';
 import { createValueStore } from './lib/activity/value-store';
 import { ATTR_BINDING, AttrBinding } from './lib/attr-binding';
 import { appendChildContext, isActivityContextFunction } from './lib/context';
+import { recordActivity } from './lib/devtools/activity-ref';
+import { devtoolsHook, now } from './lib/devtools/hook';
 import { createDiagnosticSubject } from './lib/globals/diagnostic-format';
 import { isObject } from './lib/helpers';
 import { reactiveEffect } from './lib/reactive';
@@ -47,10 +49,11 @@ export const activity = <V, I = V>(
     // The run machinery — supersession, ordering, timeout, settlement. The
     // subject names this activity in diagnostics: its opt-in `label`, or a
     // stable generated tag assigned on first diagnostic use.
+    const subject = createDiagnosticSubject('activity', label);
     const dispatchTransformRun = createTransformDispatcher<V>({
         commit,
         concurrency,
-        subject: createDiagnosticSubject('activity', label),
+        subject,
         timeout
     });
 
@@ -61,7 +64,7 @@ export const activity = <V, I = V>(
         // No harm, no foul - there's a good reason.
     }
 
-    return {
+    const activityHandle = {
         /**
          * Creates an attribute binding for template attr slots — the bound
          * attribute applies `select` of the current value immediately and
@@ -80,6 +83,7 @@ export const activity = <V, I = V>(
         ): AttrBinding<V> {
             return {
                 [ATTR_BINDING]: true,
+                activity: activityHandle,
                 select,
                 watch: (action) =>
                     reactiveEffect(
@@ -96,6 +100,8 @@ export const activity = <V, I = V>(
                     ctx: ComponentContextPartial = {}
                 ) {
                     const renderEffect = () => {
+                        const hook = devtoolsHook;
+                        const startedAt = hook ? now() : 0;
                         const scopedAction = scopedActions.get(ctx);
                         const templateTagValue =
                             scopedAction &&
@@ -108,10 +114,12 @@ export const activity = <V, I = V>(
                                 ? appendChildContext(ctx, templateTagValue, 0)
                                 : ctx
                         );
+                        hook && hook.rendered(ctx, now() - startedAt);
                     };
 
                     // Ensure the `ctx` has a `ctxScopes` map.
                     ctx.ctxScopes = ctx.ctxScopes || new Map();
+                    ctx.activity = activityHandle;
 
                     // Handle when `effect` is 1st called.
                     if (!ctx.root || !scopedActions.has(ctx)) {
@@ -188,4 +196,9 @@ export const activity = <V, I = V>(
             );
         }
     };
+
+    recordActivity(activityHandle, subject);
+    devtoolsHook && devtoolsHook.activityCreated(activityHandle);
+
+    return activityHandle;
 };

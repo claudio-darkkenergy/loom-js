@@ -4,6 +4,7 @@ import type {
     Unsubscriber,
     ValueProp
 } from '../types';
+import type { InspectableActivity } from './devtools/activity-ref';
 
 // Marks an object as an attribute binding (`activity.bind`) — a `Symbol`
 // property so no consumer value can collide with it.
@@ -14,6 +15,8 @@ export const ATTR_BINDING = Symbol('loom.attr-binding');
 // on every activity update, without re-rendering the host component.
 export interface AttrBinding<V = any> {
     [ATTR_BINDING]: true;
+    // The bound activity, so devtools can attribute the binding to it.
+    activity?: InspectableActivity;
     select(bindValue: V): TemplateTagValue;
     watch(action: (valueProp: ValueProp<V>) => any): Unsubscriber;
 }

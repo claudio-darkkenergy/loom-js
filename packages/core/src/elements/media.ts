@@ -38,7 +38,8 @@ export const Svg = /* @__PURE__ */ component<SvgProps>(
                 width="100%"
             ></use>
         </svg>
-    `
+    `,
+    { name: 'Svg' }
 );
 
 export interface SourceProps {
@@ -60,7 +61,8 @@ export interface PictureProps {
 const Source = /* @__PURE__ */ component<SourceProps>(
     (html, { media, sizes, srcset, type }) => html`
         <source media=${media} sizes=${sizes} srcset=${srcset} type=${type} />
-    `
+    `,
+    { name: 'Source' }
 );
 
 const Img = /* @__PURE__ */ component<Omit<PictureProps, 'sources'>>(
@@ -75,7 +77,8 @@ const Img = /* @__PURE__ */ component<Omit<PictureProps, 'sources'>>(
             src=${src}
             width=${width}
         />
-    `
+    `,
+    { name: 'Img' }
 );
 
 const PictureEl = /* @__PURE__ */ component<PictureProps>(
@@ -87,7 +90,8 @@ const PictureEl = /* @__PURE__ */ component<PictureProps>(
             ${sources?.map((sourceProps) => Source(sourceProps))}
             ${Img({ alt, height, loading, src, width })}
         </picture>
-    `
+    `,
+    { name: 'Picture' }
 );
 
 export const Picture = /* @__PURE__ */ simple<PictureProps>(

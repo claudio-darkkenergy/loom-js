@@ -45,7 +45,8 @@ export const el = (tagName: string): Component => {
                         ...tagValues: TemplateTagValue[]
                     ) => ComponentContext
                 )(chunks, ...values);
-            }
+            },
+            { name: `<${tag}>` }
         );
         tagComponents.set(tag, tagComponent);
     }

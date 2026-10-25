@@ -36,5 +36,6 @@ export const RouteLink = /* @__PURE__ */ component<RouteLinkProps>(
                 target=${target}
             >${children}</a>
         `;
-    }
+    },
+    { name: 'RouteLink' }
 );

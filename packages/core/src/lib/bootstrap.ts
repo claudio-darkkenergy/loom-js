@@ -3,6 +3,11 @@
 // bootstrap steps around that moment are identical and live here.
 import { appendEvents, setDebug, setToken } from '../config';
 import type { AppGlobalConfig, LoomGlobal } from '../types';
+import {
+    disableDevtools,
+    enableDevtools,
+    openDevtools
+} from './devtools/switch';
 import { getDocument, getWindow } from './dom';
 import { mount } from './mount';
 
@@ -13,7 +18,14 @@ export const bootstrap = () => {
         // never has to ship enabled to be usable. The console proxy itself
         // stays internal: nothing consumer-facing needs the handle, and
         // exposing it invited cached-method-reference misuse.
-        setDebug
+        setDebug,
+        // Loads the registered devtools on demand; devtools adds the
+        // console API (`tree`, `inspect`, `activities`) while it runs.
+        devtools: {
+            disable: disableDevtools,
+            enable: enableDevtools,
+            open: openDevtools
+        }
     };
 };
 

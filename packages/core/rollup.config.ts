@@ -7,11 +7,16 @@ import dts from 'rollup-plugin-dts';
 const pkg = JSON.parse(readFileSync('./package.json', 'utf8'));
 
 // Delete old typings to avoid issues
-for (const typings of ['dist/index.d.ts', 'dist/server.d.ts']) {
+for (const typings of [
+    'dist/devtools.d.ts',
+    'dist/index.d.ts',
+    'dist/server.d.ts'
+]) {
     rmSync(typings, { force: true });
 }
 
-// Shared by the browser (`.`) and server (`./server`) entries.
+// Shared by the browser (`.`), server (`./server`) and devtools
+// (`./devtools`) entries.
 const jsPlugins = () => [
     // so Rollup can convert TypeScript to JavaScript.
 
@@ -36,12 +41,19 @@ const rollupConfig = [
     // reached via `.` or `./server` — separate bundles would give the server
     // entry its own dead copy of that state.
     {
-        input: { index: './src/index.ts', server: './src/server.ts' },
+        input: {
+            devtools: './src/devtools.ts',
+            index: './src/index.ts',
+            server: './src/server.ts'
+        },
         plugins: jsPlugins(),
         output: [
             {
                 chunkFileNames: 'chunks/[name]-[hash].mjs',
                 dir: 'dist',
+                // No bare side-effect imports of shared chunks: the package
+                // is `sideEffects: false`, so bundlers warn and drop them.
+                hoistTransitiveImports: false,
                 entryFileNames: '[name].mjs',
                 format: 'es',
                 sourcemap: true
@@ -49,6 +61,9 @@ const rollupConfig = [
             {
                 chunkFileNames: 'chunks/[name]-[hash].js',
                 dir: 'dist',
+                // No bare side-effect imports of shared chunks: the package
+                // is `sideEffects: false`, so bundlers warn and drop them.
+                hoistTransitiveImports: false,
                 entryFileNames: '[name].js',
                 format: 'cjs',
                 sourcemap: true
@@ -60,6 +75,11 @@ const rollupConfig = [
     {
         input: './dist/typings/index.d.ts',
         output: { file: pkg.exports['.'].types, format: 'es' },
+        plugins: [dts()]
+    },
+    {
+        input: './dist/typings/devtools.d.ts',
+        output: { file: pkg.exports['./devtools'].types, format: 'es' },
         plugins: [dts()]
     },
     {

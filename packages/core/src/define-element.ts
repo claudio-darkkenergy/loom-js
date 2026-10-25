@@ -1,4 +1,5 @@
 import { component } from './component';
+import { recordElementTag } from './lib/devtools/names';
 // Imported by path rather than through `./lib/templating` — the barrel is
 // pulled in by every consumer, and re-exporting registration from it would
 // keep this module in bundles that never call `defineElement`.
@@ -39,6 +40,7 @@ export const defineElement = <Props extends object = {}>(
 ): Component<Props> => {
     const componentFunction = component<Props>(templateFunction);
 
+    recordElementTag(templateFunction, name);
     registerCustomElement<Props>({
         ...options,
         componentFunction,

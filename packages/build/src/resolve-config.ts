@@ -50,9 +50,17 @@ export const resolveConfig = async (
 
     const root = path.resolve(cwd, config.root ?? '.');
 
+    if (![undefined, 'dev', 'lazy', false].includes(config.devtools)) {
+        throw new Error(
+            `[loom] unknown devtools setting ${JSON.stringify(config.devtools)} — use "dev", "lazy" or false.`
+        );
+    }
+
     return {
         copy: config.copy ?? [],
         define: config.define ?? {},
+        devtools: config.devtools ?? 'dev',
+        devtoolsExplicit: config.devtools !== undefined,
         entry: config.entry,
         esbuild: config.esbuild,
         html: config.html ?? {},

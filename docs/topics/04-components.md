@@ -12,7 +12,7 @@ Use `component` to register a template render function. It takes a render functi
 
 When using `component`, the tagged template's template string typically contains a single top-level element (one opening & closing tag pair wrapping the whole template). A template whose top level holds anything else — several nodes, text, or an interpolated value — is fragment-rooted (see [Fragments](/docs/fragments)).
 
-**API** `component<Props>(templateFunction)`
+**API** `component<Props>(templateFunction, options?)`
 
 **Inclusion** `import { component } from '@loom-js/core';`
 
@@ -44,6 +44,19 @@ export const Button = component<ButtonProps>(
 ```
 
 That's a complete component. Its render function receives more than props, though — five hooks fire around each render's life cycle.
+
+## Display names
+
+Devtools and the `loom` console API name each instance by its display name. Builds made with the loom build tool name components automatically from the declaring binding: `export const Button = component(…)` shows up as `Button`. Pass `name` to set it yourself — it wins over the injected one, and it's how components built without the loom build tool get named:
+
+```ts
+export const Button = component<ButtonProps>(
+    (html, props) => html`<button>${props.label}</button>`,
+    { name: 'Button' }
+);
+```
+
+The name is diagnostic only; it never changes rendering. A `defineElement` component shows as `Name <tag>`, or `<tag>` when nothing names it; any other unnamed component shows as `Anonymous`. See [Devtools](/docs/devtools).
 
 ## Life-cycle hooks
 

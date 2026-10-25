@@ -1,0 +1,59 @@
+{
+    "name": "@loom-js/devtools",
+    "version": "0.0.0",
+    "author": "Claudio Nunez Jr",
+    "license": "ISC",
+    "description": "The loom inspector: component tree, props, activities, element picking and render highlighting — docked in the page or in its own window, with no browser extension.",
+    "keywords": [
+        "loomjs",
+        "devtools",
+        "inspector",
+        "debugging"
+    ],
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "module": "./dist/index.mjs",
+            "default": "./dist/index.mjs"
+        }
+    },
+    "files": [
+        "./dist"
+    ],
+    "sideEffects": false,
+    "type": "module",
+    "types": "./dist/index.d.ts",
+    "publishConfig": {
+        "access": "public"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/claudio-darkkenergy/loom-js.git",
+        "directory": "packages/devtools"
+    },
+    "scripts": {
+        "build-package": "node scripts/build.mjs",
+        "format": "prettier",
+        "test-ci": "node scripts/build.mjs --frontend-only && wtr --config \"web-test-runner.config.mjs\"",
+        "type-check": "tsc --noEmit && tsc --noEmit -p tests/tsconfig.json"
+    },
+    "peerDependencies": {
+        "@loom-js/core": ">=0.21.0 <1.0.0"
+    },
+    "devDependencies": {
+        "@esm-bundle/chai": "4.3.4-fix.0",
+        "@loom-js/core": "workspace:*",
+        "@loom-js/pink": "workspace:*",
+        "@loom-js/typescript-config": "workspace:*",
+        "@types/mocha": "^10.0.10",
+        "@types/node": "^26.5.1",
+        "@types/sinon": "22.0.0",
+        "@web/dev-server-esbuild": "^2.0.0",
+        "@web/test-runner": "^1.0.0",
+        "@web/test-runner-puppeteer": "^1.0.1",
+        "esbuild": "^0.28.2",
+        "puppeteer": "^25.11.0",
+        "sinon": "22.1.0",
+        "typescript": "^7.0.2"
+    }
+}

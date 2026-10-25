@@ -42,6 +42,7 @@ per topic.
 | 11  | `hydration`        | Client Hydration |
 | 12  | `dehydrated-state` | Dehydrated State |
 | 13  | `diagnostics`      | Diagnostics      |
+| 13a | `devtools`         | Devtools         |
 | 14  | `build-tool`       | Build Tool       |
 | 15  | `app-structure`    | App Structure    |
 
@@ -232,6 +233,17 @@ it sits before `build-tool`.
   `src/lib/globals/diagnostic-format.ts`.
 - **Tests:** `tests/unit/set-debug.spec.ts`, `tests/unit/diagnostic-format.spec.ts`,
   `tests/unit/diagnostic-logging.spec.ts`.
+
+### 13a. `devtools`
+
+- **Outline:** Turning it on · The console API · The HUD · Production builds · Limits
+- **Source:** `src/devtools.ts` (the `./devtools` entry), `src/lib/devtools/` (names, tree walk,
+  hook, switch, console API), `src/lib/bootstrap.ts` (the `loom` global), `src/types.ts`
+  (`LoomGlobal`, `ComponentOptions`). Also anchored on `packages/devtools` (repo-relative) and the
+  build tool's `devtools` key (`packages/build/src/devtools-plugin.ts`).
+- **Tests:** `tests/unit/component-display-names.spec.ts`,
+  `tests/unit/devtools-introspection.spec.ts`, `tests/unit/loom-console-api.spec.ts`; the
+  `packages/devtools/tests/` suite.
 
 ## Code block directives
 

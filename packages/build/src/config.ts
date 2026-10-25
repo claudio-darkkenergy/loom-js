@@ -114,9 +114,17 @@ export interface LoomConfig<Bundle extends PrerenderBundle = PrerenderBundle> {
     html?: HtmlOptions;
     server?: ServerOptions;
     prerender?: PrerenderOptions<Bundle>;
+    /**
+     * When devtools is available: `'dev'` (default) in development builds,
+     * `'lazy'` in production builds too, `false` never. Devtools code loads
+     * only when switched on (`loom.devtools.enable()`).
+     */
+    devtools?: DevtoolsSetting;
     /** The escape hatch: edit the final esbuild options. Applied last. */
     esbuild?: (options: BuildOptions, env: ConfigEnv) => BuildOptions;
 }
+
+export type DevtoolsSetting = 'dev' | 'lazy' | false;
 
 export type LoomConfigExport<Bundle extends PrerenderBundle = PrerenderBundle> =
     | LoomConfig<Bundle>
@@ -139,6 +147,9 @@ export interface ResolvedConfig extends Required<
     server: Required<Pick<ServerOptions, 'port'>> & ServerOptions;
     prerender?: PrerenderOptions;
     esbuild?: LoomConfig['esbuild'];
+    devtools: DevtoolsSetting;
+    // Whether the config set `devtools` itself.
+    devtoolsExplicit: boolean;
 }
 
 export interface ResolveOptions {

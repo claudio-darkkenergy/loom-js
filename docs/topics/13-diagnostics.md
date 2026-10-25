@@ -50,3 +50,7 @@ The boot-time equivalents are `globalConfig.debug` and `globalConfig.debugScope`
 
 - **Attribution is real:** each framework console access resolves to the native console method bound to the console (or a shared no-op when its gate is closed) — never a wrapper — so the browser attributes each message to the framework call site that produced it. Styling composes _arguments_ for that bound method; it never wraps it.
 - **The gate is read at property access:** every narration call reflects the debug state at that moment — flipping `loom.setDebug` applies from the very next message, no reload needed.
+
+## Inspecting the running app
+
+`loom.devtools.enable()` loads the inspector, which also adds console inspection to the `loom` global: `loom.tree()` returns every mounted app's component tree, `loom.inspect($0)` the component that rendered the element selected in the Elements panel (name, key, props, activities, parent), and `loom.activities()` the activities driving the page with their current values. See [Devtools](/docs/devtools).
