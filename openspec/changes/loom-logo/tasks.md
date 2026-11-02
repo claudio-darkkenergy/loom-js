@@ -54,9 +54,12 @@
 
 ## 4. External surfaces
 
-- [ ] 4.1 Hand off `.github/social-preview.png` to the maintainer for GitHub → Settings → Social preview. Also hand off the reverse-image and WIPO Global Brand Database check on `og-image.png` before launch. Verify: the maintainer confirms both.
+- [x] 4.1 Hand off `.github/social-preview.png` to the maintainer for GitHub → Settings → Social preview. Also hand off the reverse-image and WIPO Global Brand Database check on `og-image.png` before launch. Verify: the maintainer confirms both.
 - [x] 4.2 Run `pnpm format:check`. Review the diff in the IDE before committing; the app is private, so it gets no changeset. Verify: the format check is clean and the maintainer has reviewed the diff.
+
+- [x] 4.3 Add `<meta name="description">` to `brandHead`, which the Open Graph debugger flagged as missing. Verify: `pnpm -F @loom-js/loom test-ci` passes.
+- [x] 4.4 Set the manifest `display` to `browser`: the iPhone standalone launch hid the status bar and pushed the header search icon outside the page. Verify: `pnpm -F @loom-js/loom test-ci` passes.
 
 ## 5. Post-deploy
 
-- [ ] 5.1 After deploy, check a shared docs URL in an Open Graph preview debugger and the installed-app icon on one mobile platform. Verify: the preview shows the 1200×630 image and the page title, and the icon is uncropped.
+- [x] 5.1 After deploy, check a shared docs URL in an Open Graph preview debugger and the installed-app icon on one mobile platform. Verify: the preview shows the 1200×630 image and the page title, and the icon is uncropped.

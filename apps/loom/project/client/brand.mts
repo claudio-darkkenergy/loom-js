@@ -60,7 +60,7 @@ export const SURFACE_DARK = '#1C1817';
 
 /** The name shells, the manifest and link previews show. */
 export const SITE_NAME = 'loomjs';
-/** The description link previews and the manifest show. */
+/** The description search snippets, link previews and the manifest show. */
 export const SITE_DESCRIPTION =
     'A reactive, component-driven, JavaScript framework.';
 
@@ -132,6 +132,7 @@ export const brandHead = ({
         `<link href="${FAVICON_DIR}/apple-touch-icon.png" rel="apple-touch-icon" />`,
         `<link href="${MANIFEST_PATH}" rel="manifest" />`,
         `<meta content="${SURFACE_DARK}" name="theme-color" />`,
+        `<meta content="${SITE_DESCRIPTION}" name="description" />`,
         `<meta content="website" property="og:type" />`,
         `<meta content="${SITE_NAME}" property="og:site_name" />`,
         `<meta content="${escapeAttribute(title)}" property="og:title" />`,
@@ -153,7 +154,8 @@ export const webManifest = () =>
             short_name: 'loom',
             description: SITE_DESCRIPTION,
             start_url: '/',
-            display: 'standalone',
+            // Home-screen launches open in the browser: the app has no standalone layout yet.
+            display: 'browser',
             theme_color: SURFACE_DARK,
             background_color: SURFACE_DARK,
             icons: [

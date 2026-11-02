@@ -96,7 +96,7 @@ describe('brand head', () => {
         ].forEach((tag) => assert.ok(head.includes(tag), tag));
     });
 
-    it('carries the social preview with an absolute image', () => {
+    it('carries the description and social preview with an absolute image', () => {
         [
             '<meta content="Docs | Loomjs" property="og:title" />',
             '<meta content="https://site.test/static/img/og-image.png" property="og:image" />',
@@ -105,11 +105,16 @@ describe('brand head', () => {
             '<meta content="summary_large_image" name="twitter:card" />'
         ].forEach((tag) => assert.ok(head.includes(tag), tag));
         assert.match(head, /property="og:description"/);
+        assert.match(head, /name="description"/);
     });
 });
 
 describe('web manifest', () => {
     const manifest = JSON.parse(webManifest());
+
+    it('opens home-screen launches in the browser', () => {
+        assert.equal(manifest.display, 'browser');
+    });
 
     it('sets the dark surface as theme and background', () => {
         assert.equal(manifest.theme_color, '#1C1817');

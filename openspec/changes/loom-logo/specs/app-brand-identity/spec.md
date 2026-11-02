@@ -89,7 +89,7 @@ The SVG favicon SHALL draw the light variant by default and SHALL switch the dis
 
 ### Requirement: Shells carry social preview metadata
 
-Every shell SHALL carry `og:title` (matching the shell's `<title>`), `og:description`, `og:image`, `og:image:width`/`og:image:height`, and `twitter:card` set to `summary_large_image`. The `og:image` SHALL be an absolute URL on the site origin pointing at a 1200×630 PNG that shows the mark.
+Every shell SHALL carry a `description` meta tag, `og:title` (matching the shell's `<title>`), `og:description`, `og:image`, `og:image:width`/`og:image:height`, and `twitter:card` set to `summary_large_image`. The `og:image` SHALL be an absolute URL on the site origin pointing at a 1200×630 PNG that shows the mark.
 
 #### Scenario: Link preview
 
