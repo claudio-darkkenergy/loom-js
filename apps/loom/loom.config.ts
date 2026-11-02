@@ -2,6 +2,7 @@ import type { BenchResults } from '@loom-js/bench';
 import { defineConfig, type PrerenderBundle } from '@loom-js/build';
 import type { SerializedStateEnvelope } from '@loom-js/core';
 
+import { brandHead } from './project/client/brand.mjs';
 import {
     assertLlmsTopics,
     llmsFull,
@@ -87,13 +88,24 @@ const apiUrl = process.env.API_URL ?? '';
 // must never default onto Contentful's uncached Preview API.
 const ctfIsPreview = process.env.CTF_IS_PREVIEW === 'true';
 
+const pageTitle = (scope: string) =>
+    scope === '/docs'
+        ? 'Docs | Loomjs'
+        : scope === BENCH_ROUTE
+          ? 'Benchmarks | Loomjs'
+          : 'Home | Loomjs';
+
 // The topic listing, captured by `routes` for `validate`.
 let topicTitles = new Map<string, string>();
 // The measured framework names, captured by `setup` for `validate`.
 let benchFrameworkNames: string[] = [];
 
 export default defineConfig<LoomPrerenderBundle>({
-    copy: [{ from: '../bench/results/latest.json', to: './static/bench' }],
+    copy: [
+        { from: '../bench/results/latest.json', to: './static/bench' },
+        // Served at the root too, for clients that never read the shell.
+        { from: './public/static/favicon/favicon.ico', to: '.' }
+    ],
     define: {
         __API_URL__: apiUrl,
         __CTF_IS_PREVIEW__: ctfIsPreview
@@ -102,14 +114,12 @@ export default defineConfig<LoomPrerenderBundle>({
     html: {
         // Shell-owned: prerendered markup needs the theme before the boot runs.
         bodyClass: 'theme-dark',
-        head: () =>
-            `    <link rel="dns-prefetch" href="${apiUrl}/api/contentful/graphql" />`,
-        title: (scope) =>
-            scope === '/docs'
-                ? 'Docs | Loomjs'
-                : scope === BENCH_ROUTE
-                  ? 'Benchmarks | Loomjs'
-                  : 'Home | Loomjs'
+        head: ({ scope }) =>
+            [
+                `    <link rel="dns-prefetch" href="${apiUrl}/api/contentful/graphql" />`,
+                brandHead({ origin: SITE_ORIGIN, title: pageTitle(scope) })
+            ].join('\n'),
+        title: pageTitle
     },
     prerender: {
         after: async ({ bundle, outDir }) => {

@@ -342,6 +342,9 @@ importers:
       '@types/node':
         specifier: ^26.5.1
         version: 26.5.1
+      puppeteer:
+        specifier: ^25.11.0
+        version: 25.11.0(yauzl@2.10.0)
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
