@@ -16,4 +16,4 @@
 
 ## 4. Post-deploy
 
-- [ ] 4.1 Re-run opengraph.xyz and LinkedIn's Post Inspector on a topic URL. Verify: the topic title, description and new image show, and the title and description warnings are gone.
+- [x] 4.1 Re-run opengraph.xyz and LinkedIn's Post Inspector on a topic URL. Verify: the topic title, description and new image show, and the title and description warnings are gone.
