@@ -57,6 +57,14 @@ export interface PrerenderOutput {
     state: string;
 }
 
+/** A prerendered route's own head metadata; fields left out keep the shell's. */
+export interface RouteMeta {
+    /** Sets `<title>` and `og:title`. */
+    title?: string;
+    /** Sets `<meta name="description">` and `og:description`. */
+    description?: string;
+}
+
 export interface PrerenderContext {
     /** The absolute build directory. */
     outDir: string;
@@ -82,6 +90,12 @@ export interface PrerenderOptions<
         output: PrerenderOutput,
         bundle: Bundle
     ) => void | Promise<void>;
+    /** The route's own title and description, written into its shell's head. */
+    meta?: (
+        route: string,
+        output: PrerenderOutput,
+        bundle: Bundle
+    ) => RouteMeta | undefined | Promise<RouteMeta | undefined>;
     /** Runs once after every route is written — e.g. emit extra files from the same bundle. */
     after?: (
         context: PrerenderContext & { bundle: Bundle }

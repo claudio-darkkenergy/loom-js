@@ -6,3 +6,4 @@ export * from './use-page-content';
 export * from './use-search-shortcut';
 export * from './use-side-nav-toggle';
 export * from './use-topic-toc-toggle';
+export * from './use-document-title';

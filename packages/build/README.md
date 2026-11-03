@@ -169,6 +169,10 @@ export default defineConfig<Bundle>({
         entry: './src/prerender.entry.ts',
         setup: (bundle) => bundle.configureTransport(process.env.TOKEN ?? ''),
         routes: async (bundle) => ['/', ...(await bundle.listPages())],
+        meta: (route) =>
+            route.startsWith('/docs/')
+                ? { title: `${route.slice(6)} | Docs` }
+                : undefined,
         validate: (route, { html }) => {
             if (!html.includes('<main'))
                 throw new Error(`${route} rendered no main`);
@@ -189,7 +193,7 @@ The pipeline:
 2. The bundle is imported from `outDir`; it must export `prerenderRoute(url, window) → { html, state }`.
 3. `setup(bundle)` runs once. `routes(bundle)` returns the routes to render.
 4. The root shell is preserved as `shell.html` (the SPA fallback), and a section shell beside its own `index.html` when that section route is itself rendered. With `preloadFonts`, every `.woff2` the build emitted is preloaded from the shells.
-5. Each route renders against a fresh DOM window (`linkedom`), into the shell of its longest configured route prefix (`/docs/a` → the `/docs` shell). The output is sanity-checked (markup present, state parses), then `validate` runs, then the markup and state are injected and `<route>/index.html` written.
+5. Each route renders against a fresh DOM window (`linkedom`), into the shell of its longest configured route prefix (`/docs/a` → the `/docs` shell). The output is sanity-checked (markup present, state parses), then `validate` runs. `meta(route, output, bundle)` may return the route's own `{ title, description }`: the tool writes them, escaped, into `<title>`/`og:title` and `<meta name="description">`/`og:description`, adding the description tag when the shell lacks one. Then the markup and state are injected and `<route>/index.html` written.
 6. `after({ outDir, bundle })` runs once at the end.
 
 Anything thrown by a hook fails the build. `loom prerender` repeats steps 2–6 against the existing output.

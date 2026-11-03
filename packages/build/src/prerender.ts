@@ -10,6 +10,7 @@ import type {
     PrerenderOutput,
     ResolvedConfig
 } from './config';
+import { applyRouteMeta } from './route-meta';
 import { PRERENDER_ENTRY_NAME } from './template';
 import {
     access,
@@ -206,12 +207,17 @@ export const prerender = async (config: ResolvedConfig) => {
         checkOutput(route, output);
         await hooks.validate?.(route, output, bundle);
 
+        const routeMeta = await hooks.meta?.(route, output, bundle);
+        const routeShell = routeMeta
+            ? applyRouteMeta(shellHtml as string, routeMeta)
+            : (shellHtml as string);
+
         const outPath = routeOutputPath(outDir, route);
 
         await mkdir(path.dirname(outPath), { recursive: true });
         await writeFile(
             outPath,
-            injectPrerender(shellHtml as string, {
+            injectPrerender(routeShell, {
                 appHtml: output.html,
                 stateJson: output.state
             })

@@ -12,7 +12,7 @@ import { sideNavToggle } from '../logic/activity/toggles';
 import styles from './styles.module.css';
 import { BrandLogoLink } from '@/app/components/branding/brand-logo-link';
 import { DocsSearchHost, SearchTrigger } from '@/app/components/search';
-import { useSearchShortcut } from '@/app/logic/hooks';
+import { useDocumentTitle, useSearchShortcut } from '@/app/logic/hooks';
 
 const { effect: layoutStateEffect } = layoutState;
 const { update: toggleSideNav } = sideNavToggle;
@@ -37,6 +37,7 @@ const HeaderBrand = component<{ sideNav?: boolean }>(
 const PageLayout = component(
     (html, { children, className, style: theme, ...hooks }) => {
         useSearchShortcut(hooks);
+        useDocumentTitle(hooks);
 
         return html`
         <div

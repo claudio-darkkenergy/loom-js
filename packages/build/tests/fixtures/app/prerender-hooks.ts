@@ -9,6 +9,13 @@ export const prerenderHooks: PrerenderOptions = {
         await writeFile(join(outDir, 'after.txt'), 'after ran');
     },
     entry: './src/prerender.entry.ts',
+    meta: (route) =>
+        route === '/docs/alpha'
+            ? {
+                  description: 'About <alpha> & its $& kin',
+                  title: 'Alpha "one" | Fixture'
+              }
+            : undefined,
     preloadFonts: true,
     routes: (bundle) => (bundle.listPages as () => Promise<string[]>)(),
     validate: (route, { html }) => {

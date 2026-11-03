@@ -6,11 +6,15 @@ import puppeteer, { type Page } from 'puppeteer';
 import {
     ICO_SIZES,
     markSvg,
+    PREVIEW_FONTS,
+    PREVIEW_TEXT,
     RASTER_ASSETS,
+    SITE_DESCRIPTION,
     TEXT_ASSETS,
+    WORDMARK,
     type MarkVariant
 } from '../project/client/brand.mts';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const APP_ROOT = path.resolve(import.meta.dirname, '..');
@@ -24,6 +28,33 @@ const write = async (relativePath: string, contents: string | Uint8Array) => {
     console.log(`[brand-assets] ${path.relative(process.cwd(), target)}`);
 };
 
+const fontFace = async (family: string, relativePath: string) =>
+    `@font-face{font-family:${family};src:url(data:font/woff2;base64,${(
+        await readFile(path.resolve(APP_ROOT, relativePath))
+    ).toString('base64')}) format('woff2')}`;
+
+// The wordmark and tagline beside the mark, in fonts inlined into the page
+// so the render never depends on what the machine has installed.
+const lockupMarkup = async (image: string, height: number) => {
+    const fonts =
+        (await fontFace('Wordmark', PREVIEW_FONTS.wordmark)) +
+        (await fontFace('Tagline', PREVIEW_FONTS.tagline));
+    const wordmarkSize = Math.round(height * 0.24);
+    const taglineSize = Math.round(height * 0.05);
+    // Hyphenated words never break across lines.
+    const tagline = SITE_DESCRIPTION.replace(
+        /\S+-\S+/g,
+        (word) => `<span style="white-space:nowrap">${word}</span>`
+    );
+
+    return (
+        `<style>${fonts}</style>` +
+        `<div style="display:flex;align-items:center;gap:${Math.round(height * 0.09)}px">${image}` +
+        `<div><div style="font:${wordmarkSize}px/1 Wordmark;color:${PREVIEW_TEXT.wordmark}">${WORDMARK}</div>` +
+        `<div style="font:${taglineSize}px/1.3 Tagline;color:${PREVIEW_TEXT.tagline};max-width:${taglineSize * 16}px;text-wrap:balance;margin-top:${Math.round(height * 0.03)}px">${tagline}</div></div></div>`
+    );
+};
+
 const render = async (
     page: Page,
     {
@@ -31,23 +62,28 @@ const render = async (
         height,
         variant,
         ground,
-        scale
+        scale,
+        lockup
     }: {
         width: number;
         height: number;
         variant: Exclude<MarkVariant, 'mono'>;
         ground?: string;
         scale: number;
+        lockup?: boolean;
     }
 ) => {
     const diameter = Math.round(Math.min(width, height) * scale);
     const source = `data:image/svg+xml;base64,${Buffer.from(markSvg(variant)).toString('base64')}`;
 
     await page.setViewport({ width, height, deviceScaleFactor: 1 });
+    const image = `<img src="${source}" width="${diameter}" height="${diameter}">`;
+
     await page.setContent(
         `<body style="margin:0;width:${width}px;height:${height}px;display:grid;place-items:center;background:${ground ?? 'transparent'}">` +
-            `<img src="${source}" width="${diameter}" height="${diameter}"></body>`
+            `${lockup ? await lockupMarkup(image, height) : image}</body>`
     );
+    await page.evaluate(() => document.fonts.ready);
 
     return page.screenshot({ omitBackground: !ground, type: 'png' });
 };

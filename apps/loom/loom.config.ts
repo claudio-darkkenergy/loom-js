@@ -2,17 +2,19 @@ import type { BenchResults } from '@loom-js/bench';
 import { defineConfig, type PrerenderBundle } from '@loom-js/build';
 import type { SerializedStateEnvelope } from '@loom-js/core';
 
-import { brandHead } from './project/client/brand.mjs';
+import { brandHead, SITE_DESCRIPTION } from './project/client/brand.mjs';
 import {
     assertLlmsTopics,
     llmsFull,
     llmsIndex
 } from './project/client/llms-text.mjs';
+import { topicDescription } from './project/client/page-meta.mjs';
 import {
     assertSearchIndex,
     type SearchEntry,
     searchIndexJson
 } from './project/client/search-index.mjs';
+import { sectionTitle, topicPageTitle } from './src/app/page-title';
 import type {
     DocsSectionSummary,
     DocsTopicSummary,
@@ -88,13 +90,6 @@ const apiUrl = process.env.API_URL ?? '';
 // must never default onto Contentful's uncached Preview API.
 const ctfIsPreview = process.env.CTF_IS_PREVIEW === 'true';
 
-const pageTitle = (scope: string) =>
-    scope === '/docs'
-        ? 'Docs | Loomjs'
-        : scope === BENCH_ROUTE
-          ? 'Benchmarks | Loomjs'
-          : 'Home | Loomjs';
-
 // The topic listing, captured by `routes` for `validate`.
 let topicTitles = new Map<string, string>();
 // The measured framework names, captured by `setup` for `validate`.
@@ -117,9 +112,9 @@ export default defineConfig<LoomPrerenderBundle>({
         head: ({ scope }) =>
             [
                 `    <link rel="dns-prefetch" href="${apiUrl}/api/contentful/graphql" />`,
-                brandHead({ origin: SITE_ORIGIN, title: pageTitle(scope) })
+                brandHead({ origin: SITE_ORIGIN, title: sectionTitle(scope) })
             ].join('\n'),
-        title: pageTitle
+        title: sectionTitle
     },
     prerender: {
         after: async ({ bundle, outDir }) => {
@@ -188,6 +183,28 @@ export default defineConfig<LoomPrerenderBundle>({
             }
         },
         entry: './src/app/prerender.entry',
+        // Docs topics share the `/docs` shell; each gets its own title and
+        // a description cut from its lead.
+        meta: async (route, _output, bundle) => {
+            if (!route.startsWith('/docs/')) {
+                return undefined;
+            }
+
+            const slug = route.replace('/docs/', '');
+            const { lead } = await bundle.docsTopicText(slug, SITE_ORIGIN);
+            const description = topicDescription(lead);
+
+            if (!description) {
+                console.info(
+                    `> ${route} has no lead paragraph; using the site description.`
+                );
+            }
+
+            return {
+                description: description || SITE_DESCRIPTION,
+                title: topicPageTitle(topicTitles.get(slug) ?? '')
+            };
+        },
         preloadFonts: true,
         routes: async (bundle) => {
             const topics = await bundle.listDocsTopics();

@@ -169,6 +169,26 @@ describe('production build', () => {
         assert.match(home, /"fixture:greeting"/);
         assert.match(alpha, /<h1>\/docs\/alpha<\/h1>/);
 
+        // Route meta: alpha sets both fields, beta keeps the shell's head.
+        const beta = await read(outDir, 'docs/beta/index.html');
+
+        assert.match(alpha, /<title>Alpha &quot;one&quot; \| Fixture<\/title>/);
+        assert.match(
+            alpha,
+            /<meta content="Alpha &quot;one&quot; \| Fixture" property="og:title" \/>/
+        );
+        assert.match(
+            alpha,
+            /<meta content="About &lt;alpha&gt; &amp; its \$&amp; kin" name="description" \/>/
+        );
+        assert.match(
+            alpha,
+            /<meta content="About &lt;alpha&gt; &amp; its \$&amp; kin" property='og:description' \/>/
+        );
+        assert.match(beta, /<title>Docs \| Fixture<\/title>/);
+        assert.match(beta, /content="Fixture" property="og:title"/);
+        assert.doesNotMatch(beta, /name="description"/);
+
         // Template layering: title per scope, head markup, body class.
         assert.match(shell, /<title>Fixture<\/title>/);
         assert.match(docsShell, /<title>Docs \| Fixture<\/title>/);

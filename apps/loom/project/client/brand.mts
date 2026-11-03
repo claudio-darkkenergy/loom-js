@@ -58,6 +58,18 @@ export const MARK_INK = {
 /** --surface1-dark: hsl(15 10% 10%), the ground for opaque icons and previews. */
 export const SURFACE_DARK = '#1C1817';
 
+/** The wordmark beside the mark, in the header and on link previews. */
+export const WORDMARK = 'loom';
+
+/** Link-preview text colors: --text1-dark and --text2-dark. */
+export const PREVIEW_TEXT = { tagline: '#AAA4A1', wordmark: '#DED6D3' };
+
+/** The fonts the preview lockup renders with, from the app root. */
+export const PREVIEW_FONTS = {
+    tagline: 'src/assets/fonts/PelinkaRegular/font.woff2',
+    wordmark: 'src/assets/fonts/PelinkaExtraBold/font.woff2'
+};
+
 /** The name shells, the manifest and link previews show. */
 export const SITE_NAME = 'loomjs';
 /** The description search snippets, link previews and the manifest show. */
@@ -183,6 +195,8 @@ interface RasterAsset {
     ground?: string;
     /** The mark's diameter as a share of the shorter edge. */
     scale: number;
+    /** Sets the wordmark and tagline beside the mark. */
+    lockup?: boolean;
 }
 
 const FAVICON_FILES = 'public/static/favicon';
@@ -234,7 +248,8 @@ export const RASTER_ASSETS: RasterAsset[] = [
         height: OG_IMAGE.height,
         variant: 'dark',
         ground: SURFACE_DARK,
-        scale: 0.6
+        scale: 0.5,
+        lockup: true
     },
     {
         path: '../../.github/social-preview.png',
@@ -242,7 +257,8 @@ export const RASTER_ASSETS: RasterAsset[] = [
         height: 640,
         variant: 'dark',
         ground: SURFACE_DARK,
-        scale: 0.6
+        scale: 0.5,
+        lockup: true
     },
     {
         path: '../../packages/core/assets/img/loom-logo.png',

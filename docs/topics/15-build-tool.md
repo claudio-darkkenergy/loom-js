@@ -178,6 +178,8 @@ export default defineConfig<Bundle>({
         entry: './src/prerender.entry.ts',
         setup: (bundle) => bundle.configureTransport(process.env.TOKEN ?? ''),
         routes: async (bundle) => ['/', ...(await bundle.listPages())],
+        meta: (route) =>
+            route.startsWith('/docs/') ? { title: `${route.slice(6)} | Docs` } : undefined,
         validate: (route, { html }) => {
             if (!html.includes('<main')) throw new Error(`${route} rendered no main`);
         },
@@ -191,6 +193,7 @@ export default defineConfig<Bundle>({
 - `setup(bundle)` runs once before anything renders — point data providers at their build-time transport, read a token, seed a cache.
 - `routes(bundle)` returns the routes to render. Enumeration is yours, as it is in the hand-rolled loop: a route table, a CMS listing, the filesystem.
 - `validate(route, { html, state }, bundle)` throws to fail the build for a route whose output is not what the app expects — a missing title, a resource key absent from the state.
+- `meta(route, { html, state }, bundle)` returns the route's own `{ title, description }`. Routes share their section's shell, so without it every `/docs/*` page carries the `/docs` title. The tool writes `title` into `<title>` and `og:title`, and `description` into `<meta name="description">` and `og:description`, escaped. A field you leave out keeps the shell's value, and Open Graph tags are only rewritten where the shell already has them.
 - `after({ outDir, bundle })` runs once after every route is written — sitemaps, feeds, anything derived from the same data.
 - `preloadFonts` preloads every `.woff2` the build emitted from the shells' `<head>`; fonts are otherwise only discoverable through CSS `url()`s, which puts their download after first paint.
 
@@ -199,7 +202,7 @@ What the pipeline does with them:
 1. Imports the bundle from `outDir` and checks for `prerenderRoute`.
 2. Runs `setup`, then `routes`.
 3. Preserves the pristine shells: the root shell is copied to `shell.html` (the SPA fallback a host rewrites unknown paths to), and a section's shell beside its own `index.html` when that section route is itself rendered. Font preloads go into the shells here.
-4. Renders each route against a fresh DOM window into the shell of its longest configured route prefix — `/docs/a` uses the `/docs` shell. The output is sanity-checked (markup present, state parses), `validate` runs, then `injectPrerender` fills the two slots and `<route>/index.html` is written.
+4. Renders each route against a fresh DOM window into the shell of its longest configured route prefix — `/docs/a` uses the `/docs` shell. The output is sanity-checked (markup present, state parses), `validate` runs, `meta` rewrites the head, then `injectPrerender` fills the two slots and `<route>/index.html` is written.
 5. Runs `after`.
 
 Anything a hook throws fails the build. A route whose data never lands is not an error on its own — `renderToString` serializes what has settled and warns — so `validate` is where you turn "the title must be in the markup" or "this key must be in the state" into a failed build rather than a shipped skeleton. The result is the page shape [Client Hydration](/docs/hydration) expects: markup in the app root, state in the script slot, and a boot that primes then hydrates.

@@ -150,6 +150,18 @@ describe('committed brand files', () => {
         );
     });
 
+    it('set the wordmark beside the mark on both link previews only', () => {
+        assert.deepEqual(
+            RASTER_ASSETS.filter(({ lockup }) => lockup).map(
+                ({ path: relativePath }) => relativePath
+            ),
+            [
+                'public/static/img/og-image.png',
+                '../../.github/social-preview.png'
+            ]
+        );
+    });
+
     it('ship every manifest icon at its declared size', () => {
         JSON.parse(webManifest()).icons.forEach(({ sizes, src }) =>
             assert.deepEqual(

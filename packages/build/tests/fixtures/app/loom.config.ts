@@ -8,7 +8,11 @@ export default defineConfig(({ mode }) => ({
     html: {
         bodyClass: 'theme-fixture',
         head: () =>
-            '    <link rel="dns-prefetch" href="https://example.test" />',
+            [
+                '    <link rel="dns-prefetch" href="https://example.test" />',
+                '    <meta content="Fixture" property="og:title" />',
+                "    <meta content='Fixture site' property='og:description' />"
+            ].join('\n'),
         title: (scope) => (scope === '/docs' ? 'Docs | Fixture' : 'Fixture')
     },
     prerender: prerenderHooks,
