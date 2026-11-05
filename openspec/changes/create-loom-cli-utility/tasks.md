@@ -1,0 +1,61 @@
+# Tasks
+
+## 1. Package skeleton
+
+- [ ] 1.1 Create `packages/create` (`@loom-js/create`, version `0.0.0`, MIT, `bin.create` → `bin/create.mjs`, `files: [bin, dist]`, `engines.node >=20.12`, `publishConfig.access: public`, repository `directory`, no `dependencies`; devDependencies `typescript`, `tailwindcss`, `@tailwindcss/cli`, `turbo`, `@biomejs/biome`, `prettier`) with `tsconfig.json` extending `@loom-js/typescript-config/lib.json` and excluding the template dirs; verify `pnpm install` links it and `pnpm -F @loom-js/create type-check` passes on an empty `src/index.ts`
+- [ ] 1.2 Add the rollup config (mirrors `@loom-js/build`'s) that inlines the stamped ranges: `^<workspace version>` for `@loom-js/{core,build,pink,devtools}`, create's own devDependency ranges for the third-party tools; verify `pnpm -F @loom-js/create build-package` emits `dist/` and the constant holds `^0.21.0` / `^0.2.0` / `^0.10.1` / `^0.1.0`
+- [ ] 1.3 Add `packages/create/package.json` to `.prettierrc` `packageJSONFiles` and the generated template dirs to `.gitignore`; verify `pnpm format:check` passes
+
+## 2. CLI core
+
+- [ ] 2.1 Define the choice model and the three registries (`ui-kits`: `none`, `pink`; `task-runners`: `turbo`; `formatters`: `biome`, `prettier`) as typed descriptors; verify `node --test` cases that `--help` lists each registry's ids and that adding a fixture entry to a registry needs no other edit to surface in help and validation
+- [ ] 2.2 Implement argument parsing (`parseArgs` `strict`: `--layout`, `--task-runner`, `--spa`, `--ui`, `--tailwind`, `--formatter`, `--js`, `--git`, `--install` / `--no-install`, `--yes`, `-h`) with validation of unknown flags, unregistered values, and `--task-runner` without a monorepo; verify `node --test` cases for each rejection exiting 1 with nothing written, and `--help` exiting 0
+- [ ] 2.3 Implement target resolution: positional or prompt, the empty-or-only-`.git` clobber guard, name normalization and npm-name validation; verify `node --test` cases for `./My App` → `my-app`, `_private` rejected before any mkdir, a non-empty dir rejected, a `.git`-only dir accepted
+- [ ] 2.4 Implement choice resolution over an injected `io` (yes/no and numbered-choice prompts for unanswered choices only, the task runner prompt only for a monorepo, defaults under `--yes` or non-TTY); verify `node --test` cases for partial flags, the all-defaults result, and a non-TTY run never reading stdin
+- [ ] 2.5 Implement package-manager detection (name + version from `npm_config_user_agent`, `<pm> --version` fallback) and the install step over an injected `spawn` (failure keeps files, skips git, prints the manual command, exits 1), plus the next-steps message; verify `node --test` cases for npm / pnpm / yarn / bun / fallback and the failure path
+
+## 3. Templates and rendering
+
+- [ ] 3.1 Write `templates/base` (app module with `onRoute` nav + `locationEffect` page switch, home and about pages, `types.d.ts`, `public/styles/base.css`, `_gitignore`, README naming the scripts); verify `pnpm format:check` covers and passes the template files
+- [ ] 3.2 Write `templates/server` (`src/prerender.entry.ts`: `routes` plus one `prerenderRoute(url, window)` holding the whole render contract, matching current `@loom-js/build` hook names); verify through the 4.1 matrix that server-first combos type-check and build
+- [ ] 3.3 Implement the renderers for `package.json`, `loom.config.{ts,mjs}`, `src/bootstrap.*` (dev reload under `__DEV__`, kit CSS, `init` vs prime + `hydrate`) and `tsconfig.json` / `jsconfig.json`; verify unit snapshots per combination, and a `node --test` case that running `stripTypeScriptTypes` over every rendered source leaves it unchanged
+- [ ] 3.4 Implement the layer copier (base → server → ui → tailwind, `_gitignore` → `.gitignore`) and the rule that no file is overridden by two non-base layers; verify a `node --test` case that fails when a fixture file sits in two layers
+- [ ] 3.5 Write `templates/ui/pink` (home page from `PinkCard` / `PinkButton`) and the pink registry entry (`@loom-js/pink`, `pink.css` + `icons.css`, `bodyClass: 'theme-light'`, tailwind `import` + `sourceExclusions` from the pink-tailwind example); verify through the 4.1 matrix and 4.2 assertions
+- [ ] 3.6 Write `templates/tailwind` (app shell with utilities, `scripts/dev.mjs` running the Tailwind CLI watcher and `loom dev` together and stopping both when either exits) and the rendered `src/styles.css` (kit import and exclusions, then `tailwindcss`); verify `node --test` that `dev.mjs` spawns both and kills the survivor when one exits (stubbed spawn), and the 4.2 cascade assertion
+- [ ] 3.7 Generate the JS templates in `build-package` (`stripTypeScriptTypes` strip mode, drop `*.d.ts`) and fail the build on non-erasable TS, then format both languages per registered formatter into `dist/templates/<formatter>/<lang>/`; verify `build-package` writes every tree, each passes its own formatter's check, and a fixture enum in a template fails the build
+- [ ] 3.8 Implement the monorepo root renderer (root `package.json` with `packageManager` and task runner scripts, `pnpm-workspace.yaml` or `workspaces`, `.yarnrc.yml` for yarn ≥ 2, `tsconfig.base.json`, root `.gitignore` + README, empty `packages/`, app at `apps/web` named `web`) and the turbo entry (`turbo.json` with `build` / `dev` / `type-check`, `.turbo` ignored); verify unit snapshots per package manager
+- [ ] 3.9 Add the formatter entries: `biome` (`biome.json` house style + organizeImports groups + `tailwindDirectives`, linter off, `build` / `.generated` excluded) and `prettier` (`.prettierrc` house style with no `plugins`, `.prettierignore`), each with `format` / `format:check` scripts and root-owned in a monorepo, plus the `none` path; verify unit snapshots, a shuffled-imports fixture that the biome entry's `format` restores to house order, the prettier entry installing nothing but `prettier`, and that `--formatter none` leaves no `biome` or `prettier` mention anywhere
+- [ ] 3.10 Add the layout-parity test (diff `single` against `apps/web` per combination; only `.gitignore`, README, lockfile, formatter files, tsconfig base reference, and `package.json` `name` plus formatter scripts and dependency may differ) and the leakage sweep (no `workspace:`, `@loom-js/typescript-config` or outside path anywhere; no kit reference with `--ui none`; no `.ts` with `--js`); verify both as `node --test` cases
+
+## 4. Scaffold matrix test
+
+- [ ] 4.1 Add the matrix suite over layouts × rendering × registered kits × Tailwind × language (32 today), run concurrently: scaffold into `os.tmpdir()` with `--no-install --git none`, link workspace `@loom-js` packages and create's third-party devDependencies, run the Tailwind CLI when on, `tsc --noEmit` for TS, each registered formatter's check, and `loom build` in the app dir; verify `pnpm -F @loom-js/create test-ci` passes all combinations and report its wall time
+- [ ] 4.2 Assert built output per combination: shells for `/` and `/about`; server-first combos have rendered markup + a state script in each shell, SPA combos an empty root and no `prerender` key; kit combos carry the kit's selectors and body class; Tailwind combos carry used utilities, and with a kit the kit layer precedes `utilities`; no production JS references `/esbuild`; verify each assertion fails when its template line is removed
+- [ ] 4.3 Wire `test-ci` into turbo (`dependsOn: ["^build-package"]` plus the template packages' `build-package`) and add a `pnpm -F @loom-js/create type-check test-ci` step to `.github/workflows/core-tests.yml`; verify with `pnpm turbo run test-ci --filter=@loom-js/create` from a clean `dist/`
+
+## 5. Git step
+
+- [ ] 5.1 Implement `--git new` (init, commit after install, no-identity → init only + instructions, no git binary → skip with note) over the injected `spawn`; verify `node --test` cases for each path, plus one real-git case in a tmp dir with a test identity asserting exactly one commit and a clean status
+- [ ] 5.2 Implement `--git <url>` (clone first, keep `README.md` / `LICENSE`, merge `.gitignore`, abort on any other overlap and remove what was cloned, commit on the cloned branch, never push) and `--git none`; verify real-git `node --test` cases against a local bare repo fixture: fresh repo with README + LICENSE, repo with a conflicting `package.json`, a failing clone URL, and `none` leaving no `.git`
+
+## 6. Release-sync guard
+
+- [ ] 6.1 Write `packages/create/scripts/check-release-sync.mjs` (`changeset status --output`, caret check against current workspace versions, fails without a create release); verify `node --test` cases over fixture status JSON: core minor without create fails, core patch passes, core minor with create passes
+- [ ] 6.2 Run the guard in `core-tests.yml` (`fetch-depth: 0` if `changeset status` needs history); verify it passes on the current tree and fails locally against a throwaway `@loom-js/core` minor changeset, which is then deleted
+
+## 7. Package docs and repo docs
+
+- [ ] 7.1 Write `packages/create/README.md` (both invocation forms per package manager, defaults, every flag including `--task-runner` and `--formatter`, what each choice and registry entry adds, Node requirement); verify every documented flag and registry value matches `--help` output
+- [ ] 7.2 Update CLAUDE.md "Repo shape" (packages list) and "Tests" (`@loom-js/create` `node --test` suite), plus `.claude/skills/skill-config.md` for the new package; verify by reading both against `packages/create`
+- [ ] 7.3 Add a minor changeset for `@loom-js/create` (first release `0.1.0`); verify `pnpm status-packages` lists it
+
+## 8. Docs topics
+
+- [ ] 8.1 Update `docs/topics/01-getting-started.md`: a "Create an app" section ahead of Install with create-sugar tabs (npm / yarn / pnpm / bun), the one-off runner forms in one line, the defaults and choices in a short list, and the generated layout pointing at `app-structure`; verify the commands run as written in 9.1
+- [ ] 8.2 Update `docs/topics/15-build-tool.md` Quick start with a one-line pointer to `npm create @loom-js`; verify the `content-map.md` outlines for both topics still match their headings
+
+## 9. End-to-end verification
+
+- [ ] 9.1 Pack `core`, `build`, `pink`, `devtools` and `create`; scaffold the defaults, `--ui pink --tailwind`, `--spa --js` and `--layout monorepo --ui pink` through the packed `create` with real installs under npm, pnpm, yarn and bun; verify `dev` serves both routes with live reload on an edit (Tailwind combos also on a class edit), the monorepo's root `dev` / `build` run through turbo, `format:check` passes on each, and `build` + `npx serve build` serves the production app
+- [ ] 9.2 After the Version Packages PR merges: hand-publish `@loom-js/create@0.1.0` from `claudionunezjr` if CI 404s, add the trusted publisher, then run `npm create @loom-js@latest e2e-app -- --yes` and `pnpm dlx @loom-js/create e2e-dlx --yes` in empty directories; verify `npm run dev` / `pnpm dev` serve the app with no edits
+- [ ] 9.3 Once `@loom-js/create` is live on npm (9.2), push both topics with `docs/contentful-sync/` and publish them (never before the package exists, or the docs point at a 404); verify the live `/docs/getting-started` and `/docs/build-tool` pages show the new text after the next docs build
