@@ -64,7 +64,7 @@ Every choice SHALL have a default, used under `--yes`, in a non-TTY run, and pre
 
 ### Requirement: Interactive prompts with flag overrides
 
-When stdin and stdout are a TTY, the CLI SHALL prompt for each choice no flag answered, and only those. A flag SHALL always win over its prompt. The task runner prompt SHALL appear only when the layout is `monorepo`.
+When stdin and stdout are a TTY, the CLI SHALL prompt for each choice no flag answered, and only those. A flag SHALL always win over its prompt. The task runner prompt SHALL appear only when the layout is `monorepo` and more than one task runner is registered; with one, it is chosen without asking.
 
 #### Scenario: Flags skip prompts
 
@@ -74,7 +74,7 @@ When stdin and stdout are a TTY, the CLI SHALL prompt for each choice no flag an
 #### Scenario: Partial flags
 
 - **WHEN** a user passes only `--ui pink` in a terminal
-- **THEN** the CLI prompts for every other choice except the task runner, and asks for the task runner only if `monorepo` is picked
+- **THEN** the CLI prompts for every other choice except the task runner, and asks for the task runner only if `monorepo` is picked and the registry holds more than one
 
 ### Requirement: Non-interactive runs never block
 
@@ -245,7 +245,7 @@ With `--layout monorepo`, the target SHALL be a workspace root with the app at `
 
 ### Requirement: Layouts differ only in root-owned files
 
-For the same choices, the files under a monorepo's `apps/web` SHALL be identical to a single-layout app's, except files the workspace root owns: `.gitignore`, the README, lockfiles, the formatter's config, and the TypeScript config's base reference. The app's `package.json` SHALL differ only in `name` and the formatter scripts and dev dependency, which move to the root.
+For the same choices, the files under a monorepo's `apps/web` SHALL be identical to a single-layout app's, except files the workspace root owns: `.gitignore`, the README, lockfiles, the formatter's config, package-manager settings (`pnpm-workspace.yaml`, `.yarnrc.yml`), and the TypeScript config's base reference. The app's `package.json` SHALL differ only in `name` and the formatter scripts and dev dependency, which move to the root.
 
 #### Scenario: Layout parity
 
