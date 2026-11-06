@@ -1,0 +1,54 @@
+{
+    "name": "@loom-js/create",
+    "version": "0.0.0",
+    "author": "Claudio Nunez Jr",
+    "license": "MIT",
+    "description": "Create a loom app: `npm create @loom-js` scaffolds a standalone, server-first project that builds with @loom-js/build.",
+    "keywords": [
+        "loomjs",
+        "create",
+        "scaffold",
+        "cli",
+        "starter"
+    ],
+    "bin": {
+        "create": "./bin/create.mjs"
+    },
+    "files": [
+        "bin",
+        "dist"
+    ],
+    "type": "module",
+    "engines": {
+        "node": ">=20.12"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/claudio-darkkenergy/loom-js.git",
+        "directory": "packages/create"
+    },
+    "scripts": {
+        "build-package": "node --disable-warning=ExperimentalWarning scripts/build.mjs",
+        "format": "prettier",
+        "test-ci": "pnpm build-package && node --test \"tests/*.test.mjs\"",
+        "type-check": "tsc --noEmit"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "^2.6.5",
+        "@loom-js/build": "workspace:*",
+        "@loom-js/core": "workspace:*",
+        "@loom-js/devtools": "workspace:*",
+        "@loom-js/pink": "workspace:*",
+        "@loom-js/typescript-config": "workspace:*",
+        "@tailwindcss/cli": "^4.3.3",
+        "@types/node": "^26.5.1",
+        "esbuild": "^0.28.2",
+        "prettier": "^3.9.6",
+        "tailwindcss": "^4.3.3",
+        "turbo": "^2.10.13",
+        "typescript": "^7.0.2"
+    }
+}

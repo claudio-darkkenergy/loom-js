@@ -67,6 +67,10 @@
         "type-check": {
             "dependsOn": ["topo"]
         },
+        "@loom-js/create#test-ci": {
+            "dependsOn": ["^build-package"],
+            "cache": false
+        },
         "@loom-js/services#build": {
             "dependsOn": ["^build", "^build-package"],
             "outputs": []

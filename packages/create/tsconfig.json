@@ -1,0 +1,11 @@
+{
+    "extends": "@loom-js/typescript-config/lib.json",
+    "display": "Package",
+    "compilerOptions": {
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "rootDir": "./src"
+    },
+    "exclude": ["dist", "node_modules", "templates", "tests"],
+    "include": ["src"]
+}

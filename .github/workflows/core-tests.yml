@@ -55,3 +55,13 @@ jobs:
             # node:test suites behind the docs site's llms text files.
             - name: Run Docs Text Tests
               run: pnpm -F @loom-js/contentful -F @loom-js/loom test-ci
+
+            # Scaffolds every create combination against the workspace
+            # packages; turbo builds those packages first.
+            - name: Run Create Tests
+              run: pnpm -F @loom-js/create type-check && pnpm turbo run test-ci --filter=@loom-js/create
+
+            # A release that moves a template dependency out of create's
+            # stamped range must release create too.
+            - name: Check Create Release Sync
+              run: node packages/create/scripts/check-release-sync.mjs
