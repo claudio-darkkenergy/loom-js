@@ -20,6 +20,14 @@
 - **0 Dependencies** (you're welcome)
 - **Typescript Types** included.
 
+## Create an app
+
+```bash
+npm create @loom-js@latest my-app
+```
+
+A standalone app that builds with `@loom-js/build`, server-first and TypeScript by default. See [Getting Started](https://loom-js-docs.vercel.app/docs/getting-started) for the choices.
+
 ## Install
 
 ```bash

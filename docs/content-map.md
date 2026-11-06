@@ -53,11 +53,12 @@ it sits before `build-tool`.
 
 ### 1. `getting-started`
 
-- **Outline:** Feature highlights · Install · Inclusion · Where next
+- **Outline:** Feature highlights · Create an app · Install · Inclusion · Where next
 - **Source:** `package.json` (`name`, `exports`), `src/index.ts`, `src/server.ts` (the export
   surface the highlights name).
 - **Also anchors:** `README.md` — the pitch, highlights, install and inclusion lines match this
-  topic.
+  topic. `../create/README.md` and `../create/src/usage.ts` — the create commands, defaults
+  and flags match "Create an app".
 
 ### 2. `bootstrapping`
 

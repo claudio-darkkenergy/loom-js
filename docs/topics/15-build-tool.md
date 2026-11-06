@@ -14,6 +14,8 @@ One `loom build` produces everything a loom app needs to be served statically: t
 
 ## Quick start
 
+`npm create @loom-js` writes all of this for you (see [Getting Started](/docs/getting-started)). By hand:
+
 ```ts
 // loom.config.ts
 import { defineConfig } from '@loom-js/build';

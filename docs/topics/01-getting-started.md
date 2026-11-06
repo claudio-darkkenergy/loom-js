@@ -19,7 +19,44 @@ loom is a reactive, components-first JavaScript framework. Components are tagged
 - **0 Dependencies** (you're welcome)
 - **Typescript Types** included.
 
+## Create an app
+
+One command creates a working app: a single app that builds with [`@loom-js/build`](/docs/build-tool), renders every route at build time and hydrates it in the browser, in TypeScript, with Biome formatting, a new git repository and its dependencies installed.
+
+```bash tab=npm group=create
+npm create @loom-js@latest my-app
+```
+
+```bash tab=yarn group=create
+yarn create @loom-js my-app
+```
+
+```bash tab=pnpm group=create
+pnpm create @loom-js my-app
+```
+
+```bash tab=bun group=create
+bun create @loom-js my-app
+```
+
+Nothing is installed globally. `npx @loom-js/create`, `pnpm dlx @loom-js/create`, `yarn dlx @loom-js/create` and `bunx @loom-js/create` do the same. Then `cd my-app` and run the `dev` script.
+
+In a terminal it asks about each choice you don't pass as a flag; `--yes` takes every default:
+
+- `--layout monorepo` puts the app at `apps/web` under workspaces, run with Turborepo.
+- `--spa` renders in the browser only, with no build-time render.
+- `--ui pink` adds the [Pink](/docs/pink) components.
+- `--tailwind` adds Tailwind CSS v4.
+- `--formatter prettier` (or `none`) replaces Biome.
+- `--js` writes JavaScript instead of TypeScript.
+- `--git <url>` clones an existing repository and adds the app to it; `--git none` skips git.
+- `--no-install` skips the install.
+
+The app follows the layout described in [App Structure](/docs/app-structure).
+
 ## Install
+
+To add loom to an existing project instead:
 
 ```bash tab=npm group=pm
 npm i @loom-js/core

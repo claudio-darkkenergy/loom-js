@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 pnpm + turborepo monorepo published under the `@loom-js/*` scope. Workspaces are defined in `pnpm-workspace.yaml`:
 
-- `packages/*` — published framework packages (`core`, `pink`, `highlight` — syntax highlighting inverted out of the UI libraries: Prism adapter + token vocabulary + `codeTokenizer()` lazy-import activity; UI libraries take a `tokenize` activity, never the tokenizer dependency; `build` — the loom build tool, `loom build` / `loom dev` / `loom prerender` over `loom.config.ts`; `esbuild-plugin-html-split` — the shell-per-route esbuild plugin under it; `devtools` — the inspector HUD + in-page backend, loaded on demand by core's `loom.devtools` switch).
+- `packages/*` — published framework packages (`core`, `pink`, `highlight` — syntax highlighting inverted out of the UI libraries: Prism adapter + token vocabulary + `codeTokenizer()` lazy-import activity; UI libraries take a `tokenize` activity, never the tokenizer dependency; `build` — the loom build tool, `loom build` / `loom dev` / `loom prerender` over `loom.config.ts`; `esbuild-plugin-html-split` — the shell-per-route esbuild plugin under it; `devtools` — the inspector HUD + in-page backend, loaded on demand by core's `loom.devtools` switch; `create` — the `npm create @loom-js` scaffolder: zero-dependency CLI, template layers, registries for UI kits / task runners / formatters).
 - `lib/*` — internal utilities (`utils`, `contentful`, `storybook`, `typescript-config`, plus untracked `codegen`, `monitor`, `open-ai`).
 - `apps/*` — runnable apps: `apps/loom` and `apps/sandbox`, plus `apps/examples/*` (private single-purpose demos; `@loom-js/example-pink-tailwind` is pink restyled with Tailwind v4 via the Tailwind CLI + `loom build`, with a puppeteer cascade test in `test-ci`), plus `apps/bench` (`@loom-js/bench`, private): the framework benchmarks — one bench app per framework (loom, react, vue, svelte, solid, vanilla), a puppeteer runner, and `results/latest.json` (gitignored turbo output) that the loom app's `/benchmarks` page renders. **Note:** `apps/docs` is explicitly excluded from the pnpm workspace (`!apps/docs`). It still exists on disk and has a `package.json`; it is not installed or built by `pnpm install` / `turbo`.
 - `services` — Vercel serverless functions (under `services/api/`). Served via `vercel dev`.
@@ -45,7 +45,7 @@ Use `pnpm -F <workspace-name> <command>`. Workspace names are the `name` from ea
 
 ### Tests
 
-The framework tests live in `packages/core` and use `@web/test-runner` + puppeteer; `@loom-js/build`, `@loom-js/contentful`, `@loom-js/loom` and `@loom-js/example-pink-tailwind` carry `node --test` suites (`test-ci` in each).
+The framework tests live in `packages/core` and use `@web/test-runner` + puppeteer; `@loom-js/build`, `@loom-js/contentful`, `@loom-js/loom`, `@loom-js/example-pink-tailwind` and `@loom-js/create` carry `node --test` suites (`test-ci` in each). Create's scaffolds every choice combination and builds it against the workspace packages; run it as `pnpm turbo run test-ci --filter=@loom-js/create` so those packages are built first, and refresh its rendered-file snapshots with `node --test --test-update-snapshots tests/scaffold.test.mjs`.
 
 - `pnpm -F @loom-js/core test-ci` — single run.
 - `pnpm -F @loom-js/core test-dev` — watch mode.
