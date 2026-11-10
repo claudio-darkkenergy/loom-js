@@ -259,7 +259,7 @@ describe('hydrate event replay', () => {
         const replayWarning = warnStub
             .getCalls()
             .map((call) => call.args.join(' '))
-            .find((message) => /replay/i.test(message));
+            .find((message) => /replay dropped/.test(message));
 
         // Dropped loudly — the warning names the event type and the path
         // that failed to resolve — and never mis-delivered.

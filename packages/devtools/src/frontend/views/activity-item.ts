@@ -1,87 +1,67 @@
 import { component } from '@loom-js/core';
 
-import type { ActivityRecord, Encoded } from '../../protocol/types';
-import type { HudState } from '../state';
-import { ValueRow, type ValueContext } from './value-view';
+import type { ActivityRecord, ActivityRef } from '../../protocol/types';
+import type { HudState, TreeState } from '../state';
+import { ActivityValue } from './activity-value';
+import { centerInPane, flashShown } from './scroll';
+import type { ValueContext } from './value-view';
 
-const INCOMPLETE = Symbol('incomplete');
+// The instances using an activity, named from the tree.
+export const usersOf = ({ subscriberIds }: ActivityRecord, tree: TreeState) =>
+    subscriberIds.flatMap((id): ActivityRef[] => {
+        const node = tree.nodes.get(id);
 
-// Rebuilds a JSON value from its encoding — `INCOMPLETE` when part of it was
-// left to path expansion or isn't JSON.
-const decodeJson = (value: Encoded): unknown => {
-    switch (value.t) {
-        case 'null':
-            return null;
-        case 'bool':
-            return value.v;
-        case 'num':
-            return typeof value.v === 'number' ? value.v : INCOMPLETE;
-        case 'str':
-            return value.length ? INCOMPLETE : value.v;
-        case 'array': {
-            const items = value.items?.map(decodeJson);
-
-            return items &&
-                items.length === value.length &&
-                !items.includes(INCOMPLETE)
-                ? items
-                : INCOMPLETE;
-        }
-        case 'object': {
-            const entries = value.entries?.map(
-                ([key, item]) => [key, decodeJson(item)] as const
-            );
-
-            return entries &&
-                entries.length === value.size &&
-                !entries.some(([, item]) => item === INCOMPLETE)
-                ? Object.fromEntries(entries)
-                : INCOMPLETE;
-        }
-        default:
-            return INCOMPLETE;
-    }
-};
-
-/** The value's JSON text for the edit field, or '' when it can't be shown. */
-export const jsonTextOf = (value: Encoded) => {
-    const decoded = decodeJson(value);
-
-    return decoded === INCOMPLETE ? '' : JSON.stringify(decoded);
-};
+        return node ? [{ id, name: node.name }] : [];
+    });
 
 export interface ActivityItemProps {
     actions: HudState['actions'];
+    // Shown on the Components tab: a way over to the Activities tab.
+    linkToActivities?: boolean;
     record: ActivityRecord;
+    // Scroll this item into view once it renders.
+    reveal?: boolean;
+    // The instances using the activity, named.
+    users: ActivityRef[];
     valueContext: ValueContext;
 }
 
 export const ActivityItem = component<ActivityItemProps>(
-    (html, { actions, record, valueContext }) => {
-        const { editable, id, name, pending, subscriberIds, value } = record;
-        const submit = (event: Event) => {
-            event.preventDefault();
+    (
+        html,
+        {
+            actions,
+            linkToActivities,
+            onRendered,
+            record,
+            reveal,
+            users,
+            valueContext
+        }
+    ) => {
+        const { id, name, owner, pending } = record;
 
-            const field = (event.target as HTMLFormElement).elements.namedItem(
-                'value'
-            ) as HTMLInputElement;
-
-            actions.editActivity(id, field.value);
-        };
+        // Registered on every render: a handler list locks after its first
+        // registration, so the current `reveal` is read from the item.
+        onRendered((rendered) => {
+            if ((rendered as HTMLElement).dataset.reveal) {
+                centerInPane(rendered as Element);
+                flashShown(rendered as Element);
+                actions.activityRevealed();
+            }
+        });
 
         return html`
-            <li class="activity-item">
+            <li
+                class="activity-item"
+                data-activity-id=${id}
+                data-reveal=${reveal ? 'true' : undefined}
+            >
                 <div class="activity-head">
                     <span class="activity-name">${name}</span>
                     ${pending ? '⏳ pending' : ''}
-                    <span class="hud-muted">
-                        ${
-                            subscriberIds.length
-                                ? `${subscriberIds.length} user${subscriberIds.length === 1 ? '' : 's'}`
-                                : 'no rendered users'
-                        }
-                    </span>
                     <span class="hud-spacer"></span>
+                    ${linkToActivities ? ShowInActivities({ actions, activityId: id }) : ''}
                     <button
                         class="hud-button"
                         $click=${() => actions.log(id)}
@@ -97,39 +77,144 @@ export const ActivityItem = component<ActivityItemProps>(
                         Reset
                     </button>
                 </div>
-                <ul class="value-list">
-                    ${ValueRow({
-                        context: valueContext,
-                        label: 'value',
-                        path: [`a${id}`],
-                        value
-                    })}
-                </ul>
-                ${editable ? ActivityEditor({ activityId: id, onSubmit: submit, text: jsonTextOf(value) }) : ''}
+                ${ActivityUsers({ actions, users })}
+                ${ActivityScope({ actions, owner })}
+                ${ActivityValue({ actions, record, valueContext })}
             </li>
         `;
     },
     { name: 'ActivityItem' }
 );
 
-interface ActivityEditorProps {
+const ShowInActivities = component<{
+    actions: HudState['actions'];
     activityId: number;
-    onSubmit(event: Event): void;
-    text: string;
-}
-
-const ActivityEditor = component<ActivityEditorProps>(
-    (html, { activityId, onSubmit, text }) => html`
-        <form class="activity-editor" $submit=${onSubmit}>
-            <input
-                aria-label=${`New value for activity ${activityId}`}
-                class="hud-input"
-                name="value"
-                placeholder="JSON value"
-                value=${text}
-            />
-            <button class="hud-button is-primary" type="submit">Set</button>
-        </form>
+}>(
+    (html, { actions, activityId }) => html`
+        <button
+            class="hud-button"
+            $click=${() => actions.showActivity(activityId)}
+            title="Show this activity in the Activities tab"
+            type="button"
+        >
+            Show in Activities
+        </button>
     `,
-    { name: 'ActivityEditor' }
+    { name: 'ShowInActivities' }
+);
+
+// Which rendered instances use the activity: render one of its effects or
+// bind it to an attribute. Each name selects that instance.
+const ActivityUsers = component<{
+    actions: HudState['actions'];
+    users: ActivityRef[];
+}>(
+    (html, { actions, users }) => html`
+        <div class="activity-users hud-muted">
+            ${users.length ? UserLinks({ actions, users }) : NoUsers()}
+        </div>
+    `,
+    { name: 'ActivityUsers' }
+);
+
+// Users grouped by name, in tree order: many instances of one component
+// read as one link that steps through them.
+const groupByName = (users: ActivityRef[]) => {
+    const groups = new Map<string, number[]>();
+
+    users.forEach(({ id, name }) =>
+        groups.set(name, [...(groups.get(name) ?? []), id])
+    );
+
+    return Array.from(groups);
+};
+
+const UserLinks = component<{
+    actions: HudState['actions'];
+    users: ActivityRef[];
+}>(
+    (html, { actions, users }) => html`
+        used by
+        ${groupByName(users).map(([name, ids]) =>
+            InstanceLink({
+                key: name,
+                name: ids.length > 1 ? `${name} ×${ids.length}` : name,
+                onSelect: () => actions.showNextInstance(ids),
+                title:
+                    ids.length > 1
+                        ? `Show the next of ${ids.length} ${name} instances in the Components tab`
+                        : 'Show this instance in the Components tab'
+            })
+        )}
+    `,
+    { name: 'UserLinks' }
+);
+
+const NoUsers = component(
+    (html) => html`
+        <span
+            title="No mounted instance renders one of its effects or binds it right now"
+        >
+            not used by a rendered instance
+        </span>
+    `,
+    { name: 'NoUsers' }
+);
+
+// Whose lifetime the activity shares: the instance holding it through
+// `own()`, or none.
+const ActivityScope = component<{
+    actions: HudState['actions'];
+    owner: ActivityRecord['owner'];
+}>(
+    (html, { actions, owner }) => html`
+        <div class="activity-scope hud-muted">
+            ${
+                owner
+                    ? OwnerLink({
+                          name: owner.name,
+                          onSelect: () => actions.showInstance(owner.id)
+                      })
+                    : NoOwner()
+            }
+        </div>
+    `,
+    { name: 'ActivityScope' }
+);
+
+const OwnerLink = component<{ name: string; onSelect(): void }>(
+    (html, { name, onSelect }) => html`
+        owned by
+        ${InstanceLink({ name, onSelect, title: 'Select the owning instance' })}
+    `,
+    { name: 'OwnerLink' }
+);
+
+const NoOwner = component(
+    (html) => html`
+        <span
+            title="Not created through an instance's own(): it lives at module scope, or a render creates it anew"
+        >
+            no owner: module scope, or created without own()
+        </span>
+    `,
+    { name: 'NoOwner' }
+);
+
+const InstanceLink = component<{
+    name: string;
+    onSelect(): void;
+    title: string;
+}>(
+    (html, { name, onSelect, title }) => html`
+        <button
+            class="owner-link"
+            $click=${onSelect}
+            title=${title}
+            type="button"
+        >
+            ${name}
+        </button>
+    `,
+    { name: 'InstanceLink' }
 );

@@ -16,6 +16,7 @@ import { boundedWait } from './lib/settlement';
 import { settled } from './settled';
 import type {
     ActivityEffectAction,
+    ActivityTransform,
     ContextFunction,
     OnRouteOptions,
     ReservedProps,
@@ -181,11 +182,13 @@ class Router {
         this.locationActivity = activity<Location>(getLocationOf(win), {
             // The raw location layer keeps the legacy activity's semantics:
             // it fires on every update, even a same-location one.
-            force: true
+            force: true,
+            label: 'router.location'
         });
         this.routeActivity = activity<RouteValue, Location>(
             this.getRouteValue(getLocationOf(win)),
             {
+                label: 'router.route',
                 transform: ({ input: location, update }) =>
                     this.transform(location, update)
             }
@@ -356,10 +359,10 @@ class Router {
     // seeded with the captured fallback importer.
     private getPageImportActivity() {
         if (!this.pageImportActivity) {
-            this.pageImportActivity = activity<
+            const loadPage: ActivityTransform<
                 ContextFunction | undefined,
                 () => Promise<ContextFunction | undefined>
-            >(undefined, async ({ input: importer, update }) => {
+            > = async ({ input: importer, update }) => {
                 const contextFn = await importer();
 
                 // Guard post-scope settles: on a server, this router's render
@@ -377,6 +380,10 @@ class Router {
                     // can't consume a scroll the real page still owes.
                     contextFn && this.consumePendingScroll();
                 }
+            };
+
+            this.pageImportActivity = activity(undefined, loadPage, {
+                label: 'router.page'
             });
             this.pageImportActivity.update(routeTable.fallback);
         }

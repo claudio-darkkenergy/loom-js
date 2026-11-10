@@ -20,7 +20,7 @@ export type {
     ServerOptions
 } from './config';
 export { dev } from './dev';
-export { componentBindingsOf } from './devtools-plugin';
+export { componentBindingsOf, injectActivityLabels } from './devtools-plugin';
 export { createBuildOptions } from './esbuild-options';
 export { findConfigFile, loadConfig, loadConfigFile } from './load-config';
 export {

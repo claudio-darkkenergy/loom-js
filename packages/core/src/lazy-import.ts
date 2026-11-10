@@ -32,10 +32,14 @@ export const lazyImport = <ImportType>(
     const importActivity = activity<
         ImportType | undefined,
         () => Promise<ImportType>
-    >(undefined, async ({ input, update }) => {
-        const resolvedImport = await input();
-        update(resolvedImport);
-    });
+    >(
+        undefined,
+        async ({ input, update }) => {
+            const resolvedImport = await input();
+            update(resolvedImport);
+        },
+        { label: `lazyImport(${String(key)})` }
+    );
 
     cache.set(key, importActivity);
     importActivity.update(importer);

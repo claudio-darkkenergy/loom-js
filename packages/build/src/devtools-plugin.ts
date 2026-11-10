@@ -1,6 +1,7 @@
 // Devtools wiring for a build: names every top-level `component` /
-// `defineElement` declaration from its binding, and registers the lazy
-// `@loom-js/devtools` loader ahead of the entry's own imports.
+// `defineElement` declaration and every bound `activity` from its binding,
+// and registers the lazy `@loom-js/devtools` loader ahead of the entry's
+// own imports.
 import type { Loader, Plugin, PluginBuild } from 'esbuild';
 
 import type { DevtoolsSetting } from './config';
@@ -15,6 +16,14 @@ const SOURCE_FILTER = /\.[cm]?[jt]sx?$/;
 // optionally exported, type-annotated or given generic arguments.
 const DECLARATION =
     /^(?:export\s+)?(?:const|let)\s+([A-Za-z_$][\w$]*)\s*(?::[^=]*)?=\s*(?:component|defineElement)\s*[<(]/gm;
+
+// A binding, at any depth, to an `activity(` call — directly or as an
+// `own(() => activity(…))` factory. Group 1 is everything before the
+// `activity` callee, group 2 the binding name.
+const ACTIVITY_DECLARATION =
+    /\b((?:const|let)\s+([A-Za-z_$][\w$]*)\s*(?::[^=;]*)?=\s*(?:(?:[\w$]+\.)?own\s*\(\s*\(\s*\)\s*=>\s*)?)activity(?=\s*[<(])/g;
+// Declared, not assigned, so it is hoisted above the module's first use.
+const LABEL_HELPER = `function __loomLabelActivity(name, create) { return (...args) => __loomNameActivity(create(...args), name); }`;
 
 export interface DevtoolsPluginOptions {
     // The SPA entry module — the one the loader registration rides on.
@@ -51,6 +60,28 @@ export const injectComponentNames = (source: string) => {
                       `__loomNameComponent(${binding}, ${JSON.stringify(binding)});`
               )
               .join('\n')}\n`
+        : undefined;
+};
+
+/**
+ * Labels a module's bound activities by wrapping each `activity` callee, so
+ * nested and `own()` bindings are named without parsing the call.
+ * @param source The module source.
+ * @returns The rewritten source, or `undefined` when no activity is bound.
+ */
+export const injectActivityLabels = (source: string) => {
+    let found = false;
+    const rewritten = source.replace(
+        ACTIVITY_DECLARATION,
+        (_match, beforeCallee: string, binding: string) => {
+            found = true;
+
+            return `${beforeCallee}__loomLabelActivity(${JSON.stringify(binding)}, activity)`;
+        }
+    );
+
+    return found
+        ? `${rewritten}\n;import { nameActivity as __loomNameActivity } from '${CORE_DEVTOOLS}';\n${LABEL_HELPER}\n`
         : undefined;
 };
 
@@ -142,14 +173,15 @@ export const devtoolsPlugin = ({
 
             const isEntry = filePath === entryPath;
             const source = await readFile(filePath, 'utf8');
-            const named = injectComponentNames(source);
+            const labeled = injectActivityLabels(source) ?? source;
+            const named = injectComponentNames(labeled) ?? labeled;
 
-            if (!named && !isEntry) {
+            if (named === source && !isEntry) {
                 return undefined;
             }
 
             return {
-                contents: `${isEntry ? `import '${REGISTER_MODULE}';\n` : ''}${named ?? source}`,
+                contents: `${isEntry ? `import '${REGISTER_MODULE}';\n` : ''}${named}`,
                 loader: loaderOf(filePath)
             };
         });

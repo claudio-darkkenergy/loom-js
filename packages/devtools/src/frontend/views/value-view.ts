@@ -2,10 +2,13 @@ import { type Component, component } from '@loom-js/core';
 
 import type { Encoded, PathKey } from '../../protocol/types';
 import { type Expansions, pathString } from '../state';
+import { Chevron } from './chevron';
 
 export interface ValueContext {
     expansions: Expansions;
     onExpand(path: PathKey[]): void;
+    // Outlines an instance in the page while its link is hovered.
+    onHighlightNode(id: number | null): void;
     onSelectNode(id: number): void;
     onToggle(path: PathKey[]): void;
     openPaths: Set<string>;
@@ -46,7 +49,8 @@ export const previewOf = (value: Encoded): string => {
         case 'activity':
             return value.name;
         case 'component':
-            return `<${value.name} />`;
+            // `el()` and custom-element names already carry their tag.
+            return value.name.includes('<') ? value.name : `<${value.name} />`;
         default:
             return value.t;
     }
@@ -90,12 +94,14 @@ const childrenOf = (
 export interface ValueRowProps {
     context: ValueContext;
     label: string;
+    // Makes the preview click-to-edit.
+    onEdit?(): void;
     path: PathKey[];
     value: Encoded;
 }
 
 export const ValueRow: Component<ValueRowProps> = component<ValueRowProps>(
-    (html, { context, label, path, value }) => {
+    (html, { context, label, onEdit, path, value }) => {
         const key = pathString(path);
         const resolved = context.expansions.get(key) ?? value;
         const expandable = isExpandable(resolved);
@@ -105,7 +111,22 @@ export const ValueRow: Component<ValueRowProps> = component<ValueRowProps>(
             context.onToggle(path);
             !isOpen && !childrenOf(resolved) && context.onExpand(path);
         };
-        const linkedNode = resolved.t === 'node' ? resolved.id : undefined;
+        // A DOM node or component value links to the instance it belongs to.
+        const linkedNode =
+            resolved.t === 'node' || resolved.t === 'component'
+                ? resolved.id
+                : undefined;
+        const selectLinked = () => {
+            context.onHighlightNode(null);
+            context.onSelectNode(linkedNode!);
+        };
+        const onPreviewClick = linkedNode === undefined ? onEdit : selectLinked;
+        const onPreviewKeydown = (event: Event) => {
+            const { key } = event as KeyboardEvent;
+
+            (key === 'Enter' || key === ' ') &&
+                (event.preventDefault(), selectLinked());
+        };
 
         return html`
             <li class="value-row">
@@ -115,12 +136,18 @@ export const ValueRow: Component<ValueRowProps> = component<ValueRowProps>(
                         $click=${toggle}
                         type="button"
                     >
-                        ${isOpen ? '▾' : '▸'}
+                        ${Chevron({ direction: isOpen ? 'down' : 'right' })}
                     </button>
                     <span class="value-key">${label}</span>
                     <span
-                        class=${`value-preview is-${resolved.t} ${linkedNode ? 'is-link' : ''}`}
-                        $click=${linkedNode ? () => context.onSelectNode(linkedNode) : undefined}
+                        class=${`value-preview is-${resolved.t} ${linkedNode === undefined ? '' : 'is-link'} ${onEdit ? 'is-editable' : ''}`}
+                        role=${linkedNode === undefined ? undefined : 'button'}
+                        tabindex=${linkedNode === undefined ? undefined : '0'}
+                        $click=${onPreviewClick}
+                        $keydown=${linkedNode === undefined ? undefined : onPreviewKeydown}
+                        $mouseenter=${linkedNode === undefined ? undefined : () => context.onHighlightNode(linkedNode)}
+                        $mouseleave=${linkedNode === undefined ? undefined : () => context.onHighlightNode(null)}
+                        title=${linkedNode === undefined ? (onEdit ? 'Click to edit' : undefined) : 'Select this instance'}
                     >
                         ${previewOf(resolved)}
                     </span>

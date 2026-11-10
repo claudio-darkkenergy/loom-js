@@ -46,10 +46,11 @@ const inspectRecords = new WeakSet<object>();
 export const isInspectRecord = (value: unknown): value is InspectRecord =>
     typeof value === 'object' && value !== null && inspectRecords.has(value);
 
-const toActivityRecord = (activity: InspectableActivity): ActivityRecord => ({
-    activity,
-    ...describeActivity(activity)
-});
+const toActivityRecord = (activity: InspectableActivity): ActivityRecord => {
+    const { name, pending, value } = describeActivity(activity);
+
+    return { activity, name, pending, value };
+};
 
 /**
  * The display name of a component instance or activity boundary.

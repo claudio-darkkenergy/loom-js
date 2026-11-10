@@ -5,6 +5,7 @@ import { LoomGlobal, activity, component } from '../../src';
 import {
     DevtoolsBackend,
     DevtoolsHook,
+    DevtoolsHost,
     inspectActivities,
     inspectNode,
     inspectTree,
@@ -111,12 +112,12 @@ describe('loom console API', () => {
             const loader = sinon.spy(async () => ({ activate: () => backend }));
 
             registerDevtools(loader);
-            await loom().devtools.open('popup');
+            await loom().devtools.open('float');
             inspectNode(document.querySelector('[data-badge]')!);
             await Promise.resolve();
 
             expect(loader.callCount).to.equal(1);
-            expect((backend.open as sinon.SinonSpy).calledWith('popup')).to.be
+            expect((backend.open as sinon.SinonSpy).calledWith('float')).to.be
                 .true;
             expect((backend.select as sinon.SinonSpy).callCount).to.equal(1);
 
@@ -147,6 +148,34 @@ describe('loom console API', () => {
             expect(nextLoader.callCount, 'started on registration').to.equal(1);
             await loom().devtools.disable();
             expect(sessionStorage.getItem('loom:devtools')).to.be.null;
+        });
+
+        it('reopens an open HUD on the next load, until the HUD is closed', async () => {
+            registerDevtools(async () => ({ activate: fakeBackend }));
+            await loom().devtools.open('float');
+            expect(sessionStorage.getItem('loom:devtools:open')).to.equal('1');
+
+            // A reload: the switch resets, the loader registers again.
+            await loom().devtools.disable();
+            expect(sessionStorage.getItem('loom:devtools:open')).to.be.null;
+            sessionStorage.setItem('loom:devtools:open', '1');
+
+            const backend = fakeBackend();
+            let host: DevtoolsHost | undefined;
+
+            registerDevtools(async () => ({
+                activate: (given: DevtoolsHost) => ((host = given), backend)
+            }));
+            await new Promise((resolve) => setTimeout(resolve));
+
+            expect((backend.open as sinon.SinonSpy).callCount).to.equal(1);
+            expect(
+                (backend.open as sinon.SinonSpy).firstCall.args[0],
+                'reopened where it was'
+            ).to.be.undefined;
+            host!.hudClosed();
+            expect(sessionStorage.getItem('loom:devtools:open')).to.be.null;
+            await loom().devtools.disable();
         });
 
         it('buffers renders until the backend takes them', async () => {

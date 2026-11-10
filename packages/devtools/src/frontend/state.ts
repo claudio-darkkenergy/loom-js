@@ -5,10 +5,11 @@ import { activity } from '@loom-js/core';
 
 import type {
     ActivityRecord,
+    DockPosition,
+    DockState,
     Encoded,
     NodeDetails,
     PathKey,
-    Placement,
     Topic,
     TreeNode
 } from '../protocol/types';
@@ -16,9 +17,14 @@ import type { Client } from './client';
 
 export type Tab = 'activities' | 'components';
 
+// Which panel a one-panel Components tab shows.
+export type Panel = 'details' | 'tree';
+
+// Below this HUD width the tree and details take turns.
+const NARROW_QUERY = '(max-width: 699px)';
+
 export interface Connection {
     message?: string;
-    placement: Placement | 'unknown';
     status: 'connected' | 'connecting' | 'refused';
 }
 
@@ -39,14 +45,25 @@ export type Expansions = Map<string, Encoded>;
 export const pathString = (path: PathKey[]) => path.map(String).join('.');
 
 export const createHudState = (client: Client) => {
-    const connection = activity<Connection>({
-        placement: 'unknown',
-        status: 'connecting'
-    });
+    const connection = activity<Connection>({ status: 'connecting' });
     const tab = activity<Tab>('components');
     const tree = activity<TreeState>({ nodes: new Map(), rootIds: [] });
     const collapsed = activity<Set<number>>(new Set());
     const selectedId = activity<number | undefined>(undefined);
+    // A picked instance whose tree row should scroll into view once shown.
+    const revealId = activity<number | undefined>(undefined);
+    // Whether the selected instance is wholly in view in the page.
+    const selectionInView = activity(false);
+    // An activity whose Activities-tab item should scroll into view.
+    const revealActivityId = activity<number | undefined>(undefined);
+    const dock = activity<DockState | undefined>(undefined);
+    const panel = activity<Panel>('tree');
+    const narrowQuery = globalThis.matchMedia?.(NARROW_QUERY);
+    const narrow = activity(!!narrowQuery?.matches);
+
+    narrowQuery?.addEventListener('change', ({ matches }) =>
+        narrow.update(matches)
+    );
     const details = activity<NodeDetails | undefined>(undefined);
     const expansions = activity<Expansions>(new Map());
     const openPaths = activity<Set<string>>(new Set());
@@ -111,8 +128,23 @@ export const createHudState = (client: Client) => {
         id !== undefined && refreshDetails().catch(report);
     };
 
+    // Expands every collapsed ancestor of a node so its row is shown.
+    const expandTo = (id: number) => {
+        const { nodes } = tree.value();
+        const next = new Set(collapsed.value());
+        let parentId = nodes.get(id)?.parentId;
+
+        while (parentId !== undefined) {
+            next.delete(parentId);
+            parentId = nodes.get(parentId)?.parentId;
+        }
+
+        collapsed.update(next);
+    };
+
     client.onConnected(async (hello) => {
-        connection.update({ placement: hello.placement, status: 'connected' });
+        connection.update({ status: 'connected' });
+        dock.update(hello.dock);
         notice.update('');
 
         try {
@@ -126,7 +158,6 @@ export const createHudState = (client: Client) => {
     client.onDisconnected((error) =>
         connection.update({
             message: error?.message,
-            placement: connection.value().placement,
             status:
                 error?.code === 'protocol-mismatch' ? 'refused' : 'connecting'
         })
@@ -168,10 +199,23 @@ export const createHudState = (client: Client) => {
                 )
             });
     });
-    client.on('selected', ({ id }) => {
+    // Whether the Components tab shows one panel at a time: docked at the
+    // side, or too narrow for the tree and details side by side (a small
+    // floating window).
+    const isOnePanel = () => narrow.value() || dock.value()?.edge === 'side';
+    // Selects an instance on the Components tab: its details, in a
+    // one-panel HUD, or its row scrolled into view beside them.
+    const showInstance = (id: number) => {
         tab.update('components');
+        expandTo(id);
         select(id);
-    });
+        revealId.update(id);
+        isOnePanel() && panel.update('details');
+    };
+
+    client.on('selected', ({ id }) => showInstance(id));
+    client.on('selection.view', ({ inView }) => selectionInView.update(inView));
+    client.on('dock.changed', (state) => dock.update(state));
     client.on('pick.ended', () =>
         toggles.update({ ...toggles.value(), picking: false })
     );
@@ -193,29 +237,37 @@ export const createHudState = (client: Client) => {
         collapsed,
         connection,
         details,
+        dock,
         expansions,
+        isOnePanel,
+        narrow,
         notice,
         openPaths,
+        panel,
         renderCounts,
+        revealActivityId,
+        revealId,
         selectedId,
+        selectionInView,
         tab,
         toggles,
         tree,
         actions: {
             close: () => client.request('close').catch(report),
+            // Applies an edit; resolves with why it failed, or `undefined`.
             editActivity: async (id: number, text: string) => {
                 try {
                     await client.request('activity.update', {
                         id,
                         input: JSON.parse(text)
                     });
-                    notice.update('');
+                    return undefined;
                 } catch (error) {
-                    report(
-                        error instanceof SyntaxError
-                            ? `Not JSON: ${error.message}`
-                            : error
-                    );
+                    return error instanceof SyntaxError
+                        ? `Not JSON: ${error.message}`
+                        : error instanceof Error
+                          ? error.message
+                          : String(error);
                 }
             },
             // Fetches a value past the inline depth: an activity's (`a<id>`)
@@ -243,16 +295,63 @@ export const createHudState = (client: Client) => {
             highlight: (id: number | null) =>
                 client.request('highlight', { id }).catch(report),
             log: (id: number) => client.request('log', { id }).catch(report),
-            popOut: () =>
-                client.request('open', { placement: 'popup' }).catch(report),
+            // Floats the HUD over the page, or docks it again.
+            float: () =>
+                client.request('open', { placement: 'float' }).catch(report),
             dock: () =>
                 client.request('open', { placement: 'dock' }).catch(report),
             resetActivity: (id: number) =>
                 client.request('activity.reset', { id }).catch(report),
+            resetRenderCounts: () => renderCounts.update(new Map()),
+            // Back from a one-panel HUD's details to the tree, at the
+            // selected row.
+            backToTree: () => {
+                panel.update('tree');
+                revealId.update(selectedId.value());
+            },
+            // Opens a tree row's details: beside the tree, or in its place.
+            openDetails: (id: number) => {
+                select(id);
+                isOnePanel() && panel.update('details');
+            },
+            placeDock: async (position: DockPosition) => {
+                try {
+                    dock.update(
+                        await client.request('dock.place', { position })
+                    );
+                } catch (error) {
+                    report(error);
+                }
+            },
+            activityRevealed: () => revealActivityId.update(undefined),
+            revealed: () => revealId.update(undefined),
             reveal: (id: number) =>
                 client.request('reveal', { id }).catch(report),
             select,
             setTab: (next: Tab) => tab.update(next),
+            showInstance,
+            // Shows the instance after the selected one in `ids`, wrapping.
+            showNextInstance: (ids: number[]) => {
+                const current = ids.indexOf(selectedId.value() ?? -1);
+
+                showInstance(ids[(current + 1) % ids.length]!);
+            },
+            // Opens the Activities tab at one activity.
+            showActivity: (id: number) => {
+                tab.update('activities');
+                revealActivityId.update(id);
+            },
+            toggleDock: async () => {
+                try {
+                    dock.update(
+                        await client.request('dock.resize', {
+                            collapsed: !dock.value()?.collapsed
+                        })
+                    );
+                } catch (error) {
+                    report(error);
+                }
+            },
             setToggle,
             togglePath: (path: PathKey[]) => {
                 const next = new Set(openPaths.value());

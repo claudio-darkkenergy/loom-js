@@ -3,7 +3,8 @@
 // loom build tool injects. Shares module instances with the main entry.
 export {
     describeActivity,
-    isInspectableActivity
+    isInspectableActivity,
+    nameActivity
 } from './lib/devtools/activity-ref';
 export type { InspectableActivity } from './lib/devtools/activity-ref';
 export {
@@ -17,11 +18,13 @@ export {
 export type { ActivityRecord, InspectRecord } from './lib/devtools/console-api';
 export { setDevtoolsHook, takeBufferedEvents } from './lib/devtools/hook';
 export type { DevtoolsHook } from './lib/devtools/hook';
+export { instanceOf } from './lib/devtools/instances';
 export { displayNameOf, nameComponent } from './lib/devtools/names';
 export { registerDevtools } from './lib/devtools/switch';
 export type {
     DevtoolsBackend,
     DevtoolsEnableOptions,
+    DevtoolsHost,
     DevtoolsLoader,
     DevtoolsModule,
     DevtoolsPlacement

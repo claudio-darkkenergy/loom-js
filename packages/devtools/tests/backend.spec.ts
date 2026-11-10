@@ -9,12 +9,14 @@ import { type Client, createClient } from '../src/frontend/client';
 import { createTransport, envelope } from '../src/protocol/transport';
 import type {
     ActivityRecord,
+    Encoded,
     Envelope,
     Events,
     EventType,
     NodeDetails,
     TreeNode
 } from '../src/protocol/types';
+import { PROTOCOL_VERSION } from '../src/protocol/types';
 
 // Specs for the backend half of `devtools-protocol` and `devtools-inspector`,
 // over a loopback harness: the page window is both the backend's peer and
@@ -26,13 +28,40 @@ const nextFrame = () => new Promise((resolve) => setTimeout(resolve, 150));
 const labels = activity(['a', 'b'], { label: 'labels' });
 const flag = activity(false, { label: 'flag' });
 const registry = activity(new Map([['k', 1]]), { label: 'registry' });
+// Drives a whole app, as a router's page effect does: no component uses it.
+const theme = activity('dark', { label: 'theme' });
 const clicked = sinon.spy();
+const hudClosed = sinon.spy();
 
+// Holds an unlabeled activity through `own()`.
+const Owner = component(
+    (html, { own }) => {
+        const count = own(() => activity(0));
+
+        return html`
+            <span data-owner>${count.effect(({ value }) => value)}</span>
+        `;
+    },
+    { name: 'Owner' }
+);
 const Item = component<{ label: string }>(
     (html, { label }) => html`
         <li data-item>${label}</li>
     `,
     { name: 'Item' }
+);
+// Renders a component it receives as a prop.
+const Frame = component(
+    (html, { children }) => html`
+        <div data-frame>${children}</div>
+    `,
+    { name: 'Frame' }
+);
+const Badge = component(
+    (html) => html`
+        <b data-badge>badge</b>
+    `,
+    { name: 'Badge' }
 );
 const App = component(
     (html) => html`
@@ -45,6 +74,7 @@ const App = component(
                 )}
             </ul>
             <output>${registry.effect(({ value }) => value.size)}</output>
+            ${Owner()} ${Frame({ children: Badge() })}
         </section>
     `,
     { name: 'App' }
@@ -98,8 +128,14 @@ describe('devtools backend', () => {
 
         document.body.append(root);
         init({ app: App(), root });
+
+        const themeRoot = document.createElement('div');
+
+        document.body.append(themeRoot);
+        init({ app: theme.effect(({ value }) => value), root: themeRoot });
         backend = createBackend(window, {
-            acceptPeer: (source) => source === window
+            acceptPeer: (source) => source === window,
+            host: { hudClosed }
         });
     });
 
@@ -113,7 +149,10 @@ describe('devtools backend', () => {
         });
 
         it('refuses another protocol version', async () => {
-            const response = await rawRequest({ protocol: 2, type: 'hello' });
+            const response = await rawRequest({
+                protocol: PROTOCOL_VERSION + 1,
+                type: 'hello'
+            });
 
             expect(response.error?.code).to.equal('protocol-mismatch');
         });
@@ -124,7 +163,10 @@ describe('devtools backend', () => {
             const hello = new Promise((resolve) => client.onConnected(resolve));
 
             client.connect();
-            expect(await hello).to.include({ placement: 'unknown' });
+            // Not the backend's own HUD frame, so no dock state.
+            expect((await hello) as { dock?: unknown }).to.include({
+                dock: undefined
+            });
             expect(
                 ((await hello) as { features: string[] }).features
             ).to.include.members(['tree', 'activities']);
@@ -161,6 +203,19 @@ describe('devtools backend', () => {
             expect(deep).to.deep.equal({ value: { t: 'str', v: 'a' } });
         });
 
+        it('links a component prop to the instance it rendered', async () => {
+            const details = (await client.request('node.inspect', {
+                id: byName('Frame').id
+            })) as NodeDetails;
+            const props = details.props as Extract<Encoded, { t: 'object' }>;
+
+            expect(new Map(props.entries).get('children')).to.deep.equal({
+                id: byName('Badge').id,
+                name: 'Badge',
+                t: 'component'
+            });
+        });
+
         it('attributes bound and effect activities to their instance', async () => {
             const details = (await client.request('node.inspect', {
                 id: byName('App').id
@@ -171,6 +226,11 @@ describe('devtools backend', () => {
                 '⟨labels⟩',
                 '⟨registry⟩'
             ]);
+            expect(
+                details.activities.every(({ subscriberIds }) =>
+                    subscriberIds.includes(byName('App').id)
+                )
+            ).to.be.true;
         });
 
         it('fails an unknown id', async () => {
@@ -230,6 +290,22 @@ describe('devtools backend', () => {
             expect(await changed).to.deep.include({
                 id: record('⟨flag⟩').id,
                 value: { t: 'bool', v: true }
+            });
+        });
+
+        it('names an unlabeled owned activity after its owner', () => {
+            const owned = records.find(({ name }) =>
+                name.startsWith('Owner › activity#')
+            );
+
+            expect(owned?.owner?.name).to.equal('Owner');
+            expect(record('⟨flag⟩').owner).to.be.undefined;
+        });
+
+        it('lists an activity that drives an app root', () => {
+            expect(record('⟨theme⟩')).to.deep.include({
+                owner: undefined,
+                subscriberIds: []
             });
         });
 
@@ -332,7 +408,7 @@ describe('devtools backend', () => {
             expect(clicked.called).to.be.false;
         });
 
-        it('logs a live activity to the page console as $loom', async () => {
+        it('logs an activity snapshot to the page console as $loom', async () => {
             const log = sinon.stub(console, 'log');
             const flagRecord = (
                 await client.request('activity.list')
@@ -340,23 +416,82 @@ describe('devtools backend', () => {
 
             try {
                 await client.request('log', { id: flagRecord.id });
+
+                const logged = (
+                    window as unknown as {
+                        $loom: {
+                            activity: typeof flag;
+                            scope: unknown;
+                            subscribers: { name: string }[];
+                        };
+                    }
+                ).$loom;
+
+                expect(logged).to.include({
+                    activity: flag,
+                    name: '⟨flag⟩',
+                    pending: false,
+                    scope: null,
+                    value: flag.value()
+                });
                 expect(
-                    (window as unknown as { $loom: unknown }).$loom
-                ).to.equal(flag);
+                    logged.subscribers.map(({ name }) => name)
+                ).to.deep.equal(['App']);
+                logged.activity.update(!flag.value());
+                expect(
+                    document
+                        .querySelector('[data-flag]')!
+                        .getAttribute('data-flag')
+                ).to.equal(String(flag.value()));
             } finally {
                 log.restore();
             }
         });
 
-        it('scrolls an instance into view', async () => {
+        it('logs an owned activity with its owner as scope', async () => {
+            const log = sinon.stub(console, 'log');
+            const owned = (
+                await client.request('activity.list')
+            ).activities.find(({ owner }) => owner?.name === 'Owner')!;
+
+            try {
+                await client.request('log', { id: owned.id });
+                expect(
+                    (
+                        window as unknown as {
+                            $loom: { scope: { name: string } };
+                        }
+                    ).$loom.scope.name
+                ).to.equal('Owner');
+            } finally {
+                log.restore();
+            }
+        });
+
+        it('scrolls an instance into view only when it is out of view', async () => {
             const scroll = sinon.spy(Element.prototype, 'scrollIntoView');
+
+            document.body.style.height = '4000px';
 
             try {
                 await client.request('reveal', { id: byName('App').id });
-                expect(scroll.called).to.be.true;
+                expect(scroll.called).to.be.false;
+                scrollTo(0, 3000);
+                await client.request('reveal', { id: byName('App').id });
+                expect(scroll.calledOnce).to.be.true;
             } finally {
                 scroll.restore();
+                scrollTo(0, 0);
+                document.body.style.height = '';
             }
+        });
+
+        it('reports whether the selection is in view', async () => {
+            const view = nextEvent(client, 'selection.view');
+
+            await client.request('select', { id: byName('App').id });
+            expect(await view).to.deep.equal({ inView: true });
+            await client.request('select', { id: null });
         });
 
         it('formats console-API records for custom formatters', () => {
@@ -376,6 +511,11 @@ describe('devtools backend', () => {
     });
 
     describe('sessions', () => {
+        it('tells core when the HUD closes, so a reload leaves it closed', async () => {
+            await client.request('close');
+            expect(hudClosed.callCount).to.equal(1);
+        });
+
         it('reconnects to a new backend after the old one says goodbye', async () => {
             const sessions: string[] = [];
             const reconnected = new Promise<void>((resolve) =>

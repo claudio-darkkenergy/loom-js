@@ -1,7 +1,14 @@
 import { expect } from '@esm-bundle/chai';
 import sinon from 'sinon';
 
-import { activity, component } from '../../src';
+import {
+    activity,
+    component,
+    el,
+    lazyImport,
+    locationEffect,
+    routeEffect
+} from '../../src';
 import {
     ComponentContextPartial,
     DevtoolsHook,
@@ -10,10 +17,13 @@ import {
     describeActivity,
     findOwnerContext,
     getAppRoots,
+    instanceOf,
     kindOf,
+    nameActivity,
     nodeNameOf,
     setDevtoolsHook
 } from '../../src/devtools';
+import type { TemplateTagValue } from '../../src/types';
 import { runSetup } from '../support/run-setup';
 
 // Specs for the `devtools-introspection` capability: the app-root registry,
@@ -179,6 +189,127 @@ describe('devtools introspection', () => {
         });
     });
 
+    describe('component values', () => {
+        it('resolves children, slot and el() values to the instances they rendered', async () => {
+            const seen: Record<string, unknown> = {};
+            const Card = component<{ list?: TemplateTagValue }>(
+                (html, { children, list, slots }) => {
+                    Object.assign(seen, {
+                        children,
+                        list,
+                        title: slots?.title
+                    });
+
+                    return html`
+                        <article>
+                            <h2>${slots?.title}</h2>
+                            ${children} ${list}
+                        </article>
+                    `;
+                },
+                { name: 'Card' }
+            );
+            const TestComponent = component(
+                (html) => html`
+                    <main>
+                        <${Card} list=${el('ul')({ children: 'items' })}>
+                            <b slot="title">Title</b>
+                            <i data-body>body</i>
+                        </>
+                    </main>
+                `
+            );
+
+            await runSetup({ containerProps: { TestComponent } });
+
+            const card = ownerOf('[data-body]')!.parent!;
+
+            expect(nodeNameOf(card)).to.equal('Card');
+            [
+                ['children', 'children'],
+                ['title', 'slot:title'],
+                ['list', '<ul>']
+            ].forEach(([prop, name]) => {
+                const instance = instanceOf(seen[prop!], card);
+
+                expect(instance && nodeNameOf(instance), prop).to.equal(name);
+                expect(instance?.parent && findOwnerContext(card.root as Node))
+                    .to.exist;
+            });
+        });
+
+        it('resolves a value rendered deeper down, and each item of an array', async () => {
+            const received: TemplateTagValue[] = [];
+            const Badge = component<{ text: string }>(
+                (html, { text }) => html`
+                    <b data-badge>${text}</b>
+                `,
+                { name: 'Badge' }
+            );
+            const Inner = component(
+                (html, { children }) => html`
+                    <span>${children}</span>
+                `,
+                { name: 'Inner' }
+            );
+            const Outer = component(
+                (html, { children }) => {
+                    received.push(children as TemplateTagValue);
+
+                    return html`
+                        <div data-outer>${Inner({ children })}</div>
+                    `;
+                },
+                { name: 'Outer' }
+            );
+            const TestComponent = component(
+                (html) => html`
+                    <main>
+                        ${Outer({
+                            children: [
+                                Badge({ key: 'one', text: '1' }),
+                                Badge({ key: 'two', text: '2' })
+                            ]
+                        })}
+                    </main>
+                `
+            );
+
+            await runSetup({ containerProps: { TestComponent } });
+
+            const outer = ownerOf('[data-outer]')!;
+            const [first, second] = received.at(-1) as TemplateTagValue[];
+            const badges = document.querySelectorAll('[data-badge]');
+
+            expect(instanceOf(first, outer)).to.equal(
+                findOwnerContext(badges[0]!)
+            );
+            expect(instanceOf(second, outer)).to.equal(
+                findOwnerContext(badges[1]!)
+            );
+        });
+
+        it('resolves nothing for a value that never rendered', async () => {
+            const Unused = component(
+                (html) => html`
+                    <p>unused</p>
+                `
+            );
+            const Holder = component(
+                (html) => html`
+                    <p data-holder>holder</p>
+                `
+            );
+
+            await runSetup({ containerProps: { TestComponent: Holder } });
+
+            const holder = ownerOf('[data-holder]')!;
+
+            expect(instanceOf(Unused(), holder)).to.be.undefined;
+            expect(instanceOf('text', holder)).to.be.undefined;
+        });
+    });
+
     describe('activities', () => {
         it('finds an activity used only through bind()', async () => {
             const tone = activity('calm', { label: 'tone' });
@@ -194,10 +325,69 @@ describe('devtools introspection', () => {
 
             expect(found).to.equal(tone);
             expect(describeActivity(found!)).to.deep.equal({
+                labeled: true,
                 name: '⟨tone⟩',
                 pending: false,
                 value: 'calm'
             });
+        });
+    });
+
+    describe('activity names', () => {
+        it('labels an unlabeled activity and returns it', () => {
+            const count = activity(0);
+
+            expect(describeActivity(count).labeled).to.be.false;
+            expect(nameActivity(count, 'count')).to.equal(count);
+            expect(describeActivity(count)).to.include({
+                labeled: true,
+                name: '⟨count⟩'
+            });
+        });
+
+        it('never replaces an explicit label', () => {
+            const count = activity(0, { label: 'cartCount' });
+
+            nameActivity(count, 'count');
+            expect(describeActivity(count).name).to.equal('⟨cartCount⟩');
+        });
+
+        it('ignores values that are not activities', () => {
+            const plain = { value: () => 0 };
+
+            expect(nameActivity(plain, 'plain')).to.equal(plain);
+        });
+
+        it("labels core's own router and lazy-import activities", async () => {
+            const Empty = component(
+                (html) => html`
+                    <i></i>
+                `
+            );
+            const TestComponent = component(
+                (html) => html`
+                    <div data-routed>
+                        ${locationEffect(() => Empty())}
+                        ${routeEffect(() => Empty())}
+                    </div>
+                `
+            );
+
+            await runSetup({ containerProps: { TestComponent } });
+
+            const names = activitiesOf(ownerOf('[data-routed]')!).map(
+                (found) => describeActivity(found).name
+            );
+
+            expect(names).to.deep.equal([
+                '⟨router.location⟩',
+                '⟨router.route⟩'
+            ]);
+            expect(
+                describeActivity(
+                    lazyImport('./pages/home', () => Promise.resolve(0))
+                ).name
+            ).to.equal('⟨lazyImport(./pages/home)⟩');
         });
     });
 

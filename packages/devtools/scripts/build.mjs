@@ -51,7 +51,9 @@ export const buildFrontend = async () => {
 };
 
 const run = async () => {
-    await rm(dist, { force: true, recursive: true });
+    // The frontend-only build leaves the backend entry a dev server may be
+    // serving from `dist`.
+    frontendOnly || (await rm(dist, { force: true, recursive: true }));
     await mkdir(dist, { recursive: true });
 
     const { script, style } = await buildFrontend();

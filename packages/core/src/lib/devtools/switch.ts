@@ -3,19 +3,26 @@ import { formatDiagnostic } from '../globals/diagnostic-format';
 import { loomConsole } from '../globals/loom-console';
 import { setDevtoolsHook, startBuffering } from './hook';
 
-/** Where the devtools HUD opens: docked in the page or in its own window. */
-export type DevtoolsPlacement = 'dock' | 'popup';
+/** Where the devtools HUD opens: docked at a page edge or floating over it. */
+export type DevtoolsPlacement = 'dock' | 'float';
 
 /** A running devtools implementation, as its module's `activate` returns it. */
 export interface DevtoolsBackend {
     deactivate(): void;
-    open(placement: DevtoolsPlacement): void;
+    // Without a placement, the HUD opens where it was last.
+    open(placement?: DevtoolsPlacement): void;
     select(ctx: ComponentContextPartial): void;
+}
+
+/** What core offers a running devtools implementation. */
+export interface DevtoolsHost {
+    // The HUD was closed, so the next load of this tab doesn't reopen it.
+    hudClosed(): void;
 }
 
 /** The module a devtools loader resolves to (`@loom-js/devtools`). */
 export interface DevtoolsModule {
-    activate(): DevtoolsBackend | Promise<DevtoolsBackend>;
+    activate(host: DevtoolsHost): DevtoolsBackend | Promise<DevtoolsBackend>;
 }
 
 export type DevtoolsLoader = () => Promise<DevtoolsModule>;
@@ -26,27 +33,29 @@ export interface DevtoolsEnableOptions {
 }
 
 const PERSIST_KEY = 'loom:devtools';
+// Set while the HUD is open, so a reload of the tab reopens it.
+const HUD_OPEN_KEY = 'loom:devtools:open';
 let loader: DevtoolsLoader | undefined;
 let running: Promise<DevtoolsBackend | undefined> | undefined;
 let warnedUnregistered = false;
 
 // Session storage can be absent or throw (private modes, sandboxed frames,
 // servers) — persistence is best-effort.
-const persisted = (write?: boolean) => {
+const persisted = (write?: boolean, key = PERSIST_KEY) => {
     try {
         const storage = globalThis.sessionStorage;
 
         if (write !== undefined) {
-            write
-                ? storage.setItem(PERSIST_KEY, '1')
-                : storage.removeItem(PERSIST_KEY);
+            write ? storage.setItem(key, '1') : storage.removeItem(key);
         }
 
-        return storage.getItem(PERSIST_KEY) === '1';
+        return storage.getItem(key) === '1';
     } catch {
         return false;
     }
 };
+const hudOpen = (write?: boolean) => persisted(write, HUD_OPEN_KEY);
+const host: DevtoolsHost = { hudClosed: () => hudOpen(false) };
 
 /**
  * Starts devtools: loads the registered implementation and activates it.
@@ -76,7 +85,7 @@ export const enableDevtools = ({ persist }: DevtoolsEnableOptions = {}) => {
 
         startBuffering();
         running = load()
-            .then((devtoolsModule) => devtoolsModule.activate())
+            .then((devtoolsModule) => devtoolsModule.activate(host))
             // A failed load leaves the switch off, so a retry loads again.
             .catch((error: unknown) => {
                 running = undefined;
@@ -96,6 +105,7 @@ export const disableDevtools = async () => {
     const current = running;
 
     persisted(false);
+    hudOpen(false);
     running = undefined;
     setDevtoolsHook(null);
     (await current)?.deactivate();
@@ -103,10 +113,14 @@ export const disableDevtools = async () => {
 
 /**
  * Opens the devtools HUD, starting devtools first when needed.
- * @param placement `dock` (default) or `popup`.
+ * @param placement `dock` or `float`; omitted, where the HUD was last.
  */
-export const openDevtools = async (placement: DevtoolsPlacement = 'dock') =>
-    (await enableDevtools())?.open(placement);
+export const openDevtools = async (placement?: DevtoolsPlacement) => {
+    const backend = await enableDevtools();
+
+    backend && hudOpen(true);
+    backend?.open(placement);
+};
 
 /**
  * Selects an instance in a running devtools HUD; a no-op while devtools is
@@ -120,10 +134,11 @@ export const selectInDevtools = async (ctx: ComponentContextPartial) =>
  * Registers how devtools loads — typically
  * `registerDevtools(() => import('@loom-js/devtools'))`. The loom build
  * tool's `devtools` config key registers it for you. Starts devtools right
- * away when a persisted enable is pending for this tab.
+ * away when a persisted enable is pending for this tab, and reopens the HUD
+ * where it was when it was open at the last load.
  * @param devtoolsLoader Resolves to the devtools module.
  */
 export const registerDevtools = (devtoolsLoader: DevtoolsLoader) => {
     loader = devtoolsLoader;
-    persisted() && enableDevtools();
+    hudOpen() ? openDevtools() : persisted() && enableDevtools();
 };

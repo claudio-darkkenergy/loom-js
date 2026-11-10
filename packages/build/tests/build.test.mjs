@@ -16,6 +16,7 @@ const {
     build,
     componentBindingsOf,
     createBuildOptions,
+    injectActivityLabels,
     loadConfig,
     prerender,
     resolveConfig,
@@ -303,6 +304,47 @@ describe('devtools', () => {
         ]);
     });
 
+    it('labels activities bound at any depth, own() included', () => {
+        const source = [
+            'export const count = activity(0);',
+            'const greeting: Activity<Greeting> = activity<Greeting>(',
+            '    undefined',
+            ');',
+            'const Card = component((html, { own }) => {',
+            '    const open = own(() => activity(false));',
+            '    let draft = props.own( () => activity("") );',
+            '    effect(activity(1));',
+            '    const notOne = activityLike(0);',
+            '    return html``;',
+            '});'
+        ].join('\n');
+        const labeled = injectActivityLabels(source);
+
+        assert.match(
+            labeled,
+            /export const count = __loomLabelActivity\("count", activity\)\(0\);/
+        );
+        assert.match(
+            labeled,
+            /= __loomLabelActivity\("greeting", activity\)<Greeting>\(/
+        );
+        assert.match(
+            labeled,
+            /const open = own\(\(\) => __loomLabelActivity\("open", activity\)\(false\)\);/
+        );
+        assert.match(
+            labeled,
+            /props\.own\( \(\) => __loomLabelActivity\("draft", activity\)\(""\) \)/
+        );
+        assert.match(labeled, /effect\(activity\(1\)\);/);
+        assert.match(labeled, /activityLike\(0\)/);
+        assert.match(
+            labeled,
+            /import \{ nameActivity as __loomNameActivity \}/
+        );
+        assert.equal(injectActivityLabels('const x = 1;'), undefined);
+    });
+
     it('rejects an unknown setting', async () => {
         await assert.rejects(
             resolveConfig(
@@ -327,6 +369,10 @@ describe('devtools', () => {
         assert.ok(
             await anyJsMatches(outDir, /\(App, "App"\)/),
             'names injected'
+        );
+        assert.ok(
+            await anyJsMatches(outDir, /"greeting"/),
+            'activity labels injected'
         );
         assert.ok(
             await anyJsMatches(outDir, /FAKE_DEVTOOLS_MARKER/),
@@ -360,6 +406,7 @@ describe('devtools', () => {
         for (const { file, source } of await builtJs(outDir)) {
             assert.doesNotMatch(source, /FAKE_DEVTOOLS_MARKER/, file);
             assert.doesNotMatch(source, /"App"\)/, file);
+            assert.doesNotMatch(source, /"greeting"/, file);
         }
     });
 

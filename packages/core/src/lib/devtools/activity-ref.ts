@@ -44,15 +44,32 @@ export const isInspectableActivity = (
     activitySubjects.has(value as InspectableActivity);
 
 /**
- * Describes an activity for inspection: its diagnostic name, current value
- * and whether a transform run is in flight.
+ * Labels an activity that has no label yet — what the loom build tool
+ * injects from an activity's binding. An explicit `label` always wins.
+ * @param activity The activity handle (anything else passes through).
+ * @param name The label to give it.
+ * @returns The same value, for use inline.
+ */
+export const nameActivity = <Value>(activity: Value, name: string): Value => {
+    const subject = activitySubjects.get(activity as InspectableActivity);
+
+    subject && !subject.label && (subject.label = name);
+
+    return activity;
+};
+
+/**
+ * Describes an activity for inspection: its diagnostic name, whether that
+ * name is a label, its current value and whether a transform run is in
+ * flight.
  * @param activity The activity handle.
- * @returns The activity's name, value and pending state.
+ * @returns The activity's name, label state, value and pending state.
  */
 export const describeActivity = (activity: InspectableActivity) => {
     const subject = activitySubjects.get(activity);
 
     return {
+        labeled: !!subject?.label,
         name: subject ? describeSubject(subject) : 'activity',
         pending: !!subject && getPendingSubjects().includes(subject),
         value: activity.value()

@@ -8,8 +8,10 @@ import {
     childContextsOf,
     describeActivity,
     displayNameOf,
+    instanceOf,
     findOwnerContext,
     getAppRoots,
+    inspectContext,
     isInspectableActivity,
     kindOf,
     nodeNameOf
@@ -67,48 +69,57 @@ export const createInspector = (ids: IdRegistry) => {
     // Activities reported at creation — reachable even when no rendered
     // tree holds them.
     const createdActivities = new Set<WeakRef<InspectableActivity>>();
-    const describeSpecial: DescribeSpecial = (value) => {
-        if (isInspectableActivity(value)) {
-            return {
-                id: ids.idOf(value),
-                name: describeActivity(value).name,
-                t: 'activity'
-            };
-        }
+    // `owner`: the instance whose props or owned values are being encoded,
+    // under which a component value is looked up.
+    const describeSpecialFor =
+        (owner?: ComponentContextPartial): DescribeSpecial =>
+        (value) => {
+            if (isInspectableActivity(value)) {
+                return {
+                    id: ids.idOf(value),
+                    name: describeActivity(value).name,
+                    t: 'activity'
+                };
+            }
 
-        if (typeof Node !== 'undefined' && value instanceof Node) {
-            const owner = findOwnerContext(value);
-            const ownsRoot =
-                owner &&
-                (Array.isArray(owner.root)
-                    ? owner.root[0] === value
-                    : owner.root === value);
+            if (typeof Node !== 'undefined' && value instanceof Node) {
+                const nodeOwner = findOwnerContext(value);
+                const ownsRoot =
+                    nodeOwner &&
+                    (Array.isArray(nodeOwner.root)
+                        ? nodeOwner.root[0] === value
+                        : nodeOwner.root === value);
 
-            return {
-                id: ownsRoot ? ids.idOf(owner) : undefined,
-                t: 'node',
-                tag: value.nodeName.toLowerCase()
-            };
-        }
+                return {
+                    id: ownsRoot ? ids.idOf(nodeOwner) : undefined,
+                    t: 'node',
+                    tag: value.nodeName.toLowerCase()
+                };
+            }
 
-        const kind =
-            typeof value === 'function' &&
-            (value as ContextFunctionValue).contextFunctionKind;
+            const kind =
+                typeof value === 'function' &&
+                (value as ContextFunctionValue).contextFunctionKind;
 
-        if (kind === 'component') {
-            // A dry run returns a throwaway snapshot — it never renders.
-            return {
-                name: displayNameOf((value as ContextFunctionValue)({}, true)),
-                t: 'component'
-            };
-        }
+            if (kind === 'component') {
+                const instance = owner && instanceOf(value, owner);
 
-        return kind === 'activity'
-            ? { name: 'activity effect', t: 'fn' }
-            : undefined;
-    };
-    const encode = (value: unknown): Encoded =>
-        encodeValue(value, describeSpecial);
+                // A dry run returns a throwaway snapshot — it never renders.
+                return {
+                    id: instance && ids.idOf(instance),
+                    name: displayNameOf(
+                        (value as ContextFunctionValue)({}, true)
+                    ),
+                    t: 'component'
+                };
+            }
+
+            return kind === 'activity'
+                ? { name: 'activity effect', t: 'fn' }
+                : undefined;
+        };
+    const encode = (value: unknown, owner?: ComponentContextPartial): Encoded =>
+        encodeValue(value, describeSpecialFor(owner));
 
     const walk = (visit: (ctx: ComponentContextPartial) => void) => {
         const step = (ctx: ComponentContextPartial) => {
@@ -121,16 +132,57 @@ export const createInspector = (ids: IdRegistry) => {
             .forEach(step);
     };
 
+    // Each instance-owned activity's owner, from the live tree's `own()`
+    // values.
+    const ownersOf = () => {
+        const owners = new Map<InspectableActivity, ComponentContextPartial>();
+
+        walk((ctx) =>
+            ctx.owned?.values.forEach(
+                (value) =>
+                    isInspectableActivity(value) &&
+                    !owners.has(value) &&
+                    owners.set(value, ctx)
+            )
+        );
+
+        return owners;
+    };
+
+    // The ids of the component instances using each activity the tree
+    // holds. Parents are visited first, so a boundary under no component
+    // (the app root, say) is the only kind listed with no users.
+    const usersOf = () => {
+        const subscribers = new Map<InspectableActivity, number[]>();
+        const subscriberIdsOf = (activity: InspectableActivity) =>
+            subscribers.get(activity) ??
+            subscribers.set(activity, []).get(activity)!;
+
+        walk((ctx) =>
+            kindOf(ctx) === 'component'
+                ? activitiesOf(ctx).forEach((activity) =>
+                      subscriberIdsOf(activity).push(ids.idOf(ctx))
+                  )
+                : subscriberIdsOf(ctx.activity!)
+        );
+
+        return subscribers;
+    };
+
     const activityRecord = (
         activity: InspectableActivity,
-        subscriberIds: number[] = []
+        subscriberIds: number[] = [],
+        owner?: ComponentContextPartial
     ): ActivityRecord => {
-        const { name, pending, value } = describeActivity(activity);
+        const { labeled, name, pending, value } = describeActivity(activity);
+        const ownerName = owner && nodeNameOf(owner);
 
         return {
             editable: isJsonValue(value),
             id: ids.idOf(activity),
-            name,
+            // An unlabeled owned activity reads as its owner's.
+            name: ownerName && !labeled ? `${ownerName} › ${name}` : name,
+            owner: owner && { id: ids.idOf(owner), name: ownerName! },
             pending,
             subscriberIds,
             value: encode(value)
@@ -139,26 +191,39 @@ export const createInspector = (ids: IdRegistry) => {
 
     return {
         activityRecord,
-        describeSpecial,
         encode,
         noteCreated(activity: InspectableActivity) {
             createdActivities.add(new WeakRef(activity));
         },
-        // Every activity the tree uses or that was reported at creation,
-        // with the ids of the component instances using it.
-        listActivities(): ActivityRecord[] {
-            const subscribers = new Map<InspectableActivity, number[]>();
+        // What the log action prints for an activity: a plain snapshot that
+        // reads without custom formatters, with the live handle attached.
+        logRecord(activity: InspectableActivity) {
+            const owner = ownersOf().get(activity);
+            const { name } = activityRecord(activity, [], owner);
+            const { pending, value } = describeActivity(activity);
+            const subscribers: ComponentContextPartial[] = [];
 
-            walk((ctx) =>
-                (kindOf(ctx) === 'component' ? activitiesOf(ctx) : []).forEach(
-                    (activity) => {
-                        const nodeIds = subscribers.get(activity) ?? [];
-
-                        nodeIds.push(ids.idOf(ctx));
-                        subscribers.set(activity, nodeIds);
-                    }
-                )
+            walk(
+                (ctx) =>
+                    kindOf(ctx) === 'component' &&
+                    activitiesOf(ctx).includes(activity) &&
+                    subscribers.push(ctx)
             );
+
+            return {
+                activity,
+                name,
+                pending,
+                scope: owner ? inspectContext(owner) : null,
+                subscribers: subscribers.map(inspectContext),
+                value
+            };
+        },
+        // Every activity the tree uses, holds through `own()` or that was
+        // reported at creation, with the ids of the component instances
+        // using it.
+        listActivities(): ActivityRecord[] {
+            const subscribers = usersOf();
             createdActivities.forEach((ref) => {
                 const activity = ref.deref();
 
@@ -167,22 +232,38 @@ export const createInspector = (ids: IdRegistry) => {
                     : createdActivities.delete(ref);
             });
 
+            const owners = ownersOf();
+
+            owners.forEach(
+                (_owner, activity) =>
+                    subscribers.has(activity) || subscribers.set(activity, [])
+            );
+
             return Array.from(subscribers, ([activity, nodeIds]) =>
-                activityRecord(activity, nodeIds)
+                activityRecord(activity, nodeIds, owners.get(activity))
             );
         },
         nodeDetails(ctx: ComponentContextPartial): NodeDetails {
             const kind = kindOf(ctx)!;
+            const owners = ownersOf();
+            const users = usersOf();
 
             return {
                 activities: activitiesOf(ctx).map((activity) =>
-                    activityRecord(activity)
+                    activityRecord(
+                        activity,
+                        users.get(activity),
+                        owners.get(activity)
+                    )
                 ),
                 kind,
                 lifeCycle: ctx.lifeCycleState?.value ?? null,
                 name: nodeNameOf(ctx),
-                owned: encode(ctx.owned?.values ?? []),
-                props: encode(kind === 'component' ? ctx.props : undefined),
+                owned: encode(ctx.owned?.values ?? [], ctx),
+                props: encode(
+                    kind === 'component' ? ctx.props : undefined,
+                    ctx
+                ),
                 refs: ctx.refs?.size ?? 0
             };
         },

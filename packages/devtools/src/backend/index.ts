@@ -4,6 +4,7 @@
 import {
     type ComponentContextPartial,
     type DevtoolsBackend,
+    type DevtoolsHost,
     type DevtoolsHook,
     type InspectableActivity,
     inspectContext,
@@ -23,7 +24,6 @@ import {
     type EventType,
     PROTOCOL_VERSION,
     type PathKey,
-    type Placement,
     type Requests,
     type RequestType,
     type Topic
@@ -33,6 +33,7 @@ import { installFormatters } from './formatters';
 import { createHosts } from './hosts';
 import { createIdRegistry } from './ids';
 import { createInspector, isJsonValue } from './inspect';
+import { followModalDialogs } from './modal-follow';
 import { createPageLayer } from './page-layer';
 import { createPerfTracks } from './perf';
 
@@ -58,26 +59,40 @@ const randomSession = () =>
     globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
 
 export interface BackendOptions {
-    // Accepts windows beyond the backend's own dock and popup as peers.
+    // Accepts windows beyond the backend's own HUD frame as peers.
     acceptPeer?(source: Window): boolean;
+    // What core offers: told when the HUD closes.
+    host?: DevtoolsHost;
 }
 
 /**
  * Starts a backend in a page: the protocol endpoint, the page layer and the
  * console formatters.
  * @param view The inspected page's window.
- * @param options Extra peer acceptance (test harnesses).
+ * @param options Extra peer acceptance (test harnesses) and core's host.
  * @returns The running backend.
  */
 export const createBackend = (
     view: Window & typeof globalThis,
-    { acceptPeer }: BackendOptions = {}
+    { acceptPeer, host }: BackendOptions = {}
 ): DevtoolsBackend => {
     const session = randomSession();
     const ids = createIdRegistry();
     const inspector = createInspector(ids);
-    const layer = createPageLayer(view.document, nodeNameOf);
-    const hosts = createHosts(view);
+    const layer = createPageLayer(view.document, nodeNameOf, {
+        onSelectionView: (inView) => emit('selection.view', { inView }),
+        visibleArea: () => hosts.visibleArea()
+    });
+    const hosts = createHosts(view, {
+        onLayout: () => {
+            layer.redraw();
+            emit('dock.changed', hosts.dockState());
+        }
+    });
+    const stopFollowingModals = followModalDialogs(view.document, (target) => {
+        hosts.moveTo(target);
+        layer.moveTo(target);
+    });
     const transport = createTransport(view);
     const perf = createPerfTracks();
     const removeFormatters = installFormatters(view);
@@ -118,7 +133,12 @@ export const createBackend = (
 
         return activity;
     };
-    const encodeAt = (root: unknown, path: PathKey[]) => {
+    // `owner`: the instance whose props or owned values `root` is.
+    const encodeAt = (
+        root: unknown,
+        path: PathKey[],
+        owner?: ComponentContextPartial
+    ) => {
         const value = resolvePath(root, path);
 
         if (value === MISSING) {
@@ -128,7 +148,7 @@ export const createBackend = (
             );
         }
 
-        return { value: inspector.encode(value) };
+        return { value: inspector.encode(value, owner) };
     };
 
     const watchActivity = (activity: InspectableActivity) => {
@@ -194,7 +214,7 @@ export const createBackend = (
         activityChanges.clear();
     };
     // Batches per animation frame; the timer covers pages whose frames are
-    // paused (a background tab behind a focused popup).
+    // paused (a background tab).
     const requestFrame = () => {
         if (!frameRequested) {
             frameRequested = true;
@@ -263,8 +283,11 @@ export const createBackend = (
         },
         close: () => {
             hosts.close();
+            host?.hudClosed();
             return {};
         },
+        'dock.place': ({ position }) => hosts.placeDock(position),
+        'dock.resize': (change) => hosts.resizeDock(change),
         highlight: ({ id }) => {
             layer.hover(id === null ? undefined : contextOf(id));
             return {};
@@ -272,7 +295,7 @@ export const createBackend = (
         log: ({ id }) => {
             const object = ids.objectOf(id);
             const logged = isInspectableActivity(object)
-                ? object
+                ? inspector.logRecord(object)
                 : inspectContext(contextOf(id));
 
             (view as unknown as { $loom: unknown }).$loom = logged;
@@ -290,7 +313,8 @@ export const createBackend = (
 
             return encodeAt(
                 section === 'owned' ? (ctx.owned?.values ?? []) : ctx.props,
-                rest
+                rest,
+                ctx
             );
         },
         open: ({ placement }) => {
@@ -310,15 +334,7 @@ export const createBackend = (
             return {};
         },
         reveal: ({ id }) => {
-            const { root } = contextOf(id);
-            const node = Array.isArray(root) ? root[0] : root;
-
-            (node?.nodeType === 1
-                ? (node as Element)
-                : node?.parentElement
-            )?.scrollIntoView({
-                block: 'center'
-            });
+            layer.reveal(contextOf(id));
             return {};
         },
         select: ({ id }) => {
@@ -326,6 +342,7 @@ export const createBackend = (
 
             selectedId = ctx ? id! : undefined;
             layer.select(ctx);
+            emit('selection.view', { inView: layer.selectionInView() });
             return {};
         },
         subscribe: ({ topics: next }) => {
@@ -360,8 +377,10 @@ export const createBackend = (
                 peers.add(source);
                 return reply({
                     payload: {
+                        dock: hosts.isPeer(source)
+                            ? hosts.dockState()
+                            : undefined,
                         features: FEATURES,
-                        placement: hosts.placementOf(source),
                         selectedId,
                         session
                     }
@@ -414,18 +433,21 @@ export const createBackend = (
             setDevtoolsHook(null);
             unwatchAll();
             stopListening();
+            stopFollowingModals();
             layer.destroy();
             hosts.close();
             removeFormatters();
             removeConsoleApi();
             peers.clear();
         },
-        open(placement: Placement) {
-            hosts.open(placement);
-        },
+        open: (placement) => hosts.open(placement),
         select
     };
 };
 
-/** Starts the backend in the current page — what core's switch calls. */
-export const activate = (): DevtoolsBackend => createBackend(window);
+/**
+ * Starts the backend in the current page — what core's switch calls.
+ * @param host What core offers the running backend.
+ */
+export const activate = (host?: DevtoolsHost): DevtoolsBackend =>
+    createBackend(window, { host });

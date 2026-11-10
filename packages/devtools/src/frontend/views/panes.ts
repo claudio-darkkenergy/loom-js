@@ -1,16 +1,21 @@
 import { component } from '@loom-js/core';
 
-import type { NodeDetails, TreeNode } from '../../protocol/types';
+import type { TreeNode } from '../../protocol/types';
 import { derive } from '../derive';
 import type { HudState } from '../state';
-import { ActivityItem } from './activity-item';
-import { type ValueContext, ValueRow } from './value-view';
+import { ActivityItem, usersOf } from './activity-item';
+import { Chevron } from './chevron';
+import { Details } from './details';
+import { centerInPane } from './scroll';
+import type { ValueContext } from './value-view';
 
 interface TreeRowModel {
     collapsed: boolean;
     count: number;
     depth: number;
     node: TreeNode;
+    // Scroll this row into view once it renders (a pick in the page).
+    reveal: boolean;
     selected: boolean;
 }
 
@@ -22,30 +27,48 @@ interface TreeRowProps {
 const TreeRow = component<TreeRowProps>(
     (
         html,
-        { actions, row: { collapsed, count, depth, node, selected } }
-    ) => html`
-        <li
-            class=${`tree-row ${selected ? 'is-selected' : ''}`}
-            $click=${() => actions.select(node.id)}
-            $mouseenter=${() => actions.highlight(node.id)}
-            $mouseleave=${() => actions.highlight(null)}
-            style=${`padding-left: ${depth * 14 + 4}px`}
-        >
-            <button
-                class=${`tree-toggle ${node.childIds.length ? '' : 'is-hidden'}`}
-                $click=${(event: Event) => {
-                    event.stopPropagation();
-                    actions.toggleCollapsed(node.id);
-                }}
-                type="button"
+        {
+            actions,
+            onRendered,
+            row: { collapsed, count, depth, node, reveal, selected }
+        }
+    ) => {
+        // Registered on every render: a handler list locks after its first
+        // registration, so the current `reveal` is read from the row.
+        onRendered((rendered) => {
+            if ((rendered as HTMLElement).dataset.reveal) {
+                centerInPane(rendered as Element);
+                actions.revealed();
+            }
+        });
+
+        return html`
+            <li
+                class=${`tree-row ${selected ? 'is-selected' : ''}`}
+                data-node-id=${node.id}
+                data-reveal=${reveal ? 'true' : undefined}
+                $click=${() => actions.openDetails(node.id)}
+                $mouseenter=${() => actions.highlight(node.id)}
+                $mouseleave=${() => actions.highlight(null)}
+                style=${`padding-left: ${depth * 14 + 4}px`}
             >
-                ${collapsed ? '▸' : '▾'}
-            </button>
-            <span class=${`tree-name is-${node.kind}`}>${node.name}</span>
-            ${node.key !== undefined ? KeyBadge({ text: `key=${String(node.key)}` }) : ''}
-            ${count ? KeyBadge({ text: `×${count}`, title: 'renders' }) : ''}
-        </li>
-    `,
+                <button
+                    class=${`tree-toggle ${node.childIds.length ? '' : 'is-hidden'}`}
+                    $click=${(event: Event) => {
+                        event.stopPropagation();
+                        actions.toggleCollapsed(node.id);
+                    }}
+                    aria-label=${collapsed ? 'Expand' : 'Collapse'}
+                    type="button"
+                >
+                    ${Chevron({ direction: collapsed ? 'right' : 'down' })}
+                </button>
+                <span class=${`tree-name is-${node.kind}`}>${node.name}</span>
+                ${node.key !== undefined ? KeyBadge({ text: `key=${String(node.key)}` }) : ''}
+                ${count ? KeyBadge({ text: `↻ ${count}`, title: `re-rendered ${count}× since devtools connected` }) : ''}
+            </li>
+        `;
+    },
     { name: 'TreeRow' }
 );
 
@@ -64,9 +87,10 @@ export const TreePane = component<{ state: HudState }>(
                     state.tree,
                     state.collapsed,
                     state.selectedId,
-                    state.renderCounts
+                    state.renderCounts,
+                    state.revealId
                 ],
-                (tree, collapsed, selectedId, counts) => {
+                (tree, collapsed, selectedId, counts, revealId) => {
                     const visible: TreeRowModel[] = [];
                     const visit = (id: number, depth: number) => {
                         const node = tree.nodes.get(id);
@@ -80,6 +104,7 @@ export const TreePane = component<{ state: HudState }>(
                             count: counts.get(id) ?? 0,
                             depth,
                             node,
+                            reveal: id === revealId,
                             selected: id === selectedId
                         });
                         collapsed.has(id) ||
@@ -97,6 +122,16 @@ export const TreePane = component<{ state: HudState }>(
 
         return html`
             <section class="pane tree-pane" aria-label="Component tree">
+                <div class="tree-toolbar">
+                    <button
+                        class="hud-button"
+                        $click=${() => state.actions.resetRenderCounts()}
+                        title="Reset the re-render counts (↻) to zero"
+                        type="button"
+                    >
+                        Reset ↻
+                    </button>
+                </div>
                 <ul class="tree-list" role="tree">
                     ${rows.effect(({ value }) =>
                         value.length
@@ -130,105 +165,11 @@ const valueContextOf = (
 ): ValueContext => ({
     expansions,
     onExpand: (path) => state.actions.expand(path),
-    onSelectNode: (id) => state.actions.select(id),
+    onHighlightNode: (id) => state.actions.highlight(id),
+    onSelectNode: (id) => state.actions.showInstance(id),
     onToggle: (path) => state.actions.togglePath(path),
     openPaths
 });
-
-interface DetailsProps {
-    details: NodeDetails;
-    nodeId: number;
-    state: HudState;
-    valueContext: ValueContext;
-}
-
-const Details = component<DetailsProps>(
-    (html, { details, nodeId, state, valueContext }) => {
-        const { actions } = state;
-        const hasOwned =
-            details.owned.t === 'array' && details.owned.length > 0;
-
-        return html`
-            <div class="details">
-                <div class="details-head">
-                    <span class=${`details-name is-${details.kind}`}>
-                        ${details.name}
-                    </span>
-                    <span class="hud-muted">${details.lifeCycle ?? ''}</span>
-                    <span class="hud-spacer"></span>
-                    <button
-                        class="hud-button"
-                        $click=${() => actions.reveal(nodeId)}
-                        type="button"
-                    >
-                        Scroll to
-                    </button>
-                    <button
-                        class="hud-button"
-                        $click=${() => actions.log(nodeId)}
-                        type="button"
-                    >
-                        Log
-                    </button>
-                </div>
-                ${
-                    details.kind === 'component'
-                        ? Section({
-                              children: ValueRow({
-                                  context: valueContext,
-                                  label: 'props',
-                                  path: ['props'],
-                                  value: details.props
-                              }),
-                              title: 'Props'
-                          })
-                        : ''
-                }
-                ${
-                    details.activities.length
-                        ? Section({
-                              children: details.activities.map((record) =>
-                                  ActivityItem({
-                                      actions,
-                                      key: record.id,
-                                      record,
-                                      valueContext
-                                  })
-                              ),
-                              title: 'Activities'
-                          })
-                        : ''
-                }
-                ${
-                    hasOwned
-                        ? Section({
-                              children: ValueRow({
-                                  context: valueContext,
-                                  label: 'own()',
-                                  path: ['owned'],
-                                  value: details.owned
-                              }),
-                              title: 'Owned values'
-                          })
-                        : ''
-                }
-            </div>
-        `;
-    },
-    { name: 'Details' }
-);
-
-const Section = component<{ title: string }>(
-    (html, { children, title }) => html`
-        <section class="details-section">
-            <h3 class="details-title">${title}</h3>
-            <ul class="value-list">
-                ${children}
-            </ul>
-        </section>
-    `,
-    { name: 'Section' }
-);
 
 export const InspectorPane = component<{ state: HudState }>(
     (html, { own, state }) => {
@@ -237,12 +178,19 @@ export const InspectorPane = component<{ state: HudState }>(
                 [
                     state.details,
                     state.selectedId,
+                    state.selectionInView,
+                    state.tree,
                     state.expansions,
-                    state.openPaths
+                    state.openPaths,
+                    state.narrow,
+                    state.dock
                 ],
-                (details, selectedId, expansions, openPaths) => ({
+                (details, selectedId, inView, tree, expansions, openPaths) => ({
                     details,
+                    inView,
+                    onePanel: state.isOnePanel(),
                     selectedId,
+                    tree,
                     valueContext: valueContextOf(state, expansions, openPaths)
                 })
             )
@@ -254,12 +202,24 @@ export const InspectorPane = component<{ state: HudState }>(
                 aria-label="Selected component"
             >
                 ${view.effect(
-                    ({ value: { details, selectedId, valueContext } }) =>
+                    ({
+                        value: {
+                            details,
+                            inView,
+                            onePanel,
+                            selectedId,
+                            tree,
+                            valueContext
+                        }
+                    }) =>
                         details && selectedId !== undefined
                             ? Details({
                                   details,
+                                  inView,
                                   nodeId: selectedId,
+                                  onePanel,
                                   state,
+                                  tree,
                                   valueContext
                               })
                             : Placeholder({
@@ -286,9 +246,17 @@ export const ActivitiesPane = component<{ state: HudState }>(
     (html, { own, state }) => {
         const view = own(() =>
             derive(
-                [state.activities, state.expansions, state.openPaths],
-                (records, expansions, openPaths) => ({
+                [
+                    state.activities,
+                    state.tree,
+                    state.revealActivityId,
+                    state.expansions,
+                    state.openPaths
+                ],
+                (records, tree, revealId, expansions, openPaths) => ({
                     records,
+                    revealId,
+                    tree,
                     valueContext: valueContextOf(state, expansions, openPaths)
                 })
             )
@@ -297,17 +265,22 @@ export const ActivitiesPane = component<{ state: HudState }>(
         return html`
             <section class="pane activities-pane" aria-label="Activities">
                 <ul class="activity-list">
-                    ${view.effect(({ value: { records, valueContext } }) =>
-                        records.length
-                            ? records.map((record) =>
-                                  ActivityItem({
-                                      actions: state.actions,
-                                      key: record.id,
-                                      record,
-                                      valueContext
-                                  })
-                              )
-                            : EmptyNote({ text: 'No activities found.' })
+                    ${view.effect(
+                        ({
+                            value: { records, revealId, tree, valueContext }
+                        }) =>
+                            records.length
+                                ? records.map((record) =>
+                                      ActivityItem({
+                                          actions: state.actions,
+                                          key: record.id,
+                                          record,
+                                          reveal: record.id === revealId,
+                                          users: usersOf(record, tree),
+                                          valueContext
+                                      })
+                                  )
+                                : EmptyNote({ text: 'No activities found.' })
                     )}
                 </ul>
             </section>
