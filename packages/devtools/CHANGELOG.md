@@ -1,5 +1,11 @@
 # @loom-js/devtools
 
+## 0.2.1
+
+### Patch Changes
+
+- 0d73a7a: Published from CI through npm trusted publishing, with a provenance attestation. No code changes.
+
 ## 0.2.0
 
 ### Minor Changes
