@@ -36,7 +36,7 @@ const search = activity('', {
 });
 ```
 
-Narration lines, dropped-commit & timeout notices, & the pending enumeration all show `⟨search⟩`. Labels are purely diagnostic & never affect behavior. Unlabeled activities fall back to a stable generated tag (`activity#3`) so lines from different sources stay distinguishable; other subject kinds reuse what already identifies them — component keys, tag names, resource keys.
+Narration lines, dropped-commit & timeout notices, & the pending enumeration all show `⟨search⟩`. Labels are purely diagnostic & never affect behavior. Unlabeled activities fall back to a stable generated tag (`activity#3`) so lines from different sources stay distinguishable; other subject kinds reuse what already identifies them — component keys, tag names, resource keys. Core labels the activities it creates itself: the router's `⟨router.location⟩`, `⟨router.route⟩` & `⟨router.page⟩`, & each lazy import's `⟨lazyImport(key)⟩`.
 
 Bounded settlement warnings put labels to work: a `maxWait`-class expiry (`hydrate`, `renderToString`) enumerates the labeled subjects still pending alongside the count — `3 pending — ⟨page-content⟩, ⟨search⟩, activity#7` — capped, with the overflow counted.
 

@@ -126,7 +126,7 @@ The default shell is a `<head>` with the title, charset and viewport metas, your
 
 ### Devtools
 
-`devtools` decides where the [Devtools](/docs/devtools) inspector is available. `'dev'` (the default) wires it into development builds; `'lazy'` into production builds too; `false` never. Where it's available, the tool registers a lazy loader for `@loom-js/devtools` — no route's initial bundle grows, and the code loads only when `loom.devtools.enable()` runs — and names every top-level `const X = component(…)` / `defineElement(…)` after its binding. The default skips both quietly when `@loom-js/devtools` isn't installed; an explicit `'dev'` or `'lazy'` without the package fails the build.
+`devtools` decides where the [Devtools](/docs/devtools) inspector is available. `'dev'` (the default) wires it into development builds; `'lazy'` into production builds too; `false` never. Where it's available, the tool registers a lazy loader for `@loom-js/devtools` — no route's initial bundle grows, and the code loads only when `loom.devtools.enable()` runs — names every top-level `const X = component(…)` / `defineElement(…)` after its binding, and labels every `const x = activity(…)` or `const x = own(() => activity(…))`, at any depth, after its binding. An explicit `name` or `label` always wins. The default skips both quietly when `@loom-js/devtools` isn't installed; an explicit `'dev'` or `'lazy'` without the package fails the build.
 
 ### The `esbuild` escape hatch
 
