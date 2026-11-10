@@ -1,5 +1,12 @@
 # @loom-js/core
 
+## 0.22.0
+
+### Minor Changes
+
+- cbc2e1a: `DevtoolsPlacement` is now `'dock' | 'float'`: devtools floats over the page instead of opening a separate window, and `'popup'` is gone. `loom.devtools.open()` without a placement opens the HUD where it was last, and an open HUD reopens on the next load of the tab until the devtools implementation reports it closed through the new `DevtoolsHost` that `activate(host)` receives. `@loom-js/core/devtools` adds `instanceOf(value, owner)`, the live instance a component value held in `owner`'s props rendered into, which devtools uses to link a `children` or slot prop to what it rendered.
+- cbc2e1a: `@loom-js/core/devtools` adds `nameActivity(activity, name)`, which labels an activity that has no label yet (an explicit `label` always wins), and `describeActivity` reports whether the activity's name is a label (`labeled`). The loom build tool uses `nameActivity` to label activities from their bindings. Core now labels the activities it creates itself, so devtools and diagnostics name them: `⟨router.location⟩`, `⟨router.route⟩`, `⟨router.page⟩` and `⟨lazyImport(key)⟩`.
+
 ## 0.21.0
 
 ### Minor Changes
