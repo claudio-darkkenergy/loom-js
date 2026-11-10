@@ -33,15 +33,6 @@ A frontend SHALL send `hello` with its protocol major before any other request. 
 - **WHEN** a frontend speaking protocol 2 says `hello` to a protocol 1 backend
 - **THEN** the response fails with `protocol-mismatch` and the frontend shows the version conflict
 
-### Requirement: Reloads end a session and frontends reconnect
-
-On page hide the backend SHALL emit `goodbye`. A frontend that receives `goodbye`, or a message from a different session, SHALL drop stale state and retry `hello` until a backend answers.
-
-#### Scenario: Popup survives a reload
-
-- **WHEN** the inspected page reloads while the popup frontend is open
-- **THEN** the popup reconnects to the new session and shows the new tree without being reopened
-
 ### Requirement: Ids are stable within a session
 
 The backend SHALL identify instances and activities by numeric ids that stay the same for the object's lifetime within a session and are never reused. A request naming an unknown or retired id SHALL fail with `unknown-id`.
@@ -82,3 +73,12 @@ The backend SHALL emit `tree.changed`, `renders` and `activity.changed` events o
 
 - **WHEN** the frontend sends `activity.update` with input `"loom"` to a search activity with an async transform
 - **THEN** the transform runs with that input and the resulting commit is reported as `activity.changed`
+
+### Requirement: Sessions end with goodbye and frontends reconnect
+
+On page hide the backend SHALL emit `goodbye`. A frontend that receives `goodbye`, or a message from a different session, SHALL drop stale state and retry `hello` until a backend answers.
+
+#### Scenario: Frontend outlives its backend
+
+- **WHEN** the backend a frontend talks to says `goodbye` and a new backend starts in the page
+- **THEN** the frontend reconnects to the new session and shows the new tree without being reopened
