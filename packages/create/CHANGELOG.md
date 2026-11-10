@@ -1,5 +1,11 @@
 # @loom-js/create
 
+## 0.1.1
+
+### Patch Changes
+
+- 0d73a7a: Published from CI through npm trusted publishing, with a provenance attestation. No code changes.
+
 ## 0.1.0
 
 ### Minor Changes

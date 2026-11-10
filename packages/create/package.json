@@ -1,6 +1,6 @@
 {
     "name": "@loom-js/create",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "author": "Claudio Nunez Jr",
     "license": "MIT",
     "description": "Create a loom app: `npm create @loom-js` scaffolds a standalone, server-first project that builds with @loom-js/build.",
