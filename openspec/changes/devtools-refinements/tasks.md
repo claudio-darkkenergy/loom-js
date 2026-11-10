@@ -46,7 +46,7 @@ The refinement list is open. Additions found after these land go into a new numb
 - [x] 7.2 Changesets: `@loom-js/devtools`, `@loom-js/core` and `@loom-js/build` minors
 - [x] 7.3 `.claude/skills/skill-config.md` and `SOLID-AUDIT-REPORT.md` entries for touched or new modules
 - [x] 7.4 Full checks: core, build and devtools tests, type-check, `format:check`, `openspec validate --strict`
-- [ ] 7.5 Push the edited topics to Contentful and publish at ship
+- [x] 7.5 Push the edited topics to Contentful and publish at ship
 
 ## 8. Root boundaries and core labels (found in the sandbox check)
 
