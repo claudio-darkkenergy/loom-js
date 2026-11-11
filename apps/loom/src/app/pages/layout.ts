@@ -11,16 +11,16 @@ import { layoutState } from '../logic/activity/layout-state';
 import { sideNavToggle } from '../logic/activity/toggles';
 import styles from './styles.module.css';
 import { BrandLogoLink } from '@/app/components/branding/brand-logo-link';
+import { ReleaseStatus } from '@/app/components/branding/release-status';
 import { DocsSearchHost, SearchTrigger } from '@/app/components/search';
 import { useDocumentTitle, useSearchShortcut } from '@/app/logic/hooks';
 
 const { effect: layoutStateEffect } = layoutState;
 const { update: toggleSideNav } = sideNavToggle;
 
-// The header brand cluster — the side-nav toggle (mobile only) next to the
-// brand logo. Component-only template, so it renders as a rootless fragment:
-// both elements land directly in the flex row, exactly like the array of
-// calls this replaces.
+// The header brand cluster — the side-nav toggle (mobile only), the brand
+// logo and the release status. Component-only template, so it renders as a
+// rootless fragment: each lands directly in the header's flex row.
 const HeaderBrand = component<{ sideNav?: boolean }>(
     (html, { sideNav }) => html`
         <${PinkButton}
@@ -31,6 +31,7 @@ const HeaderBrand = component<{ sideNav?: boolean }>(
             onClick=${() => toggleSideNav(null)}
         />
         <${BrandLogoLink} />
+        <${ReleaseStatus} />
     `
 );
 
@@ -54,7 +55,10 @@ const PageLayout = component(
             >
                 <div
                     slot="col1"
-                    class=${classNames('u-flex u-gap-8', styles.headerCol1)}
+                    class=${classNames(
+                        'grid-header-col-1 u-flex u-gap-8',
+                        styles.headerCol1
+                    )}
                 >
                     ${layoutStateEffect(({ value: { sideNav } }) =>
                         HeaderBrand({ sideNav })

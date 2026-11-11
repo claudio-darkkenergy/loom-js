@@ -20,10 +20,13 @@
         }
     }
 
-    /* Mobile: without a col-3/col-4 item, the second row collapses. The
-       class names are pink's, so they stay unhashed. */
-    &:not(:has(:global(.grid-header-col-3), :global(.grid-header-col-4))) {
-        grid-template-areas: 'col-1 col-2';
+    /* Mobile: the brand gets the first row; search and the top nav share
+       the second, which keeps the nav from running off-screen. */
+    @media (width < 768px) {
+        gap: 0.25rem;
+        grid-template-areas:
+            'col-1 col-1'
+            'col-3 col-2';
     }
 }
 

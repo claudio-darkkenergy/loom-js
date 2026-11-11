@@ -3,6 +3,7 @@ import { defineConfig, type PrerenderBundle } from '@loom-js/build';
 import type { SerializedStateEnvelope } from '@loom-js/core';
 
 import { brandHead, SITE_DESCRIPTION } from './project/client/brand.mjs';
+import { readCoreVersion } from './project/client/core-version.mjs';
 import {
     assertLlmsTopics,
     llmsFull,
@@ -85,6 +86,9 @@ const LLMS_EXCLUDED_SLUGS = ['feedback'];
 // utility ones included (findability, not API content).
 const SEARCH_INDEX_FILE = 'static/search/index.json';
 
+// The core release the header shows; also checked on every prerendered route.
+const coreVersion = readCoreVersion(import.meta.dirname);
+
 const apiUrl = process.env.API_URL ?? '';
 // Preview is an explicit opt-in (`.env.local` sets it for dev) — production
 // must never default onto Contentful's uncached Preview API.
@@ -103,6 +107,7 @@ export default defineConfig<LoomPrerenderBundle>({
     ],
     define: {
         __API_URL__: apiUrl,
+        __CORE_VERSION__: coreVersion,
         __CTF_IS_PREVIEW__: ctfIsPreview
     },
     entry: './src/app/bootstrap',
@@ -247,6 +252,13 @@ export default defineConfig<LoomPrerenderBundle>({
             if (!html.includes(`${copyright}</footer>`)) {
                 throw new Error(
                     `[prerender] ${route} rendered without its "${copyright}" footer — failing the build.`
+                );
+            }
+
+            // Anchored to the header link, so a quoted version can't pass.
+            if (!html.includes(`v${coreVersion}</a>`)) {
+                throw new Error(
+                    `[prerender] ${route} rendered without the "v${coreVersion}" core version — failing the build.`
                 );
             }
 
