@@ -241,6 +241,15 @@ export default defineConfig<LoomPrerenderBundle>({
             bundle.seedBenchResults(benchResults);
         },
         validate: (route, { html, state }, bundle) => {
+            // Anchored to the footer — docs code samples quote the notice too.
+            const copyright = `© ${new Date().getFullYear()}`;
+
+            if (!html.includes(`${copyright}</footer>`)) {
+                throw new Error(
+                    `[prerender] ${route} rendered without its "${copyright}" footer — failing the build.`
+                );
+            }
+
             if (route === '/') {
                 if (html.length < 1000) {
                     throw new Error(

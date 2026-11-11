@@ -87,7 +87,7 @@ const PageLayout = component(
             </>
             ${DocsSearchHost()}
             <main>${children}</main>
-            <${PinkContainer} is=${el('footer')}>© 2024</>
+            <${PinkContainer} is=${el('footer')}>© ${new Date().getFullYear()}</>
         </div>
     `;
     }
