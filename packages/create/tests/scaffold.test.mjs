@@ -294,6 +294,30 @@ describe('formatters', () => {
         assert.equal(prettierrc.plugins, undefined);
     });
 
+    it('leaves the files pnpm rewrites in its own style', async () => {
+        for (const formatter of REGISTRIES.formatters) {
+            const cwd = path.join(root, `pnpm-owned-${formatter.id}`);
+
+            await mkdir(cwd, { recursive: true });
+            await scaffold(cwd, argvOf(combo, formatter.id), {
+                npm_config_user_agent: 'pnpm/11.3.0 npm/? node/v24.14.0'
+            });
+
+            // What pnpm writes back after `approve-builds` or a release-age
+            // exclusion: two-space indents.
+            const app = path.join(cwd, nameOf(combo));
+
+            await writeFile(
+                path.join(app, 'pnpm-workspace.yaml'),
+                "allowBuilds:\n  esbuild: true\nminimumReleaseAgeExclude:\n  - '@loom-js/core@0.22.0'\n"
+            );
+
+            const [command, ...args] = formatter.checkCommand;
+
+            await exec(binOf(command), args, { cwd: app });
+        }
+    });
+
     it('restores house import order with Biome', async () => {
         const cwd = path.join(root, 'shuffled');
 

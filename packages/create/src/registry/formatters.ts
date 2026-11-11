@@ -1,12 +1,14 @@
 import { toJson } from '../json';
 import type { Formatter } from './types';
 
-// Generated output and lockfiles stay unformatted.
+// Generated output, lockfiles and pnpm-workspace.yaml (pnpm rewrites it in
+// its own style) stay unformatted.
 const IGNORED = [
     'build',
     '.generated',
     'package-lock.json',
     'pnpm-lock.yaml',
+    'pnpm-workspace.yaml',
     'yarn.lock',
     'bun.lock'
 ];
