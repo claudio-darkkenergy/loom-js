@@ -3,7 +3,7 @@
 _Maintained by `.claude/skills/solid-audit/SKILL.md`. Update this file using the audit skill — do not edit violation statuses manually._
 
 **Last full audit:** 2026-05-02
-**Last updated:** 2026-10-21
+**Last updated:** 2026-11-11
 
 ---
 
@@ -11,12 +11,12 @@ _Maintained by `.claude/skills/solid-audit/SKILL.md`. Update this file using the
 
 | Principle | 🔴 Critical | 🟡 Moderate | 🟢 Minor | ✅ Resolved |
 | --------- | ----------- | ----------- | -------- | ----------- |
-| SRP       | 0           | 1           | 1        | 6           |
-| OCP       | 0           | 0           | 1        | 1           |
+| SRP       | 0           | 1           | 2        | 6           |
+| OCP       | 0           | 0           | 3        | 1           |
 | LSP       | 0           | 0           | 0        | 1           |
 | ISP       | 0           | 0           | 0        | 1           |
 | DIP       | 1           | 0           | 0        | 0           |
-| **Total** | **1**       | **1**       | **2**    | **9**       |
+| **Total** | **1**       | **1**       | **5**    | **9**       |
 
 ---
 
@@ -56,6 +56,42 @@ _Violations to resolve the next time the affected file is touched._
 
 _Low-risk drift to fix opportunistically._
 
+### `packages/create/scripts/build.mjs`
+
+- **Principle violated:** OCP
+- **Severity:** 🟢 Minor
+- **Violation:** The packages whose ranges get stamped are hand-kept lists (`LOOM_PACKAGES` and `TOOL_PACKAGES` here, `TEMPLATE_PACKAGES` again in `scripts/check-release-sync.mjs`), so a new registry entry that brings a package (a second UI kit, an `nx` task runner) also means editing one or both scripts.
+- **Impact:** The registries promise "a new kit, task runner or formatter is one entry", and they don't keep it; the miss fails loudly (`rangeOf` throws in the matrix tests), but the two lists can drift apart.
+- **Recommended fix:** Derive both from create's own `devDependencies`: stamp `^version` for every `workspace:*` entry and the declared range for the rest, and have the release-sync guard read the same `@loom-js/*` names. A new entry then needs only its registry descriptor plus a devDependency. See the OCP section in `.claude/skills/solid-principles/SKILL.md`.
+- **Status:** 🔲 Open
+- **Audited:** 2026-11-11
+
+---
+
+### `packages/create/src/package-manager.ts`
+
+- **Principle violated:** OCP
+- **Severity:** 🟢 Minor
+- **Violation:** Each package manager's quirks sit in name checks across four files: `runCommand` here, `pnpm-workspace.yaml` / `.yarnrc.yml` in `scaffold.ts` `repoFiles`, the `workspaces` field skipped for pnpm in `render/package-json.ts`, and yarn's version lookup in `cli.ts`.
+- **Impact:** The set of managers is fixed, but their quirks keep growing (pnpm build approvals, yarn's linker); each new one is a change hunted across files instead of a change to one manager's entry.
+- **Recommended fix:** A `PackageManager` descriptor per manager (`runCommand`, `repoFiles(context)`, `workspacesField`, `needsVersion`), looked up by the detected name, the same shape as the registries. See the OCP section in `.claude/skills/solid-principles/SKILL.md`.
+- **Status:** 🔲 Open
+- **Audited:** 2026-11-11
+
+---
+
+### `packages/create/src/cli.ts`
+
+- **Principle violated:** SRP
+- **Severity:** 🟢 Minor
+- **Violation:** `run` orchestrates the whole flow, and it also carries the clone reconciliation inline (lines 145–185: clone, conflict check, undo, kept-file and `.gitignore` merge), while the rest of the git step lives in `git.ts`.
+- **Impact:** A change to the clone rules edits the orchestrator; it's tested end to end through `flow.test.mjs` but can't be exercised alone.
+- **Recommended fix:** Move the block into `git.ts` as `applyClone({ directory, existed, files, spawn, url })`, which returns the adjusted file map or the error to print, so `run` makes one call. See the SRP section in `.claude/skills/solid-principles/SKILL.md`.
+- **Status:** 🔲 Open
+- **Audited:** 2026-11-11
+
+---
+
 ### `packages/core/src/lib/context/life-cycles.ts`
 
 - **Principle violated:** SRP
@@ -84,6 +120,7 @@ _Low-risk drift to fix opportunistically._
 
 _Clean file audits of added modules, with the spec covering each._
 
+- **2026-11-11 — `create-loom-cli-utility`, new `packages/create/`:** three 🟢 Minor findings above (`scripts/build.mjs`, `src/package-manager.ts`, `src/cli.ts`); everything else is clean. Its edges come in as `Io` / `Spawn`, so nothing needs a real terminal or process to test. Specs: `cli-core.test.mjs` (`args.ts`, `usage.ts`, `prompts.ts`, `target.ts`, `choices.ts`, `package-manager.ts`, registry-driven help and validation), `scaffold.test.mjs` (`scaffold.ts`, `layers.ts`, `json.ts`, `render/*`, `registry/*`: snapshots, layer rules, layout parity, leakage, formatters), `matrix.test.mjs` (every combination format-checked, type-checked and built; covers `versions.ts` and the built template trees), `flow.test.mjs` (`cli.ts` install and git steps, `git.ts`, `io.ts` `nodeSpawn`), `templates.test.mjs` (`scripts/templates.mjs`, `templates/tailwind/scripts/dev.mjs`), `release-sync.test.mjs` (`scripts/check-release-sync.mjs`).
 - **2026-11-09 — `devtools-refinements` logo, new `packages/devtools/src/logo.ts`:** no violations. It holds the loom mark's geometry, shared by the backend's minimized button and checked against the HUD's `LoomLogo` template (`hud.spec.ts`, "shows the loom logo in the toolbar"). Touched files re-audited with no new findings: `backend/{hosts,dock-state}.ts`, `frontend/views/{icons,header}.ts`.
 - **2026-11-09 — `devtools-refinements` floating HUD and component-prop links, new `packages/core/src/lib/devtools/instances.ts` and `packages/devtools/src/backend/pointer-drag.ts`:** no violations. `instances.ts` resolves a component value to the live instance it rendered into by walking the owner's slots (`devtools-introspection.spec.ts`, "component values"). `pointer-drag.ts` is the press-move-release tracker the floating window's bar, corner and minimized button share, kept out of `hosts.ts` so hosts stays about layout (`hud.spec.ts` floating specs). Touched files re-audited with no new findings: core `devtools.ts`, `lib/devtools/switch.ts`; devtools `backend/{hosts,dock-state,index,inspect}.ts`, `protocol/types.ts`, `frontend/state.ts`, `frontend/views/{header,hud,details,panes,value-view}.ts`.
 - **2026-11-09 — `devtools-refinements` toolbar icons and tagged prop names, new `packages/devtools/src/frontend/views/icons.ts`:** no violations. `icons.ts` holds the toolbar's SVG icons (Pick, dock positions, pop out/dock), a view helper covered by `hud.spec.ts`; `value-view.ts` previews are covered by the new `value-view.spec.ts`. Touched files re-audited with no new findings: `frontend/views/{header,value-view}.ts`.
