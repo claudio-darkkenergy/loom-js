@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change loom-build-tool. Update Purpose after archive.
+Publish the shell-per-route esbuild plugin as `@loom-js/esbuild-plugin-html-split` so raw esbuild users can use it without `@loom-js/build`. It documents its own options and contract, and workspace consumers import it by its scoped name.
 
 ## Requirements
 

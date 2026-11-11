@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change template-instance-plan. Update Purpose after archive.
+Do a template's parsing and dynamic-path work once rather than per instance. Each template is normalized and resolved into a shared plan, and each instance holds only the slots that plan points at, so rendering an instance does no classification or attribute parsing.
 
 ## Requirements
 

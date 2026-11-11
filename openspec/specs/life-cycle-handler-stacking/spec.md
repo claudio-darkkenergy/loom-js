@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change stackable-life-cycle-hooks. Update Purpose after archive.
+Let a component and the hooks it calls register for the same life-cycle event without overwriting each other. Handlers stack in registration order, an event's list locks after the render that registers it, and ref handlers run after the component's own.
 
 ## Requirements
 

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change framework-benchmarks. Update Purpose after archive.
+Define the bench app every framework implements (loom, react, vue, svelte, solid and vanilla JS) so the runner can drive them interchangeably. Each implementation renders the same data and DOM contract, is written idiomatically with keyed rows, builds through its own framework's compiler path and signals when it is ready.
 
 ## Requirements
 

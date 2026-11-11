@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change loom-build-tool. Update Purpose after archive.
+Define `@loom-js/build`'s contract with an app: a declarative, bundler-neutral `loom.config` driven by the `loom` CLI (`build`, `dev`, `prerender`). Covers the production and development split, the output directory, the dev server, the raw-bundler escape hatch and the `devtools` key.
 
 ## Requirements
 

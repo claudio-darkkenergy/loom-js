@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change framework-benchmarks. Update Purpose after archive.
+Define the loom app's `/benchmarks` page, which presents the latest benchmark results: how it is routed and linked, how the results load and dehydrate, how operations, bundle size, startup and memory are compared, and how the page explains where the numbers come from.
 
 ## Requirements
 

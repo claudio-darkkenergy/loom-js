@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change docs-app-structure-topic. Update Purpose after archive.
+Keep a docs topic that shows how a loom app is laid out: which modules run where, what may import what, the shell and asset conventions, and an annotated directory tree that matches the reference app.
 
 ## Requirements
 

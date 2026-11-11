@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change framework-benchmarks. Update Purpose after archive.
+Keep the framework benchmark out of the way of everyday builds. Measurement runs as a cached turbo task that reruns only when a framework version, the bench sources or core change; the loom build consumes its results; and framework versions move by a scripted bump that lands as a reviewable commit.
 
 ## Requirements
 

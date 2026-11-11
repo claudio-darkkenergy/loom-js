@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change workspace-release-docs. Update Purpose after archive.
+Keep the release workflow written down in the root README so a contributor can release from it alone: changesets, the Version Packages PR, the pre-1.0 versioning rules and the `edge` to `main` branch flow.
 
 ## Requirements
 

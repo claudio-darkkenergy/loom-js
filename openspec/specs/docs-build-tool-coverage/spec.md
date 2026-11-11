@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change docs-build-tool-topic. Update Purpose after archive.
+Keep a `build-tool` docs topic that describes the build path loom actually ships: the esbuild entrypoints, shell-per-route generation and the prerender pipeline.
 
 ## Requirements
 

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change framework-benchmarks. Update Purpose after archive.
+Define how the benchmark runner measures each framework so the numbers are comparable and repeatable: what each DOM operation's timing covers, how samples are warmed, repeated and interleaved, which startup, memory and bundle-size figures are taken, the shape of the results file, and how a failure or a host's Chrome affects the run.
 
 ## Requirements
 
