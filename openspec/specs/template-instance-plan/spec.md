@@ -8,7 +8,7 @@ Do a template's parsing and dynamic-path work once rather than per instance. Eac
 
 ### Requirement: A template's dynamic wiring is computed once
 
-For each template and document, the parsed fragment SHALL be normalized once — every slot token in a text or comment node split into its own text node, every special attribute removed from its element — and the dynamic paths resolved once into a plan: how to reach each dynamic node from a clone and which kind of update applies (text, attribute, event, `$attrs`, `$on`, `$props`, custom-element prop). Every instance of the template SHALL render through that plan. Rendering an instance SHALL classify no attribute, parse no attribute name, split no text and remove no attribute.
+For each template and document, the parsed fragment SHALL be normalized once — every slot token in a text or comment node split into its own text node, every dynamic attribute removed from its element — and the dynamic paths resolved once into a plan: how to reach each dynamic node from a clone, which kind of update applies (text, attribute, event, `$attrs`, `$on`, `$props`, custom-element prop) and, for an attribute, its name as authored in the template. Every instance of the template SHALL render through that plan. Rendering an instance SHALL classify no attribute, parse no attribute name, split no text and remove no attribute. No attribute SHALL be parsed or cloned with the slot placeholder as its value.
 
 #### Scenario: Instances share one plan
 
@@ -22,13 +22,18 @@ For each template and document, the parsed fragment SHALL be normalized once —
 
 #### Scenario: Clones are already normalized
 
-- **WHEN** an instance of a template with special attributes and slot tokens inside text is created
-- **THEN** its clone carries no special attribute and no text node holding a slot token, and the wiring removes no attribute and splits no text
+- **WHEN** an instance of a template with dynamic attributes and slot tokens inside text is created
+- **THEN** its clone carries no dynamic attribute and no text node holding a slot token, and the wiring removes no attribute and splits no text
 
 #### Scenario: Nodes are reached without child lists
 
 - **WHEN** an instance resolves its dynamic nodes from its clone
 - **THEN** no `childNodes` list is read; nodes are reached through `firstChild`/`nextSibling` steps
+
+#### Scenario: SVG attributes never hold the placeholder
+
+- **WHEN** a template binds SVG attributes with value grammars (`x`, `width`, `d`, `viewBox`) and renders several instances
+- **THEN** the browser reports no attribute parse error, and each attribute carries its value under its authored name, `viewBox` included
 
 ### Requirement: An instance holds slots, not closures
 
