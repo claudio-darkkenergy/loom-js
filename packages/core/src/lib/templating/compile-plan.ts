@@ -2,6 +2,7 @@ import { config } from '../../config';
 import type { ConfigEvent } from '../../types';
 import { getDocument, getWindow } from '../dom';
 import { toCamelCase } from '../helpers';
+import { type AttrSlots, readAttrMarker } from './attr-slot-markers';
 import type { PlanEntry, SlotKind, TemplatePlan } from './types';
 
 // Named special attributes map straight to their kind; any other `$name` is
@@ -92,14 +93,25 @@ const relativeSteps = (previous: number[], current: number[]) => {
           ];
 };
 
+// An authored name keeps its case only where the parser would too: on a
+// non-HTML element, and not for a `$` special.
+const caseAuthoredName = (element: Element, name: string) =>
+    name[0] === '$' || element instanceof getWindow().HTMLElement
+        ? name.toLowerCase()
+        : name;
+
 /**
  * Normalizes a parsed template fragment and compiles its plan. Every slot
- * token inside text becomes its own text node and every special attribute
+ * token inside text becomes its own text node and every dynamic attribute
  * is removed from its element, so a clone needs no per-instance splitting
  * or stripping; the plan then records how to reach each dynamic node and
- * how each dynamic path applies its value, in interpolation order.
+ * how each dynamic path applies its value, in interpolation order. An
+ * attribute slot parsed as a marker takes its name from `attrSlots`.
  */
-export const compilePlan = (fragment: DocumentFragment): TemplatePlan => {
+export const compilePlan = (
+    fragment: DocumentFragment,
+    attrSlots: AttrSlots = new Map()
+): TemplatePlan => {
     const { Comment, HTMLElement, NodeFilter, SVGElement, Text } = getWindow();
     const treeWalker = getDocument().createTreeWalker(
         fragment,
@@ -113,8 +125,10 @@ export const compilePlan = (fragment: DocumentFragment): TemplatePlan => {
         const node = treeWalker.currentNode;
 
         if (node instanceof HTMLElement || node instanceof SVGElement) {
-            const dynamicAttrs = Array.from(node.attributes).filter((attr) =>
-                config.tokenRe.test(attr.value)
+            const dynamicAttrs = Array.from(node.attributes).filter(
+                (attr) =>
+                    readAttrMarker(attr.name) > -1 ||
+                    config.tokenRe.test(attr.value)
             );
 
             dynamicAttrs.length && dynamicNodes.push([node, dynamicAttrs]);
@@ -134,10 +148,16 @@ export const compilePlan = (fragment: DocumentFragment): TemplatePlan => {
             const target = targets.push(node) - 1;
 
             dynamicAttrs.forEach((attr) => {
-                const entry = classifyAttr(attr.name);
+                const authoredName = attrSlots.get(
+                    readAttrMarker(attr.name)
+                )?.name;
+                const entry = classifyAttr(
+                    authoredName === undefined
+                        ? attr.name
+                        : caseAuthoredName(node as Element, authoredName)
+                );
 
-                entry.kind !== 'attr' &&
-                    (node as Element).removeAttribute(attr.name);
+                (node as Element).removeAttribute(attr.name);
                 entries.push({ ...entry, node: target });
             });
         } else {

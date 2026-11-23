@@ -109,6 +109,67 @@ describe('template instance plan', () => {
         });
     });
 
+    describe('attribute slots', () => {
+        it('should clone no dynamic attribute and no placeholder value', () => {
+            // The first instance parses the template; the stub watches clones.
+            renderCards(1);
+
+            const importNode = document.importNode.bind(document);
+            const clonedAttrs: string[][] = [];
+
+            sinon.stub(document, 'importNode').callsFake((node, deep) => {
+                const clone = importNode(node, deep) as DocumentFragment;
+
+                clonedAttrs.push(clone.firstElementChild!.getAttributeNames());
+
+                return clone;
+            });
+            renderCards(2);
+
+            expect(
+                clonedAttrs,
+                'no dynamic attribute on a clone'
+            ).to.deep.equal([[], []]);
+        });
+
+        it('should apply an SVG attribute under its authored case', async () => {
+            const Icon = component<{ box: string }>(
+                (html, { box }) => html`
+                    <svg viewBox=${box}><path d="M0 0" /></svg>
+                `
+            );
+            const ctx: ComponentContextPartial = {};
+
+            Icon({ box: '0 0 24 24' })(ctx);
+
+            const svg = ctx.root as SVGSVGElement;
+
+            expect(svg.getAttributeNames()).to.deep.equal(['viewBox']);
+            expect(svg.viewBox.baseVal.width).to.equal(24);
+            expect(
+                await renderToString(Icon({ box: '0 0 16 16' }), {
+                    window: createServerWindow()
+                })
+            ).to.contain('viewBox="0 0 16 16"');
+        });
+
+        it('should keep text that ends in `=` as text', () => {
+            const Equation = component<{ value: number }>(
+                (html, { value }) => html`
+                    <p title=${'sum'}>a=${value}</p>
+                `
+            );
+            const ctx: ComponentContextPartial = {};
+
+            Equation({ value: 3 })(ctx);
+
+            const paragraph = ctx.root as HTMLElement;
+
+            expect(paragraph.textContent).to.equal('a=3');
+            expect(paragraph.getAttributeNames()).to.deep.equal(['title']);
+        });
+    });
+
     describe('an instance holds slots', () => {
         it('should hold one slot per dynamic path, each on a node of its clone', () => {
             const [ctx] = renderCards(1);

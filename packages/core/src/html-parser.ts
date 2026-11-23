@@ -13,6 +13,7 @@ import { loomConsole } from './lib/globals/loom-console';
 import { deepDiffObject, isObject } from './lib/helpers';
 import { isWithinHydratingRoot } from './lib/hydrating-roots';
 import { applySlot, compilePlan, createSlots } from './lib/templating';
+import { joinStatics, scanAttrSlots } from './lib/templating/attr-slot-markers';
 // Imported by path — not via the templating barrel — to avoid a barrel cycle
 // (`compile-component-tags` imports `component`, which imports this module).
 import { collapseWhitespace } from './lib/templating/collapse-whitespace';
@@ -37,7 +38,7 @@ import type {
 interface TemplateDocumentCacheEntry {
     // Per document, so injected windows render in one process and a server
     // window's fragments release with its document (`WeakMap`). Normalized
-    // by `compilePlan`: token text split, special attributes stripped.
+    // by `compilePlan`: token text split, dynamic attributes stripped.
     fragment: DocumentFragment;
     // The template's root form — a property of the statics, so it is
     // classified once per parse.
@@ -113,6 +114,8 @@ export function htmlParser(
     // template against its own realm.
     if (!documentEntry) {
         const tableScope = scanTableScope(statics);
+        // Attribute slots parse as valueless marker attributes.
+        const attrSlots = scanAttrSlots(statics);
         let fragment: DocumentFragment;
 
         if (tableScope.hasTableMarkup) {
@@ -123,22 +126,22 @@ export function htmlParser(
                 'template'
             ) as HTMLTemplateElement;
 
-            templateElement.innerHTML = statics
-                .map((chunk, chunkIndex) =>
-                    chunkIndex < statics.length - 1
-                        ? chunk +
-                          (tableScope.tableContentTokens.has(chunkIndex)
-                              ? `<!--${config.TOKEN}-->`
-                              : config.TOKEN)
-                        : chunk
-                )
-                .join('');
+            templateElement.innerHTML = joinStatics(
+                statics,
+                attrSlots,
+                (chunkIndex) =>
+                    tableScope.tableContentTokens.has(chunkIndex)
+                        ? `<!--${config.TOKEN}-->`
+                        : config.TOKEN
+            );
             fragment = templateElement.content;
         } else {
             // Creates a `DocumentFragment` using the component HTML template as its context (children.)
             fragment = currentDocument
                 .createRange()
-                .createContextualFragment(statics.join(config.TOKEN));
+                .createContextualFragment(
+                    joinStatics(statics, attrSlots, () => config.TOKEN)
+                );
         }
 
         // Cache this document's parse of the template. The root form is read
@@ -146,7 +149,7 @@ export function htmlParser(
         documentEntry = {
             fragment,
             isFragment: isFragmentRegion(chunks) || isFragmentRoot(fragment),
-            plan: compilePlan(fragment)
+            plan: compilePlan(fragment, attrSlots)
         };
         documentCache.set(currentDocument, documentEntry);
     }

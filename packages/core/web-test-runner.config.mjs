@@ -1,5 +1,6 @@
 import { esbuildPlugin } from '@web/dev-server-esbuild';
 
+import { consoleCapturePlugin } from './tests/support/console-capture-plugin.mjs';
 import { minifiedFixturePlugin } from './tests/support/minified-fixture-plugin.mjs';
 
 export default {
@@ -12,7 +13,8 @@ export default {
     nodeResolve: true,
     plugins: [
         esbuildPlugin({ ts: true, tsconfig: './tests/tsconfig.json' }),
-        minifiedFixturePlugin()
+        minifiedFixturePlugin(),
+        consoleCapturePlugin()
     ],
     puppeteer: true
 };

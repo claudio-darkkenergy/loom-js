@@ -2,6 +2,10 @@ import { expect } from '@esm-bundle/chai';
 import sinon from 'sinon';
 
 import { config } from '../../src/config';
+import {
+    joinStatics,
+    scanAttrSlots
+} from '../../src/lib/templating/attr-slot-markers';
 import { compilePlan } from '../../src/lib/templating/compile-plan';
 import { createSlots } from '../../src/lib/templating/slots';
 
@@ -87,7 +91,7 @@ describe('compilePlan', () => {
     });
 
     describe('fragment normalization', () => {
-        it('should strip special attributes and keep standard ones', () => {
+        it('should strip every dynamic attribute and keep static ones', () => {
             const fragment = parse(
                 `<button class="${TOKEN}" $click="${TOKEN}" $props="${TOKEN}" $static="kept"></button>`
             );
@@ -96,10 +100,37 @@ describe('compilePlan', () => {
 
             const button = fragment.firstElementChild!;
 
-            expect(button.getAttributeNames()).to.deep.equal([
-                'class',
-                '$static'
-            ]);
+            expect(button.getAttributeNames()).to.deep.equal(['$static']);
+        });
+
+        it('should name a marker attribute from its slot, in the case the element keeps', () => {
+            const statics = [
+                '<svg viewBox="',
+                '" $My-Label=',
+                '><rect CLASS=',
+                ' /></svg><p Title=',
+                '></p>'
+            ];
+            const attrSlots = scanAttrSlots(statics);
+            const fragment = parse(
+                joinStatics(statics, attrSlots, () => TOKEN)
+            );
+            const { entries } = compilePlan(fragment, attrSlots);
+
+            expect(entries.map(({ kind, name }) => [kind, name])).to.deep.equal(
+                [
+                    ['attr', 'viewBox'],
+                    ['custom', 'my-label'],
+                    ['attr', 'CLASS'],
+                    ['attr', 'title']
+                ]
+            );
+            expect(
+                Array.from(fragment.querySelectorAll('*')).flatMap((element) =>
+                    element.getAttributeNames()
+                ),
+                'markers stripped'
+            ).to.deep.equal([]);
         });
 
         it('should split slot tokens into their own text nodes', () => {

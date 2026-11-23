@@ -109,8 +109,7 @@ export const applyAttr: SlotApplier = (slot, { name }, newValue, ctx) => {
 
 // Replacement semantics for object/array style values: the resolved value
 // fully determines the inline style, and an application yielding zero
-// properties leaves no `style` attribute behind — so the parsed placeholder
-// token never survives an empty-resolving value. The clear goes through the
+// properties leaves no `style` attribute behind. The clear goes through the
 // CSSOM (`cssText`), not `removeAttribute`: Chrome serializes the style
 // attribute lazily after `setProperty`, and a pending flush can resurrect a
 // removed attribute as `style=""`. The prune's `getAttribute` read forces
