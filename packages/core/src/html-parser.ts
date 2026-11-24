@@ -19,6 +19,7 @@ import { joinStatics, scanAttrSlots } from './lib/templating/attr-slot-markers';
 import { collapseWhitespace } from './lib/templating/collapse-whitespace';
 import { compileComponentTags } from './lib/templating/compile-component-tags';
 import { isFragmentRegion } from './lib/templating/compile-component-tags/regions';
+import { layoutNodes, recordLayout } from './lib/templating/node-tracking';
 import { isFragmentRoot } from './lib/templating/root-form';
 import { scanTableScope } from './lib/templating/table-scope';
 import type { TemplatePlan } from './lib/templating/types';
@@ -194,6 +195,7 @@ export function htmlParser(
             ctx.fragment = true;
             ctx.root = Array.from(liveFragment.childNodes) as TemplateRootArray;
         } else {
+            ctx.layout &&= undefined;
             ctx.root = liveFragment.firstElementChild as TemplateRoot;
         }
 
@@ -203,17 +205,22 @@ export function htmlParser(
         _lifeCycles.preRender(ctx);
         // Wire each dynamic path to its live node, then apply every value.
         ctx.slots = createSlots(templatePlan, liveFragment);
+
+        if (isTemplateFragment) {
+            ctx.layout = recordLayout(
+                liveFragment,
+                ctx.slots,
+                templatePlan.entries
+            );
+        }
+
         ctx.slots.forEach((slot, i) => {
             slot.value = values[i];
             applySlot(slot, templatePlan.entries[i]!, slot.value, ctx, i);
         });
 
-        if (isTemplateFragment) {
-            // Re-capture the root node-list: wiring a top-level dynamic slot
-            // replaces the placeholder text nodes captured above, which would
-            // leave `ctx.root` referencing detached nodes.
-            ctx.root = Array.from(liveFragment.childNodes) as TemplateRootArray;
-        }
+        // Top-level slots replaced their placeholders.
+        isTemplateFragment && (ctx.root = layoutNodes(ctx));
 
         // setParentOnContext(ctx);
         instanceContextStore.add(ctx);
@@ -234,6 +241,8 @@ export function htmlParser(
                 getShareableContext(ctx)
             );
 
+        let hasApplied = false;
+
         // Apply the slots whose values changed.
         ctx.slots.forEach((slot, i) => {
             const value = values[i];
@@ -244,8 +253,12 @@ export function htmlParser(
             if (hasSlotValueChanged(slot.value, value)) {
                 slot.value = value;
                 applySlot(slot, templatePlan.entries[i]!, value, ctx, i);
+                hasApplied = true;
             }
         });
+
+        // A top-level slot may have changed its nodes.
+        hasApplied && ctx.layout && (ctx.root = layoutNodes(ctx));
 
         canDebugUpdates &&
             loomConsole.info('completed', getShareableContext(ctx));

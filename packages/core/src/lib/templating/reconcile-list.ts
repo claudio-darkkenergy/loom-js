@@ -288,6 +288,17 @@ export const handleArrayValue = (
     // the new order, consecutive ones as one insertion.
     const stable = inOrder ? undefined : stablePositions(previousIndices);
     let anchor = tailAnchor;
+
+    if (anchor && (!inOrder || reusedCount < nextItems.length)) {
+        // A list placed already by a nested pass can reach past its previous
+        // end: the tail is the first node after it that the list lacks.
+        const listNodes = new Set<Node>(nextLiveNode);
+
+        while (anchor && listNodes.has(anchor)) {
+            anchor = anchor.nextSibling;
+        }
+    }
+
     // The entries awaiting insertion before `anchor`, last first.
     const pending: LiveEntry[] = [];
     const placePending = () => {
@@ -330,6 +341,60 @@ export const handleArrayValue = (
     }
 
     return nextLiveNode;
+};
+
+/**
+ * Replaces the run of `previous` nodes in a placement (a slot's node, an
+ * effect's root or a reconciled list) with `next`. A list is changed in
+ * place, so every holder of it stays current, and its stored items follow.
+ * Returns the updated placement, or `undefined` when it does not hold
+ * `previous`.
+ */
+export const substituteNodes = (
+    placement: LiveEntry,
+    previous: TemplateRootArray,
+    next: TemplateRootArray
+): LiveEntry | undefined => {
+    const [first] = previous;
+
+    if (!Array.isArray(placement)) {
+        return previous.length === 1 && placement === first
+            ? next.length === 1
+                ? next[0]
+                : next.slice()
+            : undefined;
+    }
+
+    const start = placement.indexOf(first!);
+
+    if (
+        start < 0 ||
+        previous.some((node, offset) => placement[start + offset] !== node)
+    ) {
+        return undefined;
+    }
+
+    const liveList = liveListStore.get(placement);
+
+    if (liveList) {
+        const item = liveList.items.find(({ entry }) =>
+            Array.isArray(entry) ? entry.includes(first!) : entry === first
+        );
+        const entry =
+            item?.ownsContext && substituteNodes(item.entry, previous, next);
+
+        // A keyed item takes the change; a list of plain nodes reconciles
+        // per node next time, which needs no stored items.
+        entry ? (item.entry = entry) : liveListStore.delete(placement);
+    }
+
+    const rest = placement.splice(start);
+
+    // Pushed one by one: a spread would hit the engine's argument limit.
+    next.forEach((node) => placement.push(node));
+    rest.slice(previous.length).forEach((node) => placement.push(node));
+
+    return placement;
 };
 
 // Gathers nodes into a fragment, so they insert in one operation; bounded

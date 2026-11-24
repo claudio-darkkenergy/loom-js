@@ -160,6 +160,70 @@ describe('fragment-rooted children-array items', () => {
             );
         });
 
+        it('moves every current node of a keyed group that grew since first render', async () => {
+            const order = activity(['a', 'b'], { deep: true });
+            const grown = activity(false);
+            const Short = component<{ label: string }>(
+                (html, { label }) => html`
+                    <dd data-short=${label}></dd>
+                `
+            );
+            const Long = component<{ label: string }>(
+                (html, { label }) => html`
+                    <dd data-long=${label}></dd>
+                    <dd data-long=${label}></dd>
+                `
+            );
+            const Growing = component<{ label: string }>(
+                (html, { label }) => html`
+                    <dt data-dt=${label}>${label}</dt>
+                    ${grown.effect(({ value }) =>
+                        value ? Long({ label }) : Short({ label })
+                    )}
+                `
+            );
+            const TestComponent = component(
+                (html) => html`
+                    <dl data-list>
+                        ${order.effect(({ value: labels }) =>
+                            labels.map((label) =>
+                                Growing({ key: label, label })
+                            )
+                        )}
+                        <dt data-tail></dt>
+                    </dl>
+                `
+            );
+
+            const $test = await runSetup({ containerProps: { TestComponent } });
+            const $list = $test.querySelector('[data-list]');
+            const attrsOf = (node: Node) =>
+                node.nodeType === Node.ELEMENT_NODE
+                    ? `${tagOf(node)}:${Array.from(
+                          (node as Element).attributes,
+                          ({ value }) => value
+                      ).join()}`
+                    : tagOf(node);
+
+            grown.update(true);
+            order.update(['b', 'a']);
+
+            expect(
+                contentNodes($list).map(attrsOf),
+                'each grown group moved whole, before the trailing sibling'
+            ).to.deep.equal([
+                'DT:b',
+                'DD:b',
+                'DD:b',
+                'DT:a',
+                'DD:a',
+                'DD:a',
+                'DT:'
+            ]);
+            expect($list?.querySelector('[data-short]'), 'no stale node').to.be
+                .null;
+        });
+
         it('removes every node of a group dropped by truncation', async () => {
             const order = activity(['a', 'b', 'c'], { deep: true });
             const TestComponent = component(

@@ -243,6 +243,9 @@ export interface ComponentContext<Props extends object = {}>
     ctxScopes: Map<TemplateFunction<any>, ComponentContextPartial>;
     fingerPrint: TemplateFunction<any>;
     fragment: boolean;
+    // Internal — a fragment instance's top level: each static node, or the
+    // index of the text slot that fills that position.
+    layout?: (TemplateRoot | number)[];
     lifeCycleState: LifeCycleState;
     node: ContextNodeGetter;
     // Instance-memoized values behind the `own` utility prop — created in

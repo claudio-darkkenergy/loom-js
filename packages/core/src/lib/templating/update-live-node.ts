@@ -7,9 +7,10 @@ export const updateLiveNode = ([liveNode, value]: [
 ]) => {
     let replaceableNode: TemplateRoot | undefined;
 
+    // A list is read, not emptied: other holders may still reference it.
     if (Array.isArray(liveNode)) {
-        replaceableNode = liveNode.splice(0, 1)[0];
-        liveNode.forEach((node) => node.remove());
+        replaceableNode = liveNode[0];
+        liveNode.slice(1).forEach((node) => node.remove());
     } else {
         replaceableNode = liveNode;
     }

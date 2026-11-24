@@ -7,6 +7,7 @@ import { devtoolsHook, now } from './lib/devtools/hook';
 import { createDiagnosticSubject } from './lib/globals/diagnostic-format';
 import { isObject } from './lib/helpers';
 import { reactiveEffect } from './lib/reactive';
+import { carryNodeChange } from './lib/templating/node-tracking';
 import { textUpdater } from './lib/templating/text-updater';
 import type {
     ActivityEffectAction,
@@ -99,13 +100,16 @@ export const activity = <V, I = V>(
                 function activityContextFunction(
                     ctx: ComponentContextPartial = {}
                 ) {
-                    const renderEffect = () => {
+                    // An update re-renders on its own and carries the change
+                    // up; a render from the parent is placed by the parent.
+                    const renderEffect = (isUpdate: boolean) => {
                         const hook = devtoolsHook;
                         const startedAt = hook ? now() : 0;
                         const scopedAction = scopedActions.get(ctx);
                         const templateTagValue =
                             scopedAction &&
                             scopedAction({ value: valueProp.value });
+                        const previousRoot = ctx.root;
 
                         ctx.root = textUpdater(
                             ctx.root as TemplateRoot | TemplateRootArray,
@@ -114,6 +118,9 @@ export const activity = <V, I = V>(
                                 ? appendChildContext(ctx, templateTagValue, 0)
                                 : ctx
                         );
+                        isUpdate &&
+                            previousRoot &&
+                            carryNodeChange(ctx, previousRoot, ctx.root);
                         hook && hook.rendered(ctx, now() - startedAt);
                     };
 
@@ -125,11 +132,14 @@ export const activity = <V, I = V>(
                     if (!ctx.root || !scopedActions.has(ctx)) {
                         // Set the current action scope.
                         scopedActions.set(ctx, action);
+                        let isSubscribed = false;
                         // Set up the reactive effect for the activity.
                         const disposeRenderEffect = reactiveEffect(
-                            renderEffect,
+                            () => renderEffect(isSubscribed),
                             valueProp
                         );
+
+                        isSubscribed = true;
 
                         // Register the unmount cleanup — dispose the render
                         // effect and release this context from the activity's
@@ -146,7 +156,7 @@ export const activity = <V, I = V>(
                         // Update the current action scope.
                         scopedActions.set(ctx, action);
                         // & call the effect, directly, so we don't duplicate the effect reactivity.
-                        renderEffect();
+                        renderEffect(false);
                     }
 
                     return ctx;
