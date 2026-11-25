@@ -69,6 +69,8 @@ export interface PrerenderContext {
     /** The absolute build directory. */
     outDir: string;
     bundle: PrerenderBundle;
+    /** The mode the bundle was built in. */
+    mode: Mode;
 }
 
 export interface PrerenderOptions<
@@ -80,24 +82,38 @@ export interface PrerenderOptions<
      * app. Must export `prerenderRoute(url, window)`.
      */
     entry: string;
-    /** Runs once, before route enumeration — e.g. point data providers at their build-time transport. */
+    /**
+     * Runs once per bundle load, before anything else — e.g. point data
+     * providers at their build-time transport. Runs in every command:
+     * `loom build` (either mode), `loom prerender` and each `loom dev` run.
+     */
     setup?: (bundle: Bundle) => void | Promise<void>;
-    /** The routes to prerender. Each resolves to the shell of its longest configured route prefix. */
+    /**
+     * The routes to prerender. Each resolves to the shell of its longest
+     * configured route prefix. Runs in a production `loom build`, `loom
+     * prerender` and `loom dev --prerender`; never in a development build
+     * or plain `loom dev`.
+     */
     routes: (bundle: Bundle) => string[] | Promise<string[]>;
-    /** Throw to fail the build for a route whose output is not what the app expects. */
+    /** Throw to fail the build for a route whose output is not what the app expects. Runs with `routes`. */
     validate?: (
         route: string,
         output: PrerenderOutput,
         bundle: Bundle
     ) => void | Promise<void>;
-    /** The route's own title and description, written into its shell's head. */
+    /** The route's own title and description, written into its shell's head. Runs with `routes`. */
     meta?: (
         route: string,
         output: PrerenderOutput,
         bundle: Bundle
     ) => RouteMeta | undefined | Promise<RouteMeta | undefined>;
-    /** Runs once after every route is written — e.g. emit extra files from the same bundle. */
-    after?: (
+    /**
+     * Writes the files an app generates from the bundle (a search index, a
+     * feed). Runs after `setup` in every command — after the routes are
+     * written when they are rendered — so `loom dev` serves the same files
+     * at the same paths as the build. Branch on `mode` to skip work in dev.
+     */
+    artifacts?: (
         context: PrerenderContext & { bundle: Bundle }
     ) => void | Promise<void>;
     /**
@@ -164,6 +180,14 @@ export interface ResolvedConfig extends Required<
     devtools: DevtoolsSetting;
     // Whether the config set `devtools` itself.
     devtoolsExplicit: boolean;
+    /** The config file and cwd it was resolved from; `loom dev` reloads it per run. */
+    configSource?: ConfigSource;
+}
+
+export interface ConfigSource {
+    /** The config file's absolute path. */
+    file: string;
+    cwd: string;
 }
 
 export interface ResolveOptions {
@@ -172,4 +196,6 @@ export interface ResolveOptions {
     cwd?: string;
     /** Overrides `config.outDir` (the `--outDir` flag / `LOOM_BUILD_DIR`). */
     outDir?: string;
+    /** The file the config was loaded from. `loom dev` needs it to run the prerender hooks. */
+    configFile?: string;
 }

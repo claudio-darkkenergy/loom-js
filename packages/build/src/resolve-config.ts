@@ -36,7 +36,7 @@ export const resolveMode = (
 /** Unwraps the function form, then fills every default. */
 export const resolveConfig = async (
     configExport: LoomConfigExport,
-    { cwd = process.cwd(), mode, outDir }: ResolveOptions
+    { configFile, cwd = process.cwd(), mode, outDir }: ResolveOptions
 ): Promise<ResolvedConfig> => {
     const env: ConfigEnv = { mode };
     const config: LoomConfig =
@@ -57,6 +57,7 @@ export const resolveConfig = async (
     }
 
     return {
+        configSource: configFile ? { cwd, file: configFile } : undefined,
         copy: config.copy ?? [],
         define: config.define ?? {},
         devtools: config.devtools ?? 'dev',

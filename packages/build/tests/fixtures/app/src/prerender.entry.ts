@@ -5,8 +5,12 @@ import {
 } from '@loom-js/core/server';
 
 import { App, GREETING_KEY } from './app';
+import { nextRunCount } from './run-count';
+import { STAMP } from './stamp';
 
 export const greetingKey = GREETING_KEY;
+
+export const artifactStamp = () => `${STAMP} (run ${nextRunCount()})`;
 
 export const listPages = async () => ['/', '/docs/alpha', '/docs/beta'];
 

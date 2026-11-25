@@ -46,7 +46,7 @@ build/
   static/styles/base.css
 ```
 
-`loom dev` watches, rebuilds and serves `build/` with `index.html` as the fallback for every unknown path, so client-side routes deep-link in dev.
+`loom dev` watches, rebuilds and serves `build/` with `index.html` as the fallback for every unknown path, so client-side routes deep-link in dev. With a [`prerender`](#prerendering) section it also writes the files your `artifacts` hook generates, so a search index or an `llms.txt` is served in dev at the same path as in production.
 
 The shell owns the app root — the entry boots onto it rather than creating one:
 
@@ -66,10 +66,10 @@ hydrate({ app: App(), root: document.getElementById(APP_ROOT_ID) ?? undefined })
 | Command | What it does |
 | --- | --- |
 | `loom build` | Wipes `outDir`, bundles, emits the shells and copies. In production mode, runs the prerender phase when one is configured. |
-| `loom dev` | Development mode: watch and serve with SPA fallback. Never prerenders. |
+| `loom dev` | Development mode: watch and serve with SPA fallback. Runs `setup` and `artifacts` on start and after every rebuild; renders routes only with `--prerender`. |
 | `loom prerender` | Re-runs only the prerender phase against the current `outDir` — iterate on hooks without a full rebuild. |
 
-Flags: `--mode development|production`, `--outDir <dir>` (also the `LOOM_BUILD_DIR` environment variable), `--config <file>`.
+Flags: `--mode development|production`, `--outDir <dir>` (also the `LOOM_BUILD_DIR` environment variable), `--config <file>`, and for `loom dev` only, `--prerender` (see [In dev](#in-dev)).
 
 **Mode** is the one switch the tool keys everything off. `build` and `prerender` are production unless `--mode development` is passed or `NODE_ENV=development` is set; `dev` is always development. An app never sets minification or sourcemaps by hand:
 
@@ -134,7 +134,7 @@ The default shell is a `<head>` with the title, charset and viewport metas, your
 
 ## Prerendering
 
-Configure `prerender` and a production `loom build` renders routes to static HTML with their dehydrated state embedded, so the client boots primed and flash-free. `loom dev` never runs it; `loom prerender` runs only this phase against an existing `outDir`.
+Configure `prerender` and a production `loom build` renders routes to static HTML with their dehydrated state embedded, so the client boots primed and flash-free. `loom prerender` runs only this phase against an existing `outDir`. A development build and `loom dev` load the same bundle to run `setup` and `artifacts`, but render routes only when you ask (see [In dev](#in-dev)).
 
 The phase has two halves. Yours is a **prerender entry** — a module built as `static/js/prerender` in the same bundle as the client, so CSS-module class names and the core instance match the shipped app (no shell ever loads it). It must export one function, `prerenderRoute(url, window)`, which is the [`renderToString`](/docs/server-rendering) + [`dehydrate`](/docs/dehydrated-state) pair from those topics; anything else it exports is for your hooks:
 
@@ -185,18 +185,18 @@ export default defineConfig<Bundle>({
         validate: (route, { html }) => {
             if (!html.includes('<main')) throw new Error(`${route} rendered no main`);
         },
-        after: ({ outDir }) =>
+        artifacts: ({ outDir }) =>
             writeFile(path.join(outDir, 'robots.txt'), 'User-agent: *\nAllow: /'),
         preloadFonts: true
     }
 });
 ```
 
-- `setup(bundle)` runs once before anything renders — point data providers at their build-time transport, read a token, seed a cache.
+- `setup(bundle)` runs once each time the bundle is loaded, before anything else — point data providers at their build-time transport, read a token. Keep inputs only route rendering needs (a results file a page shows) in `routes`, so dev can run without them.
 - `routes(bundle)` returns the routes to render. Enumeration is yours, as it is in the hand-rolled loop: a route table, a CMS listing, the filesystem.
 - `validate(route, { html, state }, bundle)` throws to fail the build for a route whose output is not what the app expects — a missing title, a resource key absent from the state.
 - `meta(route, { html, state }, bundle)` returns the route's own `{ title, description }`. Routes share their section's shell, so without it every `/docs/*` page carries the `/docs` title. The tool writes `title` into `<title>` and `og:title`, and `description` into `<meta name="description">` and `og:description`, escaped. A field you leave out keeps the shell's value, and Open Graph tags are only rewritten where the shell already has them.
-- `after({ outDir, bundle })` runs once after every route is written — sitemaps, feeds, anything derived from the same data.
+- `artifacts({ outDir, bundle, mode })` writes the files you generate from the bundle — sitemaps, feeds, a search index. It runs in every command, after the routes are written when they are rendered. `mode` is the mode the bundle was built in, if you want to skip costly work in dev.
 - `preloadFonts` preloads every `.woff2` the build emitted from the shells' `<head>`; fonts are otherwise only discoverable through CSS `url()`s, which puts their download after first paint.
 
 What the pipeline does with them:
@@ -205,9 +205,26 @@ What the pipeline does with them:
 2. Runs `setup`, then `routes`.
 3. Preserves the pristine shells: the root shell is copied to `shell.html` (the SPA fallback a host rewrites unknown paths to), and a section's shell beside its own `index.html` when that section route is itself rendered. Font preloads go into the shells here.
 4. Renders each route against a fresh DOM window into the shell of its longest configured route prefix — `/docs/a` uses the `/docs` shell. The output is sanity-checked (markup present, state parses), `validate` runs, `meta` rewrites the head, then `injectPrerender` fills the two slots and `<route>/index.html` is written.
-5. Runs `after`.
+5. Runs `artifacts`.
 
 Anything a hook throws fails the build. A route whose data never lands is not an error on its own — `renderToString` serializes what has settled and warns — so `validate` is where you turn "the title must be in the markup" or "this key must be in the state" into a failed build rather than a shipped skeleton. The result is the page shape [Client Hydration](/docs/hydration) expects: markup in the app root, state in the script slot, and a boot that primes then hydrates.
+
+### In dev
+
+Which hooks run where:
+
+| Command | `setup` | `routes`, `validate`, `meta`, render | `artifacts` |
+| --- | --- | --- | --- |
+| `loom build` (production), `loom prerender` | ✅ | ✅ | ✅ |
+| `loom build --mode development` | ✅ | — | ✅ |
+| `loom dev` | ✅ | — | ✅ |
+| `loom dev --prerender` | ✅ | ✅ | ✅ |
+
+`loom dev` runs the hooks on start, after every successful rebuild, and when you type `r` and Enter in its terminal. Use `r` when content changed but no source did, such as an edit in your CMS. Runs never overlap: a rebuild that lands mid-run queues one more run. Each run loads a fresh copy of the bundle and re-reads the config, so hook edits take effect on the next run without a restart.
+
+`--prerender` renders every route on each run, so you can watch a prerendered page and its hydration with live reload. It is slower, which is why it is opt-in. Unknown paths still get the pristine root shell. Live reload can fire before a run finishes, so you may see the empty shell once; the next reload shows the rendered page.
+
+In dev, a hook that throws prints a `[loom dev]` warning naming the hook and keeps the server running. Files from the last good run stay in place until a run succeeds. `loom build` and `loom prerender` still fail on the same error.
 
 ## TypeScript
 
@@ -220,13 +237,13 @@ The CLI is a thin layer over exported functions, for a setup that scripts its ow
 ```ts
 import { build, loadConfig, prerender, resolveConfig } from '@loom-js/build';
 
-const { config } = await loadConfig(process.cwd());
-const resolved = await resolveConfig(config, { mode: 'production' });
+const { config, file } = await loadConfig(process.cwd());
+const resolved = await resolveConfig(config, { configFile: file, mode: 'production' });
 
 await build(resolved);
 ```
 
-`dev(resolved)` starts the dev server; `prerender(resolved)` runs the phase alone; `createBuildOptions(resolved)` returns the final esbuild options for a build that drives esbuild itself.
+`dev(resolved, { prerender })` starts the dev server and returns `refresh()` and `stop()`; it needs `configFile` to run the prerender hooks, because each run reloads the config; `prerender(resolved)` runs the phase alone; `createBuildOptions(resolved)` returns the final esbuild options for a build that drives esbuild itself.
 
 ## Raw esbuild and other bundlers
 

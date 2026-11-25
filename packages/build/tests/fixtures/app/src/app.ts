@@ -2,6 +2,8 @@
 // markup and state to inject, and a location readout so routes differ.
 import { activity, component, locationEffect, resource } from '@loom-js/core';
 
+import { nextRunCount } from './run-count';
+
 interface Greeting {
     text: string;
 }
@@ -20,7 +22,10 @@ const greeting = activity<Greeting | undefined>(
 );
 
 export const App = component((html, { onCreated }) => {
-    onCreated(() => greeting.update(undefined));
+    onCreated(() => {
+        nextRunCount();
+        greeting.update(undefined);
+    });
 
     return html`
         <main>

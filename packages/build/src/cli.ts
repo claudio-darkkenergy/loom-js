@@ -14,6 +14,8 @@ Options:
                     or development when NODE_ENV=development; dev is always
                     development)
   --outDir <dir>    Build directory (also LOOM_BUILD_DIR; default: build)
+  --prerender       dev only: render every route on each run, so prerendered
+                    pages and hydration can be tested with live reload
   -h, --help        Show this help`;
 
 const COMMANDS = {
@@ -37,7 +39,8 @@ export const cli = async (
             config: { type: 'string' },
             help: { short: 'h', type: 'boolean' },
             mode: { type: 'string' },
-            outDir: { type: 'string' }
+            outDir: { type: 'string' },
+            prerender: { type: 'boolean' }
         }
     });
     const [command] = positionals;
@@ -56,13 +59,22 @@ export const cli = async (
         throw new Error(`[loom] unknown command "${command}".\n\n${USAGE}`);
     }
 
+    if (values.prerender && command !== 'dev') {
+        throw new Error(
+            `[loom] --prerender only applies to \`loom dev\`.\n\n${USAGE}`
+        );
+    }
+
     const cwd = process.cwd();
-    const { config } = await loadConfig(cwd, values.config);
+    const { config, file } = await loadConfig(cwd, values.config);
     const resolved = await resolveConfig(config, {
+        configFile: file,
         cwd,
         mode: command === 'dev' ? 'development' : resolveMode(values.mode, env),
         outDir: values.outDir ?? env.LOOM_BUILD_DIR
     });
 
-    await COMMANDS[command](resolved);
+    await (command === 'dev'
+        ? dev(resolved, { prerender: values.prerender })
+        : COMMANDS[command](resolved));
 };

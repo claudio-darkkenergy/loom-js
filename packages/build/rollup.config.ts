@@ -38,6 +38,26 @@ export default [
             { file: pkg.main, format: 'cjs', sourcemap: true }
         ]
     },
+    // The `loom dev` worker entry, loaded by path beside the main bundle.
+    {
+        external: [
+            /^node:/,
+            /^@loom-js\//,
+            'esbuild',
+            'esbuild-plugin-copy',
+            'linkedom'
+        ],
+        input: './src/dev-worker.ts',
+        plugins: [
+            typescriptRollupPlugin({
+                tsconfig: './tsconfig.json'
+            }),
+            terser({
+                keep_fnames: true
+            })
+        ],
+        output: { file: 'dist/dev-worker.mjs', format: 'es', sourcemap: true }
+    },
     // Consolidates all the type definition files into one, then deletes
     // the typings folder.
     {

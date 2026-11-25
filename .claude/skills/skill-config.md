@@ -161,7 +161,7 @@ App entry files, all under `src/app/`: `bootstrap.ts` is the self-booting client
 | `apps/bench/src/runner/`                   | Puppeteer runner: build, measure, validate, write `results/latest.json` (turbo output)  |
 | `apps/bench/src/types.ts`                  | `BenchResults` schema — the only module the loom app imports from `@loom-js/bench`      |
 | `apps/bench/tests/`                        | `node --test` suites for the runner's pure modules (`pnpm -F @loom-js/bench test-ci`)   |
-| `packages/build/src/`                      | The build tool: config, esbuild assembly, default template, prerender pipeline, CLI     |
+| `packages/build/src/`                      | The build tool: config, esbuild assembly, template, prerender steps, dev runner, CLI    |
 | `packages/core/rollup.config.ts`           | Rollup build config for @loom-js/core                                                   |
 | `packages/core/web-test-runner.config.mjs` | @web/test-runner config                                                                 |
 | `lib/typescript-config/base.json`          | Base tsconfig — strict, noUncheckedIndexedAccess, ES2022, NodeNext                      |

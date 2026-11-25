@@ -3,6 +3,7 @@ export { cli } from './cli';
 export { defineConfig } from './config';
 export type {
     ConfigEnv,
+    ConfigSource,
     CopyAsset,
     DefineValue,
     DevtoolsSetting,
@@ -19,7 +20,7 @@ export type {
     RouteMeta,
     ServerOptions
 } from './config';
-export { dev } from './dev';
+export { dev, type DevOptions } from './dev';
 export { componentBindingsOf, injectActivityLabels } from './devtools-plugin';
 export { createBuildOptions } from './esbuild-options';
 export { findConfigFile, loadConfig, loadConfigFile } from './load-config';

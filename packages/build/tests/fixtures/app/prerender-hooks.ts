@@ -2,11 +2,18 @@
 import type { PrerenderOptions } from '@loom-js/build';
 
 export const prerenderHooks: PrerenderOptions = {
-    after: async ({ outDir }) => {
+    artifacts: async ({ bundle, mode, outDir }) => {
+        if (process.env.LOOM_FIXTURE_ARTIFACTS_THROW) {
+            throw new Error('fixture artifacts failure');
+        }
+
         const { writeFile } = await import('node:fs/promises');
         const { join } = await import('node:path');
 
-        await writeFile(join(outDir, 'after.txt'), 'after ran');
+        await writeFile(
+            join(outDir, 'artifacts.txt'),
+            `${mode} ${(bundle.artifactStamp as () => string)()}`
+        );
     },
     entry: './src/prerender.entry.ts',
     meta: (route) =>

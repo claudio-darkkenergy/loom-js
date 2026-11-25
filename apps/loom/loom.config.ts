@@ -96,7 +96,7 @@ const ctfIsPreview = process.env.CTF_IS_PREVIEW === 'true';
 
 // The topic listing, captured by `routes` for `validate`.
 let topicTitles = new Map<string, string>();
-// The measured framework names, captured by `setup` for `validate`.
+// The measured framework names, captured by `routes` for `validate`.
 let benchFrameworkNames: string[] = [];
 
 export default defineConfig<LoomPrerenderBundle>({
@@ -122,7 +122,7 @@ export default defineConfig<LoomPrerenderBundle>({
         title: sectionTitle
     },
     prerender: {
-        after: async ({ bundle, outDir }) => {
+        artifacts: async ({ bundle, outDir }) => {
             const listedSections = await bundle.listDocsSections();
             const searchEntries = (
                 await Promise.all(
@@ -211,7 +211,16 @@ export default defineConfig<LoomPrerenderBundle>({
             };
         },
         preloadFonts: true,
+        // Only rendered routes need the bench results, so plain `loom dev`
+        // runs without them.
         routes: async (bundle) => {
+            const benchResults = await readBenchResults();
+
+            benchFrameworkNames = benchResults.frameworks.map(
+                ({ name }) => name
+            );
+            bundle.seedBenchResults(benchResults);
+
             const topics = await bundle.listDocsTopics();
 
             topicTitles = new Map(
@@ -232,18 +241,11 @@ export default defineConfig<LoomPrerenderBundle>({
 
             if (!spaceId || !token) {
                 throw new Error(
-                    '[prerender] CTF_SPACE_ID and CTF_TOKEN are required for the production prerender phase.'
+                    '[prerender] CTF_SPACE_ID and CTF_TOKEN are required for the prerender hooks.'
                 );
             }
 
             bundle.configurePrerenderTransport({ spaceId, token });
-
-            const benchResults = await readBenchResults();
-
-            benchFrameworkNames = benchResults.frameworks.map(
-                ({ name }) => name
-            );
-            bundle.seedBenchResults(benchResults);
         },
         validate: (route, { html, state }, bundle) => {
             // Anchored to the footer — docs code samples quote the notice too.

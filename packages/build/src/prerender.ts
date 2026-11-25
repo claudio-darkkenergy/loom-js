@@ -1,6 +1,7 @@
 // The prerender phase: renders every route the app enumerates through the
-// prerender bundle and injects markup + dehydrated state into the emitted
-// shells. The pipeline is the tool's; the app supplies the hooks.
+// prerender bundle, injects markup + dehydrated state into the emitted
+// shells, and runs the app's `artifacts` hook. The steps are the tool's;
+// the app supplies the hooks.
 import { injectPrerender } from '@loom-js/core/server';
 import { parseHTML } from 'linkedom';
 
@@ -66,7 +67,7 @@ export const routeOutputPath = (outDir: string, route: string) =>
 // prerender`) never injects into already-injected markup. The root shell
 // lives at `shell.html`; a section route that is itself prerendered gets a
 // sibling `shell.html` too.
-const shellFileOf = (outDir: string, shellRoute: string) =>
+export const shellFileOf = (outDir: string, shellRoute: string) =>
     path.join(
         path.dirname(routeOutputPath(outDir, shellRoute)),
         ROOT_SHELL_FILE
@@ -96,7 +97,8 @@ const injectFontPreloads = (shellHtml: string, fontFiles: string[]) => {
     return shellHtml.replace(anchor, () => preloads.concat(anchor));
 };
 
-const loadBundle = async (outDir: string): Promise<PrerenderBundle> => {
+/** Imports the prerender bundle from `outDir` and checks its one required export. */
+export const loadBundle = async (outDir: string): Promise<PrerenderBundle> => {
     const bundlePath = path.join(outDir, `${PRERENDER_ENTRY_NAME}.js`);
 
     if (!(await exists(bundlePath))) {
@@ -134,27 +136,57 @@ const checkOutput = (route: string, { html, state }: PrerenderOutput) => {
     }
 };
 
-/**
- * Runs the prerender phase against an existing `outDir`: loads the bundle,
- * preserves the pristine shells, renders every enumerated route into its
- * section's shell, and writes one `index.html` per route. Re-runnable.
- */
-export const prerender = async (config: ResolvedConfig) => {
-    const hooks = config.prerender;
+/** The prerender steps, in run order; a dev run names the one that failed. */
+export type PrerenderStep =
+    | 'config'
+    | 'load'
+    | 'setup'
+    | 'routes'
+    | 'render'
+    | 'validate'
+    | 'meta'
+    | 'artifacts';
 
-    if (!hooks) {
+/** Called as each step starts. */
+export type StepTracker = (step: PrerenderStep) => void;
+
+const hooksOf = (config: ResolvedConfig): PrerenderOptions => {
+    if (!config.prerender) {
         throw new Error('[prerender] the config has no `prerender` section.');
     }
 
-    const { outDir, routes: configuredRoutes } = config;
-    const bundle = await loadBundle(outDir);
+    return config.prerender;
+};
 
-    await hooks.setup?.(bundle);
+/** Runs `prerender.setup` against a freshly loaded bundle. */
+export const runSetup = async (
+    config: ResolvedConfig,
+    bundle: PrerenderBundle
+) => {
+    await hooksOf(config).setup?.(bundle);
+};
+
+/**
+ * Preserves the pristine shells, renders every enumerated route into its
+ * section's shell, and writes one `index.html` per route. Re-runnable.
+ * Returns the number of routes rendered.
+ */
+export const renderRoutes = async (
+    config: ResolvedConfig,
+    bundle: PrerenderBundle,
+    onStep: StepTracker = () => {}
+) => {
+    const hooks = hooksOf(config);
+    const { outDir, routes: configuredRoutes } = config;
+
+    onStep('routes');
 
     const routes = await hooks.routes(bundle);
     const shellRoutes = new Set(
         routes.map((route) => shellRouteOf(route, configuredRoutes))
     );
+
+    onStep('render');
 
     // Root always gets `shell.html` (the SPA fallback contract); sections
     // only when one of their routes is rendered over their own index.
@@ -199,13 +231,18 @@ export const prerender = async (config: ResolvedConfig) => {
 
     for (const route of routes) {
         const shellHtml = shells.get(shellRouteOf(route, configuredRoutes));
+
+        onStep('render');
+
         const output = await bundle.prerenderRoute(
             `${ORIGIN}${route}`,
             freshWindow()
         );
 
         checkOutput(route, output);
+        onStep('validate');
         await hooks.validate?.(route, output, bundle);
+        onStep('meta');
 
         const routeMeta = await hooks.meta?.(route, output, bundle);
         const routeShell = routeMeta
@@ -227,8 +264,37 @@ export const prerender = async (config: ResolvedConfig) => {
         );
     }
 
-    await hooks.after?.({ bundle, outDir });
-    console.info(`> prerender complete: ${routes.length} route(s).`);
+    return routes.length;
+};
+
+/** Runs `prerender.artifacts`, handing it the bundle's build mode. */
+export const runArtifacts = async (
+    config: ResolvedConfig,
+    bundle: PrerenderBundle
+) => {
+    await hooksOf(config).artifacts?.({
+        bundle,
+        mode: config.mode,
+        outDir: config.outDir
+    });
+};
+
+/**
+ * Runs the prerender phase against an existing `outDir`: loads the bundle,
+ * runs `setup`, renders every enumerated route, then runs `artifacts`.
+ * Re-runnable.
+ */
+export const prerender = async (config: ResolvedConfig) => {
+    hooksOf(config);
+
+    const bundle = await loadBundle(config.outDir);
+
+    await runSetup(config, bundle);
+
+    const routeCount = await renderRoutes(config, bundle);
+
+    await runArtifacts(config, bundle);
+    console.info(`> prerender complete: ${routeCount} route(s).`);
 };
 
 export type { PrerenderOptions };

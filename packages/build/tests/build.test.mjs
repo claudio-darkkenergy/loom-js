@@ -1,12 +1,21 @@
 // `@loom-js/build` against the built `dist/` entry, driving the fixture app
 // under `tests/fixtures/app` end to end: config loading, mode resolution,
 // shell resolution, a production build with the prerender phase, a re-run,
-// a development build, the escape hatch, and the CLI. Run via `pnpm test-ci`.
-import { describe, it } from 'node:test';
+// a development build, the dev server's prerender runs, the escape hatch,
+// and the CLI. Run via `pnpm test-ci`.
+import { after, before, describe, it } from 'node:test';
 
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { access, mkdtemp, readdir, readFile } from 'node:fs/promises';
+import {
+    access,
+    mkdtemp,
+    readdir,
+    readFile,
+    rm,
+    writeFile
+} from 'node:fs/promises';
+import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -16,6 +25,7 @@ const {
     build,
     componentBindingsOf,
     createBuildOptions,
+    dev,
     injectActivityLabels,
     loadConfig,
     prerender,
@@ -39,9 +49,60 @@ const read = (outDir, file) => readFile(path.join(outDir, file), 'utf8');
 const tempOutDir = () => mkdtemp(path.join(tmpdir(), 'loom-build-'));
 
 const resolveFixture = async (mode, outDir) => {
-    const { config } = await loadConfig(fixtureRoot);
+    const { config, file } = await loadConfig(fixtureRoot);
 
-    return resolveConfig(config, { cwd: fixtureRoot, mode, outDir });
+    return resolveConfig(config, {
+        configFile: file,
+        cwd: fixtureRoot,
+        mode,
+        outDir
+    });
+};
+
+const freePort = () =>
+    new Promise((resolve, reject) => {
+        const server = createServer();
+
+        server.on('error', reject);
+        server.listen(0, () => {
+            const { port } = server.address();
+
+            server.close(() => resolve(port));
+        });
+    });
+
+// Polls until `check` returns a truthy value; dev runs finish off-thread.
+const waitFor = async (check, label, timeout = 30_000) => {
+    const deadline = Date.now() + timeout;
+
+    while (Date.now() < deadline) {
+        const result = await check();
+
+        if (result) {
+            return result;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    throw new Error(`timed out waiting for ${label}`);
+};
+
+const startDev = async (options) => {
+    const outDir = await tempOutDir();
+    const resolved = await resolveFixture('development', outDir);
+    const port = await freePort();
+    const server = await dev(
+        { ...resolved, server: { ...resolved.server, port } },
+        options
+    );
+    const fetchText = async (pathname) => {
+        const response = await fetch(`http://localhost:${port}${pathname}`);
+
+        return response.text();
+    };
+
+    return { ...server, fetchText, outDir };
 };
 
 describe('config loading', () => {
@@ -145,7 +206,7 @@ describe('production build', () => {
             'docs/index.html',
             'docs/alpha/index.html',
             'docs/beta/index.html',
-            'after.txt'
+            'artifacts.txt'
         ]) {
             assert.ok(await exists(path.join(outDir, file)), `${file} exists`);
         }
@@ -207,17 +268,25 @@ describe('production build', () => {
         assert.match(spa, /fixture \(production\)/);
         assert.ok(!(await exists(path.join(outDir, 'static/js/spa.js.map'))));
 
+        // Artifacts run after the routes, told the mode.
+        assert.match(
+            await read(outDir, 'artifacts.txt'),
+            /^production stamp one/
+        );
+
         // Re-running the phase alone reproduces the same output.
+        await rm(path.join(outDir, 'artifacts.txt'));
         await prerender(resolved);
 
         assert.equal(await read(outDir, 'index.html'), home);
         assert.equal(await read(outDir, 'docs/alpha/index.html'), alpha);
         assert.equal(await read(outDir, 'shell.html'), shell);
+        assert.ok(await exists(path.join(outDir, 'artifacts.txt')));
     });
 });
 
 describe('development build', () => {
-    it('keeps sourcemaps, dev defines, and never prerenders', async () => {
+    it('keeps sourcemaps and dev defines, runs artifacts, renders no route', async () => {
         const outDir = await tempOutDir();
         const resolved = await resolveFixture('development', outDir);
 
@@ -229,9 +298,129 @@ describe('development build', () => {
         assert.match(home, /<div id="loom-app" style="height: 100%"><\/div>/);
         assert.match(spa, /fixture \(development\)/);
         assert.ok(await exists(path.join(outDir, 'static/js/spa.js.map')));
+        assert.equal(
+            await read(outDir, 'artifacts.txt'),
+            'development stamp one (run 1)'
+        );
         assert.ok(!(await exists(path.join(outDir, 'shell.html'))));
-        assert.ok(!(await exists(path.join(outDir, 'after.txt'))));
         assert.ok(!(await exists(path.join(outDir, 'docs/alpha'))));
+    });
+});
+
+describe('dev server', () => {
+    const stampFile = path.join(fixtureRoot, 'src/stamp.ts');
+    let server;
+    let stampSource;
+
+    before(async () => {
+        stampSource = await readFile(stampFile, 'utf8');
+        server = await startDev();
+    });
+
+    after(async () => {
+        await server.stop();
+        await writeFile(stampFile, stampSource);
+    });
+
+    it('serves the artifacts and regenerates them after a rebuild', async () => {
+        await waitFor(
+            async () =>
+                (await server.fetchText('/artifacts.txt')) ===
+                'development stamp one (run 1)',
+            'the first run'
+        );
+
+        // Routes are never rendered without `prerender: true`.
+        assert.ok(!(await exists(path.join(server.outDir, 'shell.html'))));
+        assert.match(
+            await server.fetchText('/docs/alpha'),
+            /<div id="loom-app" style="height: 100%"><\/div>/
+        );
+
+        await writeFile(
+            stampFile,
+            stampSource.replace("'stamp one'", "'stamp two'")
+        );
+
+        // `run 1` again: the shared chunk's module state is fresh per run.
+        await waitFor(
+            async () =>
+                (await server.fetchText('/artifacts.txt')) ===
+                'development stamp two (run 1)',
+            'the rebuilt run'
+        );
+    });
+
+    it('keeps the counter in a chunk both entries share', async () => {
+        const chunks = (await readdir(server.outDir)).filter((file) =>
+            file.endsWith('.js')
+        );
+        const prerenderJs = await read(server.outDir, 'static/js/prerender.js');
+        const sources = await Promise.all(
+            chunks.map((file) => read(server.outDir, file))
+        );
+
+        assert.doesNotMatch(prerenderJs, /(var|let) count = 0/);
+        assert.ok(sources.some((source) => /(var|let) count = 0/.test(source)));
+    });
+
+    it('warns on a failing hook and keeps serving', async (context) => {
+        const warn = context.mock.method(console, 'warn', () => {});
+
+        process.env.LOOM_FIXTURE_ARTIFACTS_THROW = '1';
+
+        try {
+            server.refresh();
+            await waitFor(
+                () =>
+                    warn.mock.calls.some(({ arguments: [message] }) =>
+                        /^\[loom dev\] artifacts failed: fixture artifacts failure/.test(
+                            message
+                        )
+                    ),
+                'the warning'
+            );
+        } finally {
+            delete process.env.LOOM_FIXTURE_ARTIFACTS_THROW;
+        }
+
+        assert.match(await server.fetchText('/'), /id="loom-app"/);
+        assert.match(
+            await server.fetchText('/artifacts.txt'),
+            /^development stamp two/
+        );
+    });
+});
+
+describe('dev server with prerender', () => {
+    let server;
+
+    before(async () => {
+        server = await startDev({ prerender: true });
+    });
+
+    after(() => server.stop());
+
+    it('serves rendered routes and the pristine shell for unknown paths', async () => {
+        const alpha = await waitFor(async () => {
+            const html = await server.fetchText('/docs/alpha');
+
+            return html.includes('<h1>/docs/alpha</h1>') && html;
+        }, 'the rendered route');
+
+        assert.match(alpha, /"fixture:greeting"/);
+        assert.match(alpha, /src="\/static\/js\/spa\.js"/);
+
+        const unknown = await server.fetchText('/nowhere');
+
+        assert.match(
+            unknown,
+            /<div id="loom-app" style="height: 100%"><\/div>/
+        );
+        assert.match(
+            unknown,
+            /<script id="loom-state" type="application\/json"><\/script>/
+        );
     });
 });
 
@@ -248,6 +437,15 @@ describe('cli', () => {
 
         assert.match(stdout, /prerender complete: 3 route\(s\)/);
         assert.ok((await readdir(outDir)).includes('shell.html'));
+    });
+
+    it('rejects --prerender outside dev', async () => {
+        await assert.rejects(
+            run(process.execPath, [binPath, 'build', '--prerender'], {
+                cwd: fixtureRoot
+            }),
+            /--prerender only applies to `loom dev`/
+        );
     });
 
     it('rejects an unknown command', async () => {
