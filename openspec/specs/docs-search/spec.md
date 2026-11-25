@@ -41,7 +41,7 @@ A `Cmd+K` (Apple) or `Ctrl+K` keydown on the window SHALL open the palette when 
 
 ### Requirement: The build emits a static docs search index
 
-The production build SHALL write `/static/search/index.json` in the prerender `after` phase from the same Contentful listing and topic entries the pages render: one entry per listed topic lead (`anchor: ''`) and one per h2/h3 section, each carrying `slug`, `title`, `group`, `heading`, `anchor`, `level` and the section's plain-text prose (paragraphs, lists, quotes, table cells, inline code — fenced code blocks excluded). Section anchors SHALL equal the ids the rendered page gives those headings. The file SHALL never be authored or committed.
+The build tool's `artifacts` hook SHALL write `/static/search/index.json` from the same Contentful listing and topic entries the pages render, so both the production build and `loom dev` serve it: one entry per listed topic lead (`anchor: ''`) and one per h2/h3 section, each carrying `slug`, `title`, `group`, `heading`, `anchor`, `level` and the section's plain-text prose (paragraphs, lists, quotes, table cells, inline code — fenced code blocks excluded). Section anchors SHALL equal the ids the rendered page gives those headings. The file SHALL never be authored or committed.
 
 #### Scenario: Every listed topic is indexed
 
@@ -62,6 +62,11 @@ The production build SHALL write `/static/search/index.json` in the prerender `a
 
 - **WHEN** any route's dehydrated state script is inspected
 - **THEN** it holds no search index entry
+
+#### Scenario: Search works in dev
+
+- **WHEN** `pnpm dev` is running with Contentful credentials and the palette opens
+- **THEN** `/static/search/index.json` is served from the dev build's content source, and a query lists results that route to their headings
 
 ### Requirement: Search code and data load only on first open
 

@@ -36,7 +36,7 @@
 
 ## 5. Docs, config, hygiene
 
-- [ ] 5.1 `docs/topics/15-build-tool.md`: CLI table (`loom dev` no longer "never prerenders"; `--prerender` flag), the dev section (generated files, regeneration triggers, `r`, warnings), the prerender hook list (`after` → `artifacts` with `mode`, the per-command table); push with `docs/contentful-sync/` and publish
+- [x] 5.1 `docs/topics/15-build-tool.md`: CLI table (`loom dev` no longer "never prerenders"; `--prerender` flag), the dev section (generated files, regeneration triggers, `r`, warnings), the prerender hook list (`after` → `artifacts` with `mode`, the per-command table); push with `docs/contentful-sync/` and publish
 - [x] 5.2 Re-grep `docs/topics/` for `after` (today only `15-build-tool.md` names it); update, push and publish anything else that turns up
 - [x] 5.3 CLAUDE.md "App build patterns": the `after` hook line and a dev sentence (generated files are served in dev; `--prerender` for hydration testing; root `pnpm dev` supplies the CTF env)
 - [x] 5.4 `.claude/skills/skill-config.md` if it lists build hooks or the build test harness
